@@ -1790,3 +1790,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.implement-local-web-view
+  - id: evidence.self.implement-local-web-view
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T18:46:41+07:00"
+    summary: 'Commit 2ff4ff7: replan report dashboard also writes workload.html, scenarios.html, proposals.html and estimates.html with raw JSON. Checked on a copy of examples/replan-self in a headless browser after each Codex round: no external requests, no absolute project path, workload window W40 to W52 with a utilization legend, open scenarios first and applied ones collapsed, the executor and Codex split shown as one group (ratio 0.26). Executor fix: structured change values rendered as JSON instead of Go map syntax, with a test. Gate green, agent kit live checks 66. Codex rounds 17:44-18:09 and 18:11-18:33.'
+    targets:
+      - kind: task
+        id: task.self.implement-local-web-view

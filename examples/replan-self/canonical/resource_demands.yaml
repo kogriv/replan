@@ -8870,7 +8870,7 @@ resource_demands:
       role: implementation_agent
       unit: agent_hours
       planned_amount: 2
-      remaining_amount: 2
+      remaining_amount: 0
       criticality: required
       status: active
     - id: resource_demand.implement-local-web-view.codex
@@ -8884,7 +8884,7 @@ resource_demands:
       role: implementation_agent
       unit: agent_hours
       planned_amount: 4
-      remaining_amount: 4
+      remaining_amount: 0
       criticality: required
       status: active
     - id: resource_demand.implement-local-web-view.maintainer
