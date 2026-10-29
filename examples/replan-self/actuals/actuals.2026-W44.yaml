@@ -1637,3 +1637,45 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.implement-estimate-calibration
+    - id: actual.self-import-second-tracker-from-file.ai-codex-local.20261029T1741560700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.import-second-tracker-from-file
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.import-second-tracker-from-file.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.49
+      unit: agent_hours
+      occurred_at: "2026-10-29T17:41:56+07:00"
+      status_date: "2026-10-29"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.import-second-tracker-from-file
+    - id: actual.self-import-second-tracker-from-file.ai-agent-executor.20261029T1741560700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.import-second-tracker-from-file
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.import-second-tracker-from-file.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.55
+      unit: agent_hours
+      occurred_at: "2026-10-29T17:41:56+07:00"
+      status_date: "2026-10-29"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.import-second-tracker-from-file

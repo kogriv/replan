@@ -1767,3 +1767,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.import-second-tracker-from-file
+  - id: evidence.self.import-second-tracker-from-file
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T17:41:56+07:00"
+    summary: 'Commit 6f7f42b: replan import github from an exported file with the shared staged snapshot and import accept; sample under examples/imports/github, profile github.demo in examples/small-team. Checks: 238 CLI outputs compared with the previous binary, only the 4 small-team validate/export outputs differ (the new profile); live OpenProject helper results identical; on a copy of small-team, import github plus every accept mode applied, pull request filtered, cross-repository link skipped, label status mapped, time entries on a github snapshot refused. Gate green, agent kit live checks 66. Codex rounds 16:52-17:15 and 17:21-17:27.'
+    targets:
+      - kind: task
+        id: task.self.import-second-tracker-from-file

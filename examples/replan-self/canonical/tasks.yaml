@@ -4814,7 +4814,7 @@ tasks:
       title: Import GitHub Issues from an exported file
       description: 'Implement the approved second tracker design (task.self.design-second-tracker-adapter) for GitHub Issues from file input first: the mapper with a label-based in-progress status, staged snapshot and candidates, replan import accept for each candidate type, sanitized fixtures and tests, and documentation, without network access.'
       type: implementation
-      tracking_status: in_progress
+      tracking_status: review_ready
       planned_start: "2026-11-11"
       planned_finish: "2026-11-11"
       assignee_hint:
