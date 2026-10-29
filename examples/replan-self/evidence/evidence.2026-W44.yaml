@@ -1890,3 +1890,26 @@ evidence:
     targets:
       - kind: task
         id: task.self.name-import-candidates-source-neutrally
+  - id: evidence.self.start-name-import-candidates-source-neutrally
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T20:35:25+07:00"
+    summary: 'Operator agreed on 2026-10-29 to the recommended order: this task first, then release v0.2.0, keeping the disposable GitHub test repository. Codex writes the change, the executor briefs, reviews and gates it.'
+    targets:
+      - kind: task
+        id: task.self.name-import-candidates-source-neutrally
+  - id: evidence.self.original-estimate-name-import-candidates-source-neutrally
+    type: observation
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T20:35:25+07:00"
+    summary: 'Original estimate before the Codex split, not held by any baseline: agent 2 agent_hours (commit a59286c), maintainer 0.25 hours, local-dev 1 slot, ci 10 minutes. Split into agent 0.75 and codex 1.25.'
+    targets:
+      - kind: task
+        id: task.self.name-import-candidates-source-neutrally
