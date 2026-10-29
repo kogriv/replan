@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 167,
-  "count": 167,
+  "total": 168,
+  "count": 168,
   "_embedded": {
     "elements": [
       {
@@ -4837,6 +4837,35 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2267"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2268,
+        "subject": "Name shared import candidates source-neutrally",
+        "description": {
+          "raw": "Found on 2026-10-29 while checking the live GitHub import: the shared import candidates still carry OpenProject names. A GitHub dependency candidate has from_work_package_id and to_work_package_id, and the Go types are OpenProjectTaskCandidate, OpenProjectResourceCandidate and so on, although import accept and both importers now share them. Renaming the JSON fields would break readers of the existing OpenProject output (helpers, the agent kit, goldens). Wanted: source-neutral Go type names; source-neutral JSON fields for the dependency and resource candidates (for example predecessor_source_id and successor_source_id) added beside the old ones, with the old OpenProject-named fields kept for OpenProject snapshots and documented as deprecated; GitHub snapshots use only the neutral names; the helpers that read the old fields keep working; docs/spec/cli.md and the GitHub document spec updated; goldens through the documented path."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2268"
           },
           "status": {
             "title": "New"

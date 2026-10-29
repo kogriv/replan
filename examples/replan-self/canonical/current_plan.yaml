@@ -340,6 +340,8 @@ current_plan:
     - kind: task
       id: task.self.import-second-tracker-live
     - kind: task
+      id: task.self.name-import-candidates-source-neutrally
+    - kind: task
       id: task.self.design-local-web-view
     - kind: task
       id: task.self.implement-local-web-view

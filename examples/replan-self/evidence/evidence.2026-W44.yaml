@@ -1879,3 +1879,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.import-second-tracker-live
+  - id: evidence.self.find-openproject-names-in-shared-candidates
+    type: observation
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T20:09:24+07:00"
+    summary: 'Live GitHub import check on 2026-10-29: dependency candidates of a github snapshot carry from_work_package_id and to_work_package_id, and the shared Go candidate types are named OpenProject*; renaming the JSON fields directly would break readers of the OpenProject output.'
+    targets:
+      - kind: task
+        id: task.self.name-import-candidates-source-neutrally
