@@ -4658,8 +4658,8 @@
         },
         "estimatedTime": "PT0.5H",
         "spentTime": "PT0H",
-        "startDate": "2026-11-12",
-        "dueDate": "2026-11-12",
+        "startDate": "2026-10-29",
+        "dueDate": "2026-10-29",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2261"
@@ -4861,8 +4861,8 @@
         },
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
-        "startDate": "2026-10-30",
-        "dueDate": "2026-10-30",
+        "startDate": "2026-10-29",
+        "dueDate": "2026-10-29",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2268"

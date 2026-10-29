@@ -1948,3 +1948,42 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-2-0
+  - id: evidence.self.accept-import-second-tracker-live
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-29T21:51:23+07:00"
+    confidence: observed
+    summary: Operator accepted importing GitHub Issues over the API.
+    targets:
+      - kind: task
+        id: task.self.import-second-tracker-live
+  - id: evidence.self.accept-name-import-candidates-source-neutrally
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-29T21:52:06+07:00"
+    confidence: observed
+    summary: Operator accepted the source-neutral import candidates.
+    targets:
+      - kind: task
+        id: task.self.name-import-candidates-source-neutrally
+  - id: evidence.self.accept-publish-release-v0-2-0
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-29T21:52:49+07:00"
+    confidence: observed
+    summary: Operator accepted release v0.2.0.
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-2-0

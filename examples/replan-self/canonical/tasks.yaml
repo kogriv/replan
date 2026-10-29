@@ -4845,9 +4845,9 @@ tasks:
       title: Import GitHub Issues over the API
       description: 'Add live GitHub API input for the GitHub Issues adapter: token from an environment variable, pagination, rate limits, timeouts and retries for reads, issue dependencies and sub-issues, a profile in the project manifest, and a check against a separate disposable test repository, not the RePlan public repository. Read-only; write-back is out of scope.'
       type: implementation
-      tracking_status: review_ready
-      planned_start: "2026-11-12"
-      planned_finish: "2026-11-12"
+      tracking_status: accepted
+      planned_start: "2026-10-29"
+      planned_finish: "2026-10-29"
       assignee_hint:
         kind: resource
         id: resource.human.maintainer
@@ -5050,9 +5050,9 @@ tasks:
       title: Name shared import candidates source-neutrally
       description: 'Found on 2026-10-29 while checking the live GitHub import: the shared import candidates still carry OpenProject names. A GitHub dependency candidate has from_work_package_id and to_work_package_id, and the Go types are OpenProjectTaskCandidate, OpenProjectResourceCandidate and so on, although import accept and both importers now share them. Renaming the JSON fields would break readers of the existing OpenProject output (helpers, the agent kit, goldens). Wanted: source-neutral Go type names; source-neutral JSON fields for the dependency and resource candidates (for example predecessor_source_id and successor_source_id) added beside the old ones, with the old OpenProject-named fields kept for OpenProject snapshots and documented as deprecated; GitHub snapshots use only the neutral names; the helpers that read the old fields keep working; docs/spec/cli.md and the GitHub document spec updated; goldens through the documented path.'
       type: implementation
-      tracking_status: review_ready
-      planned_start: "2026-10-30"
-      planned_finish: "2026-10-30"
+      tracking_status: accepted
+      planned_start: "2026-10-29"
+      planned_finish: "2026-10-29"
       assignee_hint:
         kind: resource
         id: resource.human.maintainer
@@ -5079,7 +5079,7 @@ tasks:
       title: Publish release v0.2.0
       description: 'Agreed with the operator on 2026-10-29: after the source-neutral import candidates, publish v0.2.0 with estimate calibration, the GitHub Issues import from a file and over the API, the workload, scenario, proposal and estimate dashboard pages, the OpenProject successor scheduling fix and the replan version fix. Follow docs/dev/release-process.md: release commit with CI green, annotated tag on GitHub and GitLab, archives with scripts/build-release.sh, checksums, a reproducibility rebuild, binary version check, GitHub release with notes saying the project is alpha, and go install through the module proxy.'
       type: release
-      tracking_status: review_ready
+      tracking_status: accepted
       planned_start: "2026-10-29"
       planned_finish: "2026-10-29"
       assignee_hint:
