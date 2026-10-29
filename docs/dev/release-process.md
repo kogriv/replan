@@ -2,9 +2,10 @@
 
 Date: 2026-10-28
 
-Status: operator runbook. Tagging, publishing and repository administration are
-always the operator's steps. GitHub Actions is currently paused, so release
-archives are built locally.
+Status: runbook. Tagging, publishing and repository administration are done
+by the operator, or by an agent on the operator's explicit instruction. The
+release archives are built locally from the tagged commit; GitHub Actions runs
+the CI checks on the public repository but does not build releases.
 
 Related task: `task.self.add-version-command-and-release-build`.
 
@@ -28,7 +29,8 @@ git tag -a "$version" -m "RePlan $version"
 git show --stat "$version"
 ```
 
-Do not create the tag until the operator has reviewed the release commit. The
+Do not create the tag until the release commit has been reviewed and its CI
+run has passed. The
 default build version is the exact tag at `HEAD`; an untagged commit is
 refused. `REPLAN_RELEASE_VERSION` is available for an explicit local preview.
 
@@ -65,7 +67,8 @@ RePlan project format version.
 
 ## Publish the GitHub release
 
-Pushing the tag and creating the release are explicit operator steps:
+Pushing the tag and creating the release publish the version; they need the
+operator's go:
 
 ```sh
 git push origin "$version"

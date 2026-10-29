@@ -16,7 +16,7 @@ tasks; RePlan keeps the resource side of the plan:
 - which changes an agent may only suggest and a person has to approve.
 
 > **Status: alpha.** The CLI and the file format still change between
-> versions, and there are no release builds yet. RePlan plans its own
+> `v0.x` releases. RePlan plans its own
 > development: [`examples/replan-self`](examples/replan-self) is the live
 > project it is built with, not a demo.
 
@@ -47,17 +47,22 @@ Nothing changes the project unless the command is given `--apply` (or
 
 ## Try it
 
-You need Go 1.24 or newer.
+Prebuilt archives for Linux, macOS and Windows (amd64 and arm64) are on the
+[releases page](https://github.com/kogriv/replan/releases), with a
+`SHA256SUMS` file. Or install the latest release with Go 1.24 or newer:
+
+```bash
+go install github.com/kogriv/replan/cmd/replan@latest
+replan --version
+```
+
+To run the examples below, work from a clone:
 
 ```bash
 git clone https://github.com/kogriv/replan.git
 cd replan
 go install ./cmd/replan        # puts `replan` in $(go env GOPATH)/bin
 ```
-
-Once the first release is published, prebuilt archives will be available on
-the GitHub releases page, and `go install github.com/kogriv/replan/cmd/replan@latest`
-will install the latest published version.
 
 `examples/small-team` is a tiny team: two developers, one AI coding agent, a
 reviewer pool, a staging environment, a token quota and a budget.

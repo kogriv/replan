@@ -29,16 +29,17 @@ going. The task-level plan is RePlan's own project,
   for review.
 - **Agent kit.** The CLI, the helpers and the operating rules packaged for an
   outside AI agent.
+- **Installation.** Tagged releases with prebuilt archives for Linux, macOS
+  and Windows, and `go install`.
 
 ## Next
 
 These are directions, not commitments; each becomes a task in the self plan
 before work starts.
 
-- **Installation.** Tagged releases with prebuilt binaries, and a documented
-  `go install` path.
-- **A stable file format.** Version the project format and keep a migration
-  path once outside users have data in it.
+- **A stable file format.** The project format is versioned and
+  `replan project migrate` exists; the format becomes stable once outside
+  users have data in it.
 - **Calibrated estimates.** Feed the estimate accuracy report back into
   planning, so a plan made by an agent starts from what similar tasks really
   took.

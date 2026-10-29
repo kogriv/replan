@@ -1635,3 +1635,15 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-public-repository
+  - id: evidence.self.start-publish-first-release
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T15:10:38+07:00"
+    summary: 'Operator accepted the public repository on 2026-10-29 and instructed the agent to continue by itself, including the first release v0.1.0 recommended earlier: tag, local archive build, checks, GitHub release.'
+    targets:
+      - kind: task
+        id: task.self.publish-first-release
