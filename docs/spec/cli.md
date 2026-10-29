@@ -711,10 +711,14 @@ replan version --format
 
 Release builds inject version, commit and build date. Other builds fall back
 to Go module and VCS build information; a modified VCS checkout adds `+dirty`
-to the commit. Text output is the compact build line followed by the project
-format line. `replan --version` prints only the compact line. JSON uses the
-standard envelope and returns `version`, `commit`, `build_date`, `go_version`,
-`os_arch` and `project_format_version` in `result`.
+to the commit. A build installed with `go install ...@v0.1.0` reports the
+module version but has no VCS settings, so its compact line omits commit and
+date, for example `replan v0.1.0 (go1.24.1 linux/amd64)`. Its JSON result uses
+`"unknown"` for both `commit` and `build_date`. Text output is the compact
+build line followed by the project format line. `replan --version` prints only
+the compact line. JSON uses the standard envelope and returns `version`,
+`commit`, `build_date`, `go_version`, `os_arch` and
+`project_format_version` in `result`.
 
 ## `replan validate`
 

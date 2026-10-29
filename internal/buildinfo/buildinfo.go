@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+const unknown = "unknown"
+
 // These values are set by release builds with -ldflags -X. They intentionally
 // stay strings so the same linker mechanism supplies every release value.
 var (
@@ -58,23 +60,26 @@ func Resolve(bi *debug.BuildInfo, ok bool, goVersion, goos, goarch string) Info 
 			}
 		}
 	}
-	if info.Version == "" {
+	if info.Version == "" || info.Version == "(devel)" {
 		info.Version = "dev"
 	}
-	if info.Commit == "" {
-		info.Commit = "dev"
-	}
-	if modified && !strings.HasSuffix(info.Commit, "+dirty") {
+	if info.Commit != "" && modified && !strings.HasSuffix(info.Commit, "+dirty") {
 		info.Commit += "+dirty"
 	}
+	if info.Commit == "" {
+		info.Commit = unknown
+	}
 	if info.BuildDate == "" {
-		info.BuildDate = "dev"
+		info.BuildDate = unknown
 	}
 	return info
 }
 
 // Date returns the stable YYYY-MM-DD display form where possible.
 func (i Info) Date() string {
+	if i.BuildDate == unknown {
+		return ""
+	}
 	if parsed, err := time.Parse(time.RFC3339, i.BuildDate); err == nil {
 		return parsed.UTC().Format(time.DateOnly)
 	}
@@ -89,6 +94,9 @@ func (i Info) Date() string {
 // ShortCommit is the seven-character commit used in human output. A dirty
 // suffix is preserved.
 func (i Info) ShortCommit() string {
+	if i.Commit == unknown {
+		return ""
+	}
 	dirty := strings.HasSuffix(i.Commit, "+dirty")
 	commit := strings.TrimSuffix(i.Commit, "+dirty")
 	if len(commit) > 7 {

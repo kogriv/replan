@@ -72,6 +72,47 @@ func TestVersionTextJSONAndGlobalFlag(t *testing.T) {
 	}
 }
 
+func TestVersionTextLines(t *testing.T) {
+	tests := []struct {
+		name string
+		info buildinfo.Info
+		want string
+	}{
+		{
+			name: "go install",
+			info: buildinfo.Info{Version: "v0.1.0", Commit: "unknown", BuildDate: "unknown", GoVersion: "go1.24.1", OSArch: "linux/amd64"},
+			want: "replan v0.1.0 (go1.24.1 linux/amd64)",
+		},
+		{
+			name: "release linker values",
+			info: buildinfo.Info{Version: "v0.1.0", Commit: "abc123456789", BuildDate: "2026-10-29T12:00:00Z", GoVersion: "go1.24.1", OSArch: "linux/amd64"},
+			want: "replan v0.1.0 (abc1234, 2026-10-29, go1.24.1 linux/amd64)",
+		},
+		{
+			name: "plain devel build",
+			info: buildinfo.Info{Version: "dev", Commit: "def567890123", BuildDate: "2026-10-28T12:00:00Z", GoVersion: "go1.24.1", OSArch: "linux/amd64"},
+			want: "replan dev (def5678, 2026-10-28, go1.24.1 linux/amd64)",
+		},
+		{
+			name: "unknown date",
+			info: buildinfo.Info{Version: "v0.1.0", Commit: "abc123456789", BuildDate: "unknown", GoVersion: "go1.24.1", OSArch: "linux/amd64"},
+			want: "replan v0.1.0 (abc1234, go1.24.1 linux/amd64)",
+		},
+		{
+			name: "unknown commit",
+			info: buildinfo.Info{Version: "v0.1.0", Commit: "unknown", BuildDate: "2026-10-29T12:00:00Z", GoVersion: "go1.24.1", OSArch: "linux/amd64"},
+			want: "replan v0.1.0 (2026-10-29, go1.24.1 linux/amd64)",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := versionTextLine(tt.info); got != tt.want {
+				t.Fatalf("versionTextLine() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestCLIHelpUsesStdoutAndSucceeds(t *testing.T) {
 	paths, families := helpPathsFromUsage(t)
 	for _, path := range append(paths, families...) {

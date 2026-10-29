@@ -92,6 +92,9 @@ go install github.com/kogriv/replan/cmd/replan@v0.1.0
 replan --version
 ```
 
-`go install` does not receive release linker flags. `replan version` therefore
-falls back to the module and VCS build information recorded by the Go
-toolchain.
+`go install` does not receive release linker flags. A module download records
+the requested module version but does not include VCS settings. The compact
+line therefore reports the version, toolchain and platform without a commit or
+date, for example `replan v0.1.0 (go1.24.1 linux/amd64)`. The JSON result keeps
+the same fields as a release archive and reports `"commit": "unknown"` and
+`"build_date": "unknown"`.

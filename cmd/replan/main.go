@@ -280,7 +280,7 @@ func runVersion(args []string, stdout, stderr *os.File, includeFormatLine bool) 
 			return exitGeneralError
 		}
 	case "text":
-		fmt.Fprintf(stdout, "replan %s (%s, %s, %s %s)\n", result.Version, result.ShortCommit(), result.Date(), result.GoVersion, result.OSArch)
+		fmt.Fprintln(stdout, versionTextLine(result.Info))
 		if includeFormatLine {
 			fmt.Fprintf(stdout, "project format version: %d\n", result.ProjectFormatVersion)
 		}
@@ -289,6 +289,18 @@ func runVersion(args []string, stdout, stderr *os.File, includeFormatLine bool) 
 		return exitInvalidUsage
 	}
 	return exitSuccess
+}
+
+func versionTextLine(info buildinfo.Info) string {
+	parts := make([]string, 0, 3)
+	if commit := info.ShortCommit(); commit != "" {
+		parts = append(parts, commit)
+	}
+	if date := info.Date(); date != "" {
+		parts = append(parts, date)
+	}
+	parts = append(parts, info.GoVersion+" "+info.OSArch)
+	return fmt.Sprintf("replan %s (%s)", info.Version, strings.Join(parts, ", "))
 }
 
 func newCLIFlagSet(name string) *flag.FlagSet {
