@@ -1952,3 +1952,24 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.accept-publish-release-v0-2-0
+    - id: actual.self-refresh-second-project-agent-kit-v0-2-0.ai-agent-executor.20261029T2209570700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.refresh-second-project-agent-kit-v0-2-0
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.refresh-second-project-agent-kit-v0-2-0.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.4
+      unit: agent_hours
+      occurred_at: "2026-10-29T22:09:57+07:00"
+      status_date: "2026-10-29"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.refresh-second-project-agent-kit-v0-2-0

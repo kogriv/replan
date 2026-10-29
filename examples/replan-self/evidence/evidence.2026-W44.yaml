@@ -1999,3 +1999,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.refresh-second-project-agent-kit-v0-2-0
+  - id: evidence.self.refresh-second-project-agent-kit-v0-2-0
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T22:09:57+07:00"
+    summary: 'Second project kit built from the v0.2.0 tag as replan-agent-kit-v0.2.0-linux-amd64 (the binary reports v0.2.0 and commit ea817ec; Apache-2.0 notice with the purpose line): 49 offline kit checks; 66 live kit checks ran on a throwaway OpenProject on the same code; 0 private names, endpoints, settings files or bindings. Archive and checksum uploaded to the tools wiki page with a dry run first; the downloaded archive matches the checksum. Page text updated: the v0.2.0 rows, the 27 and 28 October kits marked as replaced, what changed since 28 October, the 29 October checks. Older kit attachments are kept until the operator decides.'
+    targets:
+      - kind: task
+        id: task.self.refresh-second-project-agent-kit-v0-2-0
