@@ -1784,3 +1784,45 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.accept-implement-local-web-view
+    - id: actual.self-import-second-tracker-live.ai-codex-local.20261029T2008270700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.import-second-tracker-live
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.import-second-tracker-live.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.28
+      unit: agent_hours
+      occurred_at: "2026-10-29T20:08:27+07:00"
+      status_date: "2026-10-29"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.import-second-tracker-live
+    - id: actual.self-import-second-tracker-live.ai-agent-executor.20261029T2008270700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.import-second-tracker-live
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.import-second-tracker-live.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.5
+      unit: agent_hours
+      occurred_at: "2026-10-29T20:08:27+07:00"
+      status_date: "2026-10-29"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.import-second-tracker-live

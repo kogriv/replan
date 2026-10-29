@@ -1867,3 +1867,15 @@ evidence:
     targets:
       - kind: task
         id: task.self.import-second-tracker-live
+  - id: evidence.self.import-second-tracker-live
+    type: command_result
+    source: local
+    url: https://github.com/kogriv/replan-github-import-test
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T20:08:27+07:00"
+    summary: 'Commit d57b448: live GitHub Issues input for replan import github. Live check on the disposable public test repository with scripts/check-github-import-live.sh: 8 issues (the pull request filtered out), 3 blocked-by dependency candidates in the right direction, label in-progress, completed, not planned and duplicate statuses mapped, the sub-issue''s parent kept, 7 accept dry runs, the token absent from the snapshot, the live raw document replayed as a file gives the same candidates. All CLI outputs and live OpenProject helper results unchanged against the previous binary. Gate green, agent kit live checks 66. Codex 19:29-19:46.'
+    targets:
+      - kind: task
+        id: task.self.import-second-tracker-live
