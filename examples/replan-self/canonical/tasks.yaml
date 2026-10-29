@@ -4845,7 +4845,7 @@ tasks:
       title: Import GitHub Issues over the API
       description: 'Add live GitHub API input for the GitHub Issues adapter: token from an environment variable, pagination, rate limits, timeouts and retries for reads, issue dependencies and sub-issues, a profile in the project manifest, and a check against a separate disposable test repository, not the RePlan public repository. Read-only; write-back is out of scope.'
       type: implementation
-      tracking_status: not_started
+      tracking_status: in_progress
       planned_start: "2026-11-12"
       planned_finish: "2026-11-12"
       assignee_hint:
@@ -4854,6 +4854,8 @@ tasks:
       resource_demands:
         - kind: resource_demand
           id: resource_demand.import-second-tracker-live.agent
+        - kind: resource_demand
+          id: resource_demand.import-second-tracker-live.codex
         - kind: resource_demand
           id: resource_demand.import-second-tracker-live.maintainer
         - kind: resource_demand

@@ -1854,3 +1854,16 @@ evidence:
         id: task.self.implement-estimate-calibration
       - kind: task
         id: task.self.import-second-tracker-live
+  - id: evidence.self.start-import-second-tracker-live
+    type: decision
+    subtype: operator_request
+    source: chat
+    url: https://github.com/kogriv/replan-github-import-test
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T19:29:17+07:00"
+    summary: Operator agreed on 2026-10-29 to create a disposable public test repository for the live GitHub import check. Created with 8 issues (label-based in progress, closed as completed, not planned and duplicate, an assignee, a blocked-by chain of three links, one sub-issue) and one pull request for the filter. Codex writes the change, the executor briefs, reviews, gates and runs the live check. The original estimate is in baseline.2026-10-28.roadmap-plan; the calibration scenario puts it at 1 agent hour.
+    targets:
+      - kind: task
+        id: task.self.import-second-tracker-live
