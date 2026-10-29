@@ -1,0 +1,414 @@
+<%# The Gantt chart's styles, shared by the Gantt page and the task page. %>
+<style>
+  .replan-gantt {
+    /* OpenProject's Primer variables, so its light and dark themes and
+       extensions such as Dark Reader recolour the chart with the rest of
+       the page. No colour is fixed here. */
+    --replan-border: var(--borderColor-default);
+    --replan-grid: var(--borderColor-muted);
+    --replan-muted: var(--fgColor-muted);
+    --replan-ink: var(--fgColor-default);
+    --replan-surface: var(--bgColor-muted);
+    --replan-card: var(--bgColor-default);
+    --replan-weekend: var(--bgColor-neutral-muted);
+    --replan-bar: var(--bgColor-accent-emphasis);
+    --replan-done: var(--fgColor-muted);
+    --replan-lane: var(--bgColor-accent-emphasis);
+    --replan-risk: var(--bgColor-danger-emphasis);
+    --replan-status: var(--fgColor-danger);
+    color: var(--replan-ink);
+  }
+
+  .replan-gantt__meta {
+    color: var(--replan-muted);
+    margin: 0 0 0.75rem;
+  }
+
+  .replan-gantt__meta a {
+    margin-left: 0.5rem;
+  }
+
+  .replan-gantt__scroll {
+    border: 1px solid var(--replan-border);
+    border-radius: 6px;
+    max-height: calc(100vh - 16rem);
+    min-height: 20rem;
+    overflow: auto;
+  }
+
+  /* Every row is as wide as the whole canvas, so the pinned task column
+     stays pinned at the far right (design, second round). */
+  .replan-gantt__canvas,
+  .replan-gantt__row {
+    min-width: 100%;
+    width: max-content;
+  }
+
+  .replan-gantt__row {
+    display: flex;
+  }
+
+  .replan-gantt__label {
+    background: var(--replan-card);
+    border-right: 1px solid var(--replan-border);
+    display: flex;
+    flex: 0 0 18.75rem;
+    flex-direction: column;
+    justify-content: center;
+    left: 0;
+    min-width: 0;
+    padding: 0 0.6rem;
+    position: sticky;
+    width: 18.75rem;
+    z-index: 3;
+  }
+
+  .replan-gantt__track {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .replan-gantt__axis {
+    background: var(--replan-surface);
+    border-bottom: 1px solid var(--replan-border);
+    height: 44px;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+
+  .replan-gantt__axis .replan-gantt__label {
+    background: var(--replan-surface);
+    color: var(--replan-muted);
+    font-size: 0.8rem;
+    z-index: 6;
+  }
+
+  .replan-gantt__tick {
+    border-left: 1px solid var(--replan-grid);
+    bottom: 0;
+    position: absolute;
+    top: 0;
+  }
+
+  .replan-gantt__tick span {
+    color: var(--replan-muted);
+    font-size: 0.7rem;
+    font-variant-numeric: tabular-nums;
+    left: 3px;
+    position: absolute;
+    top: 22px;
+    white-space: nowrap;
+  }
+
+  .replan-gantt__tick.-month {
+    border-left-color: var(--replan-border);
+  }
+
+  .replan-gantt__tick.-month span {
+    color: var(--replan-ink);
+    font-weight: 600;
+    top: 3px;
+  }
+
+  .replan-gantt__grid,
+  .replan-gantt__weekend,
+  .replan-gantt__monday,
+  .replan-gantt__status {
+    pointer-events: none;
+    position: absolute;
+  }
+
+  .replan-gantt__canvas {
+    position: relative;
+  }
+
+  .replan-gantt__grid {
+    bottom: 0;
+    left: 18.75rem;
+    top: 44px;
+    z-index: 0;
+  }
+
+  .replan-gantt__weekend {
+    background: var(--replan-weekend);
+    bottom: 0;
+    top: 0;
+  }
+
+  .replan-gantt__monday {
+    border-left: 1px solid var(--replan-grid);
+    bottom: 0;
+    top: 0;
+  }
+
+  .replan-gantt__status {
+    border-left: 2px dotted var(--replan-status);
+    bottom: 0;
+    top: 0;
+    z-index: 1;
+  }
+
+  .replan-gantt__task {
+    border-bottom: 1px solid var(--replan-grid);
+    height: 40px;
+  }
+
+  .replan-gantt__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .replan-gantt__sub {
+    color: var(--replan-muted);
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .replan-gantt__bar {
+    background: var(--replan-bar);
+    border-radius: 2px;
+    display: block;
+    height: 14px;
+    position: absolute;
+    top: 13px;
+  }
+
+  .replan-gantt__bar.-done {
+    background: var(--replan-done);
+  }
+
+  .replan-gantt__lane-row {
+    border-bottom: 1px solid var(--replan-grid);
+    height: 26px;
+  }
+
+  .replan-gantt__lane-row .replan-gantt__label {
+    background: var(--replan-surface);
+    font-size: 0.75rem;
+    padding-left: 1.5rem;
+  }
+
+  .replan-gantt__lane {
+    background: var(--replan-card);
+    border: 1px solid var(--replan-border);
+    border-radius: 2px;
+    height: 20px;
+    overflow: hidden;
+    position: absolute;
+    top: 3px;
+  }
+
+  .replan-gantt__fill {
+    background: var(--replan-lane);
+    bottom: 0;
+    left: 0;
+    opacity: 0.8;
+    position: absolute;
+    right: 0;
+  }
+
+  .replan-gantt__fill.-over {
+    background: var(--replan-risk);
+    opacity: 1;
+  }
+
+  .replan-gantt__line {
+    border-top: 1px dashed var(--replan-muted);
+    left: 0;
+    position: absolute;
+    right: 0;
+  }
+
+  .replan-gantt__group {
+    background: var(--replan-surface);
+    border-bottom: 1px solid var(--replan-grid);
+    height: 32px;
+  }
+
+  .replan-gantt__group .replan-gantt__label {
+    background: var(--replan-surface);
+    color: var(--replan-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* Weekly load profile: bar height is planned load over capacity, the
+     dashed waterline is 100%, an overload is a hump above it. */
+  .replan-gantt__load-row {
+    border-bottom: 1px solid var(--replan-grid);
+    height: 56px;
+  }
+
+  .replan-gantt__load-row .replan-gantt__track {
+    height: 100%;
+  }
+
+  .replan-gantt__week {
+    bottom: 4px;
+    position: absolute;
+    top: 4px;
+  }
+
+  .replan-gantt__week.-past {
+    opacity: 0.55;
+  }
+
+  .replan-gantt__week-fill,
+  .replan-gantt__week-hump {
+    border-radius: 1px 1px 0 0;
+    left: 1px;
+    position: absolute;
+    right: 1px;
+  }
+
+  .replan-gantt__week-fill {
+    background: var(--replan-lane);
+    bottom: 0;
+    opacity: 0.8;
+  }
+
+  .replan-gantt__week-fill.-unknown {
+    background: var(--replan-muted);
+    height: 20%;
+    opacity: 0.4;
+  }
+
+  .replan-gantt__week-hump {
+    background: var(--replan-muted);
+    opacity: 0.5;
+  }
+
+  .replan-gantt__week-hump.-over {
+    background: var(--replan-risk);
+    opacity: 1;
+  }
+
+  .replan-gantt__waterline {
+    border-top: 1px dashed var(--replan-muted);
+    left: 0;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+  }
+
+  .replan-gantt__done > summary {
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .replan-gantt__done > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .replan-gantt__done > summary .replan-gantt__label {
+    align-items: center;
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+
+  .replan-gantt__done > summary .replan-gantt__label::before {
+    content: "▸";
+    margin-right: 0.4rem;
+  }
+
+  .replan-gantt__done[open] > summary .replan-gantt__label::before {
+    content: "▾";
+  }
+
+  .replan-gantt__slim {
+    align-items: center;
+    color: var(--replan-muted);
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    gap: 0.5rem;
+    margin: 0 0 0.5rem;
+  }
+
+  .replan-gantt__controls {
+    border: 1px solid var(--replan-border);
+    border-radius: 6px;
+    display: grid;
+    gap: 0.6rem;
+    margin: 0 0 0.75rem;
+    padding: 0.6rem 0.75rem;
+  }
+
+  .replan-gantt__controls form,
+  .replan-gantt__control-row {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+  }
+
+  .replan-gantt__controls label {
+    align-items: center;
+    display: inline-flex;
+    gap: 0.35rem;
+  }
+
+  .replan-gantt__preset[aria-current="true"] {
+    font-weight: 700;
+  }
+
+  .replan-gantt__pan {
+    align-items: center;
+    color: var(--replan-muted);
+    display: flex;
+    font-size: 0.8rem;
+    gap: 0.6rem;
+    margin-top: 0.4rem;
+  }
+
+  .replan-gantt__pan input {
+    flex: 1;
+  }
+
+  /* Controls that need the script stay hidden without it. */
+  .replan-gantt:not([data-js]) [data-needs-js] {
+    display: none !important;
+  }
+
+  .replan-gantt.-maximized {
+    background: var(--replan-card);
+    inset: 0;
+    overflow: auto;
+    padding: 0.75rem;
+    position: fixed;
+    z-index: 1000;
+  }
+
+  .replan-gantt:fullscreen {
+    background: var(--replan-card);
+    overflow: auto;
+    padding: 0.75rem;
+  }
+
+  body.replan-compact .PageHeader {
+    display: none;
+  }
+
+  /* The task page's own small chart is as tall as its rows. */
+  .replan-gantt__scroll.-mini {
+    max-height: none;
+    min-height: 0;
+  }
+
+  .replan-gantt__legend {
+    color: var(--replan-muted);
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 0.8rem;
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+</style>

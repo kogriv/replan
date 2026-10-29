@@ -1,0 +1,1079 @@
+evidence:
+  - id: evidence.openproject-wiki-api-design.accepted
+    type: workspace_event
+    subtype: design_accepted
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-21T12:00:00+07:00"
+    confidence: observed
+    summary: "The OpenProject wiki API gap from GitHub issue 1 was recorded, a separate openproject-wiki_api plugin was designed, an agent design review found four required amendments, the amendments were re-checked against upstream OpenProject v17.6.0 source and applied, and the operator accepted the amended design on 2026-09-21 with the thin text-free collection element. Maintainer and reviewer amounts are agent estimates of operator time, not measured values. The design review itself was executed by a separate AI review agent and is not booked against a modeled demand."
+    url: docs/dev/openproject-wiki-api-plugin-design.md
+    targets:
+      - kind: task
+        id: task.self.design-openproject-wiki-api-access
+      - kind: dependency
+        id: dependency.wiki-api-design-before-plugin-implementation
+      - kind: dependency
+        id: dependency.wiki-api-design-before-upstream-check
+  - id: evidence.openproject-wiki-api-plugin.implementation-review-ready
+    type: workspace_event
+    subtype: implementation_review_ready
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-21T14:30:00+07:00"
+    confidence: observed
+    summary: "The separate openproject-wiki_api gem was implemented on branch wiki-api-plugin: project wiki page collection with a thin text-free list-item representer, extended single-page representation with formattable text and lockVersion, create through WikiPages::CreateService, update through WikiPages::UpdateService with lock_version reverse_merge, no project module, permission or accept_key_auth patch. The plugin scaffold check is gem-aware and scripts/build-openproject-plugin-image.sh copies every plugin gem. ./scripts/check-openproject-plugin-scaffold.sh, go test ./... and ./scripts/smoke-mvp.sh pass. Throwaway HTTP proof and live deployment remain later tasks. Overlay plugin behavior is unchanged."
+    url: integrations/openproject/plugins/openproject-wiki_api/README.md
+    targets:
+      - kind: task
+        id: task.self.implement-openproject-wiki-api-plugin
+  - id: evidence.openproject-wiki-api-plugin.gate1-review-changes-required
+    type: workspace_event
+    subtype: implementation_review
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.review-assistant
+    observed_at: "2026-09-21T16:00:00+07:00"
+    confidence: observed
+    summary: "Gate 1 implementation review of the openproject-wiki_api gem at commit 5057064 on branch wiki-api-plugin returned changes_required. Nine of eleven conformance items pass on reading. Two blocking load-order defects: the engine require_relatives its API classes although upstream runs Bundler.require before the application class and any autoloader, so OpenProject is expected not to boot; and the update payload representer shares a file with another constant and cannot be autoloaded. Four should-fix items and three design amendments are recorded. This was a static review against upstream v17.6.0 source; no runtime was started. The 1 agent_hours amount is the reviewing agent's estimate."
+    url: docs/dev/openproject-wiki-api-plugin-implementation-review.md
+    targets:
+      - kind: task
+        id: task.self.implement-openproject-wiki-api-plugin
+  - id: evidence.openproject-wiki-api-plugin.gate1-blockers-fixed
+    type: workspace_event
+    subtype: implementation_review_ready
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-21T16:30:00+07:00"
+    confidence: observed
+    summary: "Gate 1 blockers B1 and B2 and should-fix items S1 to S4 were applied on branch wiki-api-plugin: engine no longer requires lib/api files, WikiPageUpdatePayloadRepresenter has its own file, title writeable lambda removed, collection GET authorizes view_wiki_pages, update link uses cache_if, and the scaffold check asserts the load layout. Scaffold, go test and smoke-mvp pass. Throwaway HTTP and live deployment remain later tasks."
+    url: integrations/openproject/plugins/openproject-wiki_api/lib/open_project/wiki_api/engine.rb
+    targets:
+      - kind: task
+        id: task.self.implement-openproject-wiki-api-plugin
+  - id: evidence.openproject-wiki-api-plugin.gate1-rereview-accepted-with-notes
+    type: workspace_event
+    subtype: implementation_review
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.review-assistant
+    observed_at: "2026-09-21T17:30:00+07:00"
+    confidence: observed
+    summary: "Gate 1 re-review of the openproject-wiki_api gem at commit ee451fb, as a diff against 5057064, returned accepted_with_notes. Both load-order blockers and all four should-fix items are fixed. cache_if and authorize_in_project match upstream v17.6.0 usage. The new scaffold assertions were mutation-tested on a scratch copy and fail precisely when either blocker is reintroduced. Eleven of eleven conformance items pass on reading. Runtime behavior is unproven and belongs to the throwaway runtime task. Operator acceptance of the task is still open. The 0.5 agent_hours amount is the reviewing agent's estimate."
+    url: docs/dev/openproject-wiki-api-plugin-implementation-review.md
+    targets:
+      - kind: task
+        id: task.self.implement-openproject-wiki-api-plugin
+  - id: evidence.openproject-wiki-api-plugin.throwaway-runtime-proven
+    type: command_result
+    subtype: openproject_plugin_throwaway_runtime
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-21T21:00:00+07:00"
+    confidence: observed
+    summary: "scripts/check-openproject-wiki-api-throwaway-runtime.sh passed against a custom image built from the exact OpenProject 17.6.0 builder and slim pair with both plugin gems: seeder, web, worker and cron boot without load errors; fifteen HTTP cases with API tokens pass (37 requests, 57 checks); database facts pass, including journal version 2 under the token user next to the admin's version 1 and no Wiki row created by the 404 cases; all four design verification points hold; overlay routes work in the same image. The first run found a boot-blocking defect missed by the implementer and by both gate 1 review passes: the module was named OpenProject::WikiApi while OpenProject's inflector requires OpenProject::WikiAPI; it was renamed and pinned in the scaffold check. The proof was executed by the design author on the operator's instruction and is not an independent gate 2 review. Booked amounts are agent estimates."
+    url: docs/dev/openproject-wiki-api-throwaway-runtime-test.md
+    targets:
+      - kind: task
+        id: task.self.verify-openproject-wiki-api-plugin-throwaway-runtime
+  - id: evidence.openproject-wiki-api-plugin.live-deployed
+    type: command_result
+    subtype: openproject_plugin_live_deployment
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-21T23:00:00+07:00"
+    confidence: observed
+    summary: "The wiki API plugin was deployed to the private live OpenProject instance on the operator's order: verified backup, transfer of the exact throwaway-proven image verified by content hash, guarded switch with the watchdog paused and rollback armed, web healthy after 60 seconds, no load errors, both plugins registered, wiki routes present. Read-only HTTP verification with an existing token returned the new representation for all three project collections and all five existing pages, after one stale pre-plugin cache entry was found and deleted. The public perimeter path rejected the token with the reverse proxy's own 401; the tunnel path worked. Acceptance by the affected project's agent and a human is still open. Booked amounts are agent estimates."
+    url: docs/dev/openproject-wiki-api-live-deployment-result.md
+    targets:
+      - kind: task
+        id: task.self.deploy-openproject-wiki-api-plugin-live
+  - id: evidence.openproject-wiki-api-plugin.live-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-24T16:25:00+07:00"
+    confidence: observed
+    summary: "The operator confirmed that the wiki API plugin works on the live instance, checked by the affected project's agent with its own member token: collection and page reads, PATCH with lockVersion and the 409 on a stale version. Page creation by the member token was deliberately not exercised because pages cannot be deleted through the API; that finding is tracked separately. GitHub issue 1 is closed by this acceptance. Human time for the acceptance was not measured and is not booked."
+    url: docs/dev/openproject-wiki-api-live-deployment-result.md
+    targets:
+      - kind: task
+        id: task.self.deploy-openproject-wiki-api-plugin-live
+  - id: evidence.wiki-api-upstream-vote.dropped
+    type: decision
+    subtype: operator_decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-25T09:40:00+07:00"
+    confidence: observed
+    summary: "The operator dropped the vote and comment on OP #39099. The operator has no account on the upstream community tracker; Google sign-in there only logs in existing accounts, because registration is disabled, and a vote adds little to a five-year-old request. An account is to be created only when there is something to contribute upstream, such as the plugin or a bug report. The upstream check itself stands: the plugin is planned for a long lifetime."
+    url: docs/dev/openproject-wiki-api-gap.md
+    targets:
+      - kind: task
+        id: task.self.check-upstream-openproject-wiki-api-roadmap
+  - id: evidence.next-product-slice.operator-confirmed
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-25T10:00:00+07:00"
+    confidence: observed
+    summary: "The operator confirmed the order selected from RePlan reports: first task.self.add-wiki-api-page-delete, then task.self.improve-state-report-next-actions, after the dogfood project became visible to the operator's own OpenProject user."
+    url: docs/dev/next-product-slice-decision-2026-09-24.md
+    targets:
+      - kind: task
+        id: task.self.select-next-product-slice-from-replan-reports
+  - id: evidence.wiki-api-page-delete.deployed-20260925
+    type: command_result
+    subtype: openproject_plugin_live_deployment
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-25T10:30:00+07:00"
+    confidence: observed
+    summary: "DELETE /api/v3/wiki_pages/{id} added to the wiki API plugin under manage_wiki, with 422 for pages with child pages. Throwaway proof 19 of 19 HTTP cases, deleted pages leave no rows, journals or attachments. Deployed to the live instance after a verified backup, with the throwaway-proven image and a guarded switch; web healthy after 50 seconds, no rollback. Six stale cached page representations deleted; every page read over HTTP with the delete link. Live create-then-delete with the admin token passed in a project with no other members. The member-token check waits on the operator's decision to grant manage_wiki to the affected project's agent role. Booked amounts are agent estimates."
+    url: docs/dev/openproject-wiki-api-live-deployment-result.md
+    targets:
+      - kind: task
+        id: task.self.add-wiki-api-page-delete
+  - id: evidence.wiki-api-page-delete.member-token-accepted
+    type: command_result
+    subtype: openproject_live_acceptance
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-25T11:00:00+07:00"
+    confidence: observed
+    summary: "On the operator's decision, manage_wiki was added to the affected project's agent role, which only that project's agent account holds; the role's previous permissions were backed up on the host. A temporary API token of that non-admin account ran create-then-delete in its project: create 201, delete link present, delete 204, then 404 on read, not listed, second delete 404. The temporary token was removed afterwards and the account's own token was left untouched. GitHub issue 2 is closed. Human time was not measured and is not booked."
+    url: docs/dev/openproject-wiki-api-live-deployment-result.md
+    targets:
+      - kind: task
+        id: task.self.add-wiki-api-page-delete
+  - id: evidence.state-report-next-actions.backtest-20260925
+    type: document
+    subtype: report_backtest
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-25T12:30:00+07:00"
+    confidence: observed
+    summary: "The project-state report now defaults to the week of the project status date, skips overruns an operator acknowledged, lists what waits on a person (review-ready tasks, in-progress tasks with only human work left, tasks past their planned finish, proposals, overload, external dependencies) before what an agent can prepare, orders by date, and shows a task dependency only when it can be resolved. The state Markdown was pinned by a golden file before the change. Run on the 2026-09-24 snapshot the next-slice decision was made from, the report shows 2026-W39 instead of 2026-W30 and exactly the three items that waited on the operator, instead of three acknowledged overruns. Unit test mutation-checked for the week and the acknowledgement. Booked amounts are agent estimates."
+    url: examples/replan-self/evidence/files/state-report-backtest-2026-09-24.md
+    targets:
+      - kind: task
+        id: task.self.improve-state-report-next-actions
+  - id: evidence.state-report-next-actions.brief-view-20260925
+    type: decision
+    subtype: operator_review
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-25T13:30:00+07:00"
+    confidence: observed
+    summary: "Reviewing the rebuilt state report in a terminal, the operator found the full report too long to read: the next actions sit at the end of a long table dump. The operator asked for a condensed view, in English because RePlan is planned as open source for a global audience. Added `replan next`: project line, what waits on a person, what an agent can prepare, with task titles instead of ids, and one health line; text by default, JSON in the standard envelope; golden-tested and in the MVP smoke. Booked amounts are agent estimates."
+    url: docs/spec/cli.md
+    targets:
+      - kind: task
+        id: task.self.improve-state-report-next-actions
+  - id: evidence.state-report-next-actions.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-25T14:05:00+07:00"
+    confidence: observed
+    summary: "The operator accepted task.self.improve-state-report-next-actions after using replan next, and ordered GAP-029 as the next task. Human review time was not measured and is not booked."
+    url: docs/spec/cli.md
+    targets:
+      - kind: task
+        id: task.self.improve-state-report-next-actions
+  - id: evidence.close-demand-clears-remaining.20260925
+    type: command_result
+    subtype: test_and_first_use
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-25T14:20:00+07:00"
+    confidence: observed
+    summary: "close-demand --status consumed now clears the remaining amount in the same write and audit record; cancelled keeps it. Unit test fails when the clearing write is removed or writes a non-zero value. First use: the accepted state-report task's demands with remaining 10, 1 and 0.5 closed to zero in one command each; go test, MVP smoke and lint green. Booked amounts are agent estimates."
+    url: docs/dev/known-gaps.md
+    targets:
+      - kind: task
+        id: task.self.fix-close-demand-stale-remaining
+  - id: evidence.close-demand-clears-remaining.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-25T14:40:00+07:00"
+    confidence: observed
+    summary: "The operator accepted task.self.fix-close-demand-stale-remaining and asked to continue with the recommended next step: moving the project status date through a command instead of a hand edit. Human time was not measured and is not booked."
+    url: docs/dev/known-gaps.md
+    targets:
+      - kind: task
+        id: task.self.fix-close-demand-stale-remaining
+  - id: evidence.project-set-status-date.first-use-20260925
+    type: command_result
+    subtype: test_and_first_use
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-25T15:30:00+07:00"
+    confidence: observed
+    summary: "Added replan project set-status-date: --date YYYY-MM-DD or today in the project time zone, dry run, actor, reason, one project_set_status_date audit record, staged validation; only the default_status_date field of project.yaml changes, edited as a YAML node tree. Unit tests cover the one-line file change, the audit record, today in the project time zone, unchanged, invalid date, missing and unknown actor, and the backwards warning; the MVP smoke runs a dry run. First use moved the dogfood project from 2026-09-24 to 2026-09-25 with a one-line diff. Booked amounts are agent estimates."
+    url: docs/spec/cli.md
+    targets:
+      - kind: task
+        id: task.self.set-project-status-date-command
+  - id: evidence.project-set-status-date.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-25T16:00:00+07:00"
+    confidence: observed
+    summary: "The operator accepted task.self.set-project-status-date-command and asked to continue fully with the recommended step, GAP-028. Human time was not measured and is not booked."
+    url: docs/spec/cli.md
+    targets:
+      - kind: task
+        id: task.self.set-project-status-date-command
+  - id: evidence.accepted-task-windows.first-run-20260925
+    type: command_result
+    subtype: test_and_first_use
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-25T17:00:00+07:00"
+    confidence: observed
+    summary: "Added the warning accepted_task_planned_after_status_date to validate and the reports, and the agent next action record_actual_window. Unit test covers the stale, the boundary and the open case and a project without a status date, mutation-checked on the boundary. First run flagged 16 accepted tasks, eleven of them the August plugin series planned into October and November; actual windows were rebuilt from actuals and acceptance audit records, pushed to live OpenProject one work package at a time, weekend dates accepted back as OpenProject Mondays. Validate: 0 warnings; live drift aligned. Booked amounts are agent estimates."
+    url: docs/dev/known-gaps.md
+    targets:
+      - kind: task
+        id: task.self.warn-accepted-task-future-window
+  - id: evidence.accepted-task-windows.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-25T17:30:00+07:00"
+    confidence: observed
+    summary: "The operator accepted task.self.warn-accepted-task-future-window and asked to continue fully with the recommended cleanup: dead code (GAP-021) and the workload filters the CLI spec documents but the binary lacks (GAP-011). Human time was not measured and is not booked."
+    url: docs/dev/known-gaps.md
+    targets:
+      - kind: task
+        id: task.self.warn-accepted-task-future-window
+  - id: evidence.cleanup-dead-code-workload-spec.20260925
+    type: command_result
+    subtype: test_and_first_use
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-25T18:00:00+07:00"
+    confidence: observed
+    summary: "GAP-021: the dead code had already been removed in the 2026-09-24 lint gate commit; deadcode and the unused linter report nothing, so the gap was closed without a code change. GAP-011: workload gained --resource-class and --unit as result-row filters, with a unit test and an MVP smoke check; the spec section was rewritten to the binary's behaviour: optional --week summing over all weeks without it, the real week-filter rule, the real JSON shape, and --task, --include-scenarios, --from, --to and --status-date listed as not implemented. Booked amounts are agent estimates."
+    url: docs/spec/cli.md
+    targets:
+      - kind: task
+        id: task.self.clean-dead-code-and-workload-spec
+  - id: evidence.cleanup-dead-code-workload-spec.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-25T18:20:00+07:00"
+    confidence: observed
+    summary: "The operator accepted task.self.clean-dead-code-and-workload-spec, decided that RePlan does not go to a public OSS release yet (GAP-025 stays open), and asked what the proposed HTML dashboard tests are before choosing the next step. Human time was not measured and is not booked."
+    url: docs/dev/known-gaps.md
+    targets:
+      - kind: task
+        id: task.self.clean-dead-code-and-workload-spec
+  - id: evidence.dashboard-html-golden.20260925
+    type: command_result
+    subtype: test_and_first_use
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-25T19:00:00+07:00"
+    confidence: observed
+    summary: "Golden files for the dashboard index.html and gantt.html, for a rich fixture and an empty project. The test covers 321 of 505 statement blocks in html.go against 282 for all earlier tests plus a real small-team render; the rest is write-error returns and defensive clamps for malformed Gantt data. Removing the unscheduled-tasks section and removing the escape of issue messages both failed the test. GAP-005 closed. Booked amounts are agent estimates."
+    url: docs/dev/known-gaps.md
+    targets:
+      - kind: task
+        id: task.self.pin-dashboard-html-golden
+  - id: evidence.dashboard-html-golden.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-25T19:20:00+07:00"
+    confidence: observed
+    summary: "The operator accepted task.self.pin-dashboard-html-golden and asked for a plain explanation of the options for what to do next before choosing. Human time was not measured and is not booked."
+    url: docs/dev/known-gaps.md
+    targets:
+      - kind: task
+        id: task.self.pin-dashboard-html-golden
+  - id: evidence.split-project-state-markdown.20260925
+    type: command_result
+    subtype: test_and_first_use
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-25T20:10:00+07:00"
+    confidence: observed
+    summary: "WriteProjectStateMarkdown split into seven section writers that fill one buffer; the largest has cyclomatic complexity 8 and cognitive 12, down from 79 and 143. Three new golden files (edge fallbacks, empty project, stale-only loop) were generated with the old writer before the switch; the new writer matches all four byte for byte with full branch coverage of the section writers, and replan report state of replan-self and small-team is byte-identical before and after. The lint baseline entry is removed; golangci-lint reports no new findings. GAP-017 closed: all 22 CI runs on main after its fix passed. Booked amounts are agent estimates."
+    url: docs/dev/known-gaps.md
+    targets:
+      - kind: task
+        id: task.self.split-project-state-markdown
+  - id: evidence.split-project-state-markdown.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-25T20:40:00+07:00"
+    confidence: observed
+    summary: "The operator accepted task.self.split-project-state-markdown and chose to pause feature development and use RePlan on real work, with the RePlan self-dogfood project itself as that work: RePlan plans its own next weeks. Human time was not measured and is not booked."
+    url: docs/roadmap/self-dogfood-planning-calibration.md
+    targets:
+      - kind: task
+        id: task.self.split-project-state-markdown
+  - id: evidence.maintainer-capacity-5h.operator-decision
+    type: decision
+    subtype: capacity_change
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-25T20:55:00+07:00"
+    confidence: observed
+    summary: "Asked how many hours a week they really give RePlan, the operator answered 5. The recorded 10 hours was an early guess. The 10-hour capacity now ends on 2026-09-27 and a 5-hour capacity starts on 2026-09-28, so past weeks keep their capacity. The operator also approved the three-week plan and asked to resume the OpenProject RePlan plugin work where it stopped."
+    url: examples/replan-self/canonical/capacities.yaml
+    targets:
+      - kind: resource
+        id: resource.human.maintainer
+      - kind: capacity
+        id: capacity.maintainer.hours.weekly.from-2026-09-28
+  - id: evidence.honour-capacity-effective-dates.20260925
+    type: command_result
+    subtype: test_and_first_use
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-25T21:40:00+07:00"
+    confidence: observed
+    summary: "Workload counts a capacity only for the days of the week it is in effect, one seventh a day for weekly capacities, and the capacity in effect on the status date when no week is given; validate rejects malformed or reversed effective dates; TaskJuggler export uses the weekly limit in effect on the status date and warns. Tests cover the week before and after a change, a mid-week split, the no-week rule and validation; restoring the old summing fails six of them. Workload output of both examples is unchanged except replan-self 2026-W28, a week before any capacity starts, which now shows zero capacity. First use: the maintainer capacity changed from 10 to 5 hours a week from 2026-09-28. Booked amounts are agent estimates."
+    url: docs/spec/cli.md
+    targets:
+      - kind: task
+        id: task.self.honour-capacity-effective-dates
+  - id: evidence.warn-dependency-only-when-due.20260925
+    type: command_result
+    subtype: test_and_first_use
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-25T22:40:00+07:00"
+    confidence: observed
+    summary: "required_dependency_unresolved now warns only for a stale record, a started successor, a successor due by the status date, or missing dates; an open dependency of a future task is quiet. A table test covers each rule, and making every case warn again fails it. First use: replan-self validate went from two warnings on the plugin plan dependencies to none; small-team diagnostics are unchanged. Booked amounts are agent estimates."
+    url: docs/spec/dependency-deadline-behavior.md
+    targets:
+      - kind: task
+        id: task.self.warn-dependency-only-when-due
+  - id: evidence.capacity-dates-and-dependency-warnings.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-25T23:00:00+07:00"
+    confidence: observed
+    summary: "The operator accepted task.self.honour-capacity-effective-dates and task.self.warn-dependency-only-when-due in one answer. Human time was not measured and is not booked."
+    url: docs/roadmap/self-dogfood-planning-calibration.md
+    targets:
+      - kind: task
+        id: task.self.honour-capacity-effective-dates
+      - kind: task
+        id: task.self.warn-dependency-only-when-due
+  - id: evidence.plugin-views-review.agent-findings
+    type: command_result
+    subtype: review
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-25T14:10:00+07:00"
+    confidence: observed
+    summary: "Agent review of the live OpenProject RePlan plugin against the operator's recorded wishes, the code and Playwright screenshots taken as a dedicated read-only non-admin user created for this with the operator's approval. Main findings: the work-package panel returns HTTP 500 for every non-admin, the operator included, because its action is missing from the view_replan_overlay permission; the timeline has no date axis and resource bars ignore participation windows; intensity is unreadable and clipped; there is no load profile with a waterline; the page lists all 83 tasks. The operator's verdict is pending. Booked amounts are agent estimates."
+    url: docs/dev/openproject-plugin-review-2026-09-25.md
+    targets:
+      - kind: task
+        id: task.self.review-openproject-replan-plugin-views
+  - id: evidence.plugin-views-review.operator-verdict
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-25T14:40:00+07:00"
+    confidence: observed
+    summary: "The operator confirmed the plugin review findings, asked that the view can show every resource a task uses with filtering decided later, allowed closed tasks to stay visible, and said they have no OpenProject dark theme and use the Dark Reader extension. Human time was not measured and is not booked."
+    url: docs/dev/openproject-plugin-review-2026-09-25.md
+    targets:
+      - kind: task
+        id: task.self.review-openproject-replan-plugin-views
+  - id: evidence.fix-plugin-panel-permission.20260925
+    type: command_result
+    subtype: test_and_first_use
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-25T15:00:00+07:00"
+    confidence: observed
+    summary: "view_replan_overlay grants the work_package action; the scaffold check requires it and the throwaway runtime asserts a non-admin member is allowed both actions, reproducing the live error without the fix. Deployed live after a verified backup with the throwaway-proven image, equal content hash, web healthy after 50 seconds, no rollback, no load errors. The work-package panel renders for the read-only non-admin review user in a browser. Booked amounts are agent estimates."
+    url: docs/dev/openproject-wiki-api-live-deployment-result.md
+    targets:
+      - kind: task
+        id: task.self.fix-plugin-panel-permission
+  - id: evidence.plugin-ui-audit.agent-findings
+    type: command_result
+    subtype: review
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-25T15:50:00+07:00"
+    confidence: observed
+    summary: "Visual audit of the live plugin as a non-admin at 1600 and 900 px: project page 26 427 px tall with 3 013 elements, 28 screens, horizontal overflow at 900 px; timeline without a date axis, resource strips ignoring windows and too thin to read intensity; panel shows evidence and actuals only as counts; unknown package served as HTTP 200; fixed colours; no rendered-page test. Ten quick improvements and three design items listed. Booked amounts are agent estimates."
+    url: docs/dev/openproject-plugin-ui-audit-2026-09-25.md
+    targets:
+      - kind: task
+        id: task.self.design-openproject-plugin-gantt-view
+  - id: evidence.plugin-track-backlog.operator-decision
+    type: decision
+    subtype: planning
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-25T16:00:00+07:00"
+    confidence: observed
+    summary: "After the plugin UI audit the operator asked to put every task for a full improvement of the plugin into the backlog first, without cutting corners and with the audit results, before any of it is built. Twelve tasks were added with three deploy milestones, the refactors moved after the plugin track, and a workload fix went first because the plan could not otherwise be read correctly."
+    url: docs/dev/openproject-plugin-ui-audit-2026-09-25.md
+    targets:
+      - kind: task
+        id: task.self.design-openproject-plugin-gantt-view
+  - id: evidence.plugin-panel-permission.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-25T16:30:00+07:00"
+    confidence: observed
+    summary: "The operator accepted task.self.fix-plugin-panel-permission, rejected the premature dependency review proposal as recommended, and gave the go for the whole plugin track to be done fully, without cutting corners. Human time was not measured and is not booked."
+    url: docs/dev/openproject-wiki-api-live-deployment-result.md
+    targets:
+      - kind: task
+        id: task.self.fix-plugin-panel-permission
+  - id: evidence.honest-weekly-workload.20260925
+    type: command_result
+    subtype: test_and_first_use
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-25T17:30:00+07:00"
+    confidence: observed
+    summary: "Period demands are spread over their resource's working days and a week counts its share; slot demands count as the peak of simultaneous use; dashboard daily load skips non-working days, slot buckets take the peak day, and each bucket uses the capacity in effect that week. Three tests; dropping the week share, the slot peak or the per-week bucket capacity each fails one. small-team output unchanged; replan-self differs only where multi-week or slot demands are involved. First use: the plugin plan shows no false slot overloads; the one overload left is the operator at 5.6 of 5 hours in 2026-W46. Booked amounts are agent estimates."
+    url: docs/spec/cli.md
+    targets:
+      - kind: task
+        id: task.self.honest-weekly-workload-for-multi-week-and-concurrent-demands
+  - id: evidence.plugin-redesign-design.proposed
+    type: document
+    subtype: design_proposal
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-25T18:30:00+07:00"
+    confidence: observed
+    summary: "Plugin redesign proposed in docs/dev/openproject-plugin-redesign-design.md with a working prototype on the live self-dogfood data shown to the operator as a private page: counters that answer questions, attention table, Gantt with an axis, status line and resource lanes placed on participation windows with height as daily load over daily capacity, weekly load for every resource with a 100% line and red overload, and a panel with evidence and booked time. Overlay contract version 2 and tests are specified. The prototype took more than the planned design time. Booked amounts are agent estimates."
+    url: docs/dev/openproject-plugin-redesign-design.md
+    targets:
+      - kind: task
+        id: task.self.design-openproject-plugin-gantt-view
+  - id: evidence.plugin-redesign-design.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-25T19:00:00+07:00"
+    confidence: observed
+    summary: "The operator looked at the redesign prototype and found it fine overall. They asked for more flexible range setting, a slider for moving sideways and a jump to the top, the Gantt as its own view so the date header can stay pinned, and a way to drill into a task in detail. All four were adopted in the design and a second prototype version; the navigation became task.self.add-plugin-gantt-navigation. Human time was not measured and is not booked."
+    url: docs/dev/openproject-plugin-redesign-design.md
+    targets:
+      - kind: task
+        id: task.self.design-openproject-plugin-gantt-view
+  - id: evidence.suggest-dependency-reviews-only-when-due.20260925
+    type: command_result
+    subtype: test_and_first_use
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-25T19:40:00+07:00"
+    confidence: observed
+    summary: "proposal suggest-dependencies writes review_dependency_resolution candidates only when the required_dependency_unresolved warning would be raised; mark-resolved candidates unchanged. A table test covers a later successor, a due successor and a project without a status date, and fails when every open dependency gets a review again. First use: the nine premature review proposals written earlier the same evening were rejected with a reason, and a new dry run suggests none. Booked amounts are agent estimates."
+    url: docs/spec/dependency-deadline-behavior.md
+    targets:
+      - kind: task
+        id: task.self.suggest-dependency-reviews-only-when-due
+  - id: evidence.workload-and-proposal-fixes.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-25T20:00:00+07:00"
+    confidence: observed
+    summary: "The operator answered all ok to the request to accept task.self.honest-weekly-workload-for-multi-week-and-concurrent-demands and task.self.suggest-dependency-reviews-only-when-due, and sent three more prototype remarks: the pinned task column slides away and the grid stops part way when scrolling right, several task pages should stay open as closable tabs (up to five), and the Gantt should open full screen. Human time was not measured and is not booked."
+    url: docs/dev/openproject-plugin-redesign-design.md
+    targets:
+      - kind: task
+        id: task.self.honest-weekly-workload-for-multi-week-and-concurrent-demands
+      - kind: task
+        id: task.self.suggest-dependency-reviews-only-when-due
+  - id: evidence.code-quality-tooling.bounded-trial
+    type: document
+    subtype: tooling_evaluation
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-24T18:00:00+07:00"
+    confidence: observed
+    summary: "Bounded trial of code quality tooling on a git archive copy of RePlan, with the tool survey of another code-analysis project as candidate source. Go-native analyzers ran in minutes and produced checkable findings: staticcheck 2, deadcode 5 unreachable functions, 14 functions over cyclomatic complexity 30, 10 dupl clone groups, jscpd 6.95% duplicated Go lines after lifting its silent 100 KB file limit, shellcheck about six real findings. GitNexus indexed the copy in 20 seconds and answered a caller question correctly through an interface, but seeded flows from dead wrappers and could not see the 3916 lines of Python embedded in shell heredocs. Recommendation: Go-native analyzers and shellcheck as report then new-code gate, move heredoc Python into modules, extract the store update helper before the actual-audit fix, graph tools ad hoc only, that project''s tools not applicable. Booked amounts are agent estimates."
+    url: docs/dev/code-quality-tooling-evaluation-2026-09-24.md
+    targets:
+      - kind: task
+        id: task.self.evaluate-code-graph-quality-tooling
+  - id: evidence.code-quality-tooling.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-24T19:00:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the code quality tooling recommendation and ordered the refactoring tasks and the gap records: a pinned Go lint baseline and new-code gate with shellcheck, moving heredoc Python into script modules, and a store update helper folded into the actual-audit fix."
+    url: docs/dev/code-quality-tooling-evaluation-2026-09-24.md
+    targets:
+      - kind: task
+        id: task.self.evaluate-code-graph-quality-tooling
+  - id: evidence.ci.green-after-scaffold-portability-fix
+    type: command_result
+    subtype: ci_run
+    source: github_actions
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-24T14:07:08+07:00"
+    confidence: observed
+    summary: "CI on main passed for commit 0572495, the first green run since 2026-08-07 after nineteen consecutive failures: the Go job ran go test and the full MVP smoke on the hosted runner, and TaskJuggler validation passed. The scaffold check now uses POSIX grep behind one helper that fails on any grep status other than match or no match, and collects the API file list before checking it, so a missing tool or path can no longer pass silently. Mutation test: eight injected violations were caught by both the previous ripgrep version and the new one. Booked amounts are agent estimates; CI minutes are rounded up from the two job durations."
+    url: https://github.com/kogriv/replan/actions/runs/35967852187
+    targets:
+      - kind: task
+        id: task.self.fix-ci-smoke-ripgrep-dependency
+  - id: evidence.actuals-staging-fix.ci-green-and-reviewed
+    type: command_result
+    subtype: ci_run
+    source: github_actions
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-24T15:40:00+07:00"
+    confidence: observed
+    summary: "The actual-audit fix landed in ec3a8d6 and the review follow-up in 6644d6c; CI passed on both. Every writing command stages its writes, validates the would-be project and commits only when valid; audit ids name their target; remaining_amount keeps an explicit zero; new actual reopen-demand and acknowledge-overrun commands; preferred dependencies get resolve proposals. A second-pass review by a separate agent session accepted it with notes; its four should-fix findings were resolved with tests. The tests that prove nothing is written on a validation failure fail when staging is switched off. Booked amounts are agent estimates."
+    url: docs/dev/actuals-staging-review-2026-09-24.md
+    targets:
+      - kind: task
+        id: task.self.fix-actual-audit-ids-and-demand-reopen
+  - id: evidence.audit-hygiene.committed
+    type: git_event
+    subtype: commit
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-24T15:00:00+07:00"
+    confidence: observed
+    summary: "Commit 70a43b4 closed the post-pause audit hygiene debt: implemented-command inventory in getting-started rebuilt from the binary, implementation-status table in the CLI spec with the write-back helpers named, complete usage lines for import accept and import openproject, gofmt clean, the duplicated GAP-013 license gap renumbered to GAP-025, a dated review addendum on the 2026-09-21 audit. CI passed on the following pushes. Booked amounts are agent estimates."
+    url: docs/dev/project-audit-2026-09-21.md
+    targets:
+      - kind: task
+        id: task.self.clean-post-pause-audit-hygiene
+  - id: evidence.full-dogfood-cycle.decision-20260924
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-24T17:20:00+07:00"
+    confidence: observed
+    summary: "Decision on the full OpenProject-centered dogfood cycle, recorded during the post-pause re-entry under the operator's blanket approval of 2026-09-24 and the recommendation the operator accepted in calibration Step 55. Accepted: the wiki API slice (Steps 44 to 54) ran planning, resource checking, execution, actuals, evidence and gated acceptance through RePlan for four tasks, and the re-entry synchronized all 67 tasks and 93 relations with live OpenProject through guarded helpers. Not proven by it: choosing the next work from RePlan reports instead of from chat; that part is carried by task.self.select-next-product-slice-from-replan-reports. The task's own demands are cancelled, not consumed: the cycle's work is booked on its constituent tasks, and booking it here would count it twice."
+    url: docs/roadmap/self-dogfood-planning-calibration.md
+    targets:
+      - kind: task
+        id: task.self.run-full-openproject-dogfood-cycle
+  - id: evidence.dogfood-reentry.live-sync-20260924
+    type: command_result
+    subtype: openproject_live_sync
+    source: openproject
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-24T18:30:00+07:00"
+    confidence: observed
+    summary: "Post-pause re-entry executed. Live OpenProject was reached through the operator tunnel; the 2026-09-21 network error was a missing tunnel, not an outage. The 54 tasks bound in August had no title, status or date drift. Thirteen missing work packages were created one by one with the guarded create helper and bound in the ignored private binding file, and 16 missing relations were applied after a dry run matched the other 77. Applying relations made OpenProject reschedule successors: the August backlog sync task, done on 2026-08-16, still carried a 2026-11-02 plan and pushed re-entry into November. Dates were rebaselined through two audited scenarios and pushed; the August date was accepted back as OpenProject's working-calendar Monday. Three accepted statuses were pushed to Closed. The live workflow has no transition to Developed for the Task type, so the review-ready deployment task stays In progress with an explicit soft drift. The live overlay had been built from sanitized public ids since August, so the work-package panel could not find real work packages; a binding-aware overlay builder now produces 67 linked rows. The decision on the full dogfood cycle is recorded separately. Booked amounts are agent estimates; the 2026-09-21 audit's own time was not recorded and is estimated."
+    url: docs/roadmap/self-dogfood-planning-calibration.md
+    targets:
+      - kind: task
+        id: task.self.reenter-openproject-dogfood-cycle-after-pause
+  - id: evidence.wiki-api-upstream-check.20260924
+    type: document
+    subtype: upstream_research
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-24T19:30:00+07:00"
+    confidence: observed
+    summary: "Upstream OpenProject request OP #39099 for wiki page create and update through API v3 has been in the Wish List since 2021-10-07 with five votes, a removed RICE score and staff replies inviting community pull requests; the 2026 roadmap does not mention the wiki API; the API reference still calls the wiki page resource a stub. The documents API exists on the live instance (collection 200), with read and PATCH of the description but no create. The plugin should be planned for a long lifetime. Voting and commenting need the operator's community account; a comment draft is in the gap document."
+    url: docs/dev/openproject-wiki-api-gap.md
+    targets:
+      - kind: task
+        id: task.self.check-upstream-openproject-wiki-api-roadmap
+  - id: evidence.lint-gate.ci-green-20260924
+    type: command_result
+    subtype: ci_run
+    source: github_actions
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-24T15:03:00+07:00"
+    confidence: observed
+    summary: "Commit 8175cfa added a pinned golangci-lint v2.13.2 gate. The CI lint job ran with --new-from-rev against the previous head and reported 0 new issues; shellcheck ran on every script and was clean; Go tests, MVP smoke and TaskJuggler validation passed in the same run. A local probe function was reported as unused with exit code 1, so the gate can fail. Twenty-seven existing complexity and duplication findings are recorded in docs/dev/lint-baseline-2026-09-24.md. Booked amounts are agent estimates."
+    url: docs/dev/lint-baseline-2026-09-24.md
+    targets:
+      - kind: task
+        id: task.self.add-go-lint-baseline-and-ci-gate
+  - id: evidence.heredoc-module-move.byte-identical-20260924
+    type: command_result
+    subtype: ci_run
+    source: github_actions
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-24T15:40:00+07:00"
+    confidence: observed
+    summary: "Commit 1f14aaa moved 25 heredoc blocks, 4527 lines, into modules under scripts/lib with three shared modules replacing nine duplicates and one auth-header helper replacing five. Old and new versions of ten helper scripts, five of them in dry-run against live OpenProject, and seven toolkit commands produced byte-identical output. Fourteen Python unit tests run from the MVP smoke. CI passed with Go, Lint and TaskJuggler jobs green. Booked amounts are agent estimates."
+    url: docs/dev/known-gaps.md
+    targets:
+      - kind: task
+        id: task.self.move-heredoc-python-into-script-modules
+  - id: evidence.next-product-slice.report-snapshot-20260924
+    type: document
+    subtype: planning_decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-24T21:00:00+07:00"
+    confidence: observed
+    summary: "Next product slice selected from RePlan outputs, not from chat. The state report defaulted to week 2026-W30 at status date 2026-09-24 because the default week comes from the July baseline; all three next actions were overruns already acknowledged; the items waiting on the operator were missing; workload showed no overload in W39 to W41; tracking had no suggestions. Against the post-MVP decision table this selects 'improve project-state report and next-action ranking'. The OpenProject Gantt and panels were not reviewed in a browser; the operator confirms the choice."
+    url: docs/dev/next-product-slice-decision-2026-09-24.md
+    targets:
+      - kind: task
+        id: task.self.select-next-product-slice-from-replan-reports
+  - id: evidence.plugin-rendered-page-checks.20260925
+    type: command_result
+    subtype: runtime_check
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-25T21:40:00+07:00"
+    confidence: observed
+    summary: "The throwaway OpenProject runtime check now serves OpenProject and requests both plugin pages over HTTP after signing in through the login form: as a member who is not an admin and holds only view_replan_overlay, as a member without it, and signed out; with a valid overlay, a missing one, invalid JSON and the wrong shape; with markup in a task title that must come out escaped; and for a work package the overlay does not know, which now answers 404 as the design specifies. 47 checks pass. With the permission reduced to show again and one title rendered raw, the run failed: the panel answered 500 to the member, as it did on the live instance, and the raw script tag was found. Booked amounts are agent estimates."
+    url: docs/dev/openproject-plugin-throwaway-runtime-test.md
+    targets:
+      - kind: task
+        id: task.self.add-plugin-rendered-page-checks
+  - id: evidence.plugin-rendered-page-checks.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-25T22:10:00+07:00"
+    confidence: observed
+    summary: "The operator accepted task.self.add-plugin-rendered-page-checks and asked to continue with the overlay contract as recommended. CI of the commit passed in three jobs of under a minute each. Human time was not measured and is not booked."
+    url: docs/dev/openproject-plugin-throwaway-runtime-test.md
+    targets:
+      - kind: task
+        id: task.self.add-plugin-rendered-page-checks
+  - id: evidence.overlay-contract-v2.20260925
+    type: command_result
+    subtype: test_and_first_use
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-25T23:30:00+07:00"
+    confidence: observed
+    summary: "raw/openproject_overlay.json is schema version 2: the plan's date span, validate's warning count, open proposals, the person actions of replan next, every resource with its name, working weekdays and weekly capacity and planned load, and the overloaded resource-weeks ahead computed with replan workload; per work package dated evidence, booked actuals, validate warnings, open proposals and dependencies with names; per lane the resource name, slot flag and daily capacity in effect. Every version 1 field is kept. Three tests on a small workspace; counting planned instead of remaining overload, or losing dependency warnings, each fails one. The plugin reads versions 1 and 2 and explains any other; the rendered checks grew to 53 and pass. First use on the self plan: the only overloaded week ahead is the operator in 2026-W46, and a real warning surfaced, two dependencies on the accepted rendered checks still open, resolved through proposals. Booked amounts are agent estimates."
+    url: docs/spec/openproject-overlay-strategy.md
+    targets:
+      - kind: task
+        id: task.self.extend-overlay-contract-for-plugin-views
+  - id: evidence.overlay-contract-v2.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-25T23:50:00+07:00"
+    confidence: observed
+    summary: "The operator accepted task.self.extend-overlay-contract-for-plugin-views and asked to continue with the plugin theme and the project page as recommended. CI of the commit passed in three jobs of under a minute each. Human time was not measured and is not booked."
+    url: docs/spec/openproject-overlay-strategy.md
+    targets:
+      - kind: task
+        id: task.self.extend-overlay-contract-for-plugin-views
+  - id: evidence.plugin-theme.20260926
+    type: command_result
+    subtype: runtime_check_and_screenshots
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-26T01:20:00+07:00"
+    confidence: observed
+    summary: "Every plugin colour is an OpenProject Primer variable; both pages use OpenProject's page header with breadcrumbs, so the sidebar toggle no longer covers the title; long ids wrap. The rendered-page checks assert the header and that the plugin styles hold no fixed colour: 55 checks pass. Screenshots of both pages at 1600 and 900 pixels in OpenProject's light theme, its own dark theme and under the Dark Reader engine: no horizontal scroll and no clipped element anywhere; before the change the dark theme showed dark grey headings on black and white cards. The ERB syntax check learned Rails' block form and still fails on a broken template. Found on the way: OpenProject's Content Security Policy refuses inline scripts without its nonce, recorded for the Gantt navigation. Booked amounts are agent estimates."
+    url: docs/dev/openproject-plugin-ui-audit-2026-09-25.md
+    targets:
+      - kind: task
+        id: task.self.theme-plugin-views-with-openproject-variables
+  - id: evidence.plugin-theme.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-26T09:00:00+07:00"
+    confidence: observed
+    summary: "The operator looked at the screenshots of both pages in the light theme, the dark theme and under Dark Reader, accepted task.self.theme-plugin-views-with-openproject-variables and asked to continue. CI of the commit passed in three jobs of under a minute each. Human time was not measured and is not booked."
+    targets:
+      - kind: task
+        id: task.self.theme-plugin-views-with-openproject-variables
+  - id: evidence.plugin-project-page.20260926
+    type: command_result
+    subtype: runtime_check_and_screenshots
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-26T11:30:00+07:00"
+    confidence: observed
+    summary: "The plugin project page opens with five counters that answer questions (waiting on a person, overloaded weeks ahead in red with the weeks listed, open tasks, warnings, open proposals), a list of what waits on a person, then Needs attention: open tasks by finish date with names, status, window, resources by name and signals in words. Resources and lanes show names with ids in tooltips, amounts sit behind a disclosure, accepted tasks under a collapsed Done section, and the artifact line is gone. 4.4 screens at 1600 pixels instead of 28; no horizontal scroll at 900 pixels once OpenProject's table ellipsis was overridden. 64 rendered-page checks and six presenter tests pass; removing the done-predecessor filter or the finish-date order each fails a presenter test. A version 1 overlay still renders with dashes and a notice. Booked amounts are agent estimates."
+    url: docs/dev/openproject-plugin-redesign-design.md
+    targets:
+      - kind: task
+        id: task.self.restructure-plugin-project-page
+  - id: evidence.plugin-project-page.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-26T12:00:00+07:00"
+    confidence: observed
+    summary: "The operator looked at the screenshots of the restructured project page, accepted task.self.restructure-plugin-project-page and gave the go to deploy plugin milestone 1 to the live OpenProject now. CI of the commit passed in three jobs of under a minute each. Human time was not measured and is not booked."
+    targets:
+      - kind: task
+        id: task.self.restructure-plugin-project-page
+  - id: evidence.plugin-milestone-1.deployed
+    type: command_result
+    subtype: live_deployment
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-26T12:40:00+07:00"
+    confidence: observed
+    summary: "Plugin milestone 1 deployed to the live OpenProject with the guarded procedure at the operator's go: verified backup of database, assets, override and the previous overlay; the image proven by 64 rendered-page checks, with an equal content hash on both sides; the version 2 overlay published first; guarded switch, web healthy after 60 seconds, no load errors, previous image kept for rollback. Both pages checked at 1600 and 900 pixels as the non-admin review user. Waiting for the operator to look at the page on real work. Booked amounts are agent estimates."
+    url: docs/dev/openproject-wiki-api-live-deployment-result.md
+    targets:
+      - kind: task
+        id: task.self.deploy-plugin-milestone-1
+  - id: evidence.plugin-milestone-1.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-26T13:30:00+07:00"
+    confidence: observed
+    summary: "The operator saw that milestone 1 does not yet show the approved prototype, only the top of the project page, and the old resource strips below. Agreed: milestone 1 is accepted without a look on real work, the Gantt page starts now, and plugin parts are deployed as each is ready instead of waiting for milestone 2. Human time was not measured and is not booked."
+    targets:
+      - kind: task
+        id: task.self.deploy-plugin-milestone-1
+  - id: evidence.plugin-gantt-page.deployed
+    type: command_result
+    subtype: live_deployment
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-26T17:30:00+07:00"
+    confidence: observed
+    summary: "The Gantt page is built and live: server-rendered by GanttPresenter with month and Monday ticks, weekends, the status line, task bars, resource lanes filled by daily load over daily capacity with 100% at 60%, and closed tasks under a collapsed Done; the axis and the task column stay pinned, measured after scrolling to the far right and the bottom, in light and dark themes at 1600 and 900 pixels. Seven Gantt presenter tests; 95 rendered-page checks. The scaffold check now fails for any controller action the permission does not grant; dropping gantt from the permission fails it. Deployed with the guarded procedure and checked as the non-admin review user on the live plan. Booked amounts are agent estimates."
+    url: docs/dev/openproject-plugin-redesign-design.md
+    targets:
+      - kind: task
+        id: task.self.implement-openproject-plugin-gantt-view
+  - id: evidence.plugin-gantt-page.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-26T18:30:00+07:00"
+    confidence: observed
+    summary: "The operator looked at the live Gantt page on real work, found it fine for now and asked to continue with the navigation. CI of the commit passed in three jobs of under a minute each. Human time was not measured and is not booked."
+    targets:
+      - kind: task
+        id: task.self.implement-openproject-plugin-gantt-view
+  - id: evidence.plugin-gantt-navigation.deployed
+    type: command_result
+    subtype: live_deployment
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-26T21:30:00+07:00"
+    confidence: observed
+    summary: "Gantt navigation built and live: range presets, from and to dates, days, weeks or months scale and the lane toggle as URL parameters in a plain form; one script with OpenProject's CSP nonce for jumps, a time slider off by default, folding of the controls and page header with memory, full screen with a maximised fallback, a fitted chart height, and up to five closable task tabs across RePlan pages. 109 rendered-page checks including the script nonce against the policy header, 9 Gantt presenter tests, 20 browser checks of the script; without the nonce OpenProject refused the script and the browser checks failed at the first control. Turbo leaves the referrer empty, found by the browser check and fixed. Deployed with the guarded procedure; on the live Gantt the script's controls show. Booked amounts are agent estimates."
+    url: docs/dev/openproject-plugin-redesign-design.md
+    targets:
+      - kind: task
+        id: task.self.add-plugin-gantt-navigation
+  - id: evidence.plugin-gantt-navigation.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-26T22:00:00+07:00"
+    confidence: observed
+    summary: "The operator looked at the live Gantt navigation, accepted it and asked to continue with the load profile. CI of the commit passed in three jobs of under a minute each. Human time was not measured and is not booked."
+    targets:
+      - kind: task
+        id: task.self.add-plugin-gantt-navigation
+  - id: evidence.plugin-load-profile.deployed
+    type: command_result
+    subtype: live_deployment
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-26T23:30:00+07:00"
+    confidence: observed
+    summary: "Weekly load profile built and live under the Gantt: a row per resource grouped by class, weekly bars of planned load over capacity, a dashed 100% waterline at 55% of the row and overload as a hump above it. A hump is red only for a resource-week RePlan's workload still finds overloaded, the ones the overview counts; where the plan went over but the work is done it is grey, and past weeks are faded. load=0 hides it, a jump scrolls to it. 10 Gantt presenter tests, 120 rendered-page checks, 23 browser checks including the waterline position and a red hump starting on it. A first rendered run failed load=0 falsely because the script names the same marker; the checks now match markup only. Deployed with the guarded procedure; on the live Gantt the one red hump is the maintainer's 2026-W46. Booked amounts are agent estimates."
+    url: docs/dev/openproject-plugin-redesign-design.md
+    targets:
+      - kind: task
+        id: task.self.add-plugin-resource-load-profile
+  - id: evidence.plugin-load-profile.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-26T23:59:00+07:00"
+    confidence: observed
+    summary: "The operator looked at the live load profile, accepted it together with the rule that a hump is red only where RePlan's workload still finds an overload, and asked to continue with the task page. CI of the commit passed in three jobs of under a minute each. Human time was not measured and is not booked."
+    targets:
+      - kind: task
+        id: task.self.add-plugin-resource-load-profile
+  - id: evidence.plugin-task-page.deployed
+    type: command_result
+    subtype: live_deployment
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-27T02:00:00+07:00"
+    confidence: observed
+    summary: "Task page built and live in place of the old panel: status, planned window and booking dates; warnings and open proposals in words; the task and its resource lanes on an axis of their own drawn by the Gantt's presenter and shared markup; what was done newest first; planned, booked and remaining amounts by demand; every booking by date; what the task depends on and what waits on it, each linked to its own task page. 7 task presenter tests, 135 rendered-page checks including a task with every part and markup escaped in evidence and booked resource names; the first layout cramped the amounts table in three columns and was changed to two. Deployed with the guarded procedure and checked on live task pages as the non-admin review user. Booked amounts are agent estimates."
+    url: docs/dev/openproject-plugin-redesign-design.md
+    targets:
+      - kind: task
+        id: task.self.show-evidence-and-actuals-in-plugin-panel
+  - id: evidence.plugin-task-page.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-27T09:00:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the live task page and agreed to remove the old task list from the overview as a task of its own. CI of the commit passed in three jobs of under a minute each. Human time was not measured and is not booked."
+    targets:
+      - kind: task
+        id: task.self.show-evidence-and-actuals-in-plugin-panel
+  - id: evidence.remove-old-task-list.agreed
+    type: decision
+    subtype: operator_decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-27T09:00:00+07:00"
+    confidence: observed
+    summary: "The operator agreed to remove the old task list from the RePlan overview as its own task, built and deployed as soon as it is ready."
+    targets:
+      - kind: task
+        id: task.self.remove-old-task-list-from-plugin-overview
+  - id: evidence.remove-old-task-list.deployed
+    type: command_result
+    subtype: live_deployment
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-27T11:00:00+07:00"
+    confidence: observed
+    summary: "Milestone 1's task list with resource strips and the resource cards are gone from the overview, with the presenter code, partial and styles that only served them; the overview is the header, counters, waiting list and attention table with a pointer to the Gantt. 137 rendered-page checks: the overview must point to the Gantt and must not carry the old sections, matched by their headings after a first run matched the attention table's own Resources column. The scaffold check now reads every view in the directory, and fails on a broken partial it had not listed before. Deployed with the guarded procedure and checked on the live overview as the non-admin review user. Booked amounts are agent estimates."
+    url: docs/dev/openproject-plugin-redesign-design.md
+    targets:
+      - kind: task
+        id: task.self.remove-old-task-list-from-plugin-overview
+  - id: evidence.remove-old-task-list.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-27T12:00:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the overview without the old task list and asked to continue with the link from the OpenProject work package. CI of the commit failed on a stale task count in a Go test and passed after the fix. Human time was not measured and is not booked."
+    targets:
+      - kind: task
+        id: task.self.remove-old-task-list-from-plugin-overview
+  - id: evidence.work-package-link.research
+    type: workspace_event
+    subtype: research_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-27T13:00:00+07:00"
+    confidence: observed
+    summary: "Extension points of OpenProject 17.6 read in the image: work-package tabs are Angular and registered in the browser, so a plugin tab needs a frontend build; the Rails split-view menu draws only a tab header; layout hooks would tie a script to OpenProject's markup; a link custom field is a stable feature shown in the work package's attributes. Tried on the throwaway instance: a link field named RePlan holding the relative task-page path shows as a working link to a member with only view_work_packages. Proposed to the operator: the custom field, created once in the live instance, and a reviewed helper that writes the path, dry run by default. Booked amounts are agent estimates."
+    url: docs/dev/openproject-work-package-link-research.md
+    targets:
+      - kind: task
+        id: task.self.link-openproject-work-package-to-replan-panel
+  - id: evidence.work-package-link.operator-go
+    type: decision
+    subtype: operator_decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-09-27T13:30:00+07:00"
+    confidence: observed
+    summary: "After asking how invasive it is for OpenProject upgrades, the operator chose the RePlan link custom field over a work-package tab and asked the agent to create it in the live instance and fill it."
+    targets:
+      - kind: task
+        id: task.self.link-openproject-work-package-to-replan-panel
+  - id: evidence.work-package-link.deployed
+    type: command_result
+    subtype: live_openproject_write_back
+    source: openproject
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-09-27T15:00:00+07:00"
+    confidence: observed
+    summary: "work-package replan-links built: it finds the RePlan link field in each bound work package's schema, compares it with the task page URL built from the public address in the ignored settings, lists differences in a dry run and writes only those with REPLAN_APPLY=1. API v3 refuses a relative link, found on the throwaway instance. Eight checks against a throwaway OpenProject in the plugin runtime, failing when the comparison is broken. Live, after a database backup, the field was created for the RePlan project's types and enabled for that project only; one link was written and followed in the browser to the task page, then 98 more; a second dry run found 99 unchanged. Booked amounts are agent estimates."
+    url: docs/dev/openproject-work-package-link-research.md
+    targets:
+      - kind: task
+        id: task.self.link-openproject-work-package-to-replan-panel

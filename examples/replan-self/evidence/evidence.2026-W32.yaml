@@ -1,0 +1,301 @@
+evidence:
+  - id: evidence.openproject-preflight-recon.completed
+    type: workspace_event
+    subtype: research_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-04T13:56:00+07:00"
+    confidence: observed
+    summary: OpenProject functionality and technical pitfalls were reconstructed before the full OpenProject-centered dogfood cycle.
+    url: docs/dev/openproject-functionality-and-pitfalls.md
+    targets:
+      - kind: task
+        id: task.self.reconstruct-openproject-functionality-and-pitfalls
+      - kind: dependency
+        id: dependency.op-preflight-recon-before-agent-interface-eval
+  - id: evidence.openproject-agent-interface-options.completed
+    type: workspace_event
+    subtype: research_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-04T14:08:00+07:00"
+    confidence: observed
+    summary: OpenProject MCP, official CLI, direct API and RePlan-owned helper options were evaluated for AI CLI agent work.
+    url: docs/dev/openproject-agent-interface-options.md
+    targets:
+      - kind: task
+        id: task.self.evaluate-openproject-agent-interfaces
+      - kind: dependency
+        id: dependency.op-agent-interface-eval-before-ai-cli-layer-design
+  - id: evidence.openproject-agent-tools-hands-on.completed
+    type: workspace_event
+    subtype: research_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-04T15:22:00+07:00"
+    confidence: observed
+    summary: The official OpenProject CLI was cloned and run, read-only live CLI commands were tested, the live MCP endpoint was checked, representative third-party OpenProject MCP/API client code was inspected, and reusable API/write-back patterns were recorded for the OpenProject AI CLI operating-layer design.
+    url: docs/dev/openproject-agent-tools-hands-on-audit.md
+    targets:
+      - kind: task
+        id: task.self.audit-openproject-agent-tools-hands-on
+      - kind: dependency
+        id: dependency.op-agent-tools-hands-on-before-ai-cli-layer-design
+  - id: evidence.openproject-ai-cli-layer-design.completed
+    type: workspace_event
+    subtype: design_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-04T16:05:00+07:00"
+    confidence: observed
+    summary: The OpenProject AI CLI operating-layer design was accepted, including command families, dry-run/apply gates, private binding behavior, drift classes, evidence and audit expectations, and the minimum preflight helper implementation slice.
+    url: docs/dev/openproject-ai-cli-operating-layer-design.md
+    targets:
+      - kind: task
+        id: task.self.design-openproject-ai-cli-operating-layer
+      - kind: dependency
+        id: dependency.op-ai-cli-layer-design-before-preflight-helpers
+  - id: evidence.openproject-preflight-operator-helpers.completed
+    type: workspace_event
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-04T17:10:00+07:00"
+    confidence: observed
+    summary: The OpenProject preflight operator helper slice was implemented with a read-only operator report, sanitized fixture smoke coverage, live OpenProject validation, documentation updates and preserved dry-run/apply write-helper boundaries.
+    url: scripts/openproject-operator-report.sh
+    targets:
+      - kind: task
+        id: task.self.implement-openproject-preflight-operator-helpers
+      - kind: dependency
+        id: dependency.op-preflight-helpers-before-live-refactor
+  - id: evidence.openproject-work-package-operator-toolkit-design.completed
+    type: workspace_event
+    subtype: design_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-04T18:05:00+07:00"
+    confidence: observed
+    summary: The OpenProject work-package operator toolkit design was accepted, covering the manipulation gap left by the preflight report, reusable patterns from existing OpenProject tools, read and write command families, dry-run/apply gates, lockVersion handling, form validation, allowed transitions, private binding append rules, comments, metadata updates and prompt-injection boundaries.
+    url: docs/dev/openproject-work-package-operator-toolkit-design.md
+    targets:
+      - kind: task
+        id: task.self.design-openproject-work-package-operator-toolkit
+      - kind: dependency
+        id: dependency.op-work-package-toolkit-design-before-implementation
+  - id: evidence.openproject-work-package-operator-toolkit-implementation.completed
+    type: workspace_event
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-04T20:30:00+07:00"
+    confidence: observed
+    summary: The OpenProject work-package operator toolkit script was implemented with read commands, catalog commands, relation listing, dry-run status/date/metadata/comment write previews, guarded live apply support, documentation updates and MVP smoke coverage.
+    url: scripts/openproject-work-package-toolkit.sh
+    targets:
+      - kind: task
+        id: task.self.implement-openproject-work-package-operator-toolkit
+      - kind: dependency
+        id: dependency.op-work-package-toolkit-implementation-before-live-refactor
+  - id: evidence.openproject-live-refactor-pass.completed
+    type: workspace_event
+    subtype: live_refactor_completed
+    source: openproject_live
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-04T21:05:00+07:00"
+    confidence: observed
+    summary: The live replan-self OpenProject project was reviewed through the guarded operator report, strict drift check and work-package toolkit. The project had 34 mapped task bindings, 40 mapped relation bindings, zero unbound local tasks, zero missing or extra live work packages, zero title/status/date drifts, zero relation mismatches and no warning or error codes.
+    url: scripts/openproject-work-package-toolkit.sh
+    targets:
+      - kind: task
+        id: task.self.refactor-live-replan-self-openproject-plan
+      - kind: dependency
+        id: dependency.openproject-live-refactor-before-full-dogfood
+  - id: evidence.full-openproject-dogfood-cycle.started
+    type: workspace_event
+    subtype: dogfood_cycle_started
+    source: openproject_live
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-04T21:40:00+07:00"
+    confidence: observed
+    summary: The full OpenProject-centered dogfood cycle was started after live OpenProject/RePlan drift and resource schedule checks returned aligned results. The OpenProject work package was moved to In progress through the guarded toolkit and a kickoff comment was added to the live work package.
+    url: scripts/openproject-work-package-toolkit.sh
+    targets:
+      - kind: task
+        id: task.self.run-full-openproject-dogfood-cycle
+  - id: evidence.openproject-native-replan-surface-design.completed
+    type: workspace_event
+    subtype: design_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-04T22:20:00+07:00"
+    confidence: observed
+    summary: The OpenProject-native RePlan surface design was accepted. OpenProject remains the human task and Gantt surface, RePlan remains the adjacent resource-planning sidecar, Level 0 and Level 1 are the next implementation target, and OpenProject plugin work is staged until the adjacent surface proves the needed overlay fields.
+    url: docs/dev/openproject-native-replan-surface-design.md
+    targets:
+      - kind: task
+        id: task.self.design-openproject-native-surface
+      - kind: dependency
+        id: dependency.full-dogfood-before-surface-design
+      - kind: dependency
+        id: dependency.surface-design-before-surface-prototype
+  - id: evidence.openproject-native-replan-surface-prototype.completed
+    type: workspace_event
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-04T23:05:00+07:00"
+    confidence: observed
+    summary: The Level 0 and Level 1 OpenProject-native surface prototype was implemented by adding a structured OpenProject overlay section to dashboard JSON and rendering it in both overview and Gantt HTML. The prototype exposes linked work-package counts, missing-link counts, work-package URLs, RePlan task ids, statuses, planned dates, resource counts, warning counts and open dependency counts.
+    url: internal/reports/html.go
+    targets:
+      - kind: task
+        id: task.self.prototype-openproject-native-surface-level-0-1
+      - kind: dependency
+        id: dependency.surface-prototype-before-dashboard-semantics
+  - id: evidence.dashboard-load-profile-semantics-design.completed
+    type: workspace_event
+    subtype: design_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-06T11:15:00+07:00"
+    confidence: observed
+    summary: Dashboard resource-load semantics were designed around capacity-height profiles. Horizontal bar length now means participation window, vertical fill height means utilization intensity, task rows inherit task windows unless demand timing is explicit, resource summaries use authoritative planning buckets with a visible 100 percent waterline, and overload is allowed to extend above that waterline.
+    url: docs/dev/dashboard-load-profile-semantics-design.md
+    targets:
+      - kind: task
+        id: task.self.reconcile-dashboard-load-semantics
+      - kind: dependency
+        id: dependency.dashboard-semantics-before-release-story
+  - id: evidence.dashboard-load-profile-rendering.completed
+    type: workspace_event
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-06T17:20:00+07:00"
+    confidence: observed
+    summary: The Gantt dashboard now renders resource allocations as participation-window bars with capacity-height intensity fill, exposes allocation intensity and capacity metadata in raw/gantt.json, and renders Resource Load as weekly utilization buckets with a visible one hundred percent waterline and overload above that line.
+    url: internal/reports/html.go
+    targets:
+      - kind: task
+        id: task.self.implement-dashboard-load-profile-rendering
+      - kind: dependency
+        id: dependency.load-profile-rendering-before-release-story
+  - id: evidence.openproject-work-package-create-helper.completed
+    type: workspace_event
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-06T17:50:00+07:00"
+    confidence: observed
+    summary: The OpenProject work-package operator toolkit now supports guarded work-package creation with dry-run by default, fixture apply blocked, duplicate subject checks, live form validation, explicit REPLAN_APPLY=1 apply gate, created source-ref output and private binding suggestions for RePlan task ids.
+    url: scripts/openproject-work-package-toolkit.sh
+    targets:
+      - kind: task
+        id: task.self.implement-openproject-work-package-create-helper
+      - kind: dependency
+        id: dependency.op-create-helper-before-full-dogfood
+  - id: evidence.openproject-private-binding-helper.completed
+    type: workspace_event
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-06T18:10:00+07:00"
+    confidence: observed
+    summary: The OpenProject work-package operator toolkit now supports guarded private binding between RePlan task ids and OpenProject work-package source references. The command is dry-run by default, requires REPLAN_APPLY=1 before writing, verifies RePlan task existence, rejects duplicate task or work-package bindings, verifies OpenProject work-package existence unless explicitly skipped, and writes only the configured ignored private binding file.
+    url: scripts/openproject-work-package-toolkit.sh
+    targets:
+      - kind: task
+        id: task.self.implement-openproject-private-binding-helper
+      - kind: dependency
+        id: dependency.op-private-binding-helper-before-full-dogfood
+  - id: evidence.openproject-dotenv-loader.completed
+    type: workspace_event
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-06T18:50:00+07:00"
+    confidence: observed
+    summary: OpenProject operator scripts now load local .env.local and .env connection settings through a safe dotenv parser that exports only allowed OpenProject variables, does not execute shell code, does not persist REPLAN_APPLY, keeps explicit environment variables authoritative and keeps real secrets out of git.
+    url: scripts/lib/load-dotenv.sh
+    targets:
+      - kind: task
+        id: task.self.add-safe-openproject-dotenv-loader
+      - kind: dependency
+        id: dependency.openproject-dotenv-loader-before-full-dogfood
+  - id: evidence.openproject-backlog-reconcile-helper.completed
+    type: workspace_event
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-06T19:20:00+07:00"
+    confidence: observed
+    summary: The OpenProject work-package operator toolkit now supports backlog reconcile. The command compares RePlan tasks, private bindings and OpenProject work packages, reports bound tasks, unique bind-existing matches, create-needed tasks and ambiguous matches, and applies only private binding writes for safe unique existing matches.
+    url: scripts/openproject-work-package-toolkit.sh
+    targets:
+      - kind: task
+        id: task.self.add-openproject-backlog-reconcile-helper
+      - kind: dependency
+        id: dependency.openproject-backlog-reconcile-before-full-dogfood
+  - id: evidence.live-openproject-plugin-resource-view.deployed
+    type: workspace_event
+    subtype: implementation_deployed
+    source: openproject_live
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-07T19:30:00+07:00"
+    confidence: observed
+    summary: The live OpenProject RePlan plugin was updated from a plain table renderer to a read-only resource-aware project view. The update added summary metrics, resource aggregates, current-attention rows and a compact task/resource timeline driven by the existing RePlan overlay artifact. The private live OpenProject instance was rebuilt on the exact OpenProject 17.6.0 custom image path, Rails services were recreated, the web service returned healthy, route/menu/permission checks passed, and the mounted overlay artifact was refreshed to 48 linked work packages with zero missing links.
+    url: integrations/openproject/plugins/openproject-replan_overlay/app/views/open_project/replan_overlay/overlays/show.html.erb
+    targets:
+      - kind: task
+        id: task.self.improve-live-openproject-plugin-resource-view
+  - id: evidence.openproject-work-package-replan-panel-design.draft
+    type: workspace_event
+    subtype: design_draft
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-11T19:00:00+07:00"
+    confidence: observed
+    summary: The first draft design for the OpenProject work-package-level RePlan panel was created. The design chooses a read-only per-work-package plugin route as the first prototype, keeps embedded OpenProject work-package injection and native Gantt modification deferred, and identifies overlay contract extensions needed for a richer panel.
+    url: docs/dev/openproject-work-package-replan-panel-design.md
+    targets:
+      - kind: task
+        id: task.self.design-openproject-work-package-replan-panel

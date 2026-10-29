@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.move-pilot-narrative-to-private-storage-before-cut-public-repository-from-sanitized-tree.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-10-28T07:30:56+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.move-pilot-narrative-to-private-storage-before-cut-public-repository-from-sanitized-tree
+    suggested_change:
+        op: set
+        path: dependencies.dependency.move-pilot-narrative-to-private-storage-before-cut-public-repository-from-sanitized-tree.status
+        value: resolved
+    rationale: Dependency dependency.move-pilot-narrative-to-private-storage-before-cut-public-repository-from-sanitized-tree (required) can be marked resolved because predecessor task.self.move-pilot-narrative-to-private-storage is in the required state.
+    requires_confirmation: true

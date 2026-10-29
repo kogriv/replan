@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.ci-green-before-actual-audit-fix.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-09-24T14:46:15+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.ci-green-before-actual-audit-fix
+    suggested_change:
+        op: set
+        path: dependencies.dependency.ci-green-before-actual-audit-fix.status
+        value: resolved
+    rationale: Dependency dependency.ci-green-before-actual-audit-fix (required) can be marked resolved because predecessor task.self.fix-ci-smoke-ripgrep-dependency is in the required state.
+    requires_confirmation: true

@@ -1,0 +1,27 @@
+scenario:
+    id: scenario.three-tasks-done-early-20261015
+    name: Agent kit refresh, license audit and tooling review done on 2026-10-15 instead of 16 October
+    status: applied
+    base_ref:
+        kind: current_plan
+        id: current
+    created_at: "2026-10-15T11:50:00+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    changes:
+        - op: replace
+          path: tasks.task.self.refresh-agent-kit-for-second-project.planned_start
+          value: "2026-10-15"
+        - op: replace
+          path: tasks.task.self.refresh-agent-kit-for-second-project.planned_finish
+          value: "2026-10-15"
+        - op: replace
+          path: tasks.task.self.license-and-audit-repo-for-publication.planned_start
+          value: "2026-10-15"
+        - op: replace
+          path: tasks.task.self.license-and-audit-repo-for-publication.planned_finish
+          value: "2026-10-15"
+        - op: replace
+          path: tasks.task.self.review-agent-tooling-consistency.planned_finish
+          value: "2026-10-15"

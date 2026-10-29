@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.pass-named-arguments-to-python-helpers-before-add-help-to-every-script.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-10-26T08:20:34+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.pass-named-arguments-to-python-helpers-before-add-help-to-every-script
+    suggested_change:
+        op: set
+        path: dependencies.dependency.pass-named-arguments-to-python-helpers-before-add-help-to-every-script.status
+        value: resolved
+    rationale: Dependency dependency.pass-named-arguments-to-python-helpers-before-add-help-to-every-script (preferred) can be marked resolved because predecessor task.self.pass-named-arguments-to-python-helpers is in the required state.
+    requires_confirmation: true

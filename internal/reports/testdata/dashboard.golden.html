@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>RePlan Dashboard: Test &lt;project&gt; &amp; co</title>
+<style>
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f7f7f4;
+  --fg: #1f2522;
+  --muted: #626b65;
+  --line: #d9ded8;
+  --panel: #ffffff;
+  --warning: #9a5b00;
+  --danger: #b3261e;
+  --ok: #23704a;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111411;
+  --fg: #e5e8e3;
+  --muted: #a1aa9f;
+  --line: #343a34;
+  --panel: #1a1f1b;
+  --warning: #f0b35a;
+  --danger: #ff8a80;
+  --ok: #7bd49d;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #111411;
+    --fg: #e5e8e3;
+    --muted: #a1aa9f;
+    --line: #343a34;
+    --panel: #1a1f1b;
+    --warning: #f0b35a;
+    --danger: #ff8a80;
+    --ok: #7bd49d;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 14px/1.45 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 20px 48px;
+}
+header { margin-bottom: 24px; }
+.topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+h1, h2 { margin: 0; line-height: 1.15; }
+h1 { font-size: 30px; font-weight: 700; }
+h2 { margin-top: 30px; margin-bottom: 12px; font-size: 18px; }
+.meta { margin-top: 10px; color: var(--muted); }
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin: 18px 0 6px;
+}
+.metric {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px;
+}
+.metric span { display: block; color: var(--muted); font-size: 12px; }
+.metric strong { display: block; margin-top: 4px; font-size: 24px; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+th, td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+th { color: var(--muted); font-size: 12px; font-weight: 600; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tr.overloaded td { background: #fff6e5; }
+:root[data-theme="dark"] tr.overloaded td { background: #342717; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) tr.overloaded td { background: #342717; }
+}
+.theme-switcher {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.theme-switcher button {
+  border: 0;
+  border-radius: 4px;
+  padding: 6px 9px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+.theme-switcher button[aria-pressed="true"] {
+  background: var(--fg);
+  color: var(--bg);
+}
+.code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+.muted { color: var(--muted); }
+.warning { color: var(--warning); }
+.error { color: var(--danger); }
+.ok { color: var(--ok); }
+.view-links a { margin-right: 10px; }
+.badge {
+  display: inline-block;
+  margin: 3px 4px 0 0;
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 11px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: top;
+  white-space: nowrap;
+}
+.badge.warning { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 55%, var(--line)); }
+.badge.error { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 55%, var(--line)); }
+.badge.ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 55%, var(--line)); }
+.gantt-shell {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+.gantt {
+  min-width: 940px;
+}
+.gantt-row {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) minmax(620px, 1fr);
+  border-bottom: 1px solid var(--line);
+}
+.gantt-row:last-child { border-bottom: 0; }
+.gantt-task-cell,
+.gantt-timeline {
+  padding: 8px 10px;
+}
+.gantt-task-cell {
+  border-right: 1px solid var(--line);
+  overflow: hidden;
+}
+.gantt-resource-cell {
+  color: var(--muted);
+  padding-left: 28px;
+}
+.gantt-resource-row {
+  background: color-mix(in srgb, var(--panel) 92%, var(--bg));
+}
+.gantt-resource-row .gantt-timeline {
+  min-height: 34px;
+}
+.gantt-task-title {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+.gantt-task-ids {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-bottom: 5px;
+}
+.gantt-indicators {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.gantt-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+.legend-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 5px;
+  min-height: 10px;
+  padding: 0;
+  vertical-align: -1px;
+}
+.gantt-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.gantt-timeline {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  align-items: center;
+  min-height: 42px;
+  --gantt-days: 1;
+}
+.gantt-timeline::before {
+  content: "";
+  position: absolute;
+  inset: 8px 10px;
+  pointer-events: none;
+  z-index: 0;
+  background-image: repeating-linear-gradient(to right, color-mix(in srgb, var(--line) 72%, transparent) 0 1px, transparent 1px calc(100% / var(--gantt-days)));
+  -webkit-mask-image: repeating-linear-gradient(to bottom, #000 0 4px, transparent 4px 9px);
+  mask-image: repeating-linear-gradient(to bottom, #000 0 4px, transparent 4px 9px);
+}
+.gantt-tick {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
+  white-space: nowrap;
+}
+.gantt-bar {
+  position: relative;
+  z-index: 1;
+  min-height: 26px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.gantt-bar.status-accepted,
+.gantt-bar.status-done { background: #2f8f5b; }
+.gantt-bar.status-in-progress,
+.gantt-bar.status-review-ready { background: #3268a8; }
+.gantt-bar.status-ready,
+.gantt-bar.status-not-started { background: #7b6a2b; }
+.gantt-bar.status-blocked,
+.gantt-bar.status-on-hold { background: #a4443d; }
+.gantt-bar.status-default { background: #68726d; }
+.legend-dot.gantt-bar {
+  min-height: 10px;
+  padding: 0;
+}
+.gantt-status-line {
+  bottom: 4px;
+  border-left: 2px solid var(--danger);
+  position: absolute;
+  top: 4px;
+  opacity: .85;
+  pointer-events: none;
+  z-index: 2;
+}
+.gantt-allocation-bar {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  background: color-mix(in srgb, var(--bg) 76%, var(--panel));
+  border: 1px solid color-mix(in srgb, var(--fg) 15%, transparent);
+  border-radius: 4px;
+  color: var(--fg);
+  font-size: 11px;
+  height: 22px;
+  opacity: .8;
+  overflow: hidden;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  --allocation-fill: 8%;
+}
+.gantt-allocation-bar::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: var(--allocation-fill);
+  background: color-mix(in srgb, var(--ok) 58%, transparent);
+  z-index: -1;
+}
+.gantt-allocation-bar.overloaded {
+  border-color: var(--warning);
+  color: var(--warning);
+  opacity: 1;
+}
+.gantt-allocation-bar.overloaded::before {
+  background: color-mix(in srgb, var(--warning) 64%, transparent);
+}
+.gantt-load-profile {
+  position: relative;
+  z-index: 1;
+  align-self: stretch;
+  display: grid;
+  gap: 3px;
+  min-height: 74px;
+  padding: 6px 0;
+}
+.gantt-load-profile::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--waterline-top, 34px);
+  border-top: 1px dashed var(--warning);
+  pointer-events: none;
+  z-index: 3;
+}
+.gantt-load-bucket {
+  position: relative;
+  align-self: end;
+  height: var(--profile-height, 56px);
+  min-width: 16px;
+}
+.gantt-load-fill {
+  position: absolute;
+  bottom: 0;
+  left: 2px;
+  right: 2px;
+  height: var(--load-height, 0%);
+  background: color-mix(in srgb, var(--ok) 48%, transparent);
+  border-radius: 3px 3px 0 0;
+}
+.gantt-load-bucket.overloaded .gantt-load-fill {
+  background: color-mix(in srgb, var(--warning) 64%, transparent);
+}
+.gantt-load-bar {
+  position: relative;
+  z-index: 1;
+  align-self: stretch;
+  background: color-mix(in srgb, var(--ok) 45%, transparent);
+  border-radius: 3px 3px 0 0;
+  margin: 5px 1px 0;
+}
+.gantt-load-bar.overloaded {
+  background: color-mix(in srgb, var(--warning) 70%, transparent);
+}
+ul { margin: 0; padding-left: 20px; }
+li + li { margin-top: 6px; }
+@media (max-width: 760px) {
+  main { padding: 20px 12px 36px; }
+  table { display: block; overflow-x: auto; }
+  .topbar { display: block; }
+  .theme-switcher { margin-top: 14px; }
+  .gantt { min-width: 900px; }
+  .gantt-row { grid-template-columns: 300px 1fr; }
+}
+</style>
+<script>
+(function () {
+  var key = "replan-theme";
+  var root = document.documentElement;
+  function apply(mode) {
+    if (mode === "dark" || mode === "light") {
+      root.dataset.theme = mode;
+    } else {
+      root.removeAttribute("data-theme");
+      mode = "auto";
+    }
+    try { localStorage.setItem(key, mode); } catch (_) {}
+    document.querySelectorAll("[data-theme-choice]").forEach(function (button) {
+      button.setAttribute("aria-pressed", button.dataset.themeChoice === mode ? "true" : "false");
+    });
+  }
+  try { apply(localStorage.getItem(key) || "auto"); } catch (_) { apply("auto"); }
+  window.replanSetTheme = apply;
+})();
+</script>
+</head>
+<body>
+<main>
+<header>
+<div class="topbar"><div><h1>RePlan Dashboard: Test &lt;project&gt; &amp; co</h1>
+<div class="meta">Project: <span class="code">project.test</span></div>
+<div class="meta">Status date: <span class="code">2026-07-20</span></div>
+<div class="meta">Generated: <span class="code">2026-07-20T10:00:00+07:00</span></div>
+<div class="meta view-links">Views: <a href="index.html">overview</a> <a href="gantt.html">gantt</a></div>
+<div class="meta">Raw artifacts: <a href="raw/overview.json">overview.json</a> · <a href="raw/gantt.json">gantt.json</a> · <a href="raw/openproject_overlay.json">openproject_overlay.json</a> · <a href="raw/manifest.json">manifest.json</a></div>
+</div>
+<div class="theme-switcher" aria-label="Theme">
+<button type="button" data-theme-choice="auto" aria-pressed="true" onclick="replanSetTheme('auto')">Auto</button>
+<button type="button" data-theme-choice="dark" aria-pressed="false" onclick="replanSetTheme('dark')">Dark</button>
+<button type="button" data-theme-choice="light" aria-pressed="false" onclick="replanSetTheme('light')">Light</button>
+</div>
+</div>
+</header>
+<section aria-label="Project summary">
+<div class="summary">
+<div class="metric"><span>Tasks</span><strong>2</strong></div>
+<div class="metric"><span>Accepted tasks</span><strong>0</strong></div>
+<div class="metric"><span>Active tasks</span><strong>0</strong></div>
+<div class="metric"><span>Open dependencies</span><strong>0</strong></div>
+<div class="metric"><span>Overloaded resources</span><strong>1</strong></div>
+<div class="metric"><span>Warnings</span><strong>0</strong></div>
+<div class="metric"><span>Open proposals</span><strong>1</strong></div>
+<div class="metric"><span>Evidence records</span><strong>0</strong></div>
+</div>
+</section>
+<section>
+<h2>Next Actions</h2>
+<h3>Waiting on a person</h3>
+<ul>
+<li><span class="code">accept_or_return_task</span> <span class="code muted">task.status.2</span>: 2026-07-22: Fix &lt;b&gt;&#34;quotes&#34;&lt;/b&gt; &amp; &#39;apostrophes&#39;</li>
+</ul>
+<h3>An agent can prepare</h3>
+<ul>
+<li><span class="code">review_tracking</span> <span class="code muted">task.1</span>: Review actuals.<br><span class="code">replan actual list --project . --task task.1 --format json</span></li>
+</ul>
+<ul>
+<li><span class="code">inspect_project</span>: Nothing waits.</li>
+</ul>
+</section>
+<section>
+<h2>OpenProject Native Surface</h2>
+<div class="summary">
+<div class="metric"><span>Linked work packages</span><strong>1</strong></div>
+<div class="metric"><span>Missing links</span><strong>1</strong></div>
+<div class="metric"><span>Tasks with resources</span><strong>1</strong></div>
+<div class="metric"><span>Work-package URLs</span><strong>1</strong></div>
+</div>
+<div class="meta">OpenProject project: <span class="code">replan-self</span></div>
+<table>
+<thead><tr><th>OpenProject</th><th>RePlan Task</th><th>Status</th><th>Dates</th><th>Resources</th><th>Warnings</th><th>Open Deps</th></tr></thead>
+<tbody>
+<tr><td><a class="code" href="https://op.example.internal/work_packages/2101">openproject:2101</a></td><td><strong>Task 1</strong><br><span class="code muted">task.1</span></td><td>in_progress</td><td><span class="code">07-20 - 07-22</span></td><td title="resource.human.ivan">1</td><td>1</td><td>1</td></tr>
+</tbody>
+</table>
+<h2>RePlan Tasks Missing OpenProject Links</h2>
+<ul>
+<li><span class="code">task.unlinked</span> (ready): Fix &lt;b&gt;&#34;quotes&#34;&lt;/b&gt; &amp; &#39;apostrophes&#39;</li>
+</ul>
+</section>
+<section>
+<h2>Tracking Proposal Loop</h2>
+<div class="summary">
+<div class="metric"><span>Stale remaining</span><strong>1</strong></div>
+<div class="metric"><span>Open tracking proposals</span><strong>1</strong></div>
+<div class="metric"><span>Accepted tracking proposals</span><strong>0</strong></div>
+<div class="metric"><span>Covered demands</span><strong>1</strong></div>
+<div class="metric"><span>Actionable demands</span><strong>0</strong></div>
+</div>
+<table>
+<thead><tr><th>Task</th><th>Demand</th><th>Status</th><th>Priority</th><th>Reason</th><th>Resource</th><th class="num">Remaining</th><th class="num">Forecast</th><th>Proposal</th><th>Next</th></tr></thead>
+<tbody>
+<tr><td><span class="code">task.1</span><br><span class="muted">Task 1</span></td><td><span class="code">resource_demand.task-1.ivan</span></td><td>open</td><td>medium</td><td>proposal already open</td><td><span class="code muted">resource.human.ivan</span></td><td class="num">5</td><td class="num">7</td><td><span class="code">proposal.tracking.resource_demand-task-1-ivan.set-remaining-zero</span><br><span class="muted">open</span></td><td><span class="code muted">replan proposal accept --project . proposal.tracking.resource_demand-task-1-ivan.set-remaining-zero --dry-run --format json</span></td></tr>
+<tr><td><span class="code">task.loop.00</span><br><span class="muted">Fix &lt;b&gt;&#34;quotes&#34;&lt;/b&gt; &amp; &#39;apostrophes&#39;</span></td><td><span class="code">resource_demand.loop.00</span></td><td>actionable</td><td>-</td><td>Fix &lt;b&gt;&#34;quotes&#34;&lt;/b&gt; &amp; &#39;apostrophes&#39;</td><td><span class="code muted"></span></td><td class="num">1</td><td class="num">1</td><td><span class="code">none</span><br><span class="muted">actionable</span></td><td><span class="code muted">-</span></td></tr>
+<tr><td><span class="code">task.loop.01</span><br><span class="muted"></span></td><td><span class="code">resource_demand.loop.01</span></td><td>actionable</td><td>-</td><td>-</td><td><span class="code muted"></span></td><td class="num">1</td><td class="num">1</td><td><span class="code">none</span><br><span class="muted">actionable</span></td><td><span class="code muted">-</span></td></tr>
+<tr><td><span class="code">task.loop.02</span><br><span class="muted"></span></td><td><span class="code">resource_demand.loop.02</span></td><td>actionable</td><td>-</td><td>-</td><td><span class="code muted"></span></td><td class="num">1</td><td class="num">1</td><td><span class="code">none</span><br><span class="muted">actionable</span></td><td><span class="code muted">-</span></td></tr>
+<tr><td><span class="code">task.loop.03</span><br><span class="muted"></span></td><td><span class="code">resource_demand.loop.03</span></td><td>actionable</td><td>-</td><td>-</td><td><span class="code muted"></span></td><td class="num">1</td><td class="num">1</td><td><span class="code">none</span><br><span class="muted">actionable</span></td><td><span class="code muted">-</span></td></tr>
+<tr><td><span class="code">task.loop.04</span><br><span class="muted"></span></td><td><span class="code">resource_demand.loop.04</span></td><td>actionable</td><td>-</td><td>-</td><td><span class="code muted"></span></td><td class="num">1</td><td class="num">1</td><td><span class="code">none</span><br><span class="muted">actionable</span></td><td><span class="code muted">-</span></td></tr>
+<tr><td><span class="code">task.loop.05</span><br><span class="muted"></span></td><td><span class="code">resource_demand.loop.05</span></td><td>actionable</td><td>-</td><td>-</td><td><span class="code muted"></span></td><td class="num">1</td><td class="num">1</td><td><span class="code">none</span><br><span class="muted">actionable</span></td><td><span class="code muted">-</span></td></tr>
+<tr><td><span class="code">task.loop.06</span><br><span class="muted"></span></td><td><span class="code">resource_demand.loop.06</span></td><td>actionable</td><td>-</td><td>-</td><td><span class="code muted"></span></td><td class="num">1</td><td class="num">1</td><td><span class="code">none</span><br><span class="muted">actionable</span></td><td><span class="code muted">-</span></td></tr>
+<tr><td><span class="code">task.loop.07</span><br><span class="muted"></span></td><td><span class="code">resource_demand.loop.07</span></td><td>actionable</td><td>-</td><td>-</td><td><span class="code muted"></span></td><td class="num">1</td><td class="num">1</td><td><span class="code">none</span><br><span class="muted">actionable</span></td><td><span class="code muted">-</span></td></tr>
+<tr><td><span class="code">task.loop.08</span><br><span class="muted"></span></td><td><span class="code">resource_demand.loop.08</span></td><td>actionable</td><td>-</td><td>-</td><td><span class="code muted"></span></td><td class="num">1</td><td class="num">1</td><td><span class="code">none</span><br><span class="muted">actionable</span></td><td><span class="code muted">-</span></td></tr>
+<tr><td><span class="code">task.loop.09</span><br><span class="muted"></span></td><td><span class="code">resource_demand.loop.09</span></td><td>actionable</td><td>-</td><td>-</td><td><span class="code muted"></span></td><td class="num">1</td><td class="num">1</td><td><span class="code">none</span><br><span class="muted">actionable</span></td><td><span class="code muted">-</span></td></tr>
+<tr><td><span class="code">task.loop.10</span><br><span class="muted"></span></td><td><span class="code">resource_demand.loop.10</span></td><td>actionable</td><td>-</td><td>-</td><td><span class="code muted"></span></td><td class="num">1</td><td class="num">1</td><td><span class="code">none</span><br><span class="muted">actionable</span></td><td><span class="code muted">-</span></td></tr>
+<tr><td><span class="code">task.loop.11</span><br><span class="muted"></span></td><td><span class="code">resource_demand.loop.11</span></td><td>actionable</td><td>-</td><td>-</td><td><span class="code muted"></span></td><td class="num">1</td><td class="num">1</td><td><span class="code">none</span><br><span class="muted">actionable</span></td><td><span class="code muted">-</span></td></tr>
+<tr><td><span class="code">task.loop.12</span><br><span class="muted"></span></td><td><span class="code">resource_demand.loop.12</span></td><td>actionable</td><td>-</td><td>-</td><td><span class="code muted"></span></td><td class="num">1</td><td class="num">1</td><td><span class="code">none</span><br><span class="muted">actionable</span></td><td><span class="code muted">-</span></td></tr>
+<tr><td><span class="code">task.loop.13</span><br><span class="muted"></span></td><td><span class="code">resource_demand.loop.13</span></td><td>actionable</td><td>-</td><td>-</td><td><span class="code muted"></span></td><td class="num">1</td><td class="num">1</td><td><span class="code">none</span><br><span class="muted">actionable</span></td><td><span class="code muted">-</span></td></tr>
+<tr><td><span class="code">task.loop.14</span><br><span class="muted"></span></td><td><span class="code">resource_demand.loop.14</span></td><td>actionable</td><td>-</td><td>-</td><td><span class="code muted"></span></td><td class="num">1</td><td class="num">1</td><td><span class="code">none</span><br><span class="muted">actionable</span></td><td><span class="code muted">-</span></td></tr>
+<tr><td><span class="code">task.loop.15</span><br><span class="muted"></span></td><td><span class="code">resource_demand.loop.15</span></td><td>actionable</td><td>-</td><td>-</td><td><span class="code muted"></span></td><td class="num">1</td><td class="num">1</td><td><span class="code">none</span><br><span class="muted">actionable</span></td><td><span class="code muted">-</span></td></tr>
+<tr><td><span class="code">task.loop.16</span><br><span class="muted"></span></td><td><span class="code">resource_demand.loop.16</span></td><td>actionable</td><td>-</td><td>-</td><td><span class="code muted"></span></td><td class="num">1</td><td class="num">1</td><td><span class="code">none</span><br><span class="muted">actionable</span></td><td><span class="code muted">-</span></td></tr>
+<tr><td><span class="code">task.loop.17</span><br><span class="muted"></span></td><td><span class="code">resource_demand.loop.17</span></td><td>actionable</td><td>-</td><td>-</td><td><span class="code muted"></span></td><td class="num">1</td><td class="num">1</td><td><span class="code">none</span><br><span class="muted">actionable</span></td><td><span class="code muted">-</span></td></tr>
+<tr><td><span class="code">task.loop.18</span><br><span class="muted"></span></td><td><span class="code">resource_demand.loop.18</span></td><td>actionable</td><td>-</td><td>-</td><td><span class="code muted"></span></td><td class="num">1</td><td class="num">1</td><td><span class="code">none</span><br><span class="muted">actionable</span></td><td><span class="code muted">-</span></td></tr>
+<tr><td colspan="10" class="muted">2 more rows in raw/overview.json</td></tr>
+</tbody>
+</table>
+</section>
+<section>
+<h2>Workload</h2>
+<table>
+<thead><tr><th>Resource</th><th>Class</th><th>Unit</th><th class="num">Capacity</th><th class="num">Planned</th><th class="num">Reserved</th><th class="num">Actual</th><th class="num">Remaining</th><th class="num">Overload</th></tr></thead>
+<tbody>
+<tr class="overloaded"><td><strong>Ivan</strong><br><span class="code muted">resource.human.ivan</span></td><td>human</td><td>hours</td><td class="num">24</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">30</td><td class="num">6</td></tr>
+<tr><td><strong>resource.unnamed</strong><br><span class="code muted">resource.unnamed</span></td><td>role</td><td>review_hours</td><td class="num">2</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">1</td><td class="num">0</td></tr>
+</tbody>
+</table>
+</section>
+<section>
+<h2>Tasks</h2>
+<table>
+<thead><tr><th>Task</th><th>Status</th><th>Dates</th><th class="num">Demands</th><th class="num">Dependencies</th><th class="num">Warnings</th></tr></thead>
+<tbody>
+<tr><td><strong>Task 1</strong><br><span class="code muted">task.1</span></td><td>in_progress</td><td></td><td class="num">1</td><td class="num">0</td><td class="num">0</td></tr>
+</tbody>
+</table>
+</section>
+<section>
+<h2>Dependencies</h2>
+<table>
+<thead><tr><th>Dependency</th><th>Predecessor</th><th>Successor</th><th>Status</th><th>Criticality</th></tr></thead>
+<tbody>
+<tr><td><span class="code">dependency.1</span><br>finish_to_start</td><td><span class="code"></span></td><td><span class="code">task.1</span></td><td>open</td><td></td></tr>
+</tbody>
+</table>
+</section>
+<section>
+<h2>Errors</h2>
+<ul>
+<li><span class="code error">unresolved_reference</span> <span class="code muted">task.unlinked</span>: Fix &lt;b&gt;&#34;quotes&#34;&lt;/b&gt; &amp; &#39;apostrophes&#39;</li>
+</ul>
+</section>
+<section>
+<h2>Warnings</h2>
+<ul>
+<li><span class="code warning">required_dependency_unresolved</span> <span class="code muted">dependency.1</span>: Dependency is open.</li>
+</ul>
+</section>
+<section>
+<h2>Open Proposals</h2>
+<ul>
+<li><span class="code">proposal.1</span> (capacity_adjustment): Increase capacity.</li>
+</ul>
+</section>
+<section>
+<h2>Evidence</h2>
+<ul>
+<li><span class="code">evidence.1</span> (workspace_event): Observed.</li>
+</ul>
+</section>
+<section>
+<h2>Source Health</h2>
+<div class="meta">Project source refs: <span class="code">0</span>; task source refs: <span class="code">1</span>; resource source refs: <span class="code">0</span>; dependency source refs: <span class="code">0</span>.</div>
+<table>
+<thead><tr><th>Profile</th><th>Source</th><th>Project</th><th>Base URL</th></tr></thead>
+<tbody>
+<tr><td><span class="code">openproject.test</span></td><td>openproject</td><td><span class="code">test</span></td><td><span class="code">https://op.example.internal/?a=1&amp;b=2</span></td></tr>
+</tbody>
+</table>
+<h2>OpenProject Links</h2>
+<table>
+<thead><tr><th>Task</th><th>Status</th><th>Source</th><th>Source ID</th><th>URL</th></tr></thead>
+<tbody>
+<tr><td><strong>Task 1</strong><br><span class="code muted">task.1</span></td><td>in_progress</td><td>openproject</td><td><span class="code">2101</span></td><td><span class="code">https://op.example.internal/work_packages/2101</span></td></tr>
+</tbody>
+</table>
+<h2>Tasks Without Source Links</h2>
+<ul>
+<li><span class="code">task.unlinked</span> (ready): Fix &lt;b&gt;&#34;quotes&#34;&lt;/b&gt; &amp; &#39;apostrophes&#39;</li>
+</ul>
+</section>
+</main>
+</body>
+</html>

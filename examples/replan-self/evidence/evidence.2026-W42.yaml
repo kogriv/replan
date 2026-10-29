@@ -1,0 +1,825 @@
+evidence:
+  - id: evidence.outside-agent-kit.agreed
+    type: decision
+    subtype: operator_decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-12T10:00:00+07:00"
+    confidence: observed
+    summary: "The operator asked how outside users and their agents can use RePlan and OpenProject, pointed out that the answer must go through the project's own tooling rather than the raw API, and agreed to package it as a release an outside agent can use without the private repository, starting with a check under an ordinary member's token."
+    targets:
+      - kind: task
+        id: task.self.package-openproject-tooling-for-outside-agents
+  - id: evidence.outside-agent-kit.built
+    type: command_result
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-12T14:00:00+07:00"
+    confidence: observed
+    summary: "Every OpenProject helper was run on a throwaway OpenProject 17.6 with the tokens of a Member and of a Project admin, neither an administrator: all worked except user list, which read the instance's users and now reads the project's assignees. New work packages go to the token's own user instead of user 4, the settings file carries the plan, target project and assignee, and helpers use the archive's binary. build-agent-kit.sh makes a 3.4 MB archive with a static binary, 15 helpers, a sample plan, a settings template and a guide. check-agent-kit.sh, in the smoke, unpacks it outside the repository and uses it where go fails, and found the repository owner's name in the sample plan; check-openproject-agent-kit-live.sh, in the throwaway runtime, runs 19 checks with a Member's token and fails when user list asks for all users. The existing backlog reconcile already rebuilds lost bindings. CI failed once on shellcheck and passed after the fix. Booked amounts are agent estimates."
+    url: docs/agent-kit/README.md
+    targets:
+      - kind: task
+        id: task.self.package-openproject-tooling-for-outside-agents
+  - id: evidence.scope-plugin-overlay.agreed
+    type: decision
+    subtype: operator_decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-12T14:30:00+07:00"
+    confidence: observed
+    summary: "With a second project in the same OpenProject, the operator agreed to take the per-project overlay next, ahead of its November window, so the RePlan pages can be enabled there without showing another project's plan."
+    targets:
+      - kind: task
+        id: task.self.scope-plugin-overlay-to-its-project
+  - id: evidence.scope-plugin-overlay.deployed
+    type: command_result
+    subtype: live_deployment
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-12T16:00:00+07:00"
+    confidence: observed
+    summary: "The plugin shows an overlay only to the OpenProject project it names: the loader takes the page's project, reads a per-project file from an overlay directory when there is one, and otherwise the single file, refusing another project's or an unnamed overlay with no task, project name or path. Seven loader tests in plain Ruby; 164 rendered-page checks with a second project whose member is the same user, on four pages, with its own overlay beside the first project's, and with a file in the wrong directory. shellcheck caught an apostrophe that ended a quoted runner script before any run. Deployed with the guarded procedure; live, the RePlan project keeps its 100 rows and the second project gets the explanation. Booked amounts are agent estimates."
+    url: docs/dev/openproject-plugin-redesign-design.md
+    targets:
+      - kind: task
+        id: task.self.scope-plugin-overlay-to-its-project
+  - id: evidence.per-project-overlays-live.operator-go
+    type: decision
+    subtype: operator_decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-12T16:30:00+07:00"
+    confidence: observed
+    summary: "The operator agreed to configure the overlay directory on the live OpenProject, with a backup and a rollback, and to tell the session that runs the second project how to publish its overlay."
+    targets:
+      - kind: task
+        id: task.self.serve-plugin-overlays-per-project-live
+  - id: evidence.per-project-overlays-live.deployed
+    type: command_result
+    subtype: live_deployment
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-12T17:30:00+07:00"
+    confidence: observed
+    summary: "The live compose override names the overlay directory and mounts it read-only into web, worker, cron and seeder, after a database backup and a trial of the edit on a copy of the override; a guarded script recreated the services, checked the variable and the mount in each and would have rolled back. publish-openproject-overlay.sh sends a built overlay into its own project's directory only, dry run by default, refusing another project's overlay; the smoke checks it against a local directory with the target set explicitly. The RePlan project's overlay was published there and the loader reads it from the directory; the second project is still told it has none. The session that runs the second project was told how to build and publish its overlay. The work-package creation first timed out on a stalled tunnel, restarted with keepalive. Booked amounts are agent estimates."
+    url: docs/dev/openproject-plugin-redesign-design.md
+    targets:
+      - kind: task
+        id: task.self.serve-plugin-overlays-per-project-live
+  - id: evidence.work-package-link.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-12T18:00:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the RePlan link in every work package. Accepted together with four other tasks on 2026-10-12. CI of the commits passed. Human time was not measured and is not booked."
+    targets:
+      - kind: task
+        id: task.self.link-openproject-work-package-to-replan-panel
+  - id: evidence.outside-agent-kit.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-12T18:00:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the agent kit release; how it is licensed stays open. Accepted together with four other tasks on 2026-10-12. CI of the commits passed. Human time was not measured and is not booked."
+    targets:
+      - kind: task
+        id: task.self.package-openproject-tooling-for-outside-agents
+  - id: evidence.scope-plugin-overlay.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-12T18:00:00+07:00"
+    confidence: observed
+    summary: "The operator accepted that each project sees only its own overlay. Accepted together with four other tasks on 2026-10-12. CI of the commits passed. Human time was not measured and is not booked."
+    targets:
+      - kind: task
+        id: task.self.scope-plugin-overlay-to-its-project
+  - id: evidence.per-project-overlays-live.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-12T18:00:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the overlay directory on the live instance. Accepted together with four other tasks on 2026-10-12. CI of the commits passed. Human time was not measured and is not booked."
+    targets:
+      - kind: task
+        id: task.self.serve-plugin-overlays-per-project-live
+  - id: evidence.plugin-milestone-2.operator-verdict
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-12T18:05:00+07:00"
+    confidence: observed
+    summary: "Milestone 2 was never deployed as one step: the Gantt page, its navigation, the load profile and the task page each went live and were accepted on their own between 2026-09-26 and 2026-09-27. Asked for a verdict on the plugin as a whole, the operator accepted everything on 2026-10-12 and named nothing missing. The deployment work is booked on the parts, so nothing is booked here. Human time was not measured and is not booked."
+    targets:
+      - kind: task
+        id: task.self.deploy-plugin-milestone-2
+  - id: evidence.perimeter-key.finding
+    type: workspace_event
+    subtype: defect_found
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-12T19:00:00+07:00"
+    confidence: observed
+    summary: "The session that runs the second project used the agent kit as an outside user and got HTTP 401 from the reverse proxy, not from OpenProject. Reading the proxy configuration confirmed it: a shared password guards every path, and an API client passes only with a perimeter key in a request header, which the helpers cannot send. The agent's statement of 2026-10-12 that the API answers from outside had read the proxy's 401 as OpenProject's; the same finding was already recorded on 2026-09-25 and was not consulted."
+    targets:
+      - kind: task
+        id: task.self.pass-perimeter-key-to-openproject
+  - id: evidence.perimeter-key.built
+    type: command_result
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-12T21:00:00+07:00"
+    confidence: observed
+    summary: "The Python helpers and replan import openproject send the perimeter key from the settings file in X-Perimeter-Key, or a named header, beside the client's own token, and never print it. Two Go tests; check-agent-kit.sh, now 15 checks, runs both against a stand-in that records what it is sent, fails when the helpers omit the key, searches the binary for private details and requires the terms of use, which the archive now carries with its purpose named at build time. With the operator's go two keys were added to the live proxy's key file, with a backup, a configuration test and a reload. From outside over HTTPS the unpacked kit read the RePlan project with the key, 103 work packages, assignees, an aligned drift check and unchanged links, and was refused without it and with a wrong one. Booked amounts are agent estimates."
+    url: docs/agent-kit/README.md
+    targets:
+      - kind: task
+        id: task.self.pass-perimeter-key-to-openproject
+  - id: evidence.perimeter-key.operator-accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-12T22:00:00+07:00"
+    confidence: observed
+    summary: "The operator handed the perimeter key to the second project's administrator and accepted the task. He decided that the administrator and his agent share one personal API token, with no separate agent account; the agent's scope is mostly the wiki, with read access to tasks and resources, and any change of dates is agreed with the operator. CI of the commits passed. Human time was not measured and is not booked."
+    targets:
+      - kind: task
+        id: task.self.pass-perimeter-key-to-openproject
+  - id: evidence.agent-kit-wiki.agreed
+    type: decision
+    subtype: operator_decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-12T22:30:00+07:00"
+    confidence: observed
+    summary: "Told that the agent kit has no wiki command although the second project's administrator works mostly in the wiki, the operator asked for this part to be done in full, and for the tools page of that project's wiki to be clear and current, so the administrator can give his agent the right instructions and tools."
+    targets:
+      - kind: task
+        id: task.self.add-wiki-commands-to-agent-kit
+  - id: evidence.agent-kit-wiki.built
+    type: command_result
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-13T00:30:00+07:00"
+    confidence: observed
+    summary: "openproject-wiki.sh lists, shows, creates, updates and deletes wiki pages through the wiki API plugin and lists, downloads, uploads, replaces and deletes their attachments, dry run first; an update names the lock version the page was read at and is refused when the page changed meanwhile. It ships in the agent kit with a guide section. The kit's live check, now 51 checks, runs every wiki command with a Member's token and refuses a Reader's changes with the permission named; the first run showed that the seeded Member role may delete pages, so the refusal is checked with a Reader. A flaky link to the live server showed a stack trace on a download that could not connect, now a JSON error checked offline, 17 checks. The rendered overlay copy got its own overloaded weeks after the load profile checks failed on a plan that had none left. The second project's tools page was rewritten with the helper itself, dry run then apply, with the operator's decisions, a wiki section and a ready instruction for the agent; the new archive was uploaded, read back with a matching checksum, and the old one removed. Booked amounts are agent estimates."
+    url: docs/agent-kit/README.md
+    targets:
+      - kind: task
+        id: task.self.add-wiki-commands-to-agent-kit
+  - id: evidence.agent-kit-wiki.accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-13T01:00:00+07:00"
+    confidence: observed
+    summary: "Shown the wiki commands in the agent kit and the rewritten tools page of the second project's wiki, the operator looked at the page and accepted the task."
+    targets:
+      - kind: task
+        id: task.self.add-wiki-commands-to-agent-kit
+  - id: evidence.third-project-agent-identity.agreed
+    type: decision
+    subtype: operator_decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-14T10:00:00+07:00"
+    confidence: observed
+    summary: "Asked by the third project's agent session for an identity of its own, because the only token that can see that project belongs to the project's dispatcher, the operator approved an API-only user that is not an administrator, a role built from named permissions without deletion, member or project management and wiki editing, membership in that project only, and a token kept in a root-owned file on the server."
+    targets:
+      - kind: task
+        id: task.self.give-third-project-agent-own-identity
+  - id: evidence.third-project-agent-identity.built
+    type: command_result
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-14T10:30:00+07:00"
+    confidence: observed
+    summary: "A rails runner script, dry run unless asked to apply, checked the permission names against the live instance, then in one transaction created the user without a password or administrator rights and with a reserved mail domain, a role with eleven named permissions, a membership in the third project only and an API token written straight to a file that only root and the project's group can read; the value was never printed. Checked through the perimeter with that token, status codes only: own user and the project 200, another project and its work package 404, the project and membership forms 403, wiki create and update 403, wiki read 200, work packages offer update and comment but no delete, and without the perimeter key 401. Booked amounts are agent estimates."
+    targets:
+      - kind: task
+        id: task.self.give-third-project-agent-own-identity
+  - id: evidence.third-project-agent-identity.workflow
+    type: command_result
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-14T11:00:00+07:00"
+    confidence: observed
+    summary: "The asking session's own refusal check found what the role lacked: OpenProject grants a status change only along workflow transitions, and a new role has none, so closing a task answered 422. The role got the twenty transitions between New, In progress, On hold, Closed and Rejected for the Task type, the only type in that project, and the work package form read with the agent's token now offers all five. No permission was added."
+    targets:
+      - kind: task
+        id: task.self.give-third-project-agent-own-identity
+  - id: evidence.third-project-agent-identity.accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-15T10:00:00+07:00"
+    confidence: observed
+    summary: "Told what the third project's agent can and cannot do under its new identity, including the status transitions the role needed, the operator accepted the task. CI did not run on these commits because the hosting account's Actions billing blocked the jobs; the local gate passed."
+    targets:
+      - kind: task
+        id: task.self.give-third-project-agent-own-identity
+  - id: evidence.plugin-milestone-3.agreed
+    type: decision
+    subtype: operator_decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-15T10:30:00+07:00"
+    confidence: observed
+    summary: "Shown the six open tasks, the operator agreed to the recommended order: milestone 3 of the plugin first, then the three code cleanups and the dependency cancellation, the release story last; and, with CI paused by the operator's choice, to run the TaskJuggler checks locally before each push."
+    targets:
+      - kind: task
+        id: task.self.deploy-plugin-milestone-3-and-accept-track
+  - id: evidence.plugin-milestone-3.built
+    type: command_result
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-15T14:30:00+07:00"
+    confidence: observed
+    summary: "The visual audit of 2026-09-25 was rerun in the live OpenProject as the read-only review user at 1600 and 900 pixels, and the plugin was set against every recorded operator wish; the result is docs/dev/openproject-plugin-ui-audit-2026-10-15.md. Two plugin defects were fixed and checked on a throwaway instance, 166 rendered and 26 browser checks: an unknown work package page opened a task tab that stayed, and the work package column header wrapped, then ran into the next one, now ID. Three loop gaps were found: the live overlay was three days old and two tasks short, so an accepted task's page answered 404; the status date had stayed at Monday, so an accepted task showed a false warning; the task under audit kept its November window after starting a month early. The overlay was republished, the status date moved, a scenario moved the window and the date was pushed to OpenProject; publishing the overlay and moving the status date are now loop steps. Deployed twice with a database backup each time and the guarded switch; the second time only the two changed layers were sent, 47 seconds instead of a stream that had broken after forty minutes. Booked amounts are agent estimates."
+    url: docs/dev/openproject-plugin-ui-audit-2026-10-15.md
+    targets:
+      - kind: task
+        id: task.self.deploy-plugin-milestone-3-and-accept-track
+  - id: evidence.replan-menu-icon.agreed
+    type: decision
+    subtype: operator_decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-15T15:00:00+07:00"
+    confidence: observed
+    summary: "The operator asked for an icon on the RePlan project menu item, as every other item has one, and chose bars (Octicons graph-bar-vertical) from five candidates shown beside the real neighbouring menu items in light and dark themes."
+    targets:
+      - kind: task
+        id: task.self.give-replan-menu-item-an-icon
+  - id: evidence.replan-menu-icon.built
+    type: command_result
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-15T15:40:00+07:00"
+    confidence: observed
+    summary: "The menu item declares the Octicons icon OpenProject 17.6 bundles; a rendered-page check on a throwaway instance finds it, 167 checks. Deployed with a database backup, only the new layers sent, and the guarded switch; the live project menu shows the icon. Booked amounts are agent estimates."
+    targets:
+      - kind: task
+        id: task.self.give-replan-menu-item-an-icon
+  - id: evidence.plugin-milestone-3.accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-15T16:00:00+07:00"
+    confidence: observed
+    summary: "Shown the audit rerun, the two plugin fixes, the loop repairs and the overrun, the operator accepted the task and with it the plugin track, and acknowledged the overrun of 4 agent-hours against 1.5 as real. CI did not run; the local gate passed."
+    targets:
+      - kind: task
+        id: task.self.deploy-plugin-milestone-3-and-accept-track
+  - id: evidence.replan-menu-icon.accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-15T16:01:00+07:00"
+    confidence: observed
+    summary: "Shown the bars icon on the RePlan item of the live project menu, the operator accepted the task. CI did not run; the local gate passed."
+    targets:
+      - kind: task
+        id: task.self.give-replan-menu-item-an-icon
+  - id: evidence.yaml-rewrite-noise.built
+    type: command_result
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-15T19:00:00+07:00"
+    confidence: observed
+    summary: "Every YAML write of the file store now splices into the file's own bytes only the records, matched by id, and the fields, down to nested mappings, that changed, and checks that the result decodes to exactly what a whole-file render gives, falling back to it otherwise. Keys the domain does not model are kept where that check allows. The canonical files turned out to be in the render's own format already; the noise lived in hand-appended files, and the week's evidence file would have been rewritten in about 700 lines by its first command write. The splice also showed that evidence url, in the evidence spec, was not modelled and was dropped by every write to an evidence file; the domain type has it now. Proven by nine byte-level tests on hand-written files and on the dogfood evidence file, and by CLI writes on a copy of this project: a scenario apply and a remaining-work change touched three lines in three files. Booked amounts are agent estimates."
+    url: docs/dev/known-gaps.md
+    targets:
+      - kind: task
+        id: task.self.remove-yaml-rewrite-noise
+  - id: evidence.split-validate.built
+    type: command_result
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-15T20:30:00+07:00"
+    confidence: observed
+    summary: "validateWorkspace, cognitive complexity 167, is one validator per record kind called in the old order, which decides what a reference resolves to. Before the change, golden files were taken from the old code: a workspace built to trigger all 60 diagnostic codes, 68 errors and 17 warnings, with a test that reads the codes from the source and fails if one is not triggered, and the small-team example; after it both are byte-identical, and the self-dogfood project gives the same diagnostics before and after. No function of validate.go is in the lint report; its baseline line is removed. The run also showed the lint baseline document lagging behind earlier changes elsewhere, 26 findings against 25 listed, none from this change. Booked amounts are agent estimates."
+    url: docs/dev/lint-baseline-2026-09-24.md
+    targets:
+      - kind: task
+        id: task.self.split-validate-workspace
+  - id: evidence.dedupe-import-accept.built
+    type: command_result
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-15T22:00:00+07:00"
+    confidence: observed
+    summary: "ImportAcceptService.Accept, cognitive complexity 124 with six near-identical apply branches, is one apply flow and one description per accept mode that keeps its change builders, write action, diagnostics and store writer explicit. Before the change, a golden run was taken from the old code: all six modes as a dry run, an apply and an apply with nothing safe to write, 18 runs holding the command result and the bytes of every written file, audit records among them. After it all 18 are byte-identical and the existing tests pass. No finding of import_accept.go is left in the lint report; its baseline lines are removed and the baseline document notes where it drifted. Booked amounts are agent estimates."
+    url: docs/dev/lint-baseline-2026-09-24.md
+    targets:
+      - kind: task
+        id: task.self.dedupe-import-accept-modes
+  - id: evidence.cancel-dependency.built
+    type: command_result
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-15T23:00:00+07:00"
+    confidence: observed
+    summary: "A scenario may now set dependencies.<id>.status to cancelled, the record of an operator letting a successor go ahead of its predecessor. scenario apply requires --evidence naming that decision, refuses an unknown evidence id, writes the status through the store and carries the evidence in the audit record; other dependency statuses are refused and stay with proposals. Covered by three service tests and a smoke step that is refused without evidence and applies with it. Booked amounts are agent estimates."
+    url: docs/spec/cli.md
+    targets:
+      - kind: task
+        id: task.self.cancel-dependency-with-audit
+  - id: evidence.yaml-rewrite-noise.accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-16T09:00:00+07:00"
+    confidence: observed
+    summary: "Shown that command writes now touch only the records and fields they change, and the evidence url fix, the operator accepted the task. CI did not run; the local gate passed."
+    targets:
+      - kind: task
+        id: task.self.remove-yaml-rewrite-noise
+  - id: evidence.split-validate.accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-16T09:00:00+07:00"
+    confidence: observed
+    summary: "Shown the validator split held byte-identical by golden diagnostics, the operator accepted the task. CI did not run; the local gate passed."
+    targets:
+      - kind: task
+        id: task.self.split-validate-workspace
+  - id: evidence.dedupe-import-accept.accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-16T09:00:00+07:00"
+    confidence: observed
+    summary: "Shown the import accept modes reduced to one apply flow held byte-identical by a golden run of every mode, the operator accepted the task. CI did not run; the local gate passed."
+    targets:
+      - kind: task
+        id: task.self.dedupe-import-accept-modes
+  - id: evidence.cancel-dependency.accepted
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-16T09:00:00+07:00"
+    confidence: observed
+    summary: "Shown that a scenario can cancel a dependency only with the decision evidence, carried in the audit record, the operator accepted the task. CI did not run; the local gate passed."
+    targets:
+      - kind: task
+        id: task.self.cancel-dependency-with-audit
+  - id: evidence.refresh-agent-kit.agreed
+    type: decision
+    subtype: operator_decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-16T09:10:00+07:00"
+    confidence: observed
+    summary: "Told that the agent kit on the second project's tools page predates the evidence url fix, the operator agreed to rebuild it and replace it on the page."
+    targets:
+      - kind: task
+        id: task.self.refresh-agent-kit-for-second-project
+  - id: evidence.refresh-agent-kit.built
+    type: command_result
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-16T09:40:00+07:00"
+    confidence: observed
+    summary: "The kit was rebuilt from the current code with the second project's terms of use and passed its 17 offline checks. With the wiki helper, dry run first each time, the new archive and checksum were uploaded to the tools page, downloaded back and verified, the two lines naming the archive and its checksum were updated against the page's lock version, and the old archive and checksum were deleted; the page read back matches the intended text. The second project's session was told. Booked amounts are agent estimates."
+    targets:
+      - kind: task
+        id: task.self.refresh-agent-kit-for-second-project
+  - id: evidence.publication-audit.agreed
+    type: decision
+    subtype: operator_decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-16T09:05:00+07:00"
+    confidence: observed
+    summary: "Asked about publication, the operator decided to keep the repository private for now, to license the code under the recommended Apache-2.0, and to go through the repository to prepare it for publication."
+    targets:
+      - kind: task
+        id: task.self.license-and-audit-repo-for-publication
+  - id: evidence.publication-audit.built
+    type: command_result
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-16T11:30:00+07:00"
+    confidence: observed
+    summary: "Apache-2.0 LICENSE, NOTICE, a README section and Apache-2.0 in both plugin gemspecs, which said MIT. Every tracked file and all 356 commits were scanned for private detail. No live secret anywhere; the history holds the server's host name and IP address in two commits of 18 July and the tunnel port and checkout path in others. Fixed in the tree: the agent kit check and the August checkpoint had the private names written in their leak patterns, now read from an ignored file and checked with, without and with a probe pattern; another project's id in four documents, three real work-package ids, the owner's other repositories in samples and the checkout path in the README and CLI samples. Nine open items, with the August blockers still open among them, are written down with a recommendation each in docs/dev/publication-readiness-audit-2026-10-16.md. Booked amounts are agent estimates."
+    url: docs/dev/publication-readiness-audit-2026-10-16.md
+    targets:
+      - kind: task
+        id: task.self.license-and-audit-repo-for-publication
+  - id: evidence.self.accept-refresh-agent-kit-for-second-project
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-15T10:36:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the refreshed agent kit on the second project's tools page."
+    targets:
+      - kind: task
+        id: task.self.refresh-agent-kit-for-second-project
+  - id: evidence.self.accept-license-and-audit-repo-for-publication
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-15T10:36:30+07:00"
+    confidence: observed
+    summary: "The operator accepted the Apache-2.0 license and the publication readiness audit; the open publication items wait for the publication date."
+    targets:
+      - kind: task
+        id: task.self.license-and-audit-repo-for-publication
+  - id: evidence.self.agree-review-agent-tooling-consistency
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-15T10:50:00+07:00"
+    confidence: observed
+    summary: "The operator asked for a separate review of how consistent the RePlan and OpenProject tooling is for CLI AI agents; a subagent may do it."
+    targets:
+      - kind: task
+        id: task.self.review-agent-tooling-consistency
+  - id: evidence.self.review-agent-tooling-consistency
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-15T11:20:00+07:00"
+    confidence: observed
+    summary: "A read-only review agent mapped the agent-facing tooling and wrote 14 findings (5 high, 6 medium, 3 low) with a six-step consolidation sequence; the executor rechecked the high findings in the code. Recorded in docs/dev/agent-tooling-consistency-review-2026-10-15.md."
+    targets:
+      - kind: task
+        id: task.self.review-agent-tooling-consistency
+  - id: evidence.self.accept-review-agent-tooling-consistency
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-15T11:40:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the agent tooling consistency review and asked to plan every finding and every open gap as a task, done in full."
+    targets:
+      - kind: task
+        id: task.self.review-agent-tooling-consistency
+  - id: evidence.self.plan-every-tooling-finding-and-gap
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-15T11:40:00+07:00"
+    confidence: observed
+    summary: "The operator asked to plan every finding of the agent tooling review and every open or accepted gap as a task, done in full and without cutting corners. 38 tasks were planned, C-15 to C-17 found while entering them; the release story moved behind them."
+    targets:
+      - kind: task
+        id: task.self.review-agent-tooling-consistency
+      - kind: task
+        id: task.self.prepare-release-story
+  - id: evidence.self.fix-relations-pagination-early
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-15T13:20:00+07:00"
+    confidence: observed
+    summary: "The relations dry run planned 113 relations instead of 17: the instance holds 631 relations at a page size of 500, and the old loop asked for pages 1 and 501. Fixed with openproject_http.openproject_collect_pages and a three-page test; the dry run then planned 17 and matched 111, and the 18 new relations were created. The bootstrap page limit stays open in the task."
+    targets:
+      - kind: task
+        id: task.self.fix-openproject-relations-and-bootstrap-pagination
+  - id: evidence.self.start-consolidation-plan
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-15T14:00:00+07:00"
+    confidence: observed
+    summary: "The operator asked to start the consolidation plan as soon as possible, beginning with the schedule drift fix."
+    targets:
+      - kind: task
+        id: task.self.count-concurrent-slots-in-schedule-drift-like-workload
+  - id: evidence.self.count-concurrent-slots-in-schedule-drift-like-workload
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-15T15:30:00+07:00"
+    confidence: observed
+    summary: "replan workload --demands lists each row's demands; the schedule drift check and the overload explainer read their weekly rows from it through scripts/lib/replan_workload.py instead of prorating demands themselves. On this plan the drift check went from 8 overloaded weeks of the development slot to none, matching replan workload. Tests: a Go test of the demand list, Python tests with a fake binary, an end-to-end test where two consecutive one-day tasks on one slot load it 1 of 1 and two on the same day overload it, and a kit check that runs the drift check with the kit binary and no Go. The explainer turned out to be a second copy of the calculation, with a different rule for a zero remaining amount; both now follow the CLI."
+    targets:
+      - kind: task
+        id: task.self.count-concurrent-slots-in-schedule-drift-like-workload
+  - id: evidence.self.accept-count-concurrent-slots-in-schedule-drift-like-workload
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-15T16:00:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the single weekly workload calculation for the schedule drift check and the overload explainer."
+    targets:
+      - kind: task
+        id: task.self.count-concurrent-slots-in-schedule-drift-like-workload
+  - id: evidence.self.continue-consolidation-plan
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-15T16:30:00+07:00"
+    confidence: observed
+    summary: "The operator asked to continue the consolidation plan in full, with the shared helper envelope next."
+    targets:
+      - kind: task
+        id: task.self.unify-helper-json-envelope
+  - id: evidence.self.unify-helper-json-envelope
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-15T19:30:00+07:00"
+    confidence: observed
+    summary: "Every helper prints one envelope through scripts/lib/helper_envelope.py and scripts/lib/envelope.sh: ok, command, mode from a fixed set, warnings and errors as code and message entries, and their codes. Plain-text failures, bare error strings and silent exits are gone; an uncaught exception becomes an envelope (6 external, 10 internal), and failure exits follow the CLI table. A test runs all 18 wrappers from a copy without settings for a wrong format, a missing setting and an unreachable OpenProject. It found the status push and the operator report silent on an unreachable server, and replan import openproject exiting 2 on a network error; the CLI now exits 6 for OpenProject's own failures, with a Go test, while an invalid sidecar stays 2."
+    targets:
+      - kind: task
+        id: task.self.unify-helper-json-envelope
+  - id: evidence.self.accept-unify-helper-json-envelope
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-15T20:00:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the shared JSON envelope for every helper."
+    targets:
+      - kind: task
+        id: task.self.unify-helper-json-envelope
+  - id: evidence.self.start-derive-helper-exit-codes-from-ok
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-15T20:00:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the shared helper envelope; the plan continues with exit codes derived from ok."
+    targets:
+      - kind: task
+        id: task.self.derive-helper-exit-codes-from-ok
+  - id: evidence.self.derive-helper-exit-codes-from-ok
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-15T21:00:00+07:00"
+    confidence: observed
+    summary: "helper_envelope.emit derives the exit code from ok: 0 for a clean run or a soft drift, 11 (attention needed, new in the CLI table for helper scripts) when a run ended with ok false, 7 for an apply that wrote some actions and not others. Tests: the drift check aligned, soft and hard on a small synthetic project, and the status push against a stand-in OpenProject whose workflow refuses one move, as a dry run (11) and a partial apply (7). Smoke, the kit check and the live kit checks on a throwaway OpenProject rely on the envelope, not on exit 0."
+    targets:
+      - kind: task
+        id: task.self.derive-helper-exit-codes-from-ok
+  - id: evidence.self.accept-derive-helper-exit-codes-from-ok
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-15T21:40:00+07:00"
+    confidence: observed
+    summary: "The operator accepted exit codes derived from ok."
+    targets:
+      - kind: task
+        id: task.self.derive-helper-exit-codes-from-ok
+  - id: evidence.self.start-fail-apply-without-openproject-token
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-15T21:41:00+07:00"
+    confidence: observed
+    summary: "The operator accepted exit codes derived from ok; the plan continues with a failing apply when the token is missing."
+    targets:
+      - kind: task
+        id: task.self.fail-apply-without-openproject-token
+  - id: evidence.self.fail-apply-without-openproject-token
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-15T22:20:00+07:00"
+    confidence: observed
+    summary: "Without the OpenProject token, the five helpers that write and the toolkit's writing commands fail under REPLAN_APPLY=1 with token_env_not_set, exit 8, and write nothing; in a dry run, and for the helpers that only read, the run is skipped with token_env_not_set among its warnings, as the kit README says. Shared through replan_token_missing and replan_token_skip in envelope.sh and skip_without_token in the toolkit; tests cover each helper with and without the apply gate."
+    targets:
+      - kind: task
+        id: task.self.fail-apply-without-openproject-token
+  - id: evidence.self.accept-fail-apply-without-openproject-token
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-15T22:50:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the failing apply without a token."
+    targets:
+      - kind: task
+        id: task.self.fail-apply-without-openproject-token
+  - id: evidence.self.start-load-dotenv-in-every-kit-script
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-15T22:51:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the failing apply without a token; the plan continues with the kit settings group, loading .env.local in every kit script."
+    targets:
+      - kind: task
+        id: task.self.load-dotenv-in-every-kit-script
+  - id: evidence.self.load-dotenv-in-every-kit-script
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-15T23:10:00+07:00"
+    confidence: observed
+    summary: "Every agent kit script loads .env.local: the bootstrap planner, the calibration planner and the pool reviewer now source load-dotenv.sh, after the schedule drift check and the overload explainer in C-15. A test reads the kit's script list in build-agent-kit.sh and fails on any script without replan_load_openproject_dotenv; checked by removing the call from one script."
+    targets:
+      - kind: task
+        id: task.self.load-dotenv-in-every-kit-script
+  - id: evidence.self.accept-load-dotenv-in-every-kit-script
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-15T23:30:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the settings file in every kit script."
+    targets:
+      - kind: task
+        id: task.self.load-dotenv-in-every-kit-script
+  - id: evidence.self.start-drop-dogfood-defaults-from-kit-scripts
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-15T23:31:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the settings file in every kit script and asked to continue, with the dogfood defaults next."
+    targets:
+      - kind: task
+        id: task.self.drop-dogfood-defaults-from-kit-scripts
+  - id: evidence.self.drop-dogfood-defaults-from-kit-scripts
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-16T00:30:00+07:00"
+    confidence: observed
+    summary: "No kit helper falls back to this repository's plan, OpenProject project or resources: replan_require_settings answers missing_setting, exit 8, naming every missing setting; this checkout keeps its values in .env.local and the smoke sets them. Bootstrap takes the assignee resource from REPLAN_OPENPROJECT_ASSIGNEE_RESOURCE_ID; the overload explainer needs REPLAN_RESOURCE_ID and REPLAN_UNIT; the pool reviewer's buckets and issues moved to examples/replan-self/review/resource-pool.yaml with the same output on this plan. Tests name the missing settings of every wrapper; smoke on a copy without private settings, in place, the kit check (19) and the throwaway runtime (167, 8, 51) pass. Running the smoke by moving .env.local aside briefly broke the second project's session, which reads the same file; such runs now use a copy of the tree."
+    targets:
+      - kind: task
+        id: task.self.drop-dogfood-defaults-from-kit-scripts

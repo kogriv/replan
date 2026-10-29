@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.work-package-link-before-milestone-3.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-10-12T15:54:43+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.work-package-link-before-milestone-3
+    suggested_change:
+        op: set
+        path: dependencies.dependency.work-package-link-before-milestone-3.status
+        value: resolved
+    rationale: Dependency dependency.work-package-link-before-milestone-3 (required) can be marked resolved because predecessor task.self.link-openproject-work-package-to-replan-panel is in the required state.
+    requires_confirmation: true

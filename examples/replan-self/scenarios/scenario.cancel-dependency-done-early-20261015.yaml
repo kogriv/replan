@@ -1,0 +1,18 @@
+scenario:
+    id: scenario.cancel-dependency-done-early-20261015
+    name: Dependency cancellation with audit built on 2026-10-15 instead of 26 to 27 November, fifth in the order the operator agreed
+    status: applied
+    base_ref:
+        kind: current_plan
+        id: current
+    created_at: "2026-10-15T23:00:00+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    changes:
+        - op: replace
+          path: tasks.task.self.cancel-dependency-with-audit.planned_start
+          value: "2026-10-15"
+        - op: replace
+          path: tasks.task.self.cancel-dependency-with-audit.planned_finish
+          value: "2026-10-15"

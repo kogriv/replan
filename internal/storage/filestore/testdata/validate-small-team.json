@@ -1,0 +1,50 @@
+{
+  "errors": [],
+  "warnings": [
+    {
+      "code": "required_dependency_unresolved",
+      "message": "required dependency dependency.repair-pump-before-validation is open",
+      "severity": "warning",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.repair-pump-before-validation"
+      }
+    },
+    {
+      "code": "dependency_predecessor_finish_unknown",
+      "message": "dependency dependency.repair-pump-before-validation predecessor task task.offline.repair-pump has no planned_finish",
+      "severity": "warning",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.repair-pump-before-validation"
+      }
+    },
+    {
+      "code": "dependency_successor_start_unknown",
+      "message": "dependency dependency.repair-pump-before-validation successor task task.op.1234 has no planned_start",
+      "severity": "warning",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.repair-pump-before-validation"
+      }
+    },
+    {
+      "code": "required_dependency_unresolved",
+      "message": "required dependency dependency.openai-quota-blocks-validation is open",
+      "severity": "warning",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.openai-quota-blocks-validation"
+      }
+    },
+    {
+      "code": "dependency_blocks_active_successor",
+      "message": "dependency dependency.openai-quota-blocks-validation is open while successor task task.op.1234 is ready",
+      "severity": "warning",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.openai-quota-blocks-validation"
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.store-estimates-in-baselines-before-report-estimate-accuracy.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-10-28T10:29:19+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.store-estimates-in-baselines-before-report-estimate-accuracy
+    suggested_change:
+        op: set
+        path: dependencies.dependency.store-estimates-in-baselines-before-report-estimate-accuracy.status
+        value: resolved
+    rationale: Dependency dependency.store-estimates-in-baselines-before-report-estimate-accuracy (required) can be marked resolved because predecessor task.self.store-estimates-in-baselines is in the required state.
+    requires_confirmation: true

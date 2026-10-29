@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.report-openproject-rescheduling-after-relation-create-before-refresh-agent-kit-after-tooling-consolidation.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-10-27T14:45:11+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.report-openproject-rescheduling-after-relation-create-before-refresh-agent-kit-after-tooling-consolidation
+    suggested_change:
+        op: set
+        path: dependencies.dependency.report-openproject-rescheduling-after-relation-create-before-refresh-agent-kit-after-tooling-consolidation.status
+        value: resolved
+    rationale: Dependency dependency.report-openproject-rescheduling-after-relation-create-before-refresh-agent-kit-after-tooling-consolidation (required) can be marked resolved because predecessor task.self.report-openproject-rescheduling-after-relation-create is in the required state.
+    requires_confirmation: true

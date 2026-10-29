@@ -1,0 +1,19 @@
+proposal:
+    id: proposal.dependency.dependency.work-package-link-before-milestone-3.review-dependency-resolution
+    type: review_dependency_resolution
+    status: rejected
+    created_at: "2026-09-25T15:41:17+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.work-package-link-before-milestone-3
+    suggested_change:
+        op: review
+        path: dependencies.dependency.work-package-link-before-milestone-3.status
+        value:
+            current_status: open
+            expected: resolved_or_cancelled
+    rationale: Required dependency dependency.work-package-link-before-milestone-3 is open and needs explicit resolution review before the successor is treated as safe.
+    requires_confirmation: true

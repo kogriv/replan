@@ -1,0 +1,29 @@
+actors:
+  - id: actor.ai.codex.local
+    kind: ai_agent
+    display_name: Codex local agent
+    trust_level: limited
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+  - id: actor.human.ivan
+    kind: human
+    display_name: Ivan
+    trust_level: trusted
+    resource_ref:
+      kind: resource
+      id: resource.human.ivan
+  - id: actor.human.operator
+    kind: human
+    display_name: Operator
+    trust_level: owner
+    resource_ref:
+      kind: resource
+      id: resource.human.operator
+  - id: actor.human.petr
+    kind: human
+    display_name: Petr
+    trust_level: trusted
+    resource_ref:
+      kind: resource
+      id: resource.human.petr

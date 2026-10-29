@@ -1,0 +1,24 @@
+scenario:
+    id: scenario.reviewer-capacity-strict-replan
+    name: Keep reviewer capacity strict and defer release review work
+    status: applied
+    base_ref:
+        kind: current_plan
+        id: current
+    created_at: "2026-08-02T18:00:00+07:00"
+    created_by:
+        kind: actor
+        id: actor.human.maintainer
+    changes:
+        - op: set
+          path: tasks.task.self.write-oss-readiness-audit.planned_start
+          value: "2026-08-03"
+        - op: set
+          path: tasks.task.self.write-oss-readiness-audit.planned_finish
+          value: "2026-08-09"
+        - op: set
+          path: tasks.task.self.prepare-release-story.planned_start
+          value: "2026-08-10"
+        - op: set
+          path: tasks.task.self.prepare-release-story.planned_finish
+          value: "2026-08-23"

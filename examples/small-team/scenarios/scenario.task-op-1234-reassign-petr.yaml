@@ -1,0 +1,17 @@
+scenario:
+  id: scenario.task-op-1234-reassign-petr
+  name: Task OP-1234 assigned to Petr
+  status: draft
+  base_ref:
+    kind: current_plan
+    id: current
+  created_at: "2026-07-06T18:20:00+07:00"
+  created_by:
+    kind: actor
+    id: actor.human.operator
+  changes:
+    - op: set
+      path: resource_demands.resource_demand.task-op-1234.implementer.resource_ref
+      value:
+        kind: resource
+        id: resource.human.petr

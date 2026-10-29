@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.wiki-api-throwaway-runtime-before-live-deployment.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-09-21T13:21:00+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.wiki-api-throwaway-runtime-before-live-deployment
+    suggested_change:
+        op: set
+        path: dependencies.dependency.wiki-api-throwaway-runtime-before-live-deployment.status
+        value: resolved
+    rationale: Required dependency dependency.wiki-api-throwaway-runtime-before-live-deployment can be marked resolved because predecessor task.self.verify-openproject-wiki-api-plugin-throwaway-runtime is in the required state.
+    requires_confirmation: true

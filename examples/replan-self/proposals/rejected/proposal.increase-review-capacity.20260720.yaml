@@ -1,0 +1,20 @@
+proposal:
+    id: proposal.increase-review-capacity.20260720
+    type: adjust_capacity
+    status: rejected
+    created_at: "2026-07-20T15:30:00+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.review-assistant
+    target_ref:
+        kind: capacity
+        id: capacity.reviewer.weekly
+    suggested_change:
+        op: set
+        path: amount
+        value: 10
+    evidence_refs:
+        - kind: evidence
+          id: evidence.workspace.examples-replan-self
+    rationale: The first dogfood plan intentionally overloads reviewer role; increasing weekly review capacity is one possible scenario to inspect.
+    requires_confirmation: true

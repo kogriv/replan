@@ -1,0 +1,1450 @@
+actuals:
+    - id: actual.self-pass-named-arguments-to-python-helpers.ai-codex-local.20261026T0708000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.pass-named-arguments-to-python-helpers
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.pass-named-arguments-to-python-helpers.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.28
+      unit: agent_hours
+      occurred_at: "2026-10-26T07:08:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.pass-named-arguments-to-python-helpers
+    - id: actual.self-pass-named-arguments-to-python-helpers.ai-agent-executor.20261026T0708000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.pass-named-arguments-to-python-helpers
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.pass-named-arguments-to-python-helpers.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.47
+      unit: agent_hours
+      occurred_at: "2026-10-26T07:08:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.pass-named-arguments-to-python-helpers
+    - id: actual.self-add-help-to-every-script.ai-codex-local.20261026T0853000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-help-to-every-script
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-help-to-every-script.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.32
+      unit: agent_hours
+      occurred_at: "2026-10-26T08:53:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.add-help-to-every-script
+    - id: actual.self-add-help-to-every-script.ai-agent-executor.20261026T0853000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-help-to-every-script
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-help-to-every-script.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.53
+      unit: agent_hours
+      occurred_at: "2026-10-26T08:53:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.add-help-to-every-script
+    - id: actual.self-sync-cli-spec-and-getting-started.ai-codex-local.20261026T0937000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.sync-cli-spec-and-getting-started
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.sync-cli-spec-and-getting-started.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.14
+      unit: agent_hours
+      occurred_at: "2026-10-26T09:37:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.sync-cli-spec-and-getting-started
+    - id: actual.self-sync-cli-spec-and-getting-started.ai-agent-executor.20261026T0937000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.sync-cli-spec-and-getting-started
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.sync-cli-spec-and-getting-started.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.22
+      unit: agent_hours
+      occurred_at: "2026-10-26T09:37:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.sync-cli-spec-and-getting-started
+    - id: actual.self-add-agent-surface-map-and-date-direction-rule.ai-codex-local.20261026T1452000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-agent-surface-map-and-date-direction-rule
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-agent-surface-map-and-date-direction-rule.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.14
+      unit: agent_hours
+      occurred_at: "2026-10-26T14:52:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.add-agent-surface-map-and-date-direction-rule
+    - id: actual.self-add-agent-surface-map-and-date-direction-rule.ai-agent-executor.20261026T1452000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-agent-surface-map-and-date-direction-rule
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-agent-surface-map-and-date-direction-rule.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.27
+      unit: agent_hours
+      occurred_at: "2026-10-26T14:52:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.add-agent-surface-map-and-date-direction-rule
+    - id: actual.self-index-openproject-design-docs.ai-codex-local.20261026T1520000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.index-openproject-design-docs
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.index-openproject-design-docs.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.21
+      unit: agent_hours
+      occurred_at: "2026-10-26T15:20:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.index-openproject-design-docs
+    - id: actual.self-index-openproject-design-docs.ai-agent-executor.20261026T1520000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.index-openproject-design-docs
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.index-openproject-design-docs.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.23
+      unit: agent_hours
+      occurred_at: "2026-10-26T15:20:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.index-openproject-design-docs
+    - id: actual.self-clean-up-openproject-env-vars.ai-codex-local.20261026T1556000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.clean-up-openproject-env-vars
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.clean-up-openproject-env-vars.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.18
+      unit: agent_hours
+      occurred_at: "2026-10-26T15:56:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.clean-up-openproject-env-vars
+    - id: actual.self-clean-up-openproject-env-vars.ai-agent-executor.20261026T1556000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.clean-up-openproject-env-vars
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.clean-up-openproject-env-vars.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.52
+      unit: agent_hours
+      occurred_at: "2026-10-26T15:56:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.clean-up-openproject-env-vars
+    - id: actual.self-one-apply-gate-rule-for-cli-and-helpers.ai-codex-local.20261026T1650000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.one-apply-gate-rule-for-cli-and-helpers
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.one-apply-gate-rule-for-cli-and-helpers.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.22
+      unit: agent_hours
+      occurred_at: "2026-10-26T16:50:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.one-apply-gate-rule-for-cli-and-helpers
+    - id: actual.self-one-apply-gate-rule-for-cli-and-helpers.ai-agent-executor.20261026T1650000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.one-apply-gate-rule-for-cli-and-helpers
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.one-apply-gate-rule-for-cli-and-helpers.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.47
+      unit: agent_hours
+      occurred_at: "2026-10-26T16:50:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.one-apply-gate-rule-for-cli-and-helpers
+    - id: actual.self-add-replan-evidence-add.ai-codex-local.20261026T1729000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-replan-evidence-add
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-replan-evidence-add.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.18
+      unit: agent_hours
+      occurred_at: "2026-10-26T17:29:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.add-replan-evidence-add
+    - id: actual.self-add-replan-evidence-add.ai-agent-executor.20261026T1729000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-replan-evidence-add
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-replan-evidence-add.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.27
+      unit: agent_hours
+      occurred_at: "2026-10-26T17:29:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.add-replan-evidence-add
+    - id: actual.self-add-replan-task-add.ai-codex-local.20261026T1804000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-replan-task-add
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-replan-task-add.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.29
+      unit: agent_hours
+      occurred_at: "2026-10-26T18:04:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.add-replan-task-add
+    - id: actual.self-add-replan-task-add.ai-agent-executor.20261026T1804000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-replan-task-add
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-replan-task-add.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.37
+      unit: agent_hours
+      occurred_at: "2026-10-26T18:04:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.add-replan-task-add
+    - id: actual.self-accept-openproject-dates-through-import-accept.ai-codex-local.20261026T1843000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.accept-openproject-dates-through-import-accept
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.accept-openproject-dates-through-import-accept.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.19
+      unit: agent_hours
+      occurred_at: "2026-10-26T18:43:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-openproject-dates-through-import-accept
+    - id: actual.self-accept-openproject-dates-through-import-accept.ai-agent-executor.20261026T1843000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.accept-openproject-dates-through-import-accept
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.accept-openproject-dates-through-import-accept.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.45
+      unit: agent_hours
+      occurred_at: "2026-10-26T18:43:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-openproject-dates-through-import-accept
+    - id: actual.self-track-the-task-acceptance-chain.ai-codex-local.20261026T1935000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.track-the-task-acceptance-chain
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.track-the-task-acceptance-chain.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.35
+      unit: agent_hours
+      occurred_at: "2026-10-26T19:35:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.track-the-task-acceptance-chain
+    - id: actual.self-track-the-task-acceptance-chain.ai-agent-executor.20261026T1935000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.track-the-task-acceptance-chain
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.track-the-task-acceptance-chain.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.77
+      unit: agent_hours
+      occurred_at: "2026-10-26T19:35:00+07:00"
+      status_date: "2026-10-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.track-the-task-acceptance-chain
+    - id: actual.self-derive-self-plan-counts-from-fixture.ai-codex-local.20261027T0947000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.derive-self-plan-counts-from-fixture
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.derive-self-plan-counts-from-fixture.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.28
+      unit: agent_hours
+      occurred_at: "2026-10-27T09:47:00+07:00"
+      status_date: "2026-10-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.derive-self-plan-counts-from-fixture
+    - id: actual.self-derive-self-plan-counts-from-fixture.ai-agent-executor.20261027T0947000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.derive-self-plan-counts-from-fixture
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.derive-self-plan-counts-from-fixture.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.52
+      unit: agent_hours
+      occurred_at: "2026-10-27T09:47:00+07:00"
+      status_date: "2026-10-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.derive-self-plan-counts-from-fixture
+    - id: actual.self-read-private-openproject-bindings-in-go.ai-codex-local.20261027T1027020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.read-private-openproject-bindings-in-go
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.read-private-openproject-bindings-in-go.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.23
+      unit: agent_hours
+      occurred_at: "2026-10-27T10:27:02+07:00"
+      status_date: "2026-10-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.read-private-openproject-bindings-in-go
+    - id: actual.self-read-private-openproject-bindings-in-go.ai-agent-executor.20261027T1027020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.read-private-openproject-bindings-in-go
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.read-private-openproject-bindings-in-go.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.55
+      unit: agent_hours
+      occurred_at: "2026-10-27T10:27:02+07:00"
+      status_date: "2026-10-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.read-private-openproject-bindings-in-go
+    - id: actual.self-guard-import-accept-against-real-ids.ai-codex-local.20261027T1120030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.guard-import-accept-against-real-ids
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.guard-import-accept-against-real-ids.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.2
+      unit: agent_hours
+      occurred_at: "2026-10-27T11:20:03+07:00"
+      status_date: "2026-10-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.guard-import-accept-against-real-ids
+    - id: actual.self-guard-import-accept-against-real-ids.ai-agent-executor.20261027T1120030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.guard-import-accept-against-real-ids
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.guard-import-accept-against-real-ids.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.65
+      unit: agent_hours
+      occurred_at: "2026-10-27T11:20:03+07:00"
+      status_date: "2026-10-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.guard-import-accept-against-real-ids
+    - id: actual.self-ship-overlay-publish-in-agent-kit.ai-codex-local.20261027T1158320700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.ship-overlay-publish-in-agent-kit
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.ship-overlay-publish-in-agent-kit.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.14
+      unit: agent_hours
+      occurred_at: "2026-10-27T11:58:32+07:00"
+      status_date: "2026-10-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.ship-overlay-publish-in-agent-kit
+    - id: actual.self-ship-overlay-publish-in-agent-kit.ai-agent-executor.20261027T1158320700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.ship-overlay-publish-in-agent-kit
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.ship-overlay-publish-in-agent-kit.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.6
+      unit: agent_hours
+      occurred_at: "2026-10-27T11:58:32+07:00"
+      status_date: "2026-10-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.ship-overlay-publish-in-agent-kit
+    - id: actual.self-refresh-agent-kit-after-tooling-consolidation.ai-agent-executor.20261027T1235470700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.refresh-agent-kit-after-tooling-consolidation
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.refresh-agent-kit-after-tooling-consolidation.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.55
+      unit: agent_hours
+      occurred_at: "2026-10-27T12:35:47+07:00"
+      status_date: "2026-10-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.refresh-agent-kit-after-tooling-consolidation
+    - id: actual.self-report-openproject-rescheduling-after-relation-create.ai-codex-local.20261027T1401300700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.report-openproject-rescheduling-after-relation-create
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.report-openproject-rescheduling-after-relation-create.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.31
+      unit: agent_hours
+      occurred_at: "2026-10-27T14:01:30+07:00"
+      status_date: "2026-10-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.report-openproject-rescheduling-after-relation-create
+    - id: actual.self-report-openproject-rescheduling-after-relation-create.ai-agent-executor.20261027T1401300700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.report-openproject-rescheduling-after-relation-create
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.report-openproject-rescheduling-after-relation-create.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.55
+      unit: agent_hours
+      occurred_at: "2026-10-27T14:01:30+07:00"
+      status_date: "2026-10-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.report-openproject-rescheduling-after-relation-create
+    - id: actual.self-preview-moved-task-dates-in-scenarios.ai-codex-local.20261027T1523110700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.preview-moved-task-dates-in-scenarios
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.preview-moved-task-dates-in-scenarios.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.35
+      unit: agent_hours
+      occurred_at: "2026-10-27T15:23:11+07:00"
+      status_date: "2026-10-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.preview-moved-task-dates-in-scenarios
+    - id: actual.self-preview-moved-task-dates-in-scenarios.ai-agent-executor.20261027T1523110700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.preview-moved-task-dates-in-scenarios
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.preview-moved-task-dates-in-scenarios.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.65
+      unit: agent_hours
+      occurred_at: "2026-10-27T15:23:11+07:00"
+      status_date: "2026-10-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.preview-moved-task-dates-in-scenarios
+    - id: actual.self-clear-remaining-lint-baseline.ai-codex-local.20261027T1614020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.clear-remaining-lint-baseline
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.clear-remaining-lint-baseline.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.27
+      unit: agent_hours
+      occurred_at: "2026-10-27T16:14:02+07:00"
+      status_date: "2026-10-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.clear-remaining-lint-baseline
+    - id: actual.self-clear-remaining-lint-baseline.ai-agent-executor.20261027T1614020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.clear-remaining-lint-baseline
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.clear-remaining-lint-baseline.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.55
+      unit: agent_hours
+      occurred_at: "2026-10-27T16:14:02+07:00"
+      status_date: "2026-10-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.clear-remaining-lint-baseline
+    - id: actual.self-report-missing-project-root-as-not-found.ai-codex-local.20261027T1920170700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.report-missing-project-root-as-not-found
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.report-missing-project-root-as-not-found.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.34
+      unit: agent_hours
+      occurred_at: "2026-10-27T19:20:17+07:00"
+      status_date: "2026-10-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.report-missing-project-root-as-not-found
+    - id: actual.self-report-missing-project-root-as-not-found.ai-agent-executor.20261027T1920170700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.report-missing-project-root-as-not-found
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.report-missing-project-root-as-not-found.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.45
+      unit: agent_hours
+      occurred_at: "2026-10-27T19:20:17+07:00"
+      status_date: "2026-10-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.report-missing-project-root-as-not-found
+    - id: actual.self-move-pilot-narrative-to-private-storage.ai-codex-local.20261027T2159530700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.move-pilot-narrative-to-private-storage
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.move-pilot-narrative-to-private-storage.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.23
+      unit: agent_hours
+      occurred_at: "2026-10-27T21:59:53+07:00"
+      status_date: "2026-10-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.move-pilot-narrative-to-private-storage
+    - id: actual.self-move-pilot-narrative-to-private-storage.ai-agent-executor.20261027T2159530700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.move-pilot-narrative-to-private-storage
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.move-pilot-narrative-to-private-storage.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.45
+      unit: agent_hours
+      occurred_at: "2026-10-27T21:59:53+07:00"
+      status_date: "2026-10-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.move-pilot-narrative-to-private-storage
+    - id: actual.self-edit-work-package-subject-and-description-in-toolkit.ai-codex-local.20261028T0813170700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.edit-work-package-subject-and-description-in-toolkit
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.edit-work-package-subject-and-description-in-toolkit.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.33
+      unit: agent_hours
+      occurred_at: "2026-10-28T08:13:17+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.edit-work-package-subject-and-description-in-toolkit
+    - id: actual.self-edit-work-package-subject-and-description-in-toolkit.ai-agent-executor.20261028T0813170700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.edit-work-package-subject-and-description-in-toolkit
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.edit-work-package-subject-and-description-in-toolkit.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.45
+      unit: agent_hours
+      occurred_at: "2026-10-28T08:13:17+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.edit-work-package-subject-and-description-in-toolkit
+    - id: actual.self-add-contributing-and-security-policy.ai-codex-local.20261028T0844200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-contributing-and-security-policy
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-contributing-and-security-policy.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.12
+      unit: agent_hours
+      occurred_at: "2026-10-28T08:44:20+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.add-contributing-and-security-policy
+    - id: actual.self-add-contributing-and-security-policy.ai-agent-executor.20261028T0844200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-contributing-and-security-policy
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-contributing-and-security-policy.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.3
+      unit: agent_hours
+      occurred_at: "2026-10-28T08:44:20+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.add-contributing-and-security-policy
+    - id: actual.self-cut-public-repository-from-sanitized-tree.ai-codex-local.20261028T0922140700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.cut-public-repository-from-sanitized-tree
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.cut-public-repository-from-sanitized-tree.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.34
+      unit: agent_hours
+      occurred_at: "2026-10-28T09:22:14+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.cut-public-repository-from-sanitized-tree
+    - id: actual.self-cut-public-repository-from-sanitized-tree.ai-agent-executor.20261028T0922140700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.cut-public-repository-from-sanitized-tree
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.cut-public-repository-from-sanitized-tree.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.5
+      unit: agent_hours
+      occurred_at: "2026-10-28T09:22:14+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.cut-public-repository-from-sanitized-tree
+    - id: actual.self-store-estimates-in-baselines.ai-codex-local.20261028T1002050700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.store-estimates-in-baselines
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.store-estimates-in-baselines.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.35
+      unit: agent_hours
+      occurred_at: "2026-10-28T10:02:05+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.store-estimates-in-baselines
+    - id: actual.self-store-estimates-in-baselines.ai-agent-executor.20261028T1002050700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.store-estimates-in-baselines
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.store-estimates-in-baselines.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.5
+      unit: agent_hours
+      occurred_at: "2026-10-28T10:02:05+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.store-estimates-in-baselines
+    - id: actual.self-report-estimate-accuracy.ai-codex-local.20261028T1107260700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.report-estimate-accuracy
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.report-estimate-accuracy.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.37
+      unit: agent_hours
+      occurred_at: "2026-10-28T11:07:26+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.report-estimate-accuracy
+    - id: actual.self-report-estimate-accuracy.ai-agent-executor.20261028T1107260700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.report-estimate-accuracy
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.report-estimate-accuracy.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.5
+      unit: agent_hours
+      occurred_at: "2026-10-28T11:07:26+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.report-estimate-accuracy
+    - id: actual.self-prepare-release-story.ai-agent-executor.20261028T1733300700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.prepare-release-story
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.release-story.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.3
+      unit: agent_hours
+      occurred_at: "2026-10-28T17:33:30+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.prepare-release-story
+    - id: actual.self-refresh-second-project-agent-kit.ai-agent-executor.20261028T1806240700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.refresh-second-project-agent-kit
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.refresh-second-project-agent-kit.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.15
+      unit: agent_hours
+      occurred_at: "2026-10-28T18:06:24+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.refresh-second-project-agent-kit
+    - id: actual.self-record-actual-task-window.ai-codex-local.20261028T1843140700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.record-actual-task-window
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.record-actual-task-window.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.35
+      unit: agent_hours
+      occurred_at: "2026-10-28T18:43:14+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.record-actual-task-window
+    - id: actual.self-record-actual-task-window.ai-agent-executor.20261028T1843160700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.record-actual-task-window
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.record-actual-task-window.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.5
+      unit: agent_hours
+      occurred_at: "2026-10-28T18:43:16+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.record-actual-task-window
+    - id: actual.self-design-estimate-calibration.ai-agent-executor.20261028T1902460700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-estimate-calibration
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.design-estimate-calibration.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.4
+      unit: agent_hours
+      occurred_at: "2026-10-28T19:02:46+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.design-estimate-calibration
+    - id: actual.self-design-second-tracker-adapter.ai-agent-executor.20261028T1905190700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-second-tracker-adapter
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.design-second-tracker-adapter.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.4
+      unit: agent_hours
+      occurred_at: "2026-10-28T19:05:19+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.design-second-tracker-adapter
+    - id: actual.self-design-local-web-view.ai-agent-executor.20261028T1907410700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-local-web-view
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.design-local-web-view.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.25
+      unit: agent_hours
+      occurred_at: "2026-10-28T19:07:41+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.design-local-web-view
+    - id: actual.self-keep-non-working-day-dates-in-openproject.ai-codex-local.20261028T1930570700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.keep-non-working-day-dates-in-openproject
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.keep-non-working-day-dates-in-openproject.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.23
+      unit: agent_hours
+      occurred_at: "2026-10-28T19:30:57+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.keep-non-working-day-dates-in-openproject
+    - id: actual.self-keep-non-working-day-dates-in-openproject.ai-agent-executor.20261028T1930580700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.keep-non-working-day-dates-in-openproject
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.keep-non-working-day-dates-in-openproject.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.4
+      unit: agent_hours
+      occurred_at: "2026-10-28T19:30:58+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.keep-non-working-day-dates-in-openproject
+    - id: actual.self-version-project-file-format.ai-codex-local.20261028T2022340700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.version-project-file-format
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.version-project-file-format.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.33
+      unit: agent_hours
+      occurred_at: "2026-10-28T20:22:34+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.version-project-file-format
+    - id: actual.self-version-project-file-format.ai-agent-executor.20261028T2022350700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.version-project-file-format
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.version-project-file-format.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.5
+      unit: agent_hours
+      occurred_at: "2026-10-28T20:22:35+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.version-project-file-format
+    - id: actual.self-add-version-command-and-release-build.ai-codex-local.20261028T2048480700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-version-command-and-release-build
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-version-command-and-release-build.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.19
+      unit: agent_hours
+      occurred_at: "2026-10-28T20:48:48+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.add-version-command-and-release-build
+    - id: actual.self-add-version-command-and-release-build.ai-agent-executor.20261028T2048500700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-version-command-and-release-build
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-version-command-and-release-build.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.35
+      unit: agent_hours
+      occurred_at: "2026-10-28T20:48:50+07:00"
+      status_date: "2026-10-28"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.add-version-command-and-release-build
+    - id: actual.self-keep-self-sample-dates-after-acceptance.ai-codex-local.20261029T1159410700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.keep-self-sample-dates-after-acceptance
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.keep-self-sample-dates-after-acceptance.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.14
+      unit: agent_hours
+      occurred_at: "2026-10-29T11:59:41+07:00"
+      status_date: "2026-10-29"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.keep-self-sample-dates-after-acceptance
+    - id: actual.self-keep-self-sample-dates-after-acceptance.ai-agent-executor.20261029T1159410700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.keep-self-sample-dates-after-acceptance
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.keep-self-sample-dates-after-acceptance.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.35
+      unit: agent_hours
+      occurred_at: "2026-10-29T11:59:41+07:00"
+      status_date: "2026-10-29"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.keep-self-sample-dates-after-acceptance
+    - id: actual.self-backfill-actual-task-windows.ai-agent-executor.20261029T1252470700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.backfill-actual-task-windows
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.backfill-actual-task-windows.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.6
+      unit: agent_hours
+      occurred_at: "2026-10-29T12:52:47+07:00"
+      status_date: "2026-10-29"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.backfill-actual-task-windows
+    - id: actual.self-keep-openproject-successors-manually-scheduled.ai-codex-local.20261029T1349330700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.keep-openproject-successors-manually-scheduled
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.keep-openproject-successors-manually-scheduled.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.49
+      unit: agent_hours
+      occurred_at: "2026-10-29T13:49:33+07:00"
+      status_date: "2026-10-29"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.keep-openproject-successors-manually-scheduled
+    - id: actual.self-keep-openproject-successors-manually-scheduled.ai-agent-executor.20261029T1349330700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.keep-openproject-successors-manually-scheduled
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.keep-openproject-successors-manually-scheduled.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.5
+      unit: agent_hours
+      occurred_at: "2026-10-29T13:49:33+07:00"
+      status_date: "2026-10-29"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.keep-openproject-successors-manually-scheduled

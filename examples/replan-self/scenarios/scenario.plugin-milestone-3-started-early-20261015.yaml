@@ -1,0 +1,18 @@
+scenario:
+    id: scenario.plugin-milestone-3-started-early-20261015
+    name: Plugin milestone 3 started on 2026-10-15 instead of 2026-11-13, when the operator agreed to take it first
+    status: applied
+    base_ref:
+        kind: current_plan
+        id: current
+    created_at: "2026-10-15T10:40:00+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    changes:
+        - op: replace
+          path: tasks.task.self.deploy-plugin-milestone-3-and-accept-track.planned_start
+          value: "2026-10-15"
+        - op: replace
+          path: tasks.task.self.deploy-plugin-milestone-3-and-accept-track.planned_finish
+          value: "2026-10-15"

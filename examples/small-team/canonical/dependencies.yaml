@@ -1,0 +1,24 @@
+dependencies:
+  - id: dependency.repair-pump-before-validation
+    type: finish_to_start
+    predecessor_ref:
+      kind: task
+      id: task.offline.repair-pump
+    successor_ref:
+      kind: task
+      id: task.op.1234
+    required_state: accepted
+    status: open
+    criticality: required
+    notes: Offline repair should finish before validation work is treated as ready for release.
+  - id: dependency.openai-quota-blocks-validation
+    type: blocks
+    predecessor_ref:
+      kind: resource_demand
+      id: resource_demand.task-op-1234.openai-quota
+    successor_ref:
+      kind: task
+      id: task.op.1234
+    status: open
+    criticality: required
+    notes: OpenAI quota availability can block validation agent work.

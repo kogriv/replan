@@ -1,0 +1,568 @@
+actuals:
+    - id: actual.self-sync-latest-openproject-live-backlog-drift.human-maintainer.20260816T1500010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.sync-latest-openproject-live-backlog-drift
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.sync-latest-openproject-live-backlog-drift.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 1.5
+      unit: hours
+      occurred_at: "2026-08-16T15:00:01+07:00"
+      status_date: "2026-08-16"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.sync-latest-openproject-live-backlog-drift.completed
+    - id: actual.self-sync-latest-openproject-live-backlog-drift.ai-codex-local.20260816T1500020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.sync-latest-openproject-live-backlog-drift
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.sync-latest-openproject-live-backlog-drift.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 2
+      unit: agent_hours
+      occurred_at: "2026-08-16T15:00:02+07:00"
+      status_date: "2026-08-16"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.sync-latest-openproject-live-backlog-drift.completed
+    - id: actual.self-sync-latest-openproject-live-backlog-drift.local-dev.20260816T1500030700.runtime-consumed
+      type: runtime_consumed
+      task_ref:
+        kind: task
+        id: task.self.sync-latest-openproject-live-backlog-drift
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.sync-latest-openproject-live-backlog-drift.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-08-16T15:00:03+07:00"
+      status_date: "2026-08-16"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.sync-latest-openproject-live-backlog-drift.completed
+    - id: actual.self-sync-latest-openproject-live-backlog-drift.role-reviewer.20260816T1500040700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.sync-latest-openproject-live-backlog-drift
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.sync-latest-openproject-live-backlog-drift.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.5
+      unit: review_hours
+      occurred_at: "2026-08-16T15:00:04+07:00"
+      status_date: "2026-08-16"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.sync-latest-openproject-live-backlog-drift.completed
+    - id: actual.self-openproject-live-helper-timeouts.human-maintainer.20260816T1330010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.stabilize-openproject-live-helper-timeouts
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-live-helper-timeouts.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 1.5
+      unit: hours
+      occurred_at: "2026-08-16T13:30:01+07:00"
+      status_date: "2026-08-16"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-live-helper-timeouts.completed
+    - id: actual.self-openproject-live-helper-timeouts.ai-codex-local.20260816T1330020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.stabilize-openproject-live-helper-timeouts
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-live-helper-timeouts.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 2
+      unit: agent_hours
+      occurred_at: "2026-08-16T13:30:02+07:00"
+      status_date: "2026-08-16"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-live-helper-timeouts.completed
+    - id: actual.self-openproject-live-helper-timeouts.local-dev.20260816T1330030700.runtime-consumed
+      type: runtime_consumed
+      task_ref:
+        kind: task
+        id: task.self.stabilize-openproject-live-helper-timeouts
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-live-helper-timeouts.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-08-16T13:30:03+07:00"
+      status_date: "2026-08-16"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-live-helper-timeouts.completed
+    - id: actual.self-openproject-live-helper-timeouts.role-reviewer.20260816T1330040700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.stabilize-openproject-live-helper-timeouts
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-live-helper-timeouts.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.5
+      unit: review_hours
+      occurred_at: "2026-08-16T13:30:04+07:00"
+      status_date: "2026-08-16"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-live-helper-timeouts.completed
+    - id: actual.self-openproject-plugin-build-layering.human-maintainer.20260816T1200010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.optimize-openproject-plugin-image-build-layering
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-plugin-build-layering.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 1.5
+      unit: hours
+      occurred_at: "2026-08-16T12:00:01+07:00"
+      status_date: "2026-08-16"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-plugin-build-layering.completed
+    - id: actual.self-openproject-plugin-build-layering.ai-codex-local.20260816T1200020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.optimize-openproject-plugin-image-build-layering
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-plugin-build-layering.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 2
+      unit: agent_hours
+      occurred_at: "2026-08-16T12:00:02+07:00"
+      status_date: "2026-08-16"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-plugin-build-layering.completed
+    - id: actual.self-openproject-plugin-build-layering.local-dev.20260816T1200030700.runtime-consumed
+      type: runtime_consumed
+      task_ref:
+        kind: task
+        id: task.self.optimize-openproject-plugin-image-build-layering
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-plugin-build-layering.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-08-16T12:00:03+07:00"
+      status_date: "2026-08-16"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-plugin-build-layering.completed
+    - id: actual.self-openproject-plugin-build-layering.role-reviewer.20260816T1200040700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.optimize-openproject-plugin-image-build-layering
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-plugin-build-layering.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.5
+      unit: review_hours
+      occurred_at: "2026-08-16T12:00:04+07:00"
+      status_date: "2026-08-16"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-plugin-build-layering.completed
+    - id: actual.self-work-package-replan-panel-live-deploy.human-maintainer.20260815T2030010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-replan-panel
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.work-package-replan-panel-implementation.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 1
+      unit: hours
+      occurred_at: "2026-08-15T20:30:01+07:00"
+      status_date: "2026-08-15"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-work-package-replan-panel.live-deployed
+    - id: actual.self-work-package-replan-panel-live-deploy.ai-codex-local.20260815T2030020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-replan-panel
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.work-package-replan-panel-implementation.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 1
+      unit: agent_hours
+      occurred_at: "2026-08-15T20:30:02+07:00"
+      status_date: "2026-08-15"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-work-package-replan-panel.live-deployed
+    - id: actual.self-work-package-replan-panel-live-deploy.role-reviewer.20260815T2030030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-replan-panel
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.work-package-replan-panel-implementation.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.75
+      unit: review_hours
+      occurred_at: "2026-08-15T20:30:03+07:00"
+      status_date: "2026-08-15"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-work-package-replan-panel.live-deployed
+    - id: actual.self-work-package-replan-panel-implementation.human-maintainer.20260815T1300010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-replan-panel
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.work-package-replan-panel-implementation.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 2
+      unit: hours
+      occurred_at: "2026-08-15T13:00:01+07:00"
+      status_date: "2026-08-15"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-work-package-replan-panel.local-prototype
+    - id: actual.self-work-package-replan-panel-implementation.ai-codex-local.20260815T1300020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-replan-panel
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.work-package-replan-panel-implementation.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 4
+      unit: agent_hours
+      occurred_at: "2026-08-15T13:00:02+07:00"
+      status_date: "2026-08-15"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-work-package-replan-panel.local-prototype
+    - id: actual.self-work-package-replan-panel-implementation.local-dev.20260815T1300030700.runtime-consumed
+      type: runtime_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-replan-panel
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.work-package-replan-panel-implementation.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-08-15T13:00:03+07:00"
+      status_date: "2026-08-15"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-work-package-replan-panel.local-prototype
+    - id: actual.self-work-package-replan-panel-design.human-maintainer.20260815T1230010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-work-package-replan-panel
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.work-package-replan-panel-design.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 1.5
+      unit: hours
+      occurred_at: "2026-08-15T12:30:01+07:00"
+      status_date: "2026-08-15"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-work-package-replan-panel-design.accepted
+    - id: actual.self-work-package-replan-panel-design.ai-codex-local.20260815T1230020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-work-package-replan-panel
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.work-package-replan-panel-design.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 2
+      unit: agent_hours
+      occurred_at: "2026-08-15T12:30:02+07:00"
+      status_date: "2026-08-15"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-work-package-replan-panel-design.accepted
+    - id: actual.self-work-package-replan-panel-design.role-reviewer.20260815T1230030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-work-package-replan-panel
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.work-package-replan-panel-design.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.25
+      unit: review_hours
+      occurred_at: "2026-08-15T12:30:03+07:00"
+      status_date: "2026-08-15"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-work-package-replan-panel-design.accepted
+    - id: actual.self-live-plugin-resource-view.human-maintainer.20260815T1150010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.improve-live-openproject-plugin-resource-view
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.live-plugin-resource-view.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 1
+      unit: hours
+      occurred_at: "2026-08-15T11:50:01+07:00"
+      status_date: "2026-08-15"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.live-openproject-plugin-resource-view.accepted
+    - id: actual.self-live-plugin-resource-view.ai-codex-local.20260815T1150020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.improve-live-openproject-plugin-resource-view
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.live-plugin-resource-view.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 1
+      unit: agent_hours
+      occurred_at: "2026-08-15T11:50:02+07:00"
+      status_date: "2026-08-15"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.live-openproject-plugin-resource-view.accepted
+    - id: actual.self-live-plugin-resource-view.role-reviewer.20260815T1150030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.improve-live-openproject-plugin-resource-view
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.live-plugin-resource-view.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 1
+      unit: review_hours
+      occurred_at: "2026-08-15T11:50:03+07:00"
+      status_date: "2026-08-15"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.live-openproject-plugin-resource-view.accepted
+    - id: actual.self-documentation-sync-audit.human-maintainer.20260815T1200010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.audit-and-sync-project-documentation
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.documentation-sync-audit.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 1.5
+      unit: hours
+      occurred_at: "2026-08-15T12:00:01+07:00"
+      status_date: "2026-08-15"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.documentation-sync-audit.completed
+    - id: actual.self-documentation-sync-audit.ai-codex-local.20260815T1200020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.audit-and-sync-project-documentation
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.documentation-sync-audit.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 2
+      unit: agent_hours
+      occurred_at: "2026-08-15T12:00:02+07:00"
+      status_date: "2026-08-15"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.documentation-sync-audit.completed
+    - id: actual.self-documentation-sync-audit.role-reviewer.20260815T1200030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.audit-and-sync-project-documentation
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.documentation-sync-audit.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.25
+      unit: review_hours
+      occurred_at: "2026-08-15T12:00:03+07:00"
+      status_date: "2026-08-15"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.documentation-sync-audit.completed

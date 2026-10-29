@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    name: Go
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Test
+        run: go test ./...
+
+      - name: MVP smoke
+        run: ./scripts/smoke-mvp.sh
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      # Existing findings are the recorded baseline in
+      # docs/dev/lint-baseline-2026-09-24.md; only findings introduced by the
+      # pushed commits or the pull request fail this step.
+      - name: golangci-lint, new findings only
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.13.2
+          args: ${{ github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000' && format('--new-from-rev={0}', github.event.before) || '--new-from-merge-base=origin/main' }}
+
+      - name: shellcheck
+        run: shellcheck scripts/*.sh scripts/lib/*.sh
+
+  taskjuggler:
+    name: TaskJuggler validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+
+      - name: Install TaskJuggler
+        run: gem install taskjuggler -v 3.8.4 --no-document
+
+      - name: Validate generated TaskJuggler artifact
+        run: ./scripts/validate-taskjuggler.sh
+
+      - name: Run TaskJuggler planning experiment
+        run: ./scripts/run-taskjuggler.sh

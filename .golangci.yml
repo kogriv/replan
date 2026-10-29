@@ -1,0 +1,42 @@
+# Pinned lint configuration (task.self.add-go-lint-baseline-and-ci-gate).
+# CI is paused. The local gate runs the full golangci-lint v2.13.2 check; the
+# clean baseline means every finding fails the gate, not only new issues.
+# Thresholds flag real hotspots without reporting the ordinary size of a
+# command handler.
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  default: none
+  enable:
+    - govet
+    - staticcheck
+    - unused
+    - ineffassign
+    - gocyclo
+    - gocognit
+    - dupl
+  settings:
+    gocyclo:
+      min-complexity: 30
+    gocognit:
+      min-complexity: 60
+    dupl:
+      threshold: 150
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - dupl
+          - gocyclo
+          - gocognit
+
+formatters:
+  enable:
+    - gofmt
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

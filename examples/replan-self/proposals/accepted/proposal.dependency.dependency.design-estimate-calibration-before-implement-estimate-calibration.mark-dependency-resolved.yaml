@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.design-estimate-calibration-before-implement-estimate-calibration.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-10-29T11:02:13+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.design-estimate-calibration-before-implement-estimate-calibration
+    suggested_change:
+        op: set
+        path: dependencies.dependency.design-estimate-calibration-before-implement-estimate-calibration.status
+        value: resolved
+    rationale: Dependency dependency.design-estimate-calibration-before-implement-estimate-calibration (required) can be marked resolved because predecessor task.self.design-estimate-calibration is in the required state.
+    requires_confirmation: true

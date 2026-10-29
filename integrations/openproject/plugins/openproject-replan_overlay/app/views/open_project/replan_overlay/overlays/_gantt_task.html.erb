@@ -1,0 +1,25 @@
+<% panel = project_replan_overlay_work_package_path(@project.identifier, task["work_package_id"]) %>
+<div class="replan-gantt__row replan-gantt__task">
+  <div class="replan-gantt__label">
+    <div class="replan-gantt__name"><a href="<%= h panel %>" title="<%= h task["title"] %> (<%= h task["task_id"] %>)"><%= h task["title"] %></a></div>
+    <div class="replan-gantt__sub">#<%= h task["work_package_id"] %> · <%= h task["status"] %> · <%= h task["window"] %></div>
+  </div>
+  <div class="replan-gantt__track" style="width: <%= gantt.width %>px;">
+    <a class="replan-gantt__bar<%= task["closed"] ? " -done" : "" %>" href="<%= h panel %>" style="left: <%= task["bar"]["left"] %>px; width: <%= task["bar"]["width"] %>px;" title="<%= h task["title"] %>: <%= h task["window"] %>"></a>
+  </div>
+</div>
+<% if show_lanes %>
+  <% task["lanes"].each do |lane| %>
+    <div class="replan-gantt__row replan-gantt__lane-row">
+      <div class="replan-gantt__label"><div class="replan-gantt__name" title="<%= h lane["resource_id"] %>"><%= h lane["name"] %> · <%= h lane["amount"] %></div></div>
+      <div class="replan-gantt__track" style="width: <%= gantt.width %>px;">
+            <div class="replan-gantt__lane" style="left: <%= lane["box"]["left"] %>px; width: <%= lane["box"]["width"] %>px;" title="<%= h lane["title"] %>">
+          <% if lane["capacity_known"] %>
+            <div class="replan-gantt__fill<%= lane["over"] ? " -over" : "" %>" style="height: <%= lane["fill_percent"] %>%;"></div>
+            <div class="replan-gantt__line" style="bottom: <%= lane["line_percent"] %>%;"></div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+<% end %>

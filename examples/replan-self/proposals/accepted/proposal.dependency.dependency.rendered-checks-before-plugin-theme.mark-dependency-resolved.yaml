@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.rendered-checks-before-plugin-theme.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-09-25T18:34:01+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.rendered-checks-before-plugin-theme
+    suggested_change:
+        op: set
+        path: dependencies.dependency.rendered-checks-before-plugin-theme.status
+        value: resolved
+    rationale: Dependency dependency.rendered-checks-before-plugin-theme (required) can be marked resolved because predecessor task.self.add-plugin-rendered-page-checks is in the required state.
+    requires_confirmation: true

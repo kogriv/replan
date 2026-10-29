@@ -1,0 +1,66 @@
+scenario:
+    id: scenario.gantt-navigation-inserted-20260925
+    name: Operator's review of the redesign prototype added Gantt navigation after the build; later plugin tasks and the refactors move by three working days
+    status: applied
+    base_ref:
+        kind: current_plan
+        id: current
+    created_at: "2026-09-25T19:10:00+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    changes:
+        - op: replace
+          path: tasks.task.self.add-plugin-resource-load-profile.planned_start
+          value: "2026-10-22"
+        - op: replace
+          path: tasks.task.self.add-plugin-resource-load-profile.planned_finish
+          value: "2026-10-27"
+        - op: replace
+          path: tasks.task.self.show-evidence-and-actuals-in-plugin-panel.planned_start
+          value: "2026-10-28"
+        - op: replace
+          path: tasks.task.self.show-evidence-and-actuals-in-plugin-panel.planned_finish
+          value: "2026-11-02"
+        - op: replace
+          path: tasks.task.self.deploy-plugin-milestone-2.planned_start
+          value: "2026-11-03"
+        - op: replace
+          path: tasks.task.self.deploy-plugin-milestone-2.planned_finish
+          value: "2026-11-03"
+        - op: replace
+          path: tasks.task.self.link-openproject-work-package-to-replan-panel.planned_start
+          value: "2026-11-04"
+        - op: replace
+          path: tasks.task.self.link-openproject-work-package-to-replan-panel.planned_finish
+          value: "2026-11-10"
+        - op: replace
+          path: tasks.task.self.scope-plugin-overlay-to-its-project.planned_start
+          value: "2026-11-11"
+        - op: replace
+          path: tasks.task.self.scope-plugin-overlay-to-its-project.planned_finish
+          value: "2026-11-12"
+        - op: replace
+          path: tasks.task.self.deploy-plugin-milestone-3-and-accept-track.planned_start
+          value: "2026-11-13"
+        - op: replace
+          path: tasks.task.self.deploy-plugin-milestone-3-and-accept-track.planned_finish
+          value: "2026-11-13"
+        - op: replace
+          path: tasks.task.self.remove-yaml-rewrite-noise.planned_start
+          value: "2026-11-16"
+        - op: replace
+          path: tasks.task.self.remove-yaml-rewrite-noise.planned_finish
+          value: "2026-11-18"
+        - op: replace
+          path: tasks.task.self.split-validate-workspace.planned_start
+          value: "2026-11-19"
+        - op: replace
+          path: tasks.task.self.split-validate-workspace.planned_finish
+          value: "2026-11-23"
+        - op: replace
+          path: tasks.task.self.dedupe-import-accept-modes.planned_start
+          value: "2026-11-24"
+        - op: replace
+          path: tasks.task.self.dedupe-import-accept-modes.planned_finish
+          value: "2026-11-25"

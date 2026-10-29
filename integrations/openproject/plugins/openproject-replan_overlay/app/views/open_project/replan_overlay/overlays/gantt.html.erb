@@ -1,0 +1,136 @@
+<% html_title "RePlan", "Gantt" %>
+
+<%= render partial: "open_project/replan_overlay/overlays/gantt_styles" %>
+
+<%= render(Primer::OpenProject::PageHeader.new) do |header| %>
+  <% header.with_title { "Gantt" } %>
+  <% header.with_breadcrumbs([{ href: project_path(@project), text: @project.name },
+                              { href: project_replan_overlay_path(@project.identifier), text: "RePlan" },
+                              "Gantt"]) %>
+<% end %>
+
+<%= render partial: "open_project/replan_overlay/overlays/nav", locals: { current: "gantt" } %>
+
+<div class="replan-gantt" data-replan-gantt-root>
+  <% if !@state["available"] %>
+    <div class="op-toast -warning">
+      <p><strong>No RePlan overlay for this project.</strong></p>
+      <p><%= h @state["message"] %></p>
+    </div>
+  <% elsif !@gantt.available? %>
+    <div class="op-toast -info">
+      <p>The Gantt needs a RePlan overlay of version 2 or later; this one is version <%= h @presenter.schema_version %>. Generate it with a newer RePlan.</p>
+    </div>
+  <% else %>
+    <% scale_label = { "days" => "days", "weeks" => "weeks", "months" => "months" }.fetch(@gantt.scale) %>
+    <% link_params = ->(extra) { { from: @gantt.from_date, to: @gantt.to_date, scale: @gantt.scale, lanes: (@show_lanes ? nil : 0), load: (@show_load ? nil : 0) }.merge(extra).compact } %>
+    <div class="replan-gantt__slim">
+      <button type="button" class="button -small" data-needs-js data-replan-toggle="controls" aria-expanded="true">Hide controls</button>
+      <button type="button" class="button -small" data-needs-js data-replan-toggle="header" aria-pressed="false">Hide page header</button>
+      <button type="button" class="button -small" data-needs-js data-replan-toggle="fullscreen" aria-pressed="false">Full screen</button>
+      <span data-replan-summary><%= h @gantt.range_label %> · <%= h scale_label %></span>
+    </div>
+
+    <div class="replan-gantt__controls" data-replan-controls>
+      <div class="replan-gantt__control-row">
+        <span>Range:</span>
+        <% @gantt.presets.each do |preset| %>
+          <a class="replan-gantt__preset" aria-current="<%= preset["current"] %>"
+             href="<%= h project_replan_overlay_gantt_path(@project.identifier, link_params.call(from: preset["from"], to: preset["to"])) %>"><%= h preset["label"] %></a>
+        <% end %>
+      </div>
+      <form method="get" action="<%= h project_replan_overlay_gantt_path(@project.identifier) %>" data-replan-range>
+        <label>From <input type="date" name="from" value="<%= h @gantt.from_date %>" min="<%= h @gantt.span_start %>" max="<%= h @gantt.span_finish %>"></label>
+        <label>To <input type="date" name="to" value="<%= h @gantt.to_date %>" min="<%= h @gantt.span_start %>" max="<%= h @gantt.span_finish %>"></label>
+        <label>Scale
+          <select name="scale">
+            <% %w[days weeks months].each do |option| %>
+              <option value="<%= option %>"<%= " selected" if option == @gantt.scale %>><%= option %></option>
+            <% end %>
+          </select>
+        </label>
+        <input type="hidden" name="lanes" value="0">
+        <label><input type="checkbox" name="lanes" value="1"<%= " checked" if @show_lanes %>> resource lanes</label>
+        <input type="hidden" name="load" value="0">
+        <label><input type="checkbox" name="load" value="1"<%= " checked" if @show_load %>> load by week</label>
+        <button type="submit" class="button -small">Apply</button>
+      </form>
+      <div class="replan-gantt__control-row" data-needs-js>
+        <span>Go to:</span>
+        <button type="button" class="button -small" data-replan-jump="status">Status date</button>
+        <button type="button" class="button -small" data-replan-jump="start">Range start</button>
+        <button type="button" class="button -small" data-replan-jump="top">Top</button>
+        <% if @show_load %><button type="button" class="button -small" data-replan-jump="load">Load by week</button><% end %>
+        <label><input type="checkbox" data-replan-toggle="slider"> time slider</label>
+      </div>
+      <div class="replan-gantt__legend">
+        <span>Bar: the task's planned window.</span>
+        <span>Lane: a resource's participation window; its height is the daily load over daily capacity, the dashed line is 100%, red is above it.</span>
+        <% if @show_load %><span>Load by week: bar height is a resource's planned load over its capacity that week, the dashed line is 100%; red above it is still overloaded, grey above it went over as planned but that work is done; faded weeks are past.</span><% end %>
+        <span>Dotted line: the status date, <%= h @presenter.date_label(@gantt.status_date) %>.</span>
+      </div>
+    </div>
+
+
+    <div class="replan-gantt__scroll" data-replan-gantt data-status-left="<%= @gantt.status_left %>">
+      <div class="replan-gantt__canvas">
+        <%= render partial: "open_project/replan_overlay/overlays/gantt_axis", locals: { gantt: @gantt, label: "Task" } %>
+
+        <div class="replan-gantt__row replan-gantt__group">
+          <div class="replan-gantt__label">Open (<%= h @gantt.open_tasks.size %>)</div>
+          <div class="replan-gantt__track" style="width: <%= @gantt.width %>px;"></div>
+        </div>
+        <% @gantt.open_tasks.each do |task| %>
+          <%= render partial: "open_project/replan_overlay/overlays/gantt_task", locals: { task:, gantt: @gantt, show_lanes: @show_lanes } %>
+        <% end %>
+
+        <% if @gantt.done_tasks.any? %>
+          <details class="replan-gantt__done">
+            <summary class="replan-gantt__row replan-gantt__group">
+              <span class="replan-gantt__label">Done (<%= h @gantt.done_tasks.size %>)</span>
+              <span class="replan-gantt__track" style="width: <%= @gantt.width %>px;"></span>
+            </summary>
+            <% @gantt.done_tasks.each do |task| %>
+              <%= render partial: "open_project/replan_overlay/overlays/gantt_task", locals: { task:, gantt: @gantt, show_lanes: @show_lanes } %>
+            <% end %>
+          </details>
+        <% end %>
+
+        <% if @show_load %>
+          <div class="replan-gantt__row replan-gantt__group" data-replan-load>
+            <div class="replan-gantt__label">Load by week</div>
+            <div class="replan-gantt__track" style="width: <%= @gantt.width %>px;"></div>
+          </div>
+          <% @gantt.load_rows.each do |row| %>
+            <div class="replan-gantt__row replan-gantt__load-row">
+              <div class="replan-gantt__label">
+                <div class="replan-gantt__name" title="<%= h row["resource_id"] %>"><%= h row["name"] %></div>
+                <div class="replan-gantt__sub"><%= h row["sub"] %></div>
+              </div>
+              <div class="replan-gantt__track" style="width: <%= @gantt.width %>px;">
+                <% row["weeks"].each do |week| %>
+                  <div class="replan-gantt__week<%= week["past"] ? " -past" : "" %>" style="left: <%= week["box"]["left"] %>px; width: <%= week["box"]["width"] %>px;" title="<%= h week["title"] %>">
+                    <% if week["capacity_known"] %>
+                      <div class="replan-gantt__week-fill" style="height: <%= week["fill_percent"] %>%;"></div>
+                      <% if week["hump_percent"].positive? %>
+                        <div class="replan-gantt__week-hump<%= week["over"] ? " -over" : "" %>" style="bottom: <%= @gantt.load_line_percent %>%; height: <%= week["hump_percent"] %>%;"></div>
+                      <% end %>
+                    <% else %>
+                      <div class="replan-gantt__week-fill -unknown"></div>
+                    <% end %>
+                  </div>
+                <% end %>
+                <div class="replan-gantt__waterline" style="bottom: calc(4px + (100% - 8px) * <%= @gantt.load_line_percent / 100 %>);"></div>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="replan-gantt__pan" data-replan-pan hidden>
+      <span>Time</span>
+      <input type="range" min="0" max="1000" value="0" aria-label="Move along time">
+    </div>
+  <% end %>
+</div>

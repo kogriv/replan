@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.self-fixture-before-openproject-fixtures.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-07-30T14:53:02+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.codex.local
+    target_ref:
+        kind: dependency
+        id: dependency.self-fixture-before-openproject-fixtures
+    suggested_change:
+        op: set
+        path: dependencies.dependency.self-fixture-before-openproject-fixtures.status
+        value: resolved
+    rationale: Required dependency dependency.self-fixture-before-openproject-fixtures can be marked resolved because predecessor task.self.create-replan-self-fixture is in the required state.
+    requires_confirmation: true

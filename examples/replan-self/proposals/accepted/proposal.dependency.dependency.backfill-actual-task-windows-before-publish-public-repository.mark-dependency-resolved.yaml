@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.backfill-actual-task-windows-before-publish-public-repository.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-10-29T13:15:52+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.backfill-actual-task-windows-before-publish-public-repository
+    suggested_change:
+        op: set
+        path: dependencies.dependency.backfill-actual-task-windows-before-publish-public-repository.status
+        value: resolved
+    rationale: Dependency dependency.backfill-actual-task-windows-before-publish-public-repository (required) can be marked resolved because predecessor task.self.backfill-actual-task-windows is in the required state.
+    requires_confirmation: true

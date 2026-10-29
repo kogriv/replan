@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.share-openproject-http-client-and-settings-before-pass-named-arguments-to-python-helpers.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-10-25T17:45:45+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.share-openproject-http-client-and-settings-before-pass-named-arguments-to-python-helpers
+    suggested_change:
+        op: set
+        path: dependencies.dependency.share-openproject-http-client-and-settings-before-pass-named-arguments-to-python-helpers.status
+        value: resolved
+    rationale: Dependency dependency.share-openproject-http-client-and-settings-before-pass-named-arguments-to-python-helpers (required) can be marked resolved because predecessor task.self.share-openproject-http-client-and-settings is in the required state.
+    requires_confirmation: true

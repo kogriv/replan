@@ -1,0 +1,1612 @@
+evidence:
+  - id: evidence.self.accept-report-applied-actions-on-helper-failure
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T06:37:00+07:00"
+    confidence: observed
+    summary: "The operator accepts the partial-apply report for helpers that fail mid-apply"
+    targets:
+      - kind: task
+        id: task.self.report-applied-actions-on-helper-failure
+  - id: evidence.self.start-pass-named-arguments-to-python-helpers
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T06:40:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the partial-apply report and asked to start passing named arguments from the shell wrappers to the Python helpers, implemented by the Codex CLI agent."
+    targets:
+      - kind: task
+        id: task.self.pass-named-arguments-to-python-helpers
+  - id: evidence.self.pass-named-arguments-to-python-helpers
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-26T07:08:00+07:00"
+    confidence: observed
+    summary: "The 17 Python modules behind the shell wrappers no longer unpack positional arguments. They read their settings through Settings.from_env (base URL, token env, project and target ids, host header, forwarded proto, status scope, assignee, profile, from-file, bindings path with the same derived default, apply, keep-temp, project path); the wrappers pass only what they compute as named options (--import-json, --plan-json, --tmp-dir, --root-dir, --replan-bin, --output-dir), and an internal argument error is a JSON usage_error envelope with exit 8. The dotenv allowlist settings.list is unchanged: apply, keep-temp, profile, from-file and status scope stay process-environment only. The toolkit and relations take --root-dir only as the first argument, so an operator argument of the same name reaches the subcommand parser. Written by the Codex CLI agent (gpt-5.6-sol, medium) in two rounds of about 13 and 4 minutes; the second reverted a widening of the dotenv allowlist and the parse_known_args capture of --root-dir. On this project 13 helpers give the same output; the local gate and the throwaway runtime pass. Measured: Codex 0.28 h, the executor agent 0.47 h (06:40 to 07:08)."
+    targets:
+      - kind: task
+        id: task.self.pass-named-arguments-to-python-helpers
+  - id: evidence.self.accept-pass-named-arguments-to-python-helpers
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T08:20:00+07:00"
+    confidence: observed
+    summary: "The operator accepts the named arguments between the shell wrappers and the Python helpers"
+    targets:
+      - kind: task
+        id: task.self.pass-named-arguments-to-python-helpers
+  - id: evidence.self.start-add-help-to-every-script
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T08:21:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the named arguments and asked to continue with help for every script and the usage_error envelope, implemented by the Codex CLI agent."
+    targets:
+      - kind: task
+        id: task.self.add-help-to-every-script
+  - id: evidence.self.add-help-to-every-script
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-26T08:53:00+07:00"
+    confidence: observed
+    summary: "Every script in scripts/ has a header comment with its purpose, every setting by its full name and default, its gate, its output, its exit codes and examples, and answers -h and --help with that header on stdout and exit 0 before reading settings, building, starting containers or contacting a server; the wiki and toolkit helpers print the header followed by their subcommand help. A script that takes no arguments refuses an extra one with usage_error and exit 8 (the envelope for JSON helpers, stderr for dev scripts). An argument error in the toolkit or the wiki helper answers the envelope with usage_error, the argparse message and the subcommand usage, exit 8 (C-19). The Go CLI answers --help on every family and command, also after other flags, on stdout with exit 0, through one parseCommandFlags helper; a test walks every command listed in the usage. Written by the Codex CLI agent (gpt-5.6-sol, medium) in two rounds of about 12 and 7 minutes; the second replaced a hand-kept list of commands with the shared flag helper, spelled out the setting names and fixed the wiki help. On this project 13 helpers give the same output with no arguments; the local gate and the throwaway runtime pass. Measured: Codex 0.32 h, the executor agent 0.53 h (08:21 to 08:53)."
+    targets:
+      - kind: task
+        id: task.self.add-help-to-every-script
+  - id: evidence.self.accept-add-help-to-every-script
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T09:22:00+07:00"
+    confidence: observed
+    summary: "The operator accepts help for every script and every CLI command"
+    targets:
+      - kind: task
+        id: task.self.add-help-to-every-script
+  - id: evidence.self.start-sync-cli-spec-and-getting-started
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T09:24:00+07:00"
+    confidence: observed
+    summary: "The operator accepted help for every script and asked to continue with the CLI spec and getting started drift, implemented by the Codex CLI agent."
+    targets:
+      - kind: task
+        id: task.self.sync-cli-spec-and-getting-started
+  - id: evidence.self.sync-cli-spec-and-getting-started
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-26T09:37:00+07:00"
+    confidence: observed
+    summary: "docs/spec/cli.md matches the binary: workload --resource-class and --unit are implemented, flags are per command and not global, the Go CLI exit codes are kept apart from the helper exits 7 and 11, REPLAN_ACTOR is read only by the smoke and the sidecar pipeline scripts, and every command has an inventory of its implemented flags. TestDocumentedImplementedFlagsExist compares each inventory with the command's --help in both directions. The 1 052-line history of finished blocks moved verbatim from docs/dev/getting-started.md to docs/dev/history/implementation-log-2026-07-to-2026-09.md; the guide keeps the current examples, lists the commands from the usage text and names publish-openproject-overlay.sh for the overlay. Written by the Codex CLI agent (gpt-5.6-sol, medium) in one round of about 8 minutes; the executor corrected one sentence on the default project path. The local gate passes; no script or plugin changed, so the throwaway runtime was not run. Measured: Codex 0.14 h, the executor agent 0.22 h (09:24 to 09:37)."
+    targets:
+      - kind: task
+        id: task.self.sync-cli-spec-and-getting-started
+  - id: evidence.self.accept-sync-cli-spec-and-getting-started
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T14:26:00+07:00"
+    confidence: observed
+    summary: "The operator accepts the CLI spec and getting started guide sync"
+    targets:
+      - kind: task
+        id: task.self.sync-cli-spec-and-getting-started
+  - id: evidence.self.start-add-agent-surface-map-and-date-direction-rule
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T14:36:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the CLI spec sync, asked to start the agent surface map and date direction rule, and chose the rule: RePlan drafts planned dates and pushes them through the reviewed helper; on drift nothing wins automatically and a person pushes or accepts; OpenProject's own shifts are accepted by default; RePlan keeps actual dates. Implemented by the Codex CLI agent."
+    targets:
+      - kind: task
+        id: task.self.add-agent-surface-map-and-date-direction-rule
+  - id: evidence.self.add-agent-surface-map-and-date-direction-rule
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-26T14:52:00+07:00"
+    confidence: observed
+    summary: "The date and status direction rule lives once in the agent kit README and AGENTS.md links it: RePlan drafts planned dates and pushes them through push-openproject-date-drift.sh or the toolkit, drift never picks a winner, OpenProject scheduler shifts are accepted by default through the dates-only accept-openproject-soft-drift.sh, OpenProject statuses come back through replan import accept --accept-tracking-status, and actual dates stay in RePlan. The kit README has a surface map with one command per loop step, marking task and evidence creation as none yet and the overlay helpers as repository-only. AGENTS.md links the getting started guide and the kit README; the source-of-truth table gained planned and actual date rows. Written by the Codex CLI agent (gpt-5.6-sol, medium) in one round of about 8 minutes; the executor corrected the soft-drift script header, which called it a status helper, and the overlay row. The local gate passes; only a script comment changed, so the throwaway runtime was not run. Measured: Codex 0.14 h, the executor agent 0.27 h (14:36 to 14:52)."
+    targets:
+      - kind: task
+        id: task.self.add-agent-surface-map-and-date-direction-rule
+  - id: evidence.self.accept-add-agent-surface-map-and-date-direction-rule
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T15:05:00+07:00"
+    confidence: observed
+    summary: "The operator accepts the agent surface map and the date direction rule"
+    targets:
+      - kind: task
+        id: task.self.add-agent-surface-map-and-date-direction-rule
+  - id: evidence.self.start-index-openproject-design-docs
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T15:06:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the agent surface map and date direction rule and asked to start the index of the OpenProject design documents, implemented by the Codex CLI agent."
+    targets:
+      - kind: task
+        id: task.self.index-openproject-design-docs
+  - id: evidence.self.index-openproject-design-docs
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-26T15:20:00+07:00"
+    confidence: observed
+    summary: "docs/dev/openproject-design-index.md groups the 24 OpenProject design, review and result documents by area and gives each a status: 9 current, 2 superseded by the plugin redesign (the overlay consumer scaffold and the first work-package panel, each with the redesign line that replaced it), 13 dated records. Every document starts with one uniform Status line linking the index; earlier status lines are kept as Original status. AGENTS.md links the index and C-13 is fully resolved. Written by the Codex CLI agent (gpt-5.6-sol, medium) in one round of about 13 minutes; the executor checked the supersession evidence, that the documents gained only status lines, and every link and anchor. Measured: Codex 0.21 h, the executor agent 0.23 h."
+    targets:
+      - kind: task
+        id: task.self.index-openproject-design-docs
+  - id: evidence.self.accept-index-openproject-design-docs
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T15:24:00+07:00"
+    confidence: observed
+    summary: "The operator accepts the OpenProject design document index"
+    targets:
+      - kind: task
+        id: task.self.index-openproject-design-docs
+  - id: evidence.self.start-clean-up-openproject-env-vars
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T15:25:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the OpenProject design document index and asked to continue with the OpenProject settings names clean-up, implemented by the Codex CLI agent."
+    targets:
+      - kind: task
+        id: task.self.clean-up-openproject-env-vars
+  - id: evidence.self.clean-up-openproject-env-vars
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-26T15:56:00+07:00"
+    confidence: observed
+    summary: "Every OpenProject helper, bootstrap included, takes the project identifier from REPLAN_OPENPROJECT_PROJECT_ID and the name of a project it creates from REPLAN_OPENPROJECT_PROJECT_NAME, which now defaults to the identifier instead of the dogfood name. REPLAN_OPENPROJECT_TARGET_PROJECT_ID and _TARGET_PROJECT_NAME stay deprecated aliases for one release: using one adds a deprecated_setting warning, and an old and a new name with different values are refused with conflicting_settings, exit 8, before any request. Settings.from_env resolves them once and the wrappers export the result. REPLAN_FORMAT is documented as json or text only in the five scripts that print text; the others refuse anything but json. Written by the Codex CLI agent (gpt-5.6-sol, medium) in one round of about 11 minutes. The executor compared the outputs of 13 live helpers before and after: equal apart from timestamps with the new names, and with the old names equal plus the deprecation warning. The executor fixed one alias test that read the repository .env.local; the Python tests pass with and without it. The local gate and the throwaway runtime (167, 8 and 52 checks) pass. Measured: Codex 0.18 h, the executor agent 0.52 h."
+    targets:
+      - kind: task
+        id: task.self.clean-up-openproject-env-vars
+  - id: evidence.self.accept-clean-up-openproject-env-vars
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T16:19:00+07:00"
+    confidence: observed
+    summary: "The operator accepts the OpenProject settings names clean-up"
+    targets:
+      - kind: task
+        id: task.self.clean-up-openproject-env-vars
+  - id: evidence.self.start-one-apply-gate-rule-for-cli-and-helpers
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T16:22:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the OpenProject settings names clean-up, asked to continue with the apply gate rule, and chose explicit choice out of three options (explicit choice, dry run by default, a stated rule only): a CLI command that writes canonical state refuses with exit 8 unless --dry-run or --apply is given, REPLAN_APPLY=1 counts as --apply, so nothing writes without --apply or REPLAN_APPLY=1. Implemented by the Codex CLI agent."
+    targets:
+      - kind: task
+        id: task.self.one-apply-gate-rule-for-cli-and-helpers
+  - id: evidence.self.one-apply-gate-rule-for-cli-and-helpers
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-26T16:50:00+07:00"
+    confidence: observed
+    summary: "Nothing writes canonical state without an explicit apply. The 11 CLI commands that write it (six actual commands, proposal accept and reject, scenario apply, project set-status-date and import accept) share one gate in cmd/replan/apply_gate.go: --dry-run previews, --apply writes, REPLAN_APPLY=1 counts as --apply and --dry-run wins over it; neither is refused with apply_choice_required and both with apply_choice_conflict, exit 8. Commands that write only reviewable artifacts on their own flag are unchanged and listed. The smoke, the Go tests and every example pass the choice explicitly; GAP-023 is closed. Written by the Codex CLI agent (gpt-5.6-sol, medium) in one round of about 13 minutes. The executor compared the outputs of 13 live helpers before and after (equal apart from timestamps), checked that the gate runs after flag parsing and before any write, saw a call without a choice refused on this project, and updated the private acceptance tool. The local gate, golangci-lint and the throwaway runtime (167, 8 and 52 checks) pass. Measured: Codex 0.22 h, the executor agent 0.47 h."
+    targets:
+      - kind: task
+        id: task.self.one-apply-gate-rule-for-cli-and-helpers
+  - id: evidence.self.accept-one-apply-gate-rule-for-cli-and-helpers
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T17:12:00+07:00"
+    confidence: observed
+    summary: "The operator accepts one apply gate rule for the CLI and the helpers"
+    targets:
+      - kind: task
+        id: task.self.one-apply-gate-rule-for-cli-and-helpers
+  - id: evidence.self.start-add-replan-evidence-add
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T17:13:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the apply gate rule and asked to start replan evidence add, implemented by the Codex CLI agent."
+    targets:
+      - kind: task
+        id: task.self.add-replan-evidence-add
+  - id: evidence.self.add-replan-evidence-add
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-26T17:29:00+07:00"
+    confidence: observed
+    summary: 'replan evidence add records an evidence item: required id, type, actor, observed time, summary and at least one target; optional subtype, source, url and confidence. It refuses an unknown actor or target id (exit 4), a duplicate id, an unknown target kind or a bad time (exit 2), and without --dry-run or --apply (exit 8). The week file comes from the observed time, a new file gets the evidence header, existing bytes stay as they are, one audit record is written and the project is validated before the write is kept. The smoke writes one item and uses it in an actual. This evidence item is the first one written by the command. Written by the Codex CLI agent (gpt-5.6-sol, medium) in one round of about 11 minutes; the executor checked the append on a copy of this project (file style kept, duplicate refused, validate passes) and that the import accept preview now names the same week file it writes. The local gate and golangci-lint pass; no helper or plugin changed, so the throwaway runtime was not run. Measured: Codex 0.18 h, the executor agent 0.27 h.'
+    targets:
+      - kind: task
+        id: task.self.add-replan-evidence-add
+  - id: evidence.self.accept-add-replan-evidence-add
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T17:40:00+07:00"
+    confidence: observed
+    summary: The operator accepts replan evidence add
+    targets:
+      - kind: task
+        id: task.self.add-replan-evidence-add
+  - id: evidence.self.start-add-replan-task-add
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T17:42:00+07:00"
+    confidence: observed
+    summary: The operator accepted replan evidence add and asked to start replan task add, implemented by the Codex CLI agent.
+    targets:
+      - kind: task
+        id: task.self.add-replan-task-add
+  - id: evidence.self.add-replan-task-add
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-26T18:04:00+07:00"
+    confidence: observed
+    summary: 'replan task add writes a task, its demands and its place in the current plan in one validated staged write with one audit record; demands are given as SUFFIX=RESOURCE_ID:AMOUNT:UNIT[:ROLE], the class comes from the resource and the unit must be one of its capacity units. replan task set-dates moves planned dates with a reason and records the old and new dates in the audit. Both refuse unknown references (exit 4), invalid input (exit 2) and a missing apply choice (exit 8), and keep existing file bytes. The smoke adds a task and moves it on a separate copy. Written by the Codex CLI agent (gpt-5.6-sol, medium) in one round of about 17 minutes. The executor added a task shaped like this plan''s own tasks on a copy of this project (output matches the existing records, plan position after --after, validate passes), moved its dates, and fixed the audit reason separator. The local gate and golangci-lint pass; no helper or plugin changed. Measured: Codex 0.29 h, the executor agent 0.37 h.'
+    targets:
+      - kind: task
+        id: task.self.add-replan-task-add
+  - id: evidence.self.accept-add-replan-task-add
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T18:15:00+07:00"
+    confidence: observed
+    summary: The operator accepts replan task add and task set-dates
+    targets:
+      - kind: task
+        id: task.self.add-replan-task-add
+  - id: evidence.self.start-accept-openproject-dates-through-import-accept
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T18:16:00+07:00"
+    confidence: observed
+    summary: The operator accepted replan task add and asked to start date acceptance through import accept, implemented by the Codex CLI agent. Because the CLI reads private bindings only in a later task, the soft drift helper keeps its bindings match and writes through replan task set-dates with an actor and evidence, and import accept gains --accept-dates for snapshots matched by committed source refs.
+    targets:
+      - kind: task
+        id: task.self.accept-openproject-dates-through-import-accept
+  - id: evidence.self.accept-openproject-dates-through-import-accept
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-26T18:43:00+07:00"
+    confidence: observed
+    summary: 'replan import accept --accept-dates accepts the start and due dates of matched snapshot candidates in one validated staged write through the task set-dates path, with one import_accept audit record, and reports unmatched, dateless, unchanged and bad-range candidates. accept-openproject-soft-drift.sh keeps its private bindings match and dry-run output, needs REPLAN_ACTOR under apply (exit 8 without it), records one import_result evidence item per run and writes each task through replan task set-dates; a failure midway exits 7 with applied_so_far. The regex writer is gone. Written by the Codex CLI agent (gpt-5.6-sol, medium) in one round of about 11 minutes. The executor compared 13 live helper outputs (only the new actor field and policy text differ), moved one task''s dates on a copy of this project and accepted them back from live OpenProject: refused without an actor, then two date changes applied, tasks.yaml equal to the original byte for byte, evidence and two audit records written, validate passes. The local gate, golangci-lint and the throwaway runtime (167, 8 and 52 checks) pass. Measured: Codex 0.19 h, the executor agent 0.45 h.'
+    targets:
+      - kind: task
+        id: task.self.accept-openproject-dates-through-import-accept
+  - id: evidence.self.accept-accept-openproject-dates-through-import-accept
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T18:48:00+07:00"
+    confidence: observed
+    summary: The operator accepts date acceptance through audited writers
+    targets:
+      - kind: task
+        id: task.self.accept-openproject-dates-through-import-accept
+  - id: evidence.self.start-track-the-task-acceptance-chain
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T18:49:00+07:00"
+    confidence: observed
+    summary: The operator accepted date acceptance through audited writers and asked to start the tracked task acceptance chain, implemented by the Codex CLI agent.
+    targets:
+      - kind: task
+        id: task.self.track-the-task-acceptance-chain
+  - id: evidence.self.track-the-task-acceptance-chain
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-26T19:35:00+07:00"
+    confidence: observed
+    summary: 'scripts/accept-task.sh runs a task''s acceptance as eight steps: acceptance evidence, optional CI minutes, remaining to zero, demand closure, the accepted status, dependency proposal candidates (listed, never accepted), the one bound work package''s OpenProject status, and the repository-only overlay refresh. A dry run prints each step with its argv, its state and the CLI dry-run answer; each step''s done state comes from RePlan and OpenProject, so a rerun continues after a failure (exit 7 with applied_so_far) and an accepted task is a no-op. It refuses a task that is not review ready. It ships in the agent kit. Written by the Codex CLI agent (gpt-5.6-sol, medium) in one round of about 21 minutes. The executor kept the per-acceptance settings (REPLAN_TASK, REPLAN_ACCEPTED_BY, REPLAN_ACCEPT_*) out of the dotenv allowlist so a value left in .env.local cannot accept the wrong task, adjusted the kit check, isolated the new tests from the repository token, and dry-ran it on live tasks: an accepted task shows steps 1 to 7 done, an in-progress task is refused. The local gate and the throwaway runtime (167, 8 and 52 checks) pass. Measured: Codex 0.35 h, the executor agent 0.77 h.'
+    targets:
+      - kind: task
+        id: task.self.track-the-task-acceptance-chain
+  - id: evidence.self.accept-track-the-task-acceptance-chain
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T19:58:00+07:00"
+    confidence: observed
+    summary: The operator accepts the tracked task acceptance chain
+    targets:
+      - kind: task
+        id: task.self.track-the-task-acceptance-chain
+  - id: evidence.self.start-derive-self-plan-counts-from-fixture
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-26T19:59:00+07:00"
+    confidence: observed
+    summary: The operator accepted the tracked task acceptance chain and asked to start deriving the self plan counts from the fixture, implemented by the Codex CLI agent.
+    targets:
+      - kind: task
+        id: task.self.derive-self-plan-counts-from-fixture
+  - id: evidence.self.derive-self-plan-counts-from-fixture
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-27T09:47:00+07:00"
+    confidence: observed
+    summary: 'The Go overlay test and the smoke derive the self-plan counts from the canonical tasks, the sanitized bindings and the sample instead of the literal 149. Two agreement tests check the sample and the example bindings against the canonical source refs; REPLAN_UPDATE_GOLDEN=1 appends a missing sample work package. Verified on a copy: a task added with task add, a source ref, a binding and the generated sample entry pass go test and the smoke with no number changed. Gate: go test, vet, golangci-lint, shellcheck, kit check (35), Python tests (112), smoke, isolated smoke. Codex 0.28 h (first run failed on model capacity and was restarted), agent 0.52 h.'
+    targets:
+      - kind: task
+        id: task.self.derive-self-plan-counts-from-fixture
+  - id: evidence.self.accept-derive-self-plan-counts-from-fixture
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-27T09:53:00+07:00"
+    confidence: observed
+    summary: The operator accepts the self-plan counts derived from the fixture, with the sample and bindings agreement tests and the sample generator.
+    targets:
+      - kind: task
+        id: task.self.derive-self-plan-counts-from-fixture
+  - id: evidence.self.start-read-private-openproject-bindings-in-go
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-27T09:55:44+07:00"
+    confidence: observed
+    summary: The operator asks to start the Go bindings overlay layer after accepting the derived self-plan counts.
+    targets:
+      - kind: task
+        id: task.self.read-private-openproject-bindings-in-go
+  - id: evidence.self.read-private-openproject-bindings-in-go
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-27T10:27:02+07:00"
+    confidence: observed
+    summary: 'The CLI reads the private bindings as a read-only task source-ref layer through --bindings or REPLAN_OPENPROJECT_BINDINGS_LAYER, applied in the filestore load; the helpers'' REPLAN_OPENPROJECT_BINDINGS_PATH has no CLI effect. Canonical writers, import snapshots, tracking candidates and in-project report, run or export output refuse the layer with exit 8, and the layered store refuses every project write. The live overlay helper calls report dashboard with --bindings instead of rewriting a temp copy; the overlay built from the real bindings matches the previous build except the generated time, and the helper outputs match the baseline. Gate: go test, vet, golangci-lint, shellcheck, kit check (35), Python tests, smoke, isolated smoke and Python tests, throwaway OpenProject runtime. Codex 0.23 h, agent 0.55 h.'
+    targets:
+      - kind: task
+        id: task.self.read-private-openproject-bindings-in-go
+  - id: evidence.self.accept-read-private-openproject-bindings-in-go
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-27T10:29:25+07:00"
+    confidence: observed
+    summary: The operator accepts the read-only OpenProject bindings layer in the Go CLI and the live overlay helper using it.
+    targets:
+      - kind: task
+        id: task.self.read-private-openproject-bindings-in-go
+  - id: evidence.self.start-guard-import-accept-against-real-ids
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-27T10:48:28+07:00"
+    confidence: observed
+    summary: 'The operator chooses the refusing guard: a project that keeps real OpenProject ids in private bindings refuses import writes that would put OpenProject ids into its committed files; dates and statuses are still accepted.'
+    targets:
+      - kind: task
+        id: task.self.guard-import-accept-against-real-ids
+  - id: evidence.self.guard-import-accept-against-real-ids
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-27T11:20:03+07:00"
+    confidence: observed
+    summary: 'A project with openproject_ids: private_bindings refuses import accept changes that would persist an OpenProject object id (task, resource, dependency and time-entry refs; unclassified future kinds too) in dry-run and apply with exit 8, and refuses writing a live API snapshot; dates, tracking statuses and resource demands are still accepted, and file snapshots still write. The self plan sets the policy and ignores its imports directory. Smoke and live validation run the id-carrying modes on copies set back to canonical and assert the refusal. Verified live: the read-only live validation passes on a copy and the self plan refuses a live snapshot write with exit 8. Gate: go test, vet, golangci-lint, shellcheck, kit check (35), Python tests, smoke, isolated smoke and Python tests, throwaway OpenProject runtime; helper outputs match the baseline. Codex 0.20 h, agent 0.65 h.'
+    targets:
+      - kind: task
+        id: task.self.guard-import-accept-against-real-ids
+  - id: evidence.self.accept-guard-import-accept-against-real-ids
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-27T11:31:20+07:00"
+    confidence: observed
+    summary: The operator accepts the private-bindings policy that keeps real OpenProject ids out of import accept and live snapshot writes.
+    targets:
+      - kind: task
+        id: task.self.guard-import-accept-against-real-ids
+  - id: evidence.self.start-ship-overlay-publish-in-agent-kit
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-27T11:34:10+07:00"
+    confidence: observed
+    summary: The operator decides that the agent kit ships both the overlay build and the overlay publish helpers, so a second project can refresh its RePlan pages in OpenProject from the kit; the publish target stays private.
+    targets:
+      - kind: task
+        id: task.self.ship-overlay-publish-in-agent-kit
+  - id: evidence.self.ship-overlay-publish-in-agent-kit
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-27T11:58:32+07:00"
+    confidence: observed
+    summary: 'The agent kit ships the overlay build and publish helpers with their module; inside the kit they use bin/replan, kit-root default bindings and output, and .env.local; publish needs rsync and reports rsync_not_found otherwise. The kit check (46 checks) builds, dry-runs and publishes into a local target from the unpacked kit and checks the other-project refusal. accept-task runs its overlay step in the kit when a publish target is set. Verified from an unpacked kit on the real self plan: the overlay built with the private bindings (149 linked) matches the repository build and the publish dry run targets only the project directory. Found and fixed: the accept-task tests inherited the repository publish target and had been publishing a test overlay to the real overlay directory as demo/ since 2026-10-26; the tests now blank it and use a temporary output. Gate: go test, vet, golangci-lint, shellcheck, kit check, Python tests, smoke, isolated smoke and Python tests, throwaway OpenProject runtime. Codex 0.14 h, agent 0.6 h.'
+    targets:
+      - kind: task
+        id: task.self.ship-overlay-publish-in-agent-kit
+  - id: evidence.self.accept-ship-overlay-publish-in-agent-kit
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-27T12:30:32+07:00"
+    confidence: observed
+    summary: The operator accepts the overlay build and publish helpers in the agent kit and the isolated accept-task tests.
+    targets:
+      - kind: task
+        id: task.self.ship-overlay-publish-in-agent-kit
+  - id: evidence.self.start-refresh-agent-kit-after-tooling-consolidation
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-27T12:31:43+07:00"
+    confidence: observed
+    summary: The operator asks to refresh the agent kit on the second project's tools page after the tooling consolidation and to tell the second project's session what changed.
+    targets:
+      - kind: task
+        id: task.self.refresh-agent-kit-after-tooling-consolidation
+  - id: evidence.self.refresh-agent-kit-after-tooling-consolidation
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-27T12:35:47+07:00"
+    confidence: observed
+    summary: The agent kit was rebuilt from the current code with the second project's terms of use; it ships 19 helpers, passes its 46 offline checks, and carries no private hosts, bindings or real work-package ids. With the wiki helper, dry run first each time, the new archive and checksum were uploaded to the second project's tools page, downloaded back and verified, the page lines naming the archive, checksum, helper count, settings block (deprecated TARGET_ names dropped, with a note), page and task counts and the verification note were updated against the page's lock version and read back, and the old archive and checksum were deleted. The second project's session was told what changed for its agent and helpers, including the CLI apply choice, the bindings layer, the private-bindings import policy and the stale plan snapshot on the page.
+    targets:
+      - kind: task
+        id: task.self.refresh-agent-kit-after-tooling-consolidation
+  - id: evidence.self.accept-refresh-agent-kit-after-tooling-consolidation
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-27T13:23:43+07:00"
+    confidence: observed
+    summary: The operator accepts the consolidated agent kit on the second project's tools page and the note to the second project's session.
+    targets:
+      - kind: task
+        id: task.self.refresh-agent-kit-after-tooling-consolidation
+  - id: evidence.self.start-report-openproject-rescheduling-after-relation-create
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-27T13:24:59+07:00"
+    confidence: observed
+    summary: The operator asks to continue the queue; the relations helper reports OpenProject rescheduling and the date push reports dates OpenProject stored differently. The kit on the second project's tools page is refreshed again afterwards, because it went out before this task.
+    targets:
+      - kind: task
+        id: task.self.report-openproject-rescheduling-after-relation-create
+  - id: evidence.self.report-openproject-rescheduling-after-relation-create
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-27T14:01:30+07:00"
+    confidence: observed
+    summary: 'The relations helper reads the dates of every new follows successor and its chain before and after the creates and reports each move in rescheduled_work_packages with openproject_rescheduled; a failed read after a create gives rescheduling_unknown and exit 11. The date push compares the stored dates with the sent ones (stored_date_differences, openproject_stored_other_dates, reason from OpenProject''s working-day API with a weekend fallback) and reports successors it moved; next steps name the drift check, the push and accepting OpenProject''s working days. Unchanged output when nothing moves; helper outputs match the baseline. The live kit check on a throwaway OpenProject now asserts the read-back around a real relation create (53 checks). Gate: go test, vet, golangci-lint, shellcheck, kit check (46), Python tests, smoke, isolated smoke and Python tests, throwaway OpenProject runtime. Codex 0.31 h, agent 0.55 h.'
+    targets:
+      - kind: task
+        id: task.self.report-openproject-rescheduling-after-relation-create
+  - id: evidence.self.refresh-agent-kit-after-rescheduling-report
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-27T14:03:23+07:00"
+    confidence: observed
+    summary: The kit went out on the second project's tools page before the relations helper reported rescheduling, against the planned order. It was rebuilt from the commit that adds the report, with the same terms of use and no private data; with the wiki helper, dry run first each time, the archive and checksum were uploaded, downloaded back and verified, the two page lines were updated against the page's lock version and read back, and the earlier archive and checksum of the same day were deleted.
+    targets:
+      - kind: task
+        id: task.self.report-openproject-rescheduling-after-relation-create
+      - kind: task
+        id: task.self.refresh-agent-kit-after-tooling-consolidation
+  - id: evidence.self.accept-report-openproject-rescheduling-after-relation-create
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-27T14:44:48+07:00"
+    confidence: observed
+    summary: The operator accepts the rescheduling report of the relations helper and the stored-date check of the date push.
+    targets:
+      - kind: task
+        id: task.self.report-openproject-rescheduling-after-relation-create
+  - id: evidence.self.start-preview-moved-task-dates-in-scenarios
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-27T14:47:31+07:00"
+    confidence: observed
+    summary: The operator asks to continue the queue with the scenario overlay that previews moved task dates.
+    targets:
+      - kind: task
+        id: task.self.preview-moved-task-dates-in-scenarios
+  - id: evidence.self.preview-moved-task-dates-in-scenarios
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-27T15:23:11+07:00"
+    confidence: observed
+    summary: 'The scenario overlay applies tasks.<id>.planned_start and planned_finish with the parser and window validation scenario apply uses, so preview equals apply; workload buckets, task-derived demand windows, Gantt windows, dependency and status-date warnings, forecasts and scenario diff follow the moved dates. report weekly, state and dashboard take --scenario; their output carries scenario_id and a what-if notice, writing a scenario report inside the project is refused, and the overlay publisher refuses a scenario overlay. GAP-030 closed. Tried on a copy of the self plan: pulling a task into this week raises the agent''s planned load from 7 to 13 hours in scenario diff. Gate: go test, vet, golangci-lint, shellcheck, kit check (47), Python tests, smoke, isolated smoke and Python tests, throwaway OpenProject runtime; helper outputs match the baseline. Codex 0.35 h in two rounds, agent 0.65 h.'
+    targets:
+      - kind: task
+        id: task.self.preview-moved-task-dates-in-scenarios
+  - id: evidence.self.accept-preview-moved-task-dates-in-scenarios
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-27T15:41:21+07:00"
+    confidence: observed
+    summary: The operator accepts moved task dates in the scenario overlay and the marked scenario reports.
+    targets:
+      - kind: task
+        id: task.self.preview-moved-task-dates-in-scenarios
+  - id: evidence.self.start-clear-remaining-lint-baseline
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-27T15:42:37+07:00"
+    confidence: observed
+    summary: 'The operator asks to continue the queue with the remaining golangci-lint baseline (22 findings: 9 dupl, 5 gocognit, 8 gocyclo).'
+    targets:
+      - kind: task
+        id: task.self.clear-remaining-lint-baseline
+  - id: evidence.self.clear-remaining-lint-baseline
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-27T16:14:02+07:00"
+    confidence: observed
+    summary: 'The full golangci-lint run reports 0 issues with unchanged thresholds, down from 22 (9 dupl, 5 gocognit, 8 gocyclo). Duplicates became shared helpers (lifecycle command flow, list rendering, typed sidecar reader, generic OpenProject page reader); OpenProjectImportService.Import, TrackingService.Suggest, WorkloadService.Calculate, importTaskJugglerResult and the dashboard and scenario store functions were split into named passes; seven flat document renderers keep a nolint with its reason. Four precedence tests were added and also pass against the old code. 113 CLI outputs over two projects are byte-identical before and after, golden files unchanged, helper outputs match the baseline. GAP-020 closed. Gate: go test, vet, full golangci-lint, shellcheck, kit check (47), Python tests, smoke, isolated smoke and Python tests, throwaway OpenProject runtime. Codex 0.27 h in two rounds, agent 0.55 h.'
+    targets:
+      - kind: task
+        id: task.self.clear-remaining-lint-baseline
+  - id: evidence.self.accept-clear-remaining-lint-baseline
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-27T17:52:58+07:00"
+    confidence: observed
+    summary: 'The operator accepts the cleared lint baseline: full golangci-lint run is clean with seven justified renderer nolints, CLI outputs byte-identical, GAP-020 closed.'
+    targets:
+      - kind: task
+        id: task.self.clear-remaining-lint-baseline
+  - id: evidence.self.start-report-missing-project-root-as-not-found
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-27T17:54:01+07:00"
+    confidence: observed
+    summary: 'The operator accepts the cleared lint baseline and asks to start GAP-012: a missing project root should exit 4 with project_not_found.'
+    targets:
+      - kind: task
+        id: task.self.report-missing-project-root-as-not-found
+  - id: evidence.self.report-missing-project-root-as-not-found
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-27T19:20:17+07:00"
+    confidence: observed
+    summary: 'A missing project root, or a project path that is not a directory, now returns one project_not_found error and exit 4 from every workspace-loading command in JSON and text output; writers refuse before creating anything under the path. A present but incomplete project keeps missing_required_file and exit 2, and dashboard --output and weekly --write on such a project still write their files as before (pinned by a test after review round 1 skipped them). The shared not-found mapping also makes an unknown --scenario exit 4 in workload, weekly, dashboard, taskjuggler run, export taskjuggler and export csv, and import accept with an unknown snapshot returns source_snapshot_not_found, exit 4, as cli.md already required. 113 CLI outputs over two projects are byte-identical, goldens unchanged, helper outputs match the baseline. GAP-012 closed. Gate: go test, vet, full golangci-lint (0 issues), shellcheck, kit check (47), Python tests, smoke, isolated smoke and Python tests, throwaway OpenProject runtime. Codex 0.34 h in two rounds, agent 0.45 h.'
+    targets:
+      - kind: task
+        id: task.self.report-missing-project-root-as-not-found
+  - id: evidence.self.accept-report-missing-project-root-as-not-found
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-27T20:20:36+07:00"
+    confidence: observed
+    summary: 'The operator accepts the missing project root reported as not found: project_not_found and exit 4 from every workspace-loading command, report writers unchanged on invalid projects, unknown scenario and snapshot aligned to exit 4, GAP-012 closed.'
+    targets:
+      - kind: task
+        id: task.self.report-missing-project-root-as-not-found
+  - id: evidence.self.start-move-pilot-narrative-to-private-storage
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-27T20:49:20+07:00"
+    confidence: observed
+    summary: 'The operator accepts the recommendation: move the pilot narrative out of the public tree into ignored private storage (no private pilot repository exists yet), keep a short sanitized lessons page, delete the old pilot sidecars and fix every link.'
+    targets:
+      - kind: task
+        id: task.self.move-pilot-narrative-to-private-storage
+  - id: evidence.self.move-pilot-narrative-to-private-storage
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-27T21:59:53+07:00"
+    confidence: observed
+    summary: 'The pilot journal, the live mapping-quality audit and the old implementation log were moved to ignored private storage, and the two replan-pilot sidecars were deleted. A 232-line sanitized page, docs/dev/openproject-pilot-lessons.md, keeps the lessons that still match the code, with outdated July assumptions dropped. About 25 documents were relinked; dated audits keep their text with a moved-to-private-storage note. The sweep also removed the local checkout path from four documents, and the private leak patterns now find nothing in the public tree. The README mapper example was corrected to project-relative sidecar paths and verified. No markdown link is broken. GAP-010 closed; publication audit items 2 and 3 resolved; git history stays for the cut-public-repository task. Gate: go test, shellcheck, kit check (47), Python tests, smoke, isolated smoke and Python tests, git diff --check. Codex 0.23 h, agent 0.45 h.'
+    targets:
+      - kind: task
+        id: task.self.move-pilot-narrative-to-private-storage
+  - id: evidence.self.accept-move-pilot-narrative-to-private-storage
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T07:30:36+07:00"
+    confidence: observed
+    summary: 'The operator accepts the pilot narrative moved out of the public tree: originals in private storage, sanitized lessons page, links fixed, no leak-pattern match in the public tree, GAP-010 closed.'
+    targets:
+      - kind: task
+        id: task.self.move-pilot-narrative-to-private-storage
+  - id: evidence.self.start-edit-work-package-subject-and-description-in-toolkit
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T07:32:21+07:00"
+    confidence: observed
+    summary: The operator accepts the pilot narrative move and asks to continue the queue; the next two tasks wait on operator decisions, so this one (review finding C-17) starts first.
+    targets:
+      - kind: task
+        id: task.self.edit-work-package-subject-and-description-in-toolkit
+  - id: evidence.self.edit-work-package-subject-and-description-in-toolkit
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-28T08:13:17+07:00"
+    confidence: observed
+    summary: 'New replan task set-title (dry run, apply gate, evidence, audit, no-op, bindings-layer refusal) and toolkit work-package update-text with --subject, --description or --description-file. The dry run shows old and new text and the lock version and prints the apply command. --lock-version is checked before the PATCH and carried in it; a mismatch or HTTP 409 gives openproject_work_package_changed. A bound subject change first previews replan task set-title, then PATCHes OpenProject, then applies the title; a failed RePlan write is a partial apply, exit 7, with the finish command. When only the RePlan title differs, the title drift is repaired without a PATCH. The description stays OpenProject-only. The replan binary is found as REPLAN_BIN, then the kit bin, then a temporary local build (fixed in review round 2, with title-drift repair and live checks). The live kit check against a throwaway OpenProject went from 53 to 60 checks, all pass. 113 CLI outputs byte-identical, helper baseline unchanged. C-17 resolved. Gate: go test, vet, full golangci-lint, shellcheck, kit check (48), Python tests (128), smoke, isolated smoke and Python tests, throwaway OpenProject runtime. Codex 0.33 h in two rounds, agent 0.45 h.'
+    targets:
+      - kind: task
+        id: task.self.edit-work-package-subject-and-description-in-toolkit
+  - id: evidence.self.accept-edit-work-package-subject-and-description-in-toolkit
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T08:34:05+07:00"
+    confidence: observed
+    summary: 'The operator accepts work-package text editing through the toolkit: replan task set-title, update-text with lock-version check, bound title sync and title-drift repair, live kit checks at 60, C-17 resolved.'
+    targets:
+      - kind: task
+        id: task.self.edit-work-package-subject-and-description-in-toolkit
+  - id: evidence.self.start-add-contributing-and-security-policy
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T08:34:59+07:00"
+    confidence: observed
+    summary: The operator chooses GitHub private vulnerability reporting as the only reporting channel for SECURITY.md (no e-mail address is published) and asks to continue the queue with this task.
+    targets:
+      - kind: task
+        id: task.self.add-contributing-and-security-policy
+  - id: evidence.self.add-contributing-and-security-policy
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-28T08:44:20+07:00"
+    confidence: observed
+    summary: CONTRIBUTING.md (start here, prerequisites with pinned tool versions, how work is tracked, safety contracts, privacy boundary, the exact local gate, commit style, Apache-2.0 section 5 without a CLA) and SECURITY.md (pre-1.0 support, GitHub private vulnerability reporting only, what to include, what to expect without promised times, scope, secrets) were added at the root and linked from README.md and docs/README.md. In review the sandbox-only TMPDIR/GOCACHE/GOPATH exports were removed from the gate block and the original recommendation text of the dated audit was restored. The publication audit now records that private vulnerability reporting must be enabled on the new repository. GAP-025 closed; audit item 4 resolved. Every gate command was run as written; no markdown link is broken; no leak pattern matches. Codex 0.12 h, agent 0.3 h.
+    targets:
+      - kind: task
+        id: task.self.add-contributing-and-security-policy
+  - id: evidence.self.accept-add-contributing-and-security-policy
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T08:49:58+07:00"
+    confidence: observed
+    summary: The operator accepts CONTRIBUTING.md and SECURITY.md with GitHub private vulnerability reporting as the only channel; GAP-025 closed.
+    targets:
+      - kind: task
+        id: task.self.add-contributing-and-security-policy
+  - id: evidence.self.start-cut-public-repository-from-sanitized-tree
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T08:51:33+07:00"
+    confidence: observed
+    summary: 'The operator decides the history question: publish a new repository with one first commit from the sanitized tree and keep the current history private; the public repository stays under the owner account, so the Go module path is unchanged. Publishing stays the operator step; the agent prepares the cut and the runbook.'
+    targets:
+      - kind: task
+        id: task.self.cut-public-repository-from-sanitized-tree
+  - id: evidence.self.cut-public-repository-from-sanitized-tree
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-28T09:22:14+07:00"
+    confidence: observed
+    summary: 'scripts/cut-public-tree.sh copies the tracked tree of HEAD and refuses a dirty tree. It checks for private paths, env files (the public .env.example template is a listed exception), files over 1 MiB and generic and private leak patterns. The owner account is exempt only in replan module and repository paths, with a right boundary so a replan-history name is refused, and in two public sample identities. The script then makes one commit on main with no remote and proves the cut tree equals the source tree; dry run by default. Review round 2 narrowed the owner exemption, which had hidden a link to another of the owner projects; that name was also removed from the docs, the sample and one dated evidence summary. docs/dev/public-repository-cut.md is the publication-day runbook: archive and rename, create and push, enable private vulnerability reporting, and switch the existing checkout in place so the ignored local files stay. The agent kit NOTICE is Apache-2.0, the Russian quotes have English renderings, and audit items 1, 5 to 9 are resolved. A real run on this repository with the private patterns: dry run and apply clean, one commit, 548 files, tree equal to HEAD, no remote; an independent grep and go test plus smoke inside the cut pass. Publishing stays the operator step. Codex 0.34 h in two rounds, agent 0.5 h.'
+    targets:
+      - kind: task
+        id: task.self.cut-public-repository-from-sanitized-tree
+  - id: evidence.self.accept-cut-public-repository-from-sanitized-tree
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T09:25:42+07:00"
+    confidence: observed
+    summary: 'The operator accepts the prepared public repository cut: cut-public-tree.sh with narrowed owner exemption, the publication-day runbook, Apache-2.0 kit notice, audit items 1 and 5 to 9 resolved; publishing stays the operator step.'
+    targets:
+      - kind: task
+        id: task.self.cut-public-repository-from-sanitized-tree
+  - id: evidence.self.start-store-estimates-in-baselines
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T09:27:40+07:00"
+    confidence: observed
+    summary: The operator accepts the public repository cut and asks to continue the queue with storing estimates in baselines.
+    targets:
+      - kind: task
+        id: task.self.store-estimates-in-baselines
+  - id: evidence.self.store-estimates-in-baselines
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-28T10:02:05+07:00"
+    confidence: observed
+    summary: 'Baselines now carry estimates: planned dates on included tasks; task, resource, unit and planned amount on included demands; and a sha256 seal over the compact JSON of the baseline without the seal. A sealed baseline that changes fails validation with baseline_modified, duplicate ids and malformed estimate fields are errors, and old ref-only baselines stay valid. New replan baseline create (snapshots the current plan, apply gate, audit, refuses an existing id), list and show (estimates and seal status). The 2026-10-15 estimate snapshot was converted into baseline.2026-10-15.tooling-consolidation (38 tasks, 152 original demand amounts, seal verified); the snapshot stays as a frozen record. Review round 2: reports took the last baseline file in glob order and switched to the new partial baseline; they now use the current plan based_on_baseline, falling back to the latest by approval time. Only export json and validate outputs change (they list all baselines); 111 of 113 CLI outputs byte-identical, helper baseline unchanged. Checked on a copy: create snapshots 149 tasks and 577 demands, duplicate refused, tampered seal detected. Gate: go test, vet, full golangci-lint, shellcheck, kit check (48), Python tests (137), smoke, isolated smoke and Python tests, throwaway OpenProject runtime. Codex 0.35 h in two rounds, agent 0.5 h.'
+    targets:
+      - kind: task
+        id: task.self.store-estimates-in-baselines
+  - id: evidence.self.accept-store-estimates-in-baselines
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T10:29:05+07:00"
+    confidence: observed
+    summary: 'The operator accepts estimates stored in sealed baselines: baseline create, list and show, baseline_modified validation, the converted 2026-10-15 baseline, reports pinned to the plan baseline.'
+    targets:
+      - kind: task
+        id: task.self.store-estimates-in-baselines
+  - id: evidence.self.start-report-estimate-accuracy
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T10:31:01+07:00"
+    confidence: observed
+    summary: The operator accepts sealed baselines and asks to continue the queue with the estimate accuracy report.
+    targets:
+      - kind: task
+        id: task.self.report-estimate-accuracy
+  - id: evidence.self.report-estimate-accuracy
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-28T11:07:26+07:00"
+    confidence: observed
+    summary: 'New replan report estimates --baseline <id> (json and markdown). Per demand it shows baseline, current planned and remaining amounts, the actual consumption (work_consumed, consumption, runtime_consumed) and the variance; added, removed and re-estimated demands are listed; totals are per unit with tracking status and an open/partial mark. Schedule variance compares against actual dates taken from actual_add_status audit records (new records now store new_status and status_date; old ones did not), else from consumption dates, else none, with the source shown. There are per-resource summaries over finished and all tasks, split groups that combine a resource with the demands split out of it, and actuals_recorded false for resources with no records. Results are rounded to 6 decimals. Refusals: baseline_not_found (4), baseline_has_no_estimates (2), baseline_modified (2). First answer on replan-self, baseline 2026-10-15 (38 tasks, all accepted): executor plus Codex 138 agent-hours baseline, 142 planned, 35.27 actual, ratio 0.26; maintainer, CI and local-dev have no recorded actuals. The first six tasks (15-16 Oct) were booked by judgement, the rest from timestamps. Review round 2 added rounding, split groups and actuals_recorded. 113 CLI outputs byte-identical, helper baseline unchanged. Gate: go test, vet, full golangci-lint, shellcheck, kit check (48), Python tests, smoke, isolated smoke and Python tests, throwaway OpenProject runtime. Codex 0.37 h in two rounds, agent 0.5 h.'
+    targets:
+      - kind: task
+        id: task.self.report-estimate-accuracy
+  - id: evidence.self.accept-report-estimate-accuracy
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T16:18:31+07:00"
+    confidence: observed
+    summary: The operator accepts the estimate accuracy report against a sealed baseline.
+    targets:
+      - kind: task
+        id: task.self.report-estimate-accuracy
+  - id: evidence.self.start-prepare-release-story
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T17:26:17+07:00"
+    summary: 'The operator starts the public release story: lead with planning for teams of humans and AI agents, drop the OrCode section and the working-name note, mark the project alpha with replan-self as the live example, and cut the README to a short entry page with commands moved to getting-started plus a short public roadmap.'
+    targets:
+      - kind: task
+        id: task.self.prepare-release-story
+  - id: evidence.self.prepare-release-story
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-28T17:33:30+07:00"
+    summary: 'Draft release story in 71f44ad: README cut from 598 to 169 lines (pitch for teams with AI agents, alpha status, small-team start, replan-self estimate result), OpenProject helper commands moved to docs/dev/openproject-helpers.md, walkthroughs moved to getting-started, new ROADMAP.md. Every README command was run on the examples or a temporary copy; link check 0 broken, agent kit 48 checks, smoke, helper tests and a public cut dry run pass.'
+    targets:
+      - kind: task
+        id: task.self.prepare-release-story
+  - id: evidence.self.accept-prepare-release-story
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T17:42:48+07:00"
+    confidence: observed
+    summary: 'The operator accepts the public release story: the short README, the OpenProject helpers page and the public roadmap.'
+    targets:
+      - kind: task
+        id: task.self.prepare-release-story
+  - id: evidence.self.plan-after-release-story
+    type: decision
+    subtype: operator_decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T17:46:58+07:00"
+    summary: 'After accepting the release story on 2026-10-28 the operator agreed to every recommended next step, to be done fully: refresh the second project''s agent kit, record the actual windows of accepted tasks, version the file format, add replan version and a release build, publish the public repository and the first release (operator steps), and plan the public roadmap directions: estimate calibration, a second task tracker adapter and a small web view, each designed before it is built.'
+    targets:
+      - kind: task
+        id: task.self.refresh-second-project-agent-kit
+      - kind: task
+        id: task.self.record-actual-task-window
+      - kind: task
+        id: task.self.backfill-actual-task-windows
+      - kind: task
+        id: task.self.version-project-file-format
+      - kind: task
+        id: task.self.add-version-command-and-release-build
+      - kind: task
+        id: task.self.publish-public-repository
+      - kind: task
+        id: task.self.publish-first-release
+      - kind: task
+        id: task.self.design-estimate-calibration
+      - kind: task
+        id: task.self.implement-estimate-calibration
+      - kind: task
+        id: task.self.design-second-tracker-adapter
+      - kind: task
+        id: task.self.import-second-tracker-from-file
+      - kind: task
+        id: task.self.import-second-tracker-live
+      - kind: task
+        id: task.self.design-local-web-view
+      - kind: task
+        id: task.self.implement-local-web-view
+  - id: evidence.self.start-refresh-second-project-agent-kit
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T17:59:36+07:00"
+    summary: The operator asked on 2026-10-28 to refresh the second project's agent kit as recommended.
+    targets:
+      - kind: task
+        id: task.self.refresh-second-project-agent-kit
+  - id: evidence.self.start-record-actual-task-window
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T18:02:18+07:00"
+    summary: The operator asked on 2026-10-28 to proceed with the recommended plan; this task makes acceptance record the actual window.
+    targets:
+      - kind: task
+        id: task.self.record-actual-task-window
+  - id: evidence.self.refresh-second-project-agent-kit
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-28T18:06:24+07:00"
+    summary: 'Second project''s kit rebuilt from ababc38 (Apache-2.0 notice, update-text, set-title, estimate commands): 48 offline kit checks, 60 live kit checks and 167 plugin page checks on a throwaway OpenProject, 0 private names, endpoints, settings files or bindings. Archive and checksum uploaded to the tools wiki page with a dry run first; the downloaded archive matches the checksum. Page text updated (lock version 12): new kit rows, the old kit marked as replaced, update-text in the caution table, the Apache-2.0 terms and the 28 October checks. The old kit attachments are kept.'
+    targets:
+      - kind: task
+        id: task.self.refresh-second-project-agent-kit
+  - id: evidence.self.record-actual-task-window
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-28T18:43:13+07:00"
+    summary: '754c55e: replan task record-actual-window and accept-task steps 6-7 (record the window, push dates). Codex round 1 (18:02-18:23); review added the retry of a failed OpenProject date push and its test. Gate: vet, full lint 0 issues, shellcheck, go test, kit 48, Python tests, smoke, smoke without private settings, throwaway OpenProject 60 kit checks; CLI snapshot: 16 expected diffs (warning text and next command), estimate report byte-identical on both baselines. Dry run over the 149 accepted tasks: 97 would change, 50 equal, 2 without dates, 27 with a weekend date that OpenProject would move.'
+    targets:
+      - kind: task
+        id: task.self.record-actual-task-window
+  - id: evidence.self.find-weekend-dates-moved-by-openproject
+    type: observation
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-28T18:44:16+07:00"
+    summary: 'Dry run of replan task record-actual-window over the 149 accepted tasks on 2026-10-28: 27 of 97 windows to record fall on a Saturday or Sunday; OpenProject''s working-day calendar would move them (C-18). Planned as its own task before the backfill.'
+    targets:
+      - kind: task
+        id: task.self.keep-non-working-day-dates-in-openproject
+      - kind: task
+        id: task.self.backfill-actual-task-windows
+  - id: evidence.self.start-keep-non-working-day-dates-in-openproject
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T19:00:17+07:00"
+    summary: 'Started under the operator''s 2026-10-28 instruction to proceed fully: the finding blocks the actual-window backfill. Throwaway OpenProject 17.6 probe: a Sunday date is moved to Monday with ignore_non_working_days false and kept with true.'
+    targets:
+      - kind: task
+        id: task.self.keep-non-working-day-dates-in-openproject
+  - id: evidence.self.start-design-estimate-calibration
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T19:00:59+07:00"
+    summary: Started under the operator's 2026-10-28 instruction to proceed fully with the recommended plan; the design comes to the operator for approval.
+    targets:
+      - kind: task
+        id: task.self.design-estimate-calibration
+  - id: evidence.self.design-estimate-calibration
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-28T19:02:46+07:00"
+    summary: '21b2548: docs/dev/estimate-calibration-design.md, from the 2026-10-15 baseline data (median per-task agent ratio 0.23, total 0.26, larger estimates miss more): per resource group calibration from clean pre-work samples (min 8), sealed and approved by a person, applied through a scenario, shown next to new estimates; four questions for the operator.'
+    targets:
+      - kind: task
+        id: task.self.design-estimate-calibration
+  - id: evidence.self.start-design-second-tracker-adapter
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T18:40:05+07:00"
+    summary: Started under the operator's 2026-10-28 instruction to proceed fully with the recommended plan; the tracker choice and design go to the operator.
+    targets:
+      - kind: task
+        id: task.self.design-second-tracker-adapter
+  - id: evidence.self.design-second-tracker-adapter
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-28T19:05:19+07:00"
+    summary: 'abf10e0: docs/dev/second-tracker-adapter-design.md compares GitHub Issues, GitLab and Plane from their current API docs, recommends GitHub Issues, maps issues, close reasons, blocked-by links, sub-issues and Project fields onto the canonical model, file input first, the shared staged accept, and asks three questions.'
+    targets:
+      - kind: task
+        id: task.self.design-second-tracker-adapter
+  - id: evidence.self.start-design-local-web-view
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T18:52:21+07:00"
+    summary: Started under the operator's 2026-10-28 instruction to proceed fully with the recommended plan; the decision goes to the operator.
+    targets:
+      - kind: task
+        id: task.self.design-local-web-view
+  - id: evidence.self.design-local-web-view
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-28T19:07:41+07:00"
+    summary: '6caba2e: docs/dev/local-web-view-design.md reviews how people and agents read RePlan during the dogfood cycle and proposes completing the static dashboard (workload, scenarios, proposals, estimates pages, read-only) instead of a served web view, with triggers to revisit and the rescoped implementation task.'
+    targets:
+      - kind: task
+        id: task.self.design-local-web-view
+  - id: evidence.self.keep-non-working-day-dates-in-openproject
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-28T19:30:55+07:00"
+    summary: '4a85f8d: date writers set ignoreNonWorkingDays for dates on non-working weekdays (instance working week, weekend fallback with a warning), weekday writes untouched. Codex round 1 (19:00-19:14). Gate: vet, full lint 0 issues, shellcheck, go test, kit 48, Python tests, smoke, smoke without private settings, throwaway OpenProject 63 kit checks including a Sunday push read back unchanged; helper dry-run baseline against the live project identical before and after.'
+    targets:
+      - kind: task
+        id: task.self.keep-non-working-day-dates-in-openproject
+  - id: evidence.self.start-version-project-file-format
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T19:31:41+07:00"
+    summary: Started under the operator's 2026-10-28 instruction to proceed fully with the recommended plan.
+    targets:
+      - kind: task
+        id: task.self.version-project-file-format
+  - id: evidence.self.version-project-file-format
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-28T20:22:32+07:00"
+    summary: '55f00a4: project.format_version, project_format_unsupported (one error, exit 2, no artifacts) and replan project migrate. Codex 2 rounds (19:32-19:46, 19:47-19:53): round 2 stopped empty dashboards and weekly files for unsupported projects and removed a duplicate load instead of hiding it; review fixed mutating commands answering exit 4 instead of 2 and extended the test. All 30 commands checked by hand on a version-2 copy write nothing. Gate: vet, lint 0, shellcheck, go test, kit 48, Python tests, smoke, throwaway 63; CLI snapshot: only format_version in export json. One run of the smoke without private settings reported one Python test error that 8 reruns did not reproduce; the gate script lost the log, it now keeps full logs.'
+    targets:
+      - kind: task
+        id: task.self.version-project-file-format
+  - id: evidence.self.start-add-version-command-and-release-build
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-28T20:23:27+07:00"
+    summary: Started under the operator's 2026-10-28 instruction to proceed fully with the recommended plan.
+    targets:
+      - kind: task
+        id: task.self.add-version-command-and-release-build
+  - id: evidence.self.add-version-command-and-release-build
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-28T20:48:47+07:00"
+    summary: '1eb0027: replan version and scripts/build-release.sh. Codex round 1 (20:24-20:35); review removed a wrong openproject_sync_pending note from the runbook. Six-target build from a temporary clone with a temporary tag: all archives verify against SHA256SUMS, the Linux binary reports the tag, the Windows zip holds replan.exe, LICENSE, NOTICE, README. Gate with full logs: vet, lint 0, shellcheck, go test, kit 48, Python tests, smoke, smoke and Python tests without private settings, throwaway 63; CLI snapshot 0 diffs.'
+    targets:
+      - kind: task
+        id: task.self.add-version-command-and-release-build
+  - id: evidence.self.accept-refresh-second-project-agent-kit
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-29T10:59:32+07:00"
+    confidence: observed
+    summary: Operator accepted the refreshed second-project agent kit and wiki page.
+    targets:
+      - kind: task
+        id: task.self.refresh-second-project-agent-kit
+  - id: evidence.self.accept-record-actual-task-window
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-29T10:59:59+07:00"
+    confidence: observed
+    summary: Operator accepted replan task record-actual-window and the accept-task date steps.
+    targets:
+      - kind: task
+        id: task.self.record-actual-task-window
+  - id: evidence.self.accept-keep-non-working-day-dates-in-openproject
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-29T11:00:29+07:00"
+    confidence: observed
+    summary: Operator accepted keeping weekend dates in OpenProject with ignoreNonWorkingDays.
+    targets:
+      - kind: task
+        id: task.self.keep-non-working-day-dates-in-openproject
+  - id: evidence.self.accept-version-project-file-format
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-29T11:00:58+07:00"
+    confidence: observed
+    summary: Operator accepted the project file format version and replan project migrate.
+    targets:
+      - kind: task
+        id: task.self.version-project-file-format
+  - id: evidence.self.accept-add-version-command-and-release-build
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-29T11:01:27+07:00"
+    confidence: observed
+    summary: Operator accepted replan version and the local release build.
+    targets:
+      - kind: task
+        id: task.self.add-version-command-and-release-build
+  - id: evidence.self.accept-design-estimate-calibration
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-29T11:01:54+07:00"
+    confidence: observed
+    summary: Operator accepted the estimate calibration design.
+    targets:
+      - kind: task
+        id: task.self.design-estimate-calibration
+  - id: evidence.self.accept-design-second-tracker-adapter
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-29T11:02:21+07:00"
+    confidence: observed
+    summary: Operator accepted the second tracker adapter design.
+    targets:
+      - kind: task
+        id: task.self.design-second-tracker-adapter
+  - id: evidence.self.accept-design-local-web-view
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-29T11:02:50+07:00"
+    confidence: observed
+    summary: Operator accepted the local web view design.
+    targets:
+      - kind: task
+        id: task.self.design-local-web-view
+  - id: evidence.self.find-sample-dates-stale-after-acceptance
+    type: observation
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T11:22:39+07:00"
+    summary: 'After eight acceptances on 2026-10-29, the smoke failed: the self date-push dry run reported 33 review actions instead of 25, because accept-task moved the accepted tasks to their actual window in RePlan and OpenProject while the committed sanitized sample kept their old dates. The sample entries were edited by hand to unblock the gate.'
+    targets:
+      - kind: task
+        id: task.self.keep-self-sample-dates-after-acceptance
+      - kind: task
+        id: task.self.backfill-actual-task-windows
+  - id: evidence.self.decide-roadmap-design-questions
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T11:31:11+07:00"
+    summary: 'Operator agreed on 2026-10-29 with every recommendation on the design questions. Estimate calibration: minimum sample 8 tasks, the six judged tasks of 15-16 October excluded, applied through one scenario, one quarter-unit rounding rule. Second tracker: GitHub Issues, live test on a separate disposable repository, label-based in-progress status. Local web view: static dashboard pages instead of a served view, none added to the OpenProject plugin yet. Old kit attachments on the second project wiki page are kept until that project confirms the switch.'
+    targets:
+      - kind: task
+        id: task.self.design-estimate-calibration
+      - kind: task
+        id: task.self.implement-estimate-calibration
+      - kind: task
+        id: task.self.design-second-tracker-adapter
+      - kind: task
+        id: task.self.import-second-tracker-from-file
+      - kind: task
+        id: task.self.import-second-tracker-live
+      - kind: task
+        id: task.self.design-local-web-view
+      - kind: task
+        id: task.self.implement-local-web-view
+      - kind: task
+        id: task.self.refresh-second-project-agent-kit
+  - id: evidence.self.approve-baseline-roadmap-plan
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T11:31:11+07:00"
+    summary: Operator approved on 2026-10-29 a baseline with the original estimates of the roadmap tasks planned on 2026-10-28. baseline.2026-10-28.roadmap-plan was created from the plan at commit 817acd0 on a temporary copy, with the agent demand of task.self.record-actual-task-window restored to its original 4 agent hours before its Codex split; 164 tasks. task.self.keep-self-sample-dates-after-acceptance was planned later and is not in it.
+    targets:
+      - kind: task
+        id: task.self.record-actual-task-window
+      - kind: task
+        id: task.self.backfill-actual-task-windows
+      - kind: task
+        id: task.self.publish-public-repository
+  - id: evidence.self.start-keep-self-sample-dates-after-acceptance
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T11:36:43+07:00"
+    summary: 'Operator agreed on 2026-10-29 with the recommended order: this task first, then the actual-window backfill. Codex writes the change, the executor briefs, reviews and gates it.'
+    targets:
+      - kind: task
+        id: task.self.keep-self-sample-dates-after-acceptance
+  - id: evidence.self.original-estimate-keep-self-sample-dates-after-acceptance
+    type: observation
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T11:36:56+07:00"
+    summary: 'Original estimate before the Codex split, not held by any baseline because the task was planned after baseline.2026-10-28.roadmap-plan: resource_demand.keep-self-sample-dates-after-acceptance.agent 1.5 agent_hours (commit 0d639d1), maintainer 0.25 hours, local-dev 1 slot, ci 10 minutes. Split into agent 0.5 and codex 1.'
+    targets:
+      - kind: task
+        id: task.self.keep-self-sample-dates-after-acceptance
+  - id: evidence.self.keep-self-sample-dates-after-acceptance
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T11:59:41+07:00"
+    summary: 'Commit 8d18f9f: TestSelfOpenProjectSampleAgreesWithCanonicalTasks fails on a stale subject or planned date of a linked sample work package, except the dates of 25 listed deliberate drift entries, and fails if a listed entry stops differing; REPLAN_UPDATE_GOLDEN=1 refreshes subjects and dates in place, byte-identical elsewhere. Check: restoring the 8 pre-acceptance dates and 3 old titles gave 16 named failures, and the update restored the committed file exactly. Gate: vet, golangci-lint 0 issues, shellcheck, go test, kit 48 checks, Python tests, smoke, iso smoke, throwaway runtime, live kit 63 checks. Codex 11:38-11:46.'
+    targets:
+      - kind: task
+        id: task.self.keep-self-sample-dates-after-acceptance
+  - id: evidence.self.accept-keep-self-sample-dates-after-acceptance
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-29T12:17:03+07:00"
+    confidence: observed
+    summary: Operator accepted keeping the self OpenProject sample in step with accepted dates.
+    targets:
+      - kind: task
+        id: task.self.keep-self-sample-dates-after-acceptance
+  - id: evidence.self.start-backfill-actual-task-windows
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T12:20:37+07:00"
+    summary: Operator accepted the last predecessor on 2026-10-29 and asked to continue; the backfill was agreed on 2026-10-28 for every accepted task whose planned window differs from its derived actual window (97 in the dry run of 2026-10-28).
+    targets:
+      - kind: task
+        id: task.self.backfill-actual-task-windows
+  - id: evidence.self.find-automatic-scheduling-moves-successors
+    type: observation
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T12:39:55+07:00"
+    summary: 'During the actual-window backfill on 2026-10-29: 8 of 165 bound work packages had scheduleManually false. Six open roadmap tasks had OpenProject dates 2 to 11 working days earlier than RePlan since the morning acceptances (12 date drifts at 11:03, missed because the drift check reports date drift as a count and drift_status soft_drift, not as a warning code), and one accepted task moved from 2026-08-04 to 2026-08-03 after the backfill moved its predecessor to a Sunday. Restored with push-openproject-date-drift.sh (6 applied) and work-package update-dates; drift check then reported 0 date drifts.'
+    targets:
+      - kind: task
+        id: task.self.keep-openproject-successors-manually-scheduled
+      - kind: task
+        id: task.self.backfill-actual-task-windows
+  - id: evidence.self.backfill-actual-task-windows
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T12:52:36+07:00"
+    summary: 'Commit e5fc1a2: replan task record-actual-window applied to 97 accepted tasks (59 already equal, 2 without actual dates: deploy-plugin-milestone-2 and run-full-openproject-dogfood-cycle, left unchanged); 27 windows on a weekend kept by ignoreNonWorkingDays; status date 2026-10-29; replan validate has no warnings and replan next no record-actual-window item. OpenProject: 97 work-package update-dates applied, then push-openproject-date-drift.sh applied 6 and update-dates restored 1 task moved by automatic scheduling; check-openproject-drift.sh date_drifts 0, status_drifts 0, title_drifts 0. Gate green; the smoke date-push review count is 23.'
+    targets:
+      - kind: task
+        id: task.self.backfill-actual-task-windows
+  - id: evidence.self.probe-relation-switches-successor-to-automatic
+    type: observation
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T13:00:33+07:00"
+    summary: 'Throwaway OpenProject 17.6.0 probe on 2026-10-29: a manually scheduled successor dated 2026-11-10 switched to scheduleManually false and moved to 2026-11-03, the day after its predecessor, as soon as a follows relation was created; it then followed the predecessor when that moved earlier. Updating it with scheduleManually true and its dates restored 2026-11-10, and it stayed when the predecessor moved again.'
+    targets:
+      - kind: task
+        id: task.self.keep-openproject-successors-manually-scheduled
+  - id: evidence.self.start-keep-openproject-successors-manually-scheduled
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T13:00:33+07:00"
+    summary: Operator asked on 2026-10-29 to continue the queue after accepting the sample task; this finding is planned and started under that instruction. Codex writes the change, the executor briefs, reviews and gates it.
+    targets:
+      - kind: task
+        id: task.self.keep-openproject-successors-manually-scheduled
+  - id: evidence.self.original-estimate-keep-openproject-successors-manually-scheduled
+    type: observation
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T13:00:33+07:00"
+    summary: 'Original estimate before the Codex split, not held by any baseline: agent 2 agent_hours (commit e5fc1a2), maintainer 0.25 hours, local-dev 1 slot, ci 10 minutes. Split into agent 0.75 and codex 1.25.'
+    targets:
+      - kind: task
+        id: task.self.keep-openproject-successors-manually-scheduled
+  - id: evidence.self.accept-backfill-actual-task-windows
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-29T13:15:06+07:00"
+    confidence: observed
+    summary: Operator accepted the recorded actual windows of the accepted self-dogfood tasks.
+    targets:
+      - kind: task
+        id: task.self.backfill-actual-task-windows
+  - id: evidence.self.keep-openproject-successors-manually-scheduled
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T13:49:33+07:00"
+    summary: 'Commit 135175c: apply-openproject-relations restores bound successors to manual scheduling with their prior dates after creating follows relations (roots first, verified, opt-out REPLAN_OPENPROJECT_KEEP_AUTOMATIC_SCHEDULING=1), snapshots with one collection read per phase; check-openproject-drift adds openproject_date_drift, openproject_automatic_scheduling and openproject_scheduling_unknown warnings without changing ok, drift_status or exit codes. Live read-only: relation dry run 141 matched, 0 restores, 18 s; drift check 0 date drifts, no automatic scheduling. Gate green; agent kit live checks 66 on the throwaway OpenProject. Codex rounds 13:01-13:24 and 13:26-13:32.'
+    targets:
+      - kind: task
+        id: task.self.keep-openproject-successors-manually-scheduled
+  - id: evidence.self.accept-keep-openproject-successors-manually-scheduled
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-29T13:53:28+07:00"
+    confidence: observed
+    summary: Operator accepted keeping OpenProject successors manually scheduled after relations.
+    targets:
+      - kind: task
+        id: task.self.keep-openproject-successors-manually-scheduled
+  - id: evidence.self.start-publish-public-repository
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T14:30:57+07:00"
+    summary: Operator agreed on 2026-10-29 to publish through a new public repository with one commit cut from the sanitized tree, as in docs/dev/public-repository-cut.md, because the current history holds private details in earlier commits. The current GitHub and GitLab repositories are renamed to a private history name chosen by the operator (kept in private notes), and the public repository takes the replan name.
+    targets:
+      - kind: task
+        id: task.self.publish-public-repository

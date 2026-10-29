@@ -1,0 +1,33 @@
+# Example only. Real live bindings belong in ignored private storage, for
+# example:
+#
+#   private/openproject/replan-self-bindings.yaml
+#
+# Do not copy real OpenProject URLs, tokens, user data or private work-package
+# ids into this committed example.
+openproject_private_bindings:
+  project:
+    source: openproject
+    project_id: replan-self
+    base_url: https://op.example.internal
+  tasks:
+    - replan_task_id: task.self.example
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "1001"
+        url: https://op.example.internal/work_packages/1001
+  dependencies:
+    - replan_dependency_id: dependency.example-before-next
+      source_ref:
+        source: openproject
+        object_type: relation
+        object_id: "2001"
+        url: https://op.example.internal/api/v3/relations/2001
+  resources:
+    - replan_resource_id: resource.human.maintainer
+      source_ref:
+        source: openproject
+        object_type: user
+        object_id: "3001"
+        url: https://op.example.internal/users/3001

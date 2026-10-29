@@ -1,0 +1,73 @@
+resources:
+  - id: resource.human.maintainer
+    class: human
+    name: RePlan maintainer
+    capabilities:
+      - architecture
+      - implementation
+      - review
+      - release
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+  - id: resource.ai.codex.local
+    class: ai_agent
+    name: Codex CLI agent
+    capabilities:
+      - coding
+      - documentation
+      - test_generation
+    actor_ref:
+      kind: actor
+      id: actor.ai.codex.local
+  - id: resource.ai.agent.executor
+    class: ai_agent
+    name: AI execution agent
+    capabilities:
+      - coding
+      - documentation
+      - test_generation
+      - research
+    tags:
+      - agent_agnostic
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+  - id: resource.ai.review-assistant
+    class: ai_agent
+    name: AI review assistant
+    capabilities:
+      - code_review
+      - documentation_review
+    actor_ref:
+      kind: actor
+      id: actor.ai.review-assistant
+  - id: resource.role.reviewer
+    class: role
+    name: Reviewer role
+    capabilities:
+      - code_review
+      - design_review
+      - acceptance_review
+  - id: resource.ci.github-actions
+    class: service_quota
+    name: GitHub Actions minutes
+    capabilities:
+      - test_execution
+  - id: resource.service.llm.tokens
+    class: service_quota
+    name: LLM API token budget
+    capabilities:
+      - ai_assistance
+      - summarization
+  - id: resource.environment.local-dev
+    class: environment
+    name: Local development environment
+    capabilities:
+      - go_tests
+      - report_generation
+  - id: resource.window.oss-release
+    class: release_window
+    name: OSS release preparation window
+    capabilities:
+      - release_coordination

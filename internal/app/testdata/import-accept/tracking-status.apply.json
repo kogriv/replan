@@ -1,0 +1,131 @@
+{
+  "changed_files": {
+    "audit/audit.2026-07.jsonl": "{\"id\":\"audit.20260706T120000.create-baseline\",\"occurred_at\":\"2026-07-06T12:00:00+07:00\",\"actor_ref\":{\"kind\":\"actor\",\"id\":\"actor.human.operator\"},\"operation\":\"create_baseline\",\"target_ref\":{\"kind\":\"baseline\",\"id\":\"baseline.2026-07-06.initial\"},\"result\":\"success\",\"reason\":\"Initial fixture baseline.\"}\n{\"id\":\"audit.20260730T120000000000000Z.import-accept-tracking-status\",\"occurred_at\":\"2026-07-30T12:00:00Z\",\"actor_ref\":{\"kind\":\"actor\",\"id\":\"actor.human.operator\"},\"operation\":\"import_accept\",\"target_ref\":{\"kind\":\"source_snapshot\",\"id\":\"source_snapshot.openproject.20260726T120000\"},\"result\":\"success\",\"reason\":\"Golden run.\"}\n",
+    "canonical/tasks.yaml": "tasks:\n  - id: task.offline.repair-pump\n    title: Replace greenhouse pump\n    description: Offline maintenance task with equipment and operator confirmation.\n    type: repair\n    tracking_status: in_progress\n    assignee_hint:\n      kind: resource\n      id: resource.human.petr\n    resource_demands:\n      - kind: resource_demand\n        id: resource_demand.repair-pump.operator\n      - kind: resource_demand\n        id: resource_demand.repair-pump.budget\n    tags:\n      - offline\n      - maintenance\n  - id: task.op.1234\n    title: Implement validation command\n    description: Load local files and validate canonical ids, references and statuses.\n    type: software\n    tracking_status: in_progress\n    assignee_hint:\n      kind: resource\n      id: resource.human.ivan\n    resource_demands:\n      - kind: resource_demand\n        id: resource_demand.task-op-1234.implementer\n      - kind: resource_demand\n        id: resource_demand.task-op-1234.review\n      - kind: resource_demand\n        id: resource_demand.task-op-1234.ai-agent\n      - kind: resource_demand\n        id: resource_demand.task-op-1234.openai-quota\n      - kind: resource_demand\n        id: resource_demand.task-op-1234.staging\n    dependencies:\n      - kind: dependency\n        id: dependency.repair-pump-before-validation\n      - kind: dependency\n        id: dependency.openai-quota-blocks-validation\n    tags:\n      - mvp\n      - cli\n"
+  },
+  "error": "",
+  "result": {
+    "applied": true,
+    "dry_run": false,
+    "snapshot_id": "source_snapshot.openproject.20260726T120000",
+    "mapped_path": "imports/openproject/20260726T120000/mapped.json",
+    "planned_writes": [
+      {
+        "path": "canonical/tasks.yaml",
+        "action": "update",
+        "format": "yaml",
+        "content": ""
+      }
+    ],
+    "written_files": [
+      "canonical/tasks.yaml",
+      "audit/audit.2026-07.jsonl"
+    ],
+    "changes": [
+      {
+        "op": "update_task_tracking_status",
+        "target_kind": "task",
+        "target_id": "task.op.1234",
+        "source_id": "1234",
+        "path": "canonical/tasks.yaml",
+        "description": "Update task task.op.1234 tracking_status from ready to in_progress."
+      }
+    ],
+    "applied_changes": [
+      {
+        "op": "update_task_tracking_status",
+        "target_kind": "task",
+        "target_id": "task.op.1234",
+        "source_id": "1234",
+        "path": "canonical/tasks.yaml",
+        "description": "Update task task.op.1234 tracking_status from ready to in_progress."
+      }
+    ],
+    "audit_record_preview": {
+      "id": "audit.20260730T120000000000000Z.import-accept-tracking-status",
+      "occurred_at": "2026-07-30T12:00:00Z",
+      "actor_ref": {
+        "kind": "actor",
+        "id": "actor.human.operator"
+      },
+      "operation": "import_accept",
+      "target_ref": {
+        "kind": "source_snapshot",
+        "id": "source_snapshot.openproject.20260726T120000"
+      },
+      "result": "success",
+      "reason": "Golden run."
+    },
+    "validation": {
+      "valid": true,
+      "project_path": "<project>",
+      "checked_files": 11,
+      "object_counts": {
+        "actors": 4,
+        "actuals": 1,
+        "audit_records": 2,
+        "availability": 5,
+        "baselines": 1,
+        "capacities": 7,
+        "dependencies": 2,
+        "evidence": 2,
+        "proposals": 1,
+        "resource_demands": 7,
+        "resource_pools": 3,
+        "resources": 7,
+        "scenarios": 6,
+        "tasks": 2
+      },
+      "warnings": [
+        {
+          "code": "required_dependency_unresolved",
+          "message": "required dependency dependency.repair-pump-before-validation is open while successor task task.op.1234 is in_progress",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.repair-pump-before-validation"
+          }
+        },
+        {
+          "code": "dependency_predecessor_finish_unknown",
+          "message": "dependency dependency.repair-pump-before-validation predecessor task task.offline.repair-pump has no planned_finish",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.repair-pump-before-validation"
+          }
+        },
+        {
+          "code": "dependency_successor_start_unknown",
+          "message": "dependency dependency.repair-pump-before-validation successor task task.op.1234 has no planned_start",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.repair-pump-before-validation"
+          }
+        },
+        {
+          "code": "required_dependency_unresolved",
+          "message": "required dependency dependency.openai-quota-blocks-validation is open while successor task task.op.1234 is in_progress",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.openai-quota-blocks-validation"
+          }
+        },
+        {
+          "code": "dependency_blocks_active_successor",
+          "message": "dependency dependency.openai-quota-blocks-validation is open while successor task task.op.1234 is in_progress",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.openai-quota-blocks-validation"
+          }
+        }
+      ],
+      "errors": []
+    },
+    "warnings": [],
+    "errors": []
+  }
+}

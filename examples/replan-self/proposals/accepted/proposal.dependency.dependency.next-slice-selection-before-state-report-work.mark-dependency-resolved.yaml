@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.next-slice-selection-before-state-report-work.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-09-25T10:01:25+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.next-slice-selection-before-state-report-work
+    suggested_change:
+        op: set
+        path: dependencies.dependency.next-slice-selection-before-state-report-work.status
+        value: resolved
+    rationale: Dependency dependency.next-slice-selection-before-state-report-work (preferred) can be marked resolved because predecessor task.self.select-next-product-slice-from-replan-reports is in the required state.
+    requires_confirmation: true

@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.add-contributing-and-security-policy-before-cut-public-repository-from-sanitized-tree.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-10-28T08:50:12+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.add-contributing-and-security-policy-before-cut-public-repository-from-sanitized-tree
+    suggested_change:
+        op: set
+        path: dependencies.dependency.add-contributing-and-security-policy-before-cut-public-repository-from-sanitized-tree.status
+        value: resolved
+    rationale: Dependency dependency.add-contributing-and-security-policy-before-cut-public-repository-from-sanitized-tree (required) can be marked resolved because predecessor task.self.add-contributing-and-security-policy is in the required state.
+    requires_confirmation: true

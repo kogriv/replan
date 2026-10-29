@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.read-private-openproject-bindings-in-go-before-guard-import-accept-against-real-ids.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-10-27T10:29:47+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.read-private-openproject-bindings-in-go-before-guard-import-accept-against-real-ids
+    suggested_change:
+        op: set
+        path: dependencies.dependency.read-private-openproject-bindings-in-go-before-guard-import-accept-against-real-ids.status
+        value: resolved
+    rationale: Dependency dependency.read-private-openproject-bindings-in-go-before-guard-import-accept-against-real-ids (required) can be marked resolved because predecessor task.self.read-private-openproject-bindings-in-go is in the required state.
+    requires_confirmation: true

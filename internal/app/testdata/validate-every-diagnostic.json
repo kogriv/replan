@@ -1,0 +1,869 @@
+{
+  "valid": false,
+  "project_path": "",
+  "checked_files": 0,
+  "object_counts": null,
+  "warnings": [
+    {
+      "code": "missing_project_timezone",
+      "message": "project timezone is recommended",
+      "severity": "warning",
+      "target": {
+        "kind": "project"
+      }
+    },
+    {
+      "code": "missing_openproject_credential_ref",
+      "message": "OpenProject source profile should reference token_env or credential_profile_ref",
+      "severity": "warning",
+      "target": {
+        "kind": "source_profile",
+        "id": "op.dup"
+      }
+    },
+    {
+      "code": "missing_actor_trust_level",
+      "message": "actor trust level is recommended",
+      "severity": "warning",
+      "target": {
+        "kind": "actor",
+        "id": "actor.bare"
+      }
+    },
+    {
+      "code": "missing_actor_trust_level",
+      "message": "actor trust level is recommended",
+      "severity": "warning",
+      "target": {
+        "kind": "actor"
+      }
+    },
+    {
+      "code": "task_without_resource_demands",
+      "message": "task has no resource demands",
+      "severity": "warning",
+      "target": {
+        "kind": "task",
+        "id": "task.b"
+      }
+    },
+    {
+      "code": "unresolved_resource",
+      "message": "resource demand has no resource_ref or resource_pool_ref",
+      "severity": "warning",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.b"
+      }
+    },
+    {
+      "code": "incomplete_external_dependency",
+      "message": "external dependency should define external_ref, description, owner_ref or expected_resolution_date",
+      "severity": "warning",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.external"
+      }
+    },
+    {
+      "code": "required_dependency_unresolved",
+      "message": "required dependency dependency.external is open",
+      "severity": "warning",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.external"
+      }
+    },
+    {
+      "code": "required_dependency_unresolved",
+      "message": "required dependency dependency.self is open while successor task task.c is in_progress",
+      "severity": "warning",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.self"
+      }
+    },
+    {
+      "code": "dependency_successor_starts_before_predecessor_finish",
+      "message": "dependency dependency.self successor task task.c starts before predecessor task task.c planned_finish",
+      "severity": "warning",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.self"
+      }
+    },
+    {
+      "code": "required_dependency_unresolved",
+      "message": "required dependency dependency.fs is open while successor task task.a is accepted",
+      "severity": "warning",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.fs"
+      }
+    },
+    {
+      "code": "dependency_successor_starts_before_predecessor_finish",
+      "message": "dependency dependency.fs successor task task.a starts before predecessor task task.c planned_finish",
+      "severity": "warning",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.fs"
+      }
+    },
+    {
+      "code": "dependency_successor_starts_before_predecessor_finish",
+      "message": "dependency dependency.fs2 successor task task.a starts before predecessor task task.c planned_finish",
+      "severity": "warning",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.fs2"
+      }
+    },
+    {
+      "code": "dependency_predecessor_finish_unknown",
+      "message": "dependency dependency.unknown-dates predecessor task task.d has no planned_finish",
+      "severity": "warning",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.unknown-dates"
+      }
+    },
+    {
+      "code": "dependency_successor_start_unknown",
+      "message": "dependency dependency.unknown-dates successor task task.d has no planned_start",
+      "severity": "warning",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.unknown-dates"
+      }
+    },
+    {
+      "code": "dependency_blocks_active_successor",
+      "message": "dependency dependency.blocks is open while successor task task.c is in_progress",
+      "severity": "warning",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.blocks"
+      }
+    },
+    {
+      "code": "accepted_task_planned_after_status_date",
+      "message": "task task.a is accepted but its planned finish 2026-10-20 is after the status date 2026-10-10; run replan task record-actual-window",
+      "severity": "warning",
+      "target": {
+        "kind": "task",
+        "id": "task.a"
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": "missing_project_id",
+      "message": "project id is required",
+      "severity": "error",
+      "target": {
+        "kind": "project",
+        "id": ".replan/project.yaml"
+      }
+    },
+    {
+      "code": "missing_project_name",
+      "message": "project name is required",
+      "severity": "error",
+      "target": {
+        "kind": "project",
+        "id": ".replan/project.yaml"
+      }
+    },
+    {
+      "code": "invalid_openproject_ids_policy",
+      "message": "project openproject_ids must be \"canonical\" or \"private_bindings\", got \"elsewhere\"",
+      "severity": "error",
+      "target": {
+        "kind": "project"
+      }
+    },
+    {
+      "code": "missing_source_profile_id",
+      "message": "source profile id is required",
+      "severity": "error",
+      "target": {
+        "kind": "source_profile",
+        "id": "openproject"
+      }
+    },
+    {
+      "code": "missing_openproject_project_id",
+      "message": "OpenProject source profile project_id is required",
+      "severity": "error",
+      "target": {
+        "kind": "source_profile",
+        "id": "openproject"
+      }
+    },
+    {
+      "code": "invalid_openproject_token_env",
+      "message": "OpenProject source profile token_env must be an environment variable name, not a token value",
+      "severity": "error",
+      "target": {
+        "kind": "source_profile",
+        "id": "openproject"
+      }
+    },
+    {
+      "code": "secret_like_openproject_base_url",
+      "message": "OpenProject source profile base_url must not contain embedded credentials",
+      "severity": "error",
+      "target": {
+        "kind": "source_profile",
+        "id": "openproject"
+      }
+    },
+    {
+      "code": "invalid_openproject_base_url",
+      "message": "OpenProject source profile base_url must be an http or https URL",
+      "severity": "error",
+      "target": {
+        "kind": "source_profile",
+        "id": "op.dup"
+      }
+    },
+    {
+      "code": "duplicate_source_profile_id",
+      "message": "duplicate source profile id \"op.dup\"",
+      "severity": "error",
+      "target": {
+        "kind": "source_profile",
+        "id": "op.dup"
+      }
+    },
+    {
+      "code": "missing_openproject_base_url",
+      "message": "OpenProject source profile base_url is required",
+      "severity": "error",
+      "target": {
+        "kind": "source_profile",
+        "id": "op.dup"
+      }
+    },
+    {
+      "code": "missing_source_profile_source",
+      "message": "source profile source is required",
+      "severity": "error",
+      "target": {
+        "kind": "source_profile",
+        "id": "jira"
+      }
+    },
+    {
+      "code": "unsupported_source_profile_source",
+      "message": "unsupported source profile source \"jira\"",
+      "severity": "error",
+      "target": {
+        "kind": "source_profile",
+        "id": "jira.other"
+      }
+    },
+    {
+      "code": "missing_actor_kind",
+      "message": "actor kind is required",
+      "severity": "error",
+      "target": {
+        "kind": "actor",
+        "id": "actor.bare"
+      }
+    },
+    {
+      "code": "missing_id",
+      "message": "actor id is required",
+      "severity": "error",
+      "target": {
+        "kind": "actor"
+      }
+    },
+    {
+      "code": "missing_actor_kind",
+      "message": "actor kind is required",
+      "severity": "error",
+      "target": {
+        "kind": "actor"
+      }
+    },
+    {
+      "code": "duplicate_id",
+      "message": "duplicate actor id \"actor.ok\" already seen in actor",
+      "severity": "error",
+      "target": {
+        "kind": "actor",
+        "id": "actor.ok"
+      }
+    },
+    {
+      "code": "missing_resource_class",
+      "message": "resource class is required",
+      "severity": "error",
+      "target": {
+        "kind": "resource",
+        "id": "resource.bare"
+      }
+    },
+    {
+      "code": "missing_resource_name",
+      "message": "resource name is required",
+      "severity": "error",
+      "target": {
+        "kind": "resource",
+        "id": "resource.bare"
+      }
+    },
+    {
+      "code": "unresolved_reference",
+      "message": "resource actor_ref \"actor.missing\" does not exist",
+      "severity": "error",
+      "target": {
+        "kind": "resource",
+        "id": "resource.bare"
+      }
+    },
+    {
+      "code": "missing_resource_pool_class",
+      "message": "resource pool resource_class is required",
+      "severity": "error",
+      "target": {
+        "kind": "resource_pool",
+        "id": "pool.bare"
+      }
+    },
+    {
+      "code": "unresolved_reference",
+      "message": "resource pool member \"resource.missing\" does not exist",
+      "severity": "error",
+      "target": {
+        "kind": "resource_pool",
+        "id": "pool.bare"
+      }
+    },
+    {
+      "code": "missing_task_title",
+      "message": "task title is required",
+      "severity": "error",
+      "target": {
+        "kind": "task",
+        "id": "task.b"
+      }
+    },
+    {
+      "code": "invalid_tracking_status",
+      "message": "invalid tracking_status \"nonsense\"",
+      "severity": "error",
+      "target": {
+        "kind": "task",
+        "id": "task.b"
+      }
+    },
+    {
+      "code": "unresolved_reference",
+      "message": "demand task_ref \"task.missing\" does not exist",
+      "severity": "error",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.b"
+      }
+    },
+    {
+      "code": "invalid_resource_demand_status",
+      "message": "invalid resource demand status \"weird\"",
+      "severity": "error",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.b"
+      }
+    },
+    {
+      "code": "missing_unit",
+      "message": "resource demand unit is required",
+      "severity": "error",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.b"
+      }
+    },
+    {
+      "code": "invalid_planned_amount",
+      "message": "resource demand planned_amount NaN must be a finite number, zero or greater",
+      "severity": "error",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.b"
+      }
+    },
+    {
+      "code": "invalid_remaining_amount",
+      "message": "resource demand remaining_amount NaN must be a finite number, zero or greater",
+      "severity": "error",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.b"
+      }
+    },
+    {
+      "code": "missing_resource_class",
+      "message": "resource demand resource_class is required",
+      "severity": "error",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.b"
+      }
+    },
+    {
+      "code": "unresolved_reference",
+      "message": "demand resource_ref \"resource.missing\" does not exist",
+      "severity": "error",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.c"
+      }
+    },
+    {
+      "code": "unresolved_reference",
+      "message": "demand resource_pool_ref \"pool.missing\" does not exist",
+      "severity": "error",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.c"
+      }
+    },
+    {
+      "code": "invalid_dependency_type",
+      "message": "invalid dependency type \"sideways\"",
+      "severity": "error",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.bad"
+      }
+    },
+    {
+      "code": "invalid_dependency_status",
+      "message": "invalid dependency status \"maybe\"",
+      "severity": "error",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.bad"
+      }
+    },
+    {
+      "code": "invalid_dependency_criticality",
+      "message": "invalid dependency criticality \"kinda\"",
+      "severity": "error",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.bad"
+      }
+    },
+    {
+      "code": "missing_dependency_successor",
+      "message": "dependency successor_ref is required",
+      "severity": "error",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.bad"
+      }
+    },
+    {
+      "code": "missing_dependency_predecessor",
+      "message": "dependency predecessor_ref is required for task-to-task dependency",
+      "severity": "error",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.bad"
+      }
+    },
+    {
+      "code": "unresolved_reference",
+      "message": "dependency owner_ref \"actor.missing\" does not exist",
+      "severity": "error",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.bad"
+      }
+    },
+    {
+      "code": "invalid_dependency_expected_resolution_date",
+      "message": "dependency expected_resolution_date \"next week\" must use YYYY-MM-DD",
+      "severity": "error",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.bad"
+      }
+    },
+    {
+      "code": "invalid_source_ref",
+      "message": "dependency source_refs require source, object_type and object_id",
+      "severity": "error",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.bad"
+      }
+    },
+    {
+      "code": "unresolved_reference",
+      "message": "dependency successor_ref \"task.missing\" does not exist",
+      "severity": "error",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.external"
+      }
+    },
+    {
+      "code": "self_dependency",
+      "message": "dependency predecessor_ref and successor_ref must not reference the same task",
+      "severity": "error",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.self"
+      }
+    },
+    {
+      "code": "duplicate_dependency_source_ref",
+      "message": "dependency source_ref openproject:relation:1 already used by dependency.self",
+      "severity": "error",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.fs"
+      }
+    },
+    {
+      "code": "duplicate_dependency_triple",
+      "message": "dependency predecessor/successor/type triple already used by dependency.fs",
+      "severity": "error",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.fs2"
+      }
+    },
+    {
+      "code": "self_dependency",
+      "message": "dependency predecessor_ref and successor_ref must not reference the same task",
+      "severity": "error",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.unknown-dates"
+      }
+    },
+    {
+      "code": "missing_dependency_successor",
+      "message": "dependency successor_ref is required",
+      "severity": "error",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.no-pred"
+      }
+    },
+    {
+      "code": "unresolved_reference",
+      "message": "dependency predecessor_ref \"task.missing\" does not exist",
+      "severity": "error",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.no-pred"
+      }
+    },
+    {
+      "code": "missing_dependency_predecessor",
+      "message": "dependency predecessor_ref is required for task-to-task dependency",
+      "severity": "error",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.no-pred-id"
+      }
+    },
+    {
+      "code": "unresolved_reference",
+      "message": "task resource demand \"demand.missing\" does not exist",
+      "severity": "error",
+      "target": {
+        "kind": "task",
+        "id": "task.a"
+      }
+    },
+    {
+      "code": "unresolved_reference",
+      "message": "task dependency \"dependency.missing\" does not exist",
+      "severity": "error",
+      "target": {
+        "kind": "task",
+        "id": "task.a"
+      }
+    },
+    {
+      "code": "invalid_task_planned_start",
+      "message": "task planned_start \"10/01/2026\" must use YYYY-MM-DD",
+      "severity": "error",
+      "target": {
+        "kind": "task",
+        "id": "task.b"
+      }
+    },
+    {
+      "code": "invalid_task_planned_finish",
+      "message": "task planned_finish \"soon\" must use YYYY-MM-DD",
+      "severity": "error",
+      "target": {
+        "kind": "task",
+        "id": "task.b"
+      }
+    },
+    {
+      "code": "unresolved_reference",
+      "message": "capacity resource_ref \"resource.missing\" does not exist",
+      "severity": "error",
+      "target": {
+        "kind": "capacity",
+        "id": "capacity.bad"
+      }
+    },
+    {
+      "code": "missing_unit",
+      "message": "capacity unit is required",
+      "severity": "error",
+      "target": {
+        "kind": "capacity",
+        "id": "capacity.bad"
+      }
+    },
+    {
+      "code": "missing_capacity_type",
+      "message": "capacity type is required",
+      "severity": "error",
+      "target": {
+        "kind": "capacity",
+        "id": "capacity.bad"
+      }
+    },
+    {
+      "code": "invalid_capacity_range",
+      "message": "capacity effective_to 2026-10-01 is before effective_from 2026-10-10",
+      "severity": "error",
+      "target": {
+        "kind": "capacity",
+        "id": "capacity.bad"
+      }
+    },
+    {
+      "code": "invalid_capacity_date",
+      "message": "capacity effective_from \"tomorrow\" is not YYYY-MM-DD",
+      "severity": "error",
+      "target": {
+        "kind": "capacity",
+        "id": "capacity.date"
+      }
+    },
+    {
+      "code": "unresolved_reference",
+      "message": "availability resource_ref \"resource.missing\" does not exist",
+      "severity": "error",
+      "target": {
+        "kind": "availability",
+        "id": "availability.bad"
+      }
+    },
+    {
+      "code": "invalid_proposal_status",
+      "message": "invalid proposal status \"pending\"",
+      "severity": "error",
+      "target": {
+        "kind": "proposal",
+        "id": "proposal.bad"
+      }
+    },
+    {
+      "code": "invalid_scenario_status",
+      "message": "invalid scenario status \"pending\"",
+      "severity": "error",
+      "target": {
+        "kind": "scenario",
+        "id": "scenario.bad"
+      }
+    },
+    {
+      "code": "missing_accepted_actor",
+      "message": "actual accepted_by is required",
+      "severity": "error",
+      "target": {
+        "kind": "actual",
+        "id": "actual.bad"
+      }
+    },
+    {
+      "code": "missing_unit",
+      "message": "actual unit is required when amount is present",
+      "severity": "error",
+      "target": {
+        "kind": "actual",
+        "id": "actual.bad"
+      }
+    },
+    {
+      "code": "missing_evidence_type",
+      "message": "evidence type is required",
+      "severity": "error",
+      "target": {
+        "kind": "evidence",
+        "id": "evidence.bad"
+      }
+    },
+    {
+      "code": "missing_approved_actor",
+      "message": "baseline approved_by is required",
+      "severity": "error",
+      "target": {
+        "kind": "baseline",
+        "id": "baseline.bad"
+      }
+    },
+    {
+      "code": "invalid_baseline_date",
+      "message": "included task task.a planned_start \"soon\" must use YYYY-MM-DD",
+      "severity": "error",
+      "target": {
+        "kind": "baseline",
+        "id": "baseline.bad"
+      }
+    },
+    {
+      "code": "invalid_baseline_date_range",
+      "message": "included task task.c planned_start 2026-10-10 is after planned_finish 2026-10-01",
+      "severity": "error",
+      "target": {
+        "kind": "baseline",
+        "id": "baseline.bad"
+      }
+    },
+    {
+      "code": "missing_baseline_task",
+      "message": "included demand demand.a task is required with estimate fields",
+      "severity": "error",
+      "target": {
+        "kind": "baseline",
+        "id": "baseline.bad"
+      }
+    },
+    {
+      "code": "missing_baseline_unit",
+      "message": "included demand demand.a unit is required with estimate fields",
+      "severity": "error",
+      "target": {
+        "kind": "baseline",
+        "id": "baseline.bad"
+      }
+    },
+    {
+      "code": "missing_baseline_amount",
+      "message": "included demand demand.a planned_amount is required with estimate fields",
+      "severity": "error",
+      "target": {
+        "kind": "baseline",
+        "id": "baseline.bad"
+      }
+    },
+    {
+      "code": "missing_baseline_resource",
+      "message": "included demand demand.b resource is required with estimate fields",
+      "severity": "error",
+      "target": {
+        "kind": "baseline",
+        "id": "baseline.bad"
+      }
+    },
+    {
+      "code": "missing_baseline_unit",
+      "message": "included demand demand.b unit is required with estimate fields",
+      "severity": "error",
+      "target": {
+        "kind": "baseline",
+        "id": "baseline.bad"
+      }
+    },
+    {
+      "code": "invalid_baseline_amount",
+      "message": "included demand demand.b planned_amount must be a finite number, zero or greater",
+      "severity": "error",
+      "target": {
+        "kind": "baseline",
+        "id": "baseline.bad"
+      }
+    },
+    {
+      "code": "invalid_baseline_seal",
+      "message": "baseline seal algorithm must be sha256",
+      "severity": "error",
+      "target": {
+        "kind": "baseline",
+        "id": "baseline.bad"
+      }
+    },
+    {
+      "code": "baseline_modified",
+      "message": "sealed baseline content does not match its digest",
+      "severity": "error",
+      "target": {
+        "kind": "baseline",
+        "id": "baseline.modified"
+      }
+    },
+    {
+      "code": "missing_audit_actor",
+      "message": "audit actor_ref is required",
+      "severity": "error",
+      "target": {
+        "kind": "audit_record",
+        "id": "audit.bad"
+      }
+    },
+    {
+      "code": "missing_audit_operation",
+      "message": "audit operation is required",
+      "severity": "error",
+      "target": {
+        "kind": "audit_record",
+        "id": "audit.bad"
+      }
+    },
+    {
+      "code": "invalid_overrun_review",
+      "message": "overrun_review acknowledged_forecast must be a finite number, zero or greater",
+      "severity": "error",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.a"
+      }
+    },
+    {
+      "code": "overrun_review_unit_mismatch",
+      "message": "overrun_review unit \"days\" differs from demand unit \"hours\"",
+      "severity": "error",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.a"
+      }
+    },
+    {
+      "code": "unresolved_reference",
+      "message": "overrun_review reviewed_by \"actor.missing\" does not exist",
+      "severity": "error",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.a"
+      }
+    },
+    {
+      "code": "unresolved_reference",
+      "message": "overrun_review evidence \"evidence.missing\" does not exist",
+      "severity": "error",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.a"
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.tracking.resource_demand-static-gantt-ux-codex.set-remaining-zero
+    type: update_remaining_work
+    status: accepted
+    created_at: "2026-07-26T18:55:57+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.codex.local
+    target_ref:
+        kind: resource_demand
+        id: resource_demand.static-gantt-ux.codex
+    suggested_change:
+        op: set
+        path: remaining_amount
+        value: 0
+    rationale: Task is accepted or done, actual consumption exists, and remaining work is still positive. This often means remaining work was not closed after acceptance; verify and, if correct, set remaining to zero.
+    requires_confirmation: true

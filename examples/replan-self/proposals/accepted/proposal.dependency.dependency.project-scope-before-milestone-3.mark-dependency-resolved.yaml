@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.project-scope-before-milestone-3.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-10-12T15:54:50+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.project-scope-before-milestone-3
+    suggested_change:
+        op: set
+        path: dependencies.dependency.project-scope-before-milestone-3.status
+        value: resolved
+    rationale: Dependency dependency.project-scope-before-milestone-3 (required) can be marked resolved because predecessor task.self.scope-plugin-overlay-to-its-project is in the required state.
+    requires_confirmation: true

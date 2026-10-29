@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.wiki-api-design-before-upstream-check.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-09-21T10:43:34+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.wiki-api-design-before-upstream-check
+    suggested_change:
+        op: set
+        path: dependencies.dependency.wiki-api-design-before-upstream-check.status
+        value: resolved
+    rationale: Preferred dependency dependency.wiki-api-design-before-upstream-check can be marked resolved because predecessor task.self.design-openproject-wiki-api-access is in the required state.
+    requires_confirmation: true

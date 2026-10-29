@@ -1,0 +1,7 @@
+openproject_resource_links:
+  - user_id: "101"
+    user_href: /api/v3/users/101
+    display_name: "RePlan maintainer"
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer

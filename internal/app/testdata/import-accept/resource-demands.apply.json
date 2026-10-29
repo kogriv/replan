@@ -1,0 +1,131 @@
+{
+  "changed_files": {
+    "audit/audit.2026-07.jsonl": "{\"id\":\"audit.20260706T120000.create-baseline\",\"occurred_at\":\"2026-07-06T12:00:00+07:00\",\"actor_ref\":{\"kind\":\"actor\",\"id\":\"actor.human.operator\"},\"operation\":\"create_baseline\",\"target_ref\":{\"kind\":\"baseline\",\"id\":\"baseline.2026-07-06.initial\"},\"result\":\"success\",\"reason\":\"Initial fixture baseline.\"}\n{\"id\":\"audit.20260730T120000000000000Z.import-accept-resource-demands\",\"occurred_at\":\"2026-07-30T12:00:00Z\",\"actor_ref\":{\"kind\":\"actor\",\"id\":\"actor.human.operator\"},\"operation\":\"import_accept\",\"target_ref\":{\"kind\":\"source_snapshot\",\"id\":\"source_snapshot.openproject.20260724T120000\"},\"result\":\"success\",\"reason\":\"Golden run.\"}\n",
+    "canonical/resource_demands.yaml": "resource_demands:\n  - id: resource_demand.repair-pump.budget\n    task_ref:\n      kind: task\n      id: task.offline.repair-pump\n    resource_ref:\n      kind: resource\n      id: resource.project.budget\n    resource_class: budget\n    role: budget\n    unit: rub\n    planned_amount: 12000\n    remaining_amount: 12000\n    criticality: required\n    status: active\n  - id: resource_demand.repair-pump.operator\n    task_ref:\n      kind: task\n      id: task.offline.repair-pump\n    resource_ref:\n      kind: resource\n      id: resource.human.petr\n    resource_class: human\n    role: operator\n    unit: hours\n    planned_amount: 4\n    remaining_amount: 2\n    actual_amount: 2\n    criticality: required\n    status: partially_consumed\n  - id: resource_demand.task-op-1234.ai-agent\n    task_ref:\n      kind: task\n      id: task.op.1234\n    resource_ref:\n      kind: resource\n      id: resource.ai.codex.local\n    resource_class: ai_agent\n    role: ai_coding_agent\n    unit: agent_hours\n    planned_amount: 2\n    remaining_amount: 2\n    criticality: preferred\n    status: active\n  - id: resource_demand.task-op-1234.implementer\n    task_ref:\n      kind: task\n      id: task.op.1234\n    resource_ref:\n      kind: resource\n      id: resource.human.ivan\n    resource_class: human\n    role: implementer\n    unit: hours\n    planned_amount: 8\n    remaining_amount: 8\n    criticality: required\n    status: active\n  - id: resource_demand.task-op-1234.openai-quota\n    task_ref:\n      kind: task\n      id: task.op.1234\n    resource_ref:\n      kind: resource\n      id: resource.service.openai.tokens\n    resource_class: service_quota\n    role: api_provider\n    unit: tokens\n    planned_amount: 500000\n    remaining_amount: 500000\n    criticality: required\n    status: active\n  - id: resource_demand.task-op-1234.review\n    task_ref:\n      kind: task\n      id: task.op.1234\n    resource_pool_ref:\n      kind: resource_pool\n      id: resource_pool.reviewers\n    resource_class: human\n    role: reviewer\n    unit: review_hours\n    planned_amount: 2\n    remaining_amount: 2\n    criticality: required\n    status: active\n  - id: resource_demand.task-op-1234.staging\n    task_ref:\n      kind: task\n      id: task.op.1234\n    resource_ref:\n      kind: resource\n      id: resource.environment.staging\n    resource_class: environment\n    role: environment\n    unit: concurrent_slots\n    planned_amount: 1\n    remaining_amount: 1\n    criticality: required\n    status: active\n  - id: resource_demand.op-1234.ivan.sidecar\n    task_ref:\n      kind: task\n      id: task.op.1234\n    resource_ref:\n      kind: resource\n      id: resource.human.ivan\n    resource_class: human\n    role: implementer\n    unit: hours\n    planned_amount: 6\n    remaining_amount: 6\n    criticality: required\n    status: active\n"
+  },
+  "error": "",
+  "result": {
+    "applied": true,
+    "dry_run": false,
+    "snapshot_id": "source_snapshot.openproject.20260724T120000",
+    "mapped_path": "imports/openproject/20260724T120000/mapped.json",
+    "planned_writes": [
+      {
+        "path": "canonical/resource_demands.yaml",
+        "action": "append",
+        "format": "yaml",
+        "content": ""
+      }
+    ],
+    "written_files": [
+      "canonical/resource_demands.yaml",
+      "audit/audit.2026-07.jsonl"
+    ],
+    "changes": [
+      {
+        "op": "create_resource_demand",
+        "target_kind": "resource_demand",
+        "target_id": "resource_demand.op-1234.ivan.sidecar",
+        "source_id": "resource_demand.op-1234.ivan.sidecar",
+        "path": "canonical/resource_demands.yaml",
+        "description": "Create resource demand resource_demand.op-1234.ivan.sidecar from OpenProject sidecar demand resource_demand.op-1234.ivan.sidecar."
+      }
+    ],
+    "applied_changes": [
+      {
+        "op": "create_resource_demand",
+        "target_kind": "resource_demand",
+        "target_id": "resource_demand.op-1234.ivan.sidecar",
+        "source_id": "resource_demand.op-1234.ivan.sidecar",
+        "path": "canonical/resource_demands.yaml",
+        "description": "Create resource demand resource_demand.op-1234.ivan.sidecar from OpenProject sidecar demand resource_demand.op-1234.ivan.sidecar."
+      }
+    ],
+    "audit_record_preview": {
+      "id": "audit.20260730T120000000000000Z.import-accept-resource-demands",
+      "occurred_at": "2026-07-30T12:00:00Z",
+      "actor_ref": {
+        "kind": "actor",
+        "id": "actor.human.operator"
+      },
+      "operation": "import_accept",
+      "target_ref": {
+        "kind": "source_snapshot",
+        "id": "source_snapshot.openproject.20260724T120000"
+      },
+      "result": "success",
+      "reason": "Golden run."
+    },
+    "validation": {
+      "valid": true,
+      "project_path": "<project>",
+      "checked_files": 11,
+      "object_counts": {
+        "actors": 4,
+        "actuals": 1,
+        "audit_records": 2,
+        "availability": 5,
+        "baselines": 1,
+        "capacities": 7,
+        "dependencies": 2,
+        "evidence": 2,
+        "proposals": 1,
+        "resource_demands": 8,
+        "resource_pools": 3,
+        "resources": 7,
+        "scenarios": 6,
+        "tasks": 2
+      },
+      "warnings": [
+        {
+          "code": "required_dependency_unresolved",
+          "message": "required dependency dependency.repair-pump-before-validation is open",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.repair-pump-before-validation"
+          }
+        },
+        {
+          "code": "dependency_predecessor_finish_unknown",
+          "message": "dependency dependency.repair-pump-before-validation predecessor task task.offline.repair-pump has no planned_finish",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.repair-pump-before-validation"
+          }
+        },
+        {
+          "code": "dependency_successor_start_unknown",
+          "message": "dependency dependency.repair-pump-before-validation successor task task.op.1234 has no planned_start",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.repair-pump-before-validation"
+          }
+        },
+        {
+          "code": "required_dependency_unresolved",
+          "message": "required dependency dependency.openai-quota-blocks-validation is open",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.openai-quota-blocks-validation"
+          }
+        },
+        {
+          "code": "dependency_blocks_active_successor",
+          "message": "dependency dependency.openai-quota-blocks-validation is open while successor task task.op.1234 is ready",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.openai-quota-blocks-validation"
+          }
+        }
+      ],
+      "errors": []
+    },
+    "warnings": [],
+    "errors": []
+  }
+}

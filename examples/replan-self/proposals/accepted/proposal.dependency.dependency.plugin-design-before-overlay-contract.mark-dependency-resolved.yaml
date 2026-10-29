@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.plugin-design-before-overlay-contract.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-09-25T15:41:17+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.plugin-design-before-overlay-contract
+    suggested_change:
+        op: set
+        path: dependencies.dependency.plugin-design-before-overlay-contract.status
+        value: resolved
+    rationale: Dependency dependency.plugin-design-before-overlay-contract (required) can be marked resolved because predecessor task.self.design-openproject-plugin-gantt-view is in the required state.
+    requires_confirmation: true

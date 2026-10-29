@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>RePlan Gantt: Test &lt;project&gt; &amp; co</title>
+<style>
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f7f7f4;
+  --fg: #1f2522;
+  --muted: #626b65;
+  --line: #d9ded8;
+  --panel: #ffffff;
+  --warning: #9a5b00;
+  --danger: #b3261e;
+  --ok: #23704a;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111411;
+  --fg: #e5e8e3;
+  --muted: #a1aa9f;
+  --line: #343a34;
+  --panel: #1a1f1b;
+  --warning: #f0b35a;
+  --danger: #ff8a80;
+  --ok: #7bd49d;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #111411;
+    --fg: #e5e8e3;
+    --muted: #a1aa9f;
+    --line: #343a34;
+    --panel: #1a1f1b;
+    --warning: #f0b35a;
+    --danger: #ff8a80;
+    --ok: #7bd49d;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 14px/1.45 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 20px 48px;
+}
+header { margin-bottom: 24px; }
+.topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+h1, h2 { margin: 0; line-height: 1.15; }
+h1 { font-size: 30px; font-weight: 700; }
+h2 { margin-top: 30px; margin-bottom: 12px; font-size: 18px; }
+.meta { margin-top: 10px; color: var(--muted); }
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin: 18px 0 6px;
+}
+.metric {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px;
+}
+.metric span { display: block; color: var(--muted); font-size: 12px; }
+.metric strong { display: block; margin-top: 4px; font-size: 24px; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+th, td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+th { color: var(--muted); font-size: 12px; font-weight: 600; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tr.overloaded td { background: #fff6e5; }
+:root[data-theme="dark"] tr.overloaded td { background: #342717; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) tr.overloaded td { background: #342717; }
+}
+.theme-switcher {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.theme-switcher button {
+  border: 0;
+  border-radius: 4px;
+  padding: 6px 9px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+.theme-switcher button[aria-pressed="true"] {
+  background: var(--fg);
+  color: var(--bg);
+}
+.code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+.muted { color: var(--muted); }
+.warning { color: var(--warning); }
+.error { color: var(--danger); }
+.ok { color: var(--ok); }
+.view-links a { margin-right: 10px; }
+.badge {
+  display: inline-block;
+  margin: 3px 4px 0 0;
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 11px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: top;
+  white-space: nowrap;
+}
+.badge.warning { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 55%, var(--line)); }
+.badge.error { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 55%, var(--line)); }
+.badge.ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 55%, var(--line)); }
+.gantt-shell {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+.gantt {
+  min-width: 940px;
+}
+.gantt-row {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) minmax(620px, 1fr);
+  border-bottom: 1px solid var(--line);
+}
+.gantt-row:last-child { border-bottom: 0; }
+.gantt-task-cell,
+.gantt-timeline {
+  padding: 8px 10px;
+}
+.gantt-task-cell {
+  border-right: 1px solid var(--line);
+  overflow: hidden;
+}
+.gantt-resource-cell {
+  color: var(--muted);
+  padding-left: 28px;
+}
+.gantt-resource-row {
+  background: color-mix(in srgb, var(--panel) 92%, var(--bg));
+}
+.gantt-resource-row .gantt-timeline {
+  min-height: 34px;
+}
+.gantt-task-title {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+.gantt-task-ids {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-bottom: 5px;
+}
+.gantt-indicators {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.gantt-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+.legend-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 5px;
+  min-height: 10px;
+  padding: 0;
+  vertical-align: -1px;
+}
+.gantt-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.gantt-timeline {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  align-items: center;
+  min-height: 42px;
+  --gantt-days: 1;
+}
+.gantt-timeline::before {
+  content: "";
+  position: absolute;
+  inset: 8px 10px;
+  pointer-events: none;
+  z-index: 0;
+  background-image: repeating-linear-gradient(to right, color-mix(in srgb, var(--line) 72%, transparent) 0 1px, transparent 1px calc(100% / var(--gantt-days)));
+  -webkit-mask-image: repeating-linear-gradient(to bottom, #000 0 4px, transparent 4px 9px);
+  mask-image: repeating-linear-gradient(to bottom, #000 0 4px, transparent 4px 9px);
+}
+.gantt-tick {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
+  white-space: nowrap;
+}
+.gantt-bar {
+  position: relative;
+  z-index: 1;
+  min-height: 26px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.gantt-bar.status-accepted,
+.gantt-bar.status-done { background: #2f8f5b; }
+.gantt-bar.status-in-progress,
+.gantt-bar.status-review-ready { background: #3268a8; }
+.gantt-bar.status-ready,
+.gantt-bar.status-not-started { background: #7b6a2b; }
+.gantt-bar.status-blocked,
+.gantt-bar.status-on-hold { background: #a4443d; }
+.gantt-bar.status-default { background: #68726d; }
+.legend-dot.gantt-bar {
+  min-height: 10px;
+  padding: 0;
+}
+.gantt-status-line {
+  bottom: 4px;
+  border-left: 2px solid var(--danger);
+  position: absolute;
+  top: 4px;
+  opacity: .85;
+  pointer-events: none;
+  z-index: 2;
+}
+.gantt-allocation-bar {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  background: color-mix(in srgb, var(--bg) 76%, var(--panel));
+  border: 1px solid color-mix(in srgb, var(--fg) 15%, transparent);
+  border-radius: 4px;
+  color: var(--fg);
+  font-size: 11px;
+  height: 22px;
+  opacity: .8;
+  overflow: hidden;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  --allocation-fill: 8%;
+}
+.gantt-allocation-bar::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: var(--allocation-fill);
+  background: color-mix(in srgb, var(--ok) 58%, transparent);
+  z-index: -1;
+}
+.gantt-allocation-bar.overloaded {
+  border-color: var(--warning);
+  color: var(--warning);
+  opacity: 1;
+}
+.gantt-allocation-bar.overloaded::before {
+  background: color-mix(in srgb, var(--warning) 64%, transparent);
+}
+.gantt-load-profile {
+  position: relative;
+  z-index: 1;
+  align-self: stretch;
+  display: grid;
+  gap: 3px;
+  min-height: 74px;
+  padding: 6px 0;
+}
+.gantt-load-profile::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--waterline-top, 34px);
+  border-top: 1px dashed var(--warning);
+  pointer-events: none;
+  z-index: 3;
+}
+.gantt-load-bucket {
+  position: relative;
+  align-self: end;
+  height: var(--profile-height, 56px);
+  min-width: 16px;
+}
+.gantt-load-fill {
+  position: absolute;
+  bottom: 0;
+  left: 2px;
+  right: 2px;
+  height: var(--load-height, 0%);
+  background: color-mix(in srgb, var(--ok) 48%, transparent);
+  border-radius: 3px 3px 0 0;
+}
+.gantt-load-bucket.overloaded .gantt-load-fill {
+  background: color-mix(in srgb, var(--warning) 64%, transparent);
+}
+.gantt-load-bar {
+  position: relative;
+  z-index: 1;
+  align-self: stretch;
+  background: color-mix(in srgb, var(--ok) 45%, transparent);
+  border-radius: 3px 3px 0 0;
+  margin: 5px 1px 0;
+}
+.gantt-load-bar.overloaded {
+  background: color-mix(in srgb, var(--warning) 70%, transparent);
+}
+ul { margin: 0; padding-left: 20px; }
+li + li { margin-top: 6px; }
+@media (max-width: 760px) {
+  main { padding: 20px 12px 36px; }
+  table { display: block; overflow-x: auto; }
+  .topbar { display: block; }
+  .theme-switcher { margin-top: 14px; }
+  .gantt { min-width: 900px; }
+  .gantt-row { grid-template-columns: 300px 1fr; }
+}
+</style>
+<script>
+(function () {
+  var key = "replan-theme";
+  var root = document.documentElement;
+  function apply(mode) {
+    if (mode === "dark" || mode === "light") {
+      root.dataset.theme = mode;
+    } else {
+      root.removeAttribute("data-theme");
+      mode = "auto";
+    }
+    try { localStorage.setItem(key, mode); } catch (_) {}
+    document.querySelectorAll("[data-theme-choice]").forEach(function (button) {
+      button.setAttribute("aria-pressed", button.dataset.themeChoice === mode ? "true" : "false");
+    });
+  }
+  try { apply(localStorage.getItem(key) || "auto"); } catch (_) { apply("auto"); }
+  window.replanSetTheme = apply;
+})();
+</script>
+</head>
+<body>
+<main>
+<header>
+<div class="topbar"><div><h1>RePlan Gantt: Test &lt;project&gt; &amp; co</h1>
+<div class="meta">Project: <span class="code">project.test</span> · Range: <span class="code">2026-07-20</span> - <span class="code">2026-07-31</span> · Week: <span class="code">2026-W30</span></div>
+<div class="meta view-links">Views: <a href="index.html">overview</a> <a href="gantt.html">gantt</a></div>
+<div class="meta">Raw artifacts: <a href="raw/gantt.json">gantt.json</a> · <a href="raw/overview.json">overview.json</a> · <a href="raw/openproject_overlay.json">openproject_overlay.json</a></div>
+</div>
+<div class="theme-switcher" aria-label="Theme">
+<button type="button" data-theme-choice="auto" aria-pressed="true" onclick="replanSetTheme('auto')">Auto</button>
+<button type="button" data-theme-choice="dark" aria-pressed="false" onclick="replanSetTheme('dark')">Dark</button>
+<button type="button" data-theme-choice="light" aria-pressed="false" onclick="replanSetTheme('light')">Light</button>
+</div>
+</div>
+</header>
+<section aria-label="Gantt summary">
+<div class="summary">
+<div class="metric"><span>Scheduled tasks</span><strong>10</strong></div>
+<div class="metric"><span>Unscheduled tasks</span><strong>2</strong></div>
+<div class="metric"><span>Calendar days</span><strong>12</strong></div>
+</div>
+</section>
+<section>
+<h2>OpenProject Native Surface</h2>
+<div class="summary">
+<div class="metric"><span>Linked work packages</span><strong>1</strong></div>
+<div class="metric"><span>Missing links</span><strong>1</strong></div>
+<div class="metric"><span>Tasks with resources</span><strong>1</strong></div>
+<div class="metric"><span>Work-package URLs</span><strong>1</strong></div>
+</div>
+<div class="meta">OpenProject project: <span class="code">replan-self</span></div>
+<table>
+<thead><tr><th>OpenProject</th><th>RePlan Task</th><th>Status</th><th>Dates</th><th>Resources</th><th>Warnings</th><th>Open Deps</th></tr></thead>
+<tbody>
+<tr><td><a class="code" href="https://op.example.internal/work_packages/2101">openproject:2101</a></td><td><strong>Task 1</strong><br><span class="code muted">task.1</span></td><td>in_progress</td><td><span class="code">07-20 - 07-22</span></td><td title="resource.human.ivan">1</td><td>1</td><td>1</td></tr>
+</tbody>
+</table>
+<h2>RePlan Tasks Missing OpenProject Links</h2>
+<ul>
+<li><span class="code">task.unlinked</span> (ready): Fix &lt;b&gt;&#34;quotes&#34;&lt;/b&gt; &amp; &#39;apostrophes&#39;</li>
+</ul>
+</section>
+<section>
+<h2>Gantt</h2>
+<div class="gantt-legend">
+<span class="badge"><span class="legend-dot gantt-bar status-accepted"></span>accepted/done</span>
+<span class="badge"><span class="legend-dot gantt-bar status-ready"></span>ready/not started</span>
+<span class="badge"><span class="legend-dot gantt-bar status-in-progress"></span>in progress/review</span>
+<span class="badge"><span class="legend-dot gantt-bar status-blocked"></span>blocked/on hold</span>
+<span class="badge error">status date</span>
+<span class="badge warning">resource pressure</span>
+</div>
+<div class="gantt-shell">
+<div class="gantt">
+<div class="gantt-row gantt-head"><div class="gantt-task-cell">Task</div><div class="gantt-timeline" style="--gantt-days: 12; grid-template-columns: repeat(12, minmax(28px, 1fr));">
+<div class="gantt-tick">2026-07-20</div>
+<div class="gantt-tick"></div>
+<div class="gantt-tick"></div>
+<div class="gantt-tick"></div>
+<div class="gantt-tick"></div>
+<div class="gantt-tick"></div>
+<div class="gantt-tick"></div>
+<div class="gantt-tick">07-27</div>
+<div class="gantt-tick"></div>
+<div class="gantt-tick"></div>
+<div class="gantt-tick"></div>
+<div class="gantt-tick">2026-07-31</div>
+<div class="gantt-status-line" style="left: 0.000%;" title="status date 2026-07-20"></div></div></div>
+<div class="gantt-row"><div class="gantt-task-cell"><span class="gantt-task-title">Task 1</span><div class="gantt-task-ids"><span class="code muted">task.1</span><a class="code" href="https://op.example.internal/work_packages/2101">openproject:2101</a></div><div class="gantt-indicators"><span class="badge warning" title="tracking status">in_progress</span><span class="badge" title="resource.human.ivan">resources 1</span><span class="badge warning" title="resource.human.ivan">overload 1</span><span class="badge warning" title="open dependencies">deps 1/2</span><span class="badge warning" title="required_dependency_unresolved">warnings 1</span></div></div><div class="gantt-timeline" style="--gantt-days: 12; grid-template-columns: repeat(12, minmax(28px, 1fr));"><div class="gantt-status-line" style="left: 0.000%;" title="status date 2026-07-20"></div><div class="gantt-bar status-in-progress" style="grid-column: 1 / span 3;" title="2026-07-20 - 2026-07-22">07-20 - 07-22</div></div></div>
+<div class="gantt-row gantt-resource-row"><div class="gantt-task-cell gantt-resource-cell"><span class="code">resource.human.ivan</span><br><span class="muted">developer · 6 hours</span></div><div class="gantt-timeline" style="--gantt-days: 12; grid-template-columns: repeat(12, minmax(28px, 1fr));"><div class="gantt-status-line" style="left: 0.000%;" title="status date 2026-07-20"></div><div class="gantt-allocation-bar overloaded" style="grid-column: 1 / span 3; --allocation-fill: 75.0%;" title="resource_demand.task-1.ivan · 2026-07-20 - 2026-07-22 · window task_window · planned 6 hours · window capacity 8 hours · intensity 75%">75%</div></div></div>
+<div class="gantt-row"><div class="gantt-task-cell"><span class="gantt-task-title">Fix &lt;b&gt;&#34;quotes&#34;&lt;/b&gt; &amp; &#39;apostrophes&#39;</span><div class="gantt-task-ids"><span class="code muted">task.status.0</span><span class="code">openproject:2102</span></div><div class="gantt-indicators"><span class="badge ok" title="tracking status">accepted</span></div></div><div class="gantt-timeline" style="--gantt-days: 12; grid-template-columns: repeat(12, minmax(28px, 1fr));"><div class="gantt-status-line" style="left: 0.000%;" title="status date 2026-07-20"></div><div class="gantt-bar status-accepted" style="grid-column: 1 / span 1;" title="2026-07-20 - 2026-07-20">07-20</div></div></div>
+<div class="gantt-row"><div class="gantt-task-cell"><span class="gantt-task-title">Status done</span><div class="gantt-task-ids"><span class="code muted">task.status.1</span></div><div class="gantt-indicators"><span class="badge ok" title="tracking status">done</span><span class="badge warning" title="accepted_task_planned_after_status_date">warnings 1</span><span class="badge warning" title="open proposal">proposal</span></div></div><div class="gantt-timeline" style="--gantt-days: 12; grid-template-columns: repeat(12, minmax(28px, 1fr));"><div class="gantt-status-line" style="left: 0.000%;" title="status date 2026-07-20"></div><div class="gantt-bar status-done" style="grid-column: 2 / span 1;" title="2026-07-21 - 2026-07-21">07-21</div></div></div>
+<div class="gantt-row"><div class="gantt-task-cell"><span class="gantt-task-title">Status review_ready</span><div class="gantt-task-ids"><span class="code muted">task.status.2</span></div><div class="gantt-indicators"><span class="badge warning" title="tracking status">review_ready</span></div></div><div class="gantt-timeline" style="--gantt-days: 12; grid-template-columns: repeat(12, minmax(28px, 1fr));"><div class="gantt-status-line" style="left: 0.000%;" title="status date 2026-07-20"></div><div class="gantt-bar status-review-ready" style="grid-column: 3 / span 1;" title="2026-07-22 - 2026-07-22">07-22</div></div></div>
+<div class="gantt-row"><div class="gantt-task-cell"><span class="gantt-task-title">Status ready</span><div class="gantt-task-ids"><span class="code muted">task.status.3</span></div><div class="gantt-indicators"><span class="badge warning" title="tracking status">ready</span></div></div><div class="gantt-timeline" style="--gantt-days: 12; grid-template-columns: repeat(12, minmax(28px, 1fr));"><div class="gantt-status-line" style="left: 0.000%;" title="status date 2026-07-20"></div><div class="gantt-bar status-ready" style="grid-column: 1 / span 1;" title="2026-07-20 - 2026-07-20">07-20</div></div></div>
+<div class="gantt-row"><div class="gantt-task-cell"><span class="gantt-task-title">Status not_started</span><div class="gantt-task-ids"><span class="code muted">task.status.4</span></div><div class="gantt-indicators"><span class="badge warning" title="tracking status">not_started</span></div></div><div class="gantt-timeline" style="--gantt-days: 12; grid-template-columns: repeat(12, minmax(28px, 1fr));"><div class="gantt-status-line" style="left: 0.000%;" title="status date 2026-07-20"></div><div class="gantt-bar status-not-started" style="grid-column: 2 / span 1;" title="2026-07-21 - 2026-07-21">07-21</div></div></div>
+<div class="gantt-row"><div class="gantt-task-cell"><span class="gantt-task-title">Status blocked</span><div class="gantt-task-ids"><span class="code muted">task.status.5</span></div><div class="gantt-indicators"><span class="badge error" title="tracking status">blocked</span></div></div><div class="gantt-timeline" style="--gantt-days: 12; grid-template-columns: repeat(12, minmax(28px, 1fr));"><div class="gantt-status-line" style="left: 0.000%;" title="status date 2026-07-20"></div><div class="gantt-bar status-blocked" style="grid-column: 3 / span 1;" title="2026-07-22 - 2026-07-22">07-22</div></div></div>
+<div class="gantt-row"><div class="gantt-task-cell"><span class="gantt-task-title">Status on_hold</span><div class="gantt-task-ids"><span class="code muted">task.status.6</span></div><div class="gantt-indicators"><span class="badge error" title="tracking status">on_hold</span></div></div><div class="gantt-timeline" style="--gantt-days: 12; grid-template-columns: repeat(12, minmax(28px, 1fr));"><div class="gantt-status-line" style="left: 0.000%;" title="status date 2026-07-20"></div><div class="gantt-bar status-on-hold" style="grid-column: 1 / span 1;" title="2026-07-20 - 2026-07-20">07-20</div></div></div>
+<div class="gantt-row"><div class="gantt-task-cell"><span class="gantt-task-title">Status unknown_status</span><div class="gantt-task-ids"><span class="code muted">task.status.7</span></div><div class="gantt-indicators"><span class="badge " title="tracking status">unknown_status</span></div></div><div class="gantt-timeline" style="--gantt-days: 12; grid-template-columns: repeat(12, minmax(28px, 1fr));"><div class="gantt-status-line" style="left: 0.000%;" title="status date 2026-07-20"></div><div class="gantt-bar status-default" style="grid-column: 2 / span 1;" title="2026-07-21 - 2026-07-21">07-21</div></div></div>
+<div class="gantt-row"><div class="gantt-task-cell"><span class="gantt-task-title">Edge task</span><div class="gantt-task-ids"><span class="code muted">task.edge</span></div><div class="gantt-indicators"><span class="badge warning" title="tracking status">in_progress</span></div></div><div class="gantt-timeline" style="--gantt-days: 12; grid-template-columns: repeat(12, minmax(28px, 1fr));"><div class="gantt-status-line" style="left: 0.000%;" title="status date 2026-07-20"></div><div class="gantt-bar status-in-progress" style="grid-column: 1 / span 4;" title="2026-07-18 - 2026-07-21">07-18 - 07-21</div></div></div>
+<div class="gantt-row gantt-resource-row"><div class="gantt-task-cell gantt-resource-cell"><span class="code">resource.human.ivan</span><br><span class="muted"> · 1 hours</span></div><div class="gantt-timeline" style="--gantt-days: 12; grid-template-columns: repeat(12, minmax(28px, 1fr));"><div class="gantt-status-line" style="left: 0.000%;" title="status date 2026-07-20"></div><div class="gantt-allocation-bar" style="grid-column: 1 / span 12; --allocation-fill: 8.0%;" title="resource_demand.edge.low ·  -  · window  · planned 1 hours · window capacity 0 hours · intensity 3%">3%</div></div></div>
+<div class="gantt-row gantt-resource-row"><div class="gantt-task-cell gantt-resource-cell"><span class="code">resource.human.ivan</span><br><span class="muted"> · 30 hours</span></div><div class="gantt-timeline" style="--gantt-days: 12; grid-template-columns: repeat(12, minmax(28px, 1fr));"><div class="gantt-status-line" style="left: 0.000%;" title="status date 2026-07-20"></div><div class="gantt-allocation-bar overloaded" style="grid-column: 11 / span 2; --allocation-fill: 100.0%;" title="resource_demand.edge.high ·  -  · window  · planned 30 hours · window capacity 0 hours · intensity 250%">250%</div></div></div>
+</div>
+</div>
+</section>
+<section>
+<h2>Resource Load</h2>
+<div class="gantt-shell">
+<div class="gantt">
+<div class="gantt-row gantt-head"><div class="gantt-task-cell">Resource</div><div class="gantt-load-profile" style="grid-template-columns: repeat(1, minmax(44px, 1fr));">
+<div class="gantt-tick">2026-W30</div>
+</div></div>
+<div class="gantt-row"><div class="gantt-task-cell"><span class="gantt-task-title">Ivan</span><span class="code muted">resource.human.ivan</span><div class="gantt-indicators"><span class="badge">planned 10 hours</span><span class="badge">capacity 8 hours/week</span><span class="badge warning">overload 2 hours</span></div></div><div class="gantt-load-profile" style="grid-template-columns: repeat(1, minmax(44px, 1fr)); --profile-height: 58px; --waterline-top: 26px;" title="100% capacity waterline; bucket type week"><div class="gantt-load-bucket overloaded" title="2026-W30 · 2026-07-20 to 2026-07-22 · planned 6 hours · capacity 4 hours · utilization 150%"><div class="gantt-load-fill" style="--load-height: 100.0%;"></div></div></div></div>
+<div class="gantt-row"><div class="gantt-task-cell"><span class="gantt-task-title">resource.unnamed</span><span class="code muted">resource.unnamed</span><div class="gantt-indicators"><span class="badge">planned 10 hours</span><span class="badge">capacity 8 hours/week</span></div></div><div class="gantt-load-profile" style="grid-template-columns: repeat(1, minmax(44px, 1fr)); --profile-height: 58px; --waterline-top: 26px;" title="100% capacity waterline; bucket type week"><div class="gantt-load-bucket overloaded" title="2026-W30 · 2026-07-20 to 2026-07-22 · planned 6 hours · capacity 4 hours · utilization 150%"><div class="gantt-load-fill" style="--load-height: 100.0%;"></div></div></div></div>
+</div>
+</div>
+</section>
+<section>
+<h2>Unscheduled Tasks</h2>
+<table>
+<thead><tr><th>Task</th><th>Status</th><th>Source</th><th>Resources</th></tr></thead>
+<tbody>
+<tr><td><strong>Fix &lt;b&gt;&#34;quotes&#34;&lt;/b&gt; &amp; &#39;apostrophes&#39;</strong><br><span class="code muted">task.unscheduled.1</span></td><td>not_started</td><td><span class="code">openproject:2103</span></td><td><span class="code">resource.human.ivan, resource.ai.agent</span></td></tr>
+<tr><td><strong>Unscheduled without source</strong><br><span class="code muted">task.unscheduled.2</span></td><td>ready</td><td><span class="code"></span></td><td><span class="code"></span></td></tr>
+</tbody>
+</table>
+</section>
+</main>
+</body>
+</html>

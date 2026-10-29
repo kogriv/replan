@@ -1,0 +1,112 @@
+capacities:
+  - id: capacity.maintainer.hours.weekly
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    resource_class: human
+    type: periodic_capacity
+    unit: hours
+    amount: 10
+    period: week
+    effective_from: "2026-07-20"
+    effective_to: "2026-09-27"
+    timezone: Asia/Novosibirsk
+  - id: capacity.maintainer.hours.weekly.from-2026-09-28
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    resource_class: human
+    type: periodic_capacity
+    unit: hours
+    amount: 5
+    period: week
+    effective_from: "2026-09-28"
+    timezone: Asia/Novosibirsk
+  - id: capacity.codex.agent-hours.weekly
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    resource_class: ai_agent
+    type: periodic_capacity
+    unit: agent_hours
+    amount: 40
+    period: week
+    effective_from: "2026-07-20"
+    timezone: Asia/Novosibirsk
+  - id: capacity.agent-executor.agent-hours.weekly
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    resource_class: ai_agent
+    type: periodic_capacity
+    unit: agent_hours
+    amount: 40
+    period: week
+    effective_from: "2026-09-21"
+    timezone: Asia/Novosibirsk
+  - id: capacity.review-assistant.agent-hours.weekly
+    resource_ref:
+      kind: resource
+      id: resource.ai.review-assistant
+    resource_class: ai_agent
+    type: periodic_capacity
+    unit: agent_hours
+    amount: 12
+    period: week
+    effective_from: "2026-07-20"
+    timezone: Asia/Novosibirsk
+  - id: capacity.reviewer.weekly
+    resource_ref:
+      kind: resource
+      id: resource.role.reviewer
+    resource_class: role
+    type: periodic_capacity
+    unit: review_hours
+    amount: 2
+    period: week
+    effective_from: "2026-07-20"
+    timezone: Asia/Novosibirsk
+  - id: capacity.github-actions.weekly
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    resource_class: service_quota
+    type: quota_capacity
+    unit: ci_minutes
+    amount: 400
+    period: week
+    effective_from: "2026-07-20"
+    timezone: Asia/Novosibirsk
+  - id: capacity.llm.tokens.weekly
+    resource_ref:
+      kind: resource
+      id: resource.service.llm.tokens
+    resource_class: service_quota
+    type: quota_capacity
+    unit: tokens
+    amount: 2500000
+    period: week
+    effective_from: "2026-07-20"
+    timezone: Asia/Novosibirsk
+  - id: capacity.local-dev.concurrent
+    resource_ref:
+      kind: resource
+      id: resource.environment.local-dev
+    resource_class: environment
+    type: concurrent_capacity
+    unit: concurrent_slots
+    amount: 1
+    period: concurrent
+    effective_from: "2026-07-20"
+    timezone: Asia/Novosibirsk
+  - id: capacity.oss-release.window.weekly
+    resource_ref:
+      kind: resource
+      id: resource.window.oss-release
+    resource_class: release_window
+    type: periodic_capacity
+    unit: release_slots
+    amount: 1
+    period: week
+    effective_from: "2026-07-20"
+    timezone: Asia/Novosibirsk

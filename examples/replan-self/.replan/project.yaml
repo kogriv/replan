@@ -1,0 +1,18 @@
+project:
+  id: project.replan-self
+  name: RePlan self-dogfood
+  format_version: 1
+  timezone: Asia/Novosibirsk
+  default_status_date: "2026-10-29"
+  openproject_ids: private_bindings
+  source_profiles:
+    - id: openproject.replan-self
+      source: openproject
+      base_url: https://op.example.internal
+      project_id: replan-self
+      token_env: OPENPROJECT_TOKEN
+      default_query:
+        include_closed: "true"
+  policy_ref:
+    kind: policy
+    id: policy.local-trusted

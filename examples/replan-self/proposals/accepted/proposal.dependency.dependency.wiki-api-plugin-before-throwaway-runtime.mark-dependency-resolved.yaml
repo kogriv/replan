@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.wiki-api-plugin-before-throwaway-runtime.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-09-21T12:11:57+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.wiki-api-plugin-before-throwaway-runtime
+    suggested_change:
+        op: set
+        path: dependencies.dependency.wiki-api-plugin-before-throwaway-runtime.status
+        value: resolved
+    rationale: Required dependency dependency.wiki-api-plugin-before-throwaway-runtime can be marked resolved because predecessor task.self.implement-openproject-wiki-api-plugin is in the required state.
+    requires_confirmation: true

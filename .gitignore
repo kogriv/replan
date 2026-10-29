@@ -1,0 +1,31 @@
+.env
+.env.*
+!.env.example
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+node_modules/
+dist/
+build/
+
+*.sqlite
+*.sqlite3
+*.db
+
+.DS_Store
+
+private/
+private-pilot/
+local-pilot/
+.replan-local/
+
+examples/*/reports/latest/
+examples/replan-self/imports/
+
+# Scratch audit artifacts and temporary project copies (see
+# docs/spec/mvp-readiness-audit-plan.md); may contain private pilot detail.
+tmp/

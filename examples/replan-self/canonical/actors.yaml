@@ -1,0 +1,29 @@
+actors:
+  - id: actor.human.maintainer
+    kind: human
+    display_name: RePlan maintainer
+    trust_level: owner
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+  - id: actor.ai.codex.local
+    kind: ai_agent
+    display_name: Codex CLI agent
+    trust_level: limited
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+  - id: actor.ai.agent.executor
+    kind: ai_agent
+    display_name: AI execution agent
+    trust_level: limited
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+  - id: actor.ai.review-assistant
+    kind: ai_agent
+    display_name: Review assistant
+    trust_level: limited
+    resource_ref:
+      kind: resource
+      id: resource.ai.review-assistant

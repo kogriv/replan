@@ -1,0 +1,99 @@
+openproject_resource_demands:
+  - work_package_id: "2105"
+    demands:
+      - id: resource_demand.openproject-fixtures.maintainer
+        resource_ref:
+          kind: resource
+          id: resource.human.maintainer
+        resource_class: human
+        role: maintainer
+        unit: hours
+        planned_amount: 8
+        remaining_amount: 8
+        criticality: required
+        status: active
+        confidence: operator_estimate
+      - id: resource_demand.openproject-fixtures.codex
+        resource_ref:
+          kind: resource
+          id: resource.ai.codex.local
+        resource_class: ai_agent
+        role: ai_coding_agent
+        unit: agent_hours
+        planned_amount: 5
+        remaining_amount: 5
+        criticality: preferred
+        status: active
+        confidence: operator_estimate
+      - id: resource_demand.openproject-fixtures.review
+        resource_ref:
+          kind: resource
+          id: resource.role.reviewer
+        resource_class: role
+        role: reviewer
+        unit: review_hours
+        planned_amount: 2
+        remaining_amount: 2
+        criticality: required
+        status: active
+        confidence: operator_estimate
+      - id: resource_demand.openproject-fixtures.llm-token-budget
+        resource_ref:
+          kind: resource
+          id: resource.service.llm.tokens
+        resource_class: service_quota
+        role: ai_assistance_budget
+        unit: tokens
+        planned_amount: 300000
+        remaining_amount: 300000
+        criticality: preferred
+        status: active
+        confidence: operator_estimate
+  - work_package_id: "2106"
+    demands:
+      - id: resource_demand.oss-audit.maintainer
+        resource_ref:
+          kind: resource
+          id: resource.human.maintainer
+        resource_class: human
+        role: maintainer
+        unit: hours
+        planned_amount: 8
+        criticality: required
+        status: active
+        confidence: operator_estimate
+      - id: resource_demand.oss-audit.review
+        resource_ref:
+          kind: resource
+          id: resource.role.reviewer
+        resource_class: role
+        role: reviewer
+        unit: review_hours
+        planned_amount: 2
+        criticality: required
+        status: active
+        confidence: operator_estimate
+  - work_package_id: "2107"
+    demands:
+      - id: resource_demand.release-story.maintainer
+        resource_ref:
+          kind: resource
+          id: resource.human.maintainer
+        resource_class: human
+        role: maintainer
+        unit: hours
+        planned_amount: 7
+        criticality: required
+        status: active
+        confidence: operator_estimate
+      - id: resource_demand.release-story.review
+        resource_ref:
+          kind: resource
+          id: resource.role.reviewer
+        resource_class: role
+        role: release_reviewer
+        unit: review_hours
+        planned_amount: 2
+        criticality: required
+        status: active
+        confidence: operator_estimate

@@ -1,0 +1,114 @@
+evidence:
+  - id: evidence.openproject.replan-backlog-materialized
+    type: workspace_event
+    subtype: openproject_replan_sync_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-02T22:46:00+07:00"
+    confidence: observed
+    summary: "Live OpenProject and RePlan were synchronized for the next dogfood backlog slice: OSS boundary checkpoint, full OpenProject-centered dogfood cycle, OpenProject-native surface design, first surface prototype, dashboard load semantics cleanup and deferred public release story."
+    targets:
+      - kind: task
+        id: task.self.expand-openproject-fixtures
+      - kind: task
+        id: task.self.write-oss-readiness-audit
+      - kind: task
+        id: task.self.run-full-openproject-dogfood-cycle
+      - kind: task
+        id: task.self.design-openproject-native-surface
+      - kind: task
+        id: task.self.prototype-openproject-native-surface-level-0-1
+      - kind: task
+        id: task.self.reconcile-dashboard-load-semantics
+      - kind: task
+        id: task.self.prepare-release-story
+  - id: evidence.openproject-tunnel-header-support.completed
+    type: command_result
+    subtype: openproject_transport_support
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-06T20:10:00+07:00"
+    confidence: observed
+    summary: "OpenProject live import and guarded helper scripts now support sanitized Host and X-Forwarded-Proto overrides for protected instances reached through local SSH tunnels."
+    targets:
+      - kind: task
+        id: task.self.add-openproject-tunnel-header-support
+  - id: evidence.openproject-read-only-plugin-feasibility.completed
+    type: design_decision
+    subtype: openproject_plugin_feasibility
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-06T21:10:00+07:00"
+    confidence: observed
+    summary: "The read-only OpenProject plugin feasibility design was accepted. The next step is to stabilize a RePlan OpenProject overlay JSON contract before building any OpenProject plugin."
+    targets:
+      - kind: task
+        id: task.self.design-openproject-read-only-plugin-feasibility
+  - id: evidence.openproject-overlay-json-contract.completed
+    type: command_result
+    subtype: openproject_overlay_contract
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-07T12:00:00+07:00"
+    confidence: observed
+    summary: "The dashboard generator now emits reports/latest/raw/openproject_overlay.json as a stable read-only OpenProject-facing contract with work-package rows, RePlan task ids, resource demands, participation windows, tracking signals, warnings and artifact references."
+    targets:
+      - kind: task
+        id: task.self.define-openproject-overlay-json-contract
+  - id: evidence.openproject-overlay-plugin-consumer-scaffold.completed
+    type: command_result
+    subtype: openproject_plugin_scaffold
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-07T13:00:00+07:00"
+    confidence: observed
+    summary: "The minimal read-only OpenProject RePlan overlay plugin consumer scaffold now exists as a Ruby gem/Rails engine skeleton with project-menu registration, overlay JSON loader, controller, view, documentation and a smoke-level scaffold check."
+    targets:
+      - kind: task
+        id: task.self.scaffold-openproject-overlay-plugin-consumer
+  - id: evidence.openproject-plugin-deployment-path.completed
+    type: design_decision
+    subtype: openproject_plugin_deployment_path
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-07T14:00:00+07:00"
+    confidence: observed
+    summary: "The safe OpenProject RePlan plugin deployment path was accepted. The design chooses a custom OpenProject image, server-side overlay artifact delivery, a throwaway runtime test before live deployment, explicit live preflight and rollback, and no live plugin installation in this slice."
+    url: docs/dev/openproject-plugin-deployment-path.md
+    targets:
+      - kind: task
+        id: task.self.design-openproject-plugin-deployment-path
+      - kind: dependency
+        id: dependency.plugin-consumer-before-plugin-deployment-path
+      - kind: dependency
+        id: dependency.plugin-deployment-path-before-release-story
+  - id: evidence.openproject-plugin-throwaway-runtime.completed
+    type: command_result
+    subtype: openproject_plugin_throwaway_runtime
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-07T15:00:00+07:00"
+    confidence: observed
+    summary: "The read-only RePlan OpenProject plugin was verified in a disposable OpenProject 17 runtime. The check built a custom plugin image, initialized a clean PostgreSQL-backed OpenProject runtime, confirmed Bundler could see the plugin gem, confirmed the RePlan project route, permission and menu registration, loaded a generated overlay artifact with 45 work packages, and confirmed the safe overlay_file_missing state when the artifact path is absent. The runtime check also found and fixed two plugin-packaging requirements: Gemfile.plugins must explicitly require open_project/replan_overlay, and the plugin route must be added to Rails.application.routes rather than only to the engine route set."
+    url: docs/dev/openproject-plugin-throwaway-runtime-test.md
+    targets:
+      - kind: task
+        id: task.self.verify-openproject-plugin-throwaway-runtime
+      - kind: dependency
+        id: dependency.plugin-deployment-path-before-throwaway-runtime
+      - kind: dependency
+        id: dependency.plugin-throwaway-runtime-before-release-story

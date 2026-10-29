@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.unify-helper-json-envelope-before-fail-apply-without-openproject-token.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-10-15T14:40:08+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.unify-helper-json-envelope-before-fail-apply-without-openproject-token
+    suggested_change:
+        op: set
+        path: dependencies.dependency.unify-helper-json-envelope-before-fail-apply-without-openproject-token.status
+        value: resolved
+    rationale: Dependency dependency.unify-helper-json-envelope-before-fail-apply-without-openproject-token (required) can be marked resolved because predecessor task.self.unify-helper-json-envelope is in the required state.
+    requires_confirmation: true

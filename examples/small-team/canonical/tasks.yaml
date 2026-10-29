@@ -1,0 +1,44 @@
+tasks:
+  - id: task.offline.repair-pump
+    title: Replace greenhouse pump
+    description: Offline maintenance task with equipment and operator confirmation.
+    type: repair
+    tracking_status: in_progress
+    assignee_hint:
+      kind: resource
+      id: resource.human.petr
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.repair-pump.operator
+      - kind: resource_demand
+        id: resource_demand.repair-pump.budget
+    tags:
+      - offline
+      - maintenance
+  - id: task.op.1234
+    title: Implement validation command
+    description: Load local files and validate canonical ids, references and statuses.
+    type: software
+    tracking_status: ready
+    assignee_hint:
+      kind: resource
+      id: resource.human.ivan
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.task-op-1234.implementer
+      - kind: resource_demand
+        id: resource_demand.task-op-1234.review
+      - kind: resource_demand
+        id: resource_demand.task-op-1234.ai-agent
+      - kind: resource_demand
+        id: resource_demand.task-op-1234.openai-quota
+      - kind: resource_demand
+        id: resource_demand.task-op-1234.staging
+    dependencies:
+      - kind: dependency
+        id: dependency.repair-pump-before-validation
+      - kind: dependency
+        id: dependency.openai-quota-blocks-validation
+    tags:
+      - mvp
+      - cli

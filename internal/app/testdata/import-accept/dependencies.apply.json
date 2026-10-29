@@ -1,0 +1,158 @@
+{
+  "changed_files": {
+    "audit/audit.2026-07.jsonl": "{\"id\":\"audit.20260706T120000.create-baseline\",\"occurred_at\":\"2026-07-06T12:00:00+07:00\",\"actor_ref\":{\"kind\":\"actor\",\"id\":\"actor.human.operator\"},\"operation\":\"create_baseline\",\"target_ref\":{\"kind\":\"baseline\",\"id\":\"baseline.2026-07-06.initial\"},\"result\":\"success\",\"reason\":\"Initial fixture baseline.\"}\n{\"id\":\"audit.20260730T120000000000000Z.import-accept-dependencies\",\"occurred_at\":\"2026-07-30T12:00:00Z\",\"actor_ref\":{\"kind\":\"actor\",\"id\":\"actor.human.operator\"},\"operation\":\"import_accept\",\"target_ref\":{\"kind\":\"source_snapshot\",\"id\":\"source_snapshot.openproject.20260727T120000\"},\"result\":\"success\",\"reason\":\"Golden run.\"}\n",
+    "canonical/dependencies.yaml": "dependencies:\n  - id: dependency.repair-pump-before-validation\n    type: finish_to_start\n    predecessor_ref:\n      kind: task\n      id: task.offline.repair-pump\n    successor_ref:\n      kind: task\n      id: task.op.1234\n    required_state: accepted\n    status: open\n    criticality: required\n    notes: Offline repair should finish before validation work is treated as ready for release.\n  - id: dependency.openai-quota-blocks-validation\n    type: blocks\n    predecessor_ref:\n      kind: resource_demand\n      id: resource_demand.task-op-1234.openai-quota\n    successor_ref:\n      kind: task\n      id: task.op.1234\n    status: open\n    criticality: required\n    notes: OpenAI quota availability can block validation agent work.\n  - id: dependency.openproject.relation.88\n    type: finish_to_start\n    predecessor_ref:\n      kind: task\n      id: task.op.1234\n    successor_ref:\n      kind: task\n      id: task.offline.repair-pump\n    required_state: accepted\n    status: open\n    criticality: required\n    source_refs:\n      - source: openproject\n        object_type: relation\n        object_id: \"88\"\n        url: /api/v3/relations/88\n    notes: Imported from OpenProject follows relation 88.\n"
+  },
+  "error": "",
+  "result": {
+    "applied": true,
+    "dry_run": false,
+    "snapshot_id": "source_snapshot.openproject.20260727T120000",
+    "mapped_path": "imports/openproject/20260727T120000/mapped.json",
+    "planned_writes": [
+      {
+        "path": "canonical/dependencies.yaml",
+        "action": "update",
+        "format": "yaml",
+        "content": ""
+      }
+    ],
+    "written_files": [
+      "canonical/dependencies.yaml",
+      "audit/audit.2026-07.jsonl"
+    ],
+    "changes": [
+      {
+        "op": "create_dependency",
+        "target_kind": "dependency",
+        "target_id": "dependency.openproject.relation.88",
+        "source_id": "88",
+        "path": "canonical/dependencies.yaml",
+        "description": "Create dependency dependency.openproject.relation.88 from OpenProject relation 88."
+      }
+    ],
+    "applied_changes": [
+      {
+        "op": "create_dependency",
+        "target_kind": "dependency",
+        "target_id": "dependency.openproject.relation.88",
+        "source_id": "88",
+        "path": "canonical/dependencies.yaml",
+        "description": "Create dependency dependency.openproject.relation.88 from OpenProject relation 88."
+      }
+    ],
+    "audit_record_preview": {
+      "id": "audit.20260730T120000000000000Z.import-accept-dependencies",
+      "occurred_at": "2026-07-30T12:00:00Z",
+      "actor_ref": {
+        "kind": "actor",
+        "id": "actor.human.operator"
+      },
+      "operation": "import_accept",
+      "target_ref": {
+        "kind": "source_snapshot",
+        "id": "source_snapshot.openproject.20260727T120000"
+      },
+      "result": "success",
+      "reason": "Golden run."
+    },
+    "validation": {
+      "valid": true,
+      "project_path": "<project>",
+      "checked_files": 11,
+      "object_counts": {
+        "actors": 4,
+        "actuals": 1,
+        "audit_records": 2,
+        "availability": 5,
+        "baselines": 1,
+        "capacities": 7,
+        "dependencies": 3,
+        "evidence": 2,
+        "proposals": 1,
+        "resource_demands": 7,
+        "resource_pools": 3,
+        "resources": 7,
+        "scenarios": 6,
+        "tasks": 2
+      },
+      "warnings": [
+        {
+          "code": "required_dependency_unresolved",
+          "message": "required dependency dependency.repair-pump-before-validation is open",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.repair-pump-before-validation"
+          }
+        },
+        {
+          "code": "dependency_predecessor_finish_unknown",
+          "message": "dependency dependency.repair-pump-before-validation predecessor task task.offline.repair-pump has no planned_finish",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.repair-pump-before-validation"
+          }
+        },
+        {
+          "code": "dependency_successor_start_unknown",
+          "message": "dependency dependency.repair-pump-before-validation successor task task.op.1234 has no planned_start",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.repair-pump-before-validation"
+          }
+        },
+        {
+          "code": "required_dependency_unresolved",
+          "message": "required dependency dependency.openai-quota-blocks-validation is open",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.openai-quota-blocks-validation"
+          }
+        },
+        {
+          "code": "dependency_blocks_active_successor",
+          "message": "dependency dependency.openai-quota-blocks-validation is open while successor task task.op.1234 is ready",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.openai-quota-blocks-validation"
+          }
+        },
+        {
+          "code": "required_dependency_unresolved",
+          "message": "required dependency dependency.openproject.relation.88 is open while successor task task.offline.repair-pump is in_progress",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.openproject.relation.88"
+          }
+        },
+        {
+          "code": "dependency_predecessor_finish_unknown",
+          "message": "dependency dependency.openproject.relation.88 predecessor task task.op.1234 has no planned_finish",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.openproject.relation.88"
+          }
+        },
+        {
+          "code": "dependency_successor_start_unknown",
+          "message": "dependency dependency.openproject.relation.88 successor task task.offline.repair-pump has no planned_start",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.openproject.relation.88"
+          }
+        }
+      ],
+      "errors": []
+    },
+    "warnings": [],
+    "errors": []
+  }
+}

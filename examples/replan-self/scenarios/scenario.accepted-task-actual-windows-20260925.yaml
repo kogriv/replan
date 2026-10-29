@@ -1,0 +1,108 @@
+scenario:
+    id: scenario.accepted-task-actual-windows-20260925
+    name: Record the actual windows of accepted tasks flagged by accepted_task_planned_after_status_date
+    status: applied
+    base_ref:
+        kind: current_plan
+        id: current
+    created_at: "2026-09-25T16:30:00+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    changes:
+        - op: replace
+          path: tasks.task.self.define-openproject-overlay-json-contract.planned_start
+          value: "2026-08-07"
+        - op: replace
+          path: tasks.task.self.define-openproject-overlay-json-contract.planned_finish
+          value: "2026-08-07"
+        - op: replace
+          path: tasks.task.self.scaffold-openproject-overlay-plugin-consumer.planned_start
+          value: "2026-08-07"
+        - op: replace
+          path: tasks.task.self.scaffold-openproject-overlay-plugin-consumer.planned_finish
+          value: "2026-08-07"
+        - op: replace
+          path: tasks.task.self.design-openproject-plugin-deployment-path.planned_start
+          value: "2026-08-07"
+        - op: replace
+          path: tasks.task.self.design-openproject-plugin-deployment-path.planned_finish
+          value: "2026-08-07"
+        - op: replace
+          path: tasks.task.self.verify-openproject-plugin-throwaway-runtime.planned_start
+          value: "2026-08-07"
+        - op: replace
+          path: tasks.task.self.verify-openproject-plugin-throwaway-runtime.planned_finish
+          value: "2026-08-07"
+        - op: replace
+          path: tasks.task.self.prepare-live-openproject-plugin-installation.planned_start
+          value: "2026-08-07"
+        - op: replace
+          path: tasks.task.self.prepare-live-openproject-plugin-installation.planned_finish
+          value: "2026-08-07"
+        - op: replace
+          path: tasks.task.self.execute-live-openproject-plugin-installation.planned_start
+          value: "2026-08-07"
+        - op: replace
+          path: tasks.task.self.execute-live-openproject-plugin-installation.planned_finish
+          value: "2026-08-07"
+        - op: replace
+          path: tasks.task.self.improve-live-openproject-plugin-resource-view.planned_start
+          value: "2026-08-07"
+        - op: replace
+          path: tasks.task.self.improve-live-openproject-plugin-resource-view.planned_finish
+          value: "2026-08-15"
+        - op: replace
+          path: tasks.task.self.design-openproject-work-package-replan-panel.planned_start
+          value: "2026-08-11"
+        - op: replace
+          path: tasks.task.self.design-openproject-work-package-replan-panel.planned_finish
+          value: "2026-08-15"
+        - op: replace
+          path: tasks.task.self.implement-openproject-work-package-replan-panel.planned_start
+          value: "2026-08-15"
+        - op: replace
+          path: tasks.task.self.implement-openproject-work-package-replan-panel.planned_finish
+          value: "2026-08-15"
+        - op: replace
+          path: tasks.task.self.stabilize-openproject-live-helper-timeouts.planned_start
+          value: "2026-08-16"
+        - op: replace
+          path: tasks.task.self.stabilize-openproject-live-helper-timeouts.planned_finish
+          value: "2026-08-16"
+        - op: replace
+          path: tasks.task.self.optimize-openproject-plugin-image-build-layering.planned_start
+          value: "2026-08-16"
+        - op: replace
+          path: tasks.task.self.optimize-openproject-plugin-image-build-layering.planned_finish
+          value: "2026-08-16"
+        - op: replace
+          path: tasks.task.self.check-upstream-openproject-wiki-api-roadmap.planned_start
+          value: "2026-09-24"
+        - op: replace
+          path: tasks.task.self.check-upstream-openproject-wiki-api-roadmap.planned_finish
+          value: "2026-09-25"
+        - op: replace
+          path: tasks.task.self.deploy-openproject-wiki-api-plugin-live.planned_start
+          value: "2026-09-21"
+        - op: replace
+          path: tasks.task.self.deploy-openproject-wiki-api-plugin-live.planned_finish
+          value: "2026-09-24"
+        - op: replace
+          path: tasks.task.self.select-next-product-slice-from-replan-reports.planned_start
+          value: "2026-09-24"
+        - op: replace
+          path: tasks.task.self.select-next-product-slice-from-replan-reports.planned_finish
+          value: "2026-09-25"
+        - op: replace
+          path: tasks.task.self.improve-state-report-next-actions.planned_start
+          value: "2026-09-25"
+        - op: replace
+          path: tasks.task.self.improve-state-report-next-actions.planned_finish
+          value: "2026-09-25"
+        - op: replace
+          path: tasks.task.self.add-wiki-api-page-delete.planned_start
+          value: "2026-09-25"
+        - op: replace
+          path: tasks.task.self.add-wiki-api-page-delete.planned_finish
+          value: "2026-09-25"

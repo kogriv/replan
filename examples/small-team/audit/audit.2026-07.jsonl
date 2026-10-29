@@ -1,0 +1,1 @@
+{"id":"audit.20260706T120000.create-baseline","occurred_at":"2026-07-06T12:00:00+07:00","actor_ref":{"kind":"actor","id":"actor.human.operator"},"operation":"create_baseline","target_ref":{"kind":"baseline","id":"baseline.2026-07-06.initial"},"result":"success","reason":"Initial fixture baseline."}

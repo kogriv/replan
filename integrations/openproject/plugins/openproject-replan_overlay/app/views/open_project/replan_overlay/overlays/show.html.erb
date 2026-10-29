@@ -1,0 +1,288 @@
+<% html_title "RePlan" %>
+
+<style>
+  .replan-overlay {
+    /* OpenProject's Primer variables, so its light and dark themes and
+       extensions such as Dark Reader recolour the plugin with the rest of
+       the page. No colour is fixed here. */
+    --replan-border: var(--borderColor-default);
+    --replan-muted: var(--fgColor-muted);
+    --replan-surface: var(--bgColor-muted);
+    --replan-ink: var(--fgColor-default);
+    --replan-warn: var(--fgColor-attention);
+    --replan-warn-surface: var(--bgColor-attention-muted);
+    --replan-risk: var(--bgColor-danger-emphasis);
+    --replan-risk-surface: var(--bgColor-danger-muted);
+    --replan-risk-ink: var(--fgColor-danger);
+    --replan-accent-surface: var(--bgColor-accent-muted);
+    --replan-accent-ink: var(--fgColor-accent);
+    color: var(--replan-ink);
+  }
+
+  .replan-overlay__meta {
+    color: var(--replan-muted);
+    margin: 0 0 0.75rem;
+  }
+
+  .replan-overlay__metrics {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    margin: 1rem 0;
+  }
+
+  .replan-overlay__demand-meta {
+    color: var(--replan-muted);
+    font-size: 0.85rem;
+  }
+
+  .replan-overlay__section {
+    margin-top: 1.5rem;
+  }
+
+  .replan-overlay__section h3 {
+    margin-bottom: 0.5rem;
+  }
+
+  .replan-overlay__signal {
+    border-radius: 4px;
+    background: var(--replan-warn-surface);
+    color: var(--replan-warn);
+    font-size: 0.8rem;
+    padding: 0.25rem 0.35rem;
+  }
+
+  .replan-overlay__counter {
+    border: 1px solid var(--replan-border);
+    border-radius: 6px;
+    background: var(--replan-surface);
+    padding: 0.75rem;
+  }
+
+  .replan-overlay__counter.-alert {
+    border-color: var(--replan-risk);
+    background: var(--replan-risk-surface);
+  }
+
+  .replan-overlay__counter-label {
+    color: var(--replan-muted);
+    display: block;
+    font-size: 0.85rem;
+  }
+
+  .replan-overlay__counter-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .replan-overlay__counter.-alert .replan-overlay__counter-value {
+    color: var(--replan-risk-ink);
+  }
+
+  .replan-overlay__counter-details {
+    color: var(--replan-muted);
+    font-size: 0.8rem;
+    margin: 0.35rem 0 0;
+    padding-left: 1rem;
+  }
+
+  .replan-overlay__status {
+    border: 1px solid var(--replan-border);
+    border-radius: 999px;
+    color: var(--replan-muted);
+    display: inline-block;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    padding: 0 0.5rem;
+    white-space: nowrap;
+  }
+
+  .replan-overlay__status.-active {
+    background: var(--replan-accent-surface);
+    border-color: transparent;
+    color: var(--replan-accent-ink);
+  }
+
+  .replan-overlay__signal {
+    display: inline-block;
+    white-space: nowrap;
+  }
+
+  .replan-overlay__signal.-neutral {
+    background: var(--replan-surface);
+    color: var(--replan-muted);
+  }
+
+  .replan-overlay__signal.-danger {
+    background: var(--replan-risk-surface);
+    color: var(--replan-risk-ink);
+  }
+
+  .replan-overlay__waiting {
+    margin: 0 0 1rem;
+    padding-left: 1.25rem;
+  }
+
+  /* OpenProject's tables cut cell text with an ellipsis; task names and
+     resources wrap here instead, and the table scrolls inside its own box
+     rather than widening the page. */
+  .replan-overlay__table {
+    overflow-x: auto;
+  }
+
+  .replan-overlay .replan-overlay__table table.generic-table > tbody > tr > td {
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
+    vertical-align: top;
+    white-space: normal;
+  }
+
+  .replan-overlay .replan-overlay__table table.generic-table > tbody > tr > td.replan-overlay__nowrap,
+  .replan-overlay__nowrap {
+    white-space: nowrap;
+  }
+
+  /* Resource and task ids are long and have no spaces; they wrap instead
+     of being cut or widening the page on narrow screens. */
+  .replan-overlay code,
+  .replan-overlay td {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .replan-overlay__pointer {
+    color: var(--replan-muted);
+    margin-top: 1.5rem;
+  }
+</style>
+
+<%= render(Primer::OpenProject::PageHeader.new) do |header| %>
+  <% header.with_title { "RePlan" } %>
+  <% header.with_breadcrumbs([{ href: project_path(@project), text: @project.name }, "RePlan"]) %>
+<% end %>
+
+<%= render partial: "open_project/replan_overlay/overlays/nav", locals: { current: "overview" } %>
+
+<div class="replan-overlay">
+  <% unless @state["available"] %>
+    <div class="op-toast -warning">
+      <p><strong>No RePlan overlay for this project.</strong></p>
+      <p><%= h @state["message"] %></p>
+      <% if @state["path"].present? %>
+        <p><code><%= h @state["path"] %></code></p>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="replan-overlay__meta">
+      <strong><%= h(@overlay["project_name"] || @overlay["project_id"]) %></strong>
+      <% @presenter.header_facts.each do |fact| %>
+        · <%= h fact %>
+      <% end %>
+    </p>
+
+    <% unless @presenter.version2? %>
+      <div class="op-toast -info">
+        <p>This RePlan overlay is version <%= h @presenter.schema_version %>; the counters marked with a dash need an overlay generated by a newer RePlan.</p>
+      </div>
+    <% end %>
+
+    <div class="replan-overlay__metrics">
+      <% @presenter.counters.each do |counter| %>
+        <div class="replan-overlay__counter<%= counter["alert"] ? " -alert" : "" %>" data-counter="<%= h counter["key"] %>"
+             <% if counter["details"].any? %>title="<%= h counter["details"].join("\n") %>"<% end %>>
+          <span class="replan-overlay__counter-label"><%= h counter["label"] %></span>
+          <span class="replan-overlay__counter-value"><%= h counter["value"] %></span>
+          <% if counter["key"] == "overloaded" && counter["details"].any? %>
+            <ul class="replan-overlay__counter-details">
+              <% counter["details"].first(3).each do |detail| %>
+                <li><%= h detail %></li>
+              <% end %>
+            </ul>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <% if @presenter.person_actions.any? %>
+      <div class="replan-overlay__section">
+        <h3>Waiting on a person</h3>
+        <ul class="replan-overlay__waiting">
+          <% @presenter.person_actions.each do |action| %>
+            <li>
+              <% if action["work_package_id"].present? %>
+                <a href="<%= h project_replan_overlay_work_package_path(@project.identifier, action["work_package_id"]) %>"><%= h action["label"] %></a>
+              <% else %>
+                <%= h action["label"] %>
+              <% end %>
+              <% if action["date"].present? %>
+                <span class="replan-overlay__demand-meta">· due <%= h @presenter.date_label(action["date"]) %></span>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <% if @work_packages.empty? %>
+      <div class="op-toast -warning">
+        <p><strong>No RePlan rows in the overlay.</strong></p>
+        <p>Generate a fresh RePlan dashboard and point the plugin at its overlay JSON artifact.</p>
+      </div>
+    <% else %>
+      <div class="replan-overlay__section">
+        <h3>Needs attention</h3>
+        <% if @attention_rows.empty? %>
+          <p class="replan-overlay__demand-meta">No open tasks.</p>
+        <% else %>
+          <div class="replan-overlay__table">
+          <table class="generic-table">
+            <thead>
+              <tr>
+                <th title="OpenProject work package">ID</th>
+                <th>Task</th>
+                <th>Status</th>
+                <th>Window</th>
+                <th>Resources</th>
+                <th>Signals</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @attention_rows.each do |row| %>
+                <tr>
+                  <td class="replan-overlay__nowrap">
+                    <% if row["work_package_url"].present? %>
+                      <a href="<%= h row["work_package_url"] %>">#<%= h row["work_package_id"] %></a>
+                    <% else %>
+                      #<%= h row["work_package_id"] %>
+                    <% end %>
+                  </td>
+                  <td>
+                    <a href="<%= h project_replan_overlay_work_package_path(@project.identifier, row["work_package_id"]) %>" title="<%= h row["replan_task_id"] %>"><%= h row["title"] %></a>
+                  </td>
+                  <td class="replan-overlay__nowrap"><span class="replan-overlay__status<%= %w[in_progress review_ready].include?(row["tracking_status"]) ? " -active" : "" %>"><%= h @presenter.status_label(row["tracking_status"]) %></span></td>
+                  <td class="replan-overlay__nowrap"><%= h row["window_label"] %></td>
+                  <td><%= h row["resource_labels"].join(", ") %></td>
+                  <td>
+                    <% row["signals"].each do |signal| %>
+                      <span class="replan-overlay__signal -<%= h signal["tone"] %>"<% if signal["title"].present? %> title="<%= h signal["title"] %>"<% end %>><%= h signal["text"] %></span>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+          </div>
+        <% end %>
+      </div>
+
+      <p class="replan-overlay__pointer">
+        The plan with resource lanes, closed tasks and the load by week are on the
+        <a href="<%= h project_replan_overlay_gantt_path(@project.identifier) %>">Gantt</a>;
+        each task opens its own page.
+      </p>
+    <% end %>
+  <% end %>
+</div>

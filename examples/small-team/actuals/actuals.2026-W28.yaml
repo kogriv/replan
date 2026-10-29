@@ -1,0 +1,22 @@
+actuals:
+  - id: actual.repair-pump.petr.20260706.1
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.offline.repair-pump
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.repair-pump.operator
+    resource_ref:
+      kind: resource
+      id: resource.human.petr
+    amount: 2
+    unit: hours
+    occurred_at: "2026-07-06T15:00:00+07:00"
+    status_date: "2026-07-06"
+    accepted_by:
+      kind: actor
+      id: actor.human.operator
+    evidence_refs:
+      - kind: evidence
+        id: evidence.offline.repair-pump.photo.20260706

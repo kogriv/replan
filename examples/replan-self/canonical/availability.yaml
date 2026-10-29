@@ -1,0 +1,50 @@
+availability:
+  - id: availability.maintainer.default
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    timezone: Asia/Novosibirsk
+    windows:
+      - days: [monday, tuesday, wednesday, thursday, friday]
+        start_time: "11:00"
+        end_time: "18:00"
+    exceptions:
+      - date: "2026-07-24"
+        type: reduced_capacity
+        reason: release-planning review block
+  - id: availability.codex.default
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    timezone: Asia/Novosibirsk
+    windows:
+      - days: [monday, tuesday, wednesday, thursday, friday]
+        start_time: "00:00"
+        end_time: "23:59"
+  - id: availability.agent-executor.default
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    timezone: Asia/Novosibirsk
+    windows:
+      - days: [monday, tuesday, wednesday, thursday, friday]
+        start_time: "00:00"
+        end_time: "23:59"
+  - id: availability.review-assistant.default
+    resource_ref:
+      kind: resource
+      id: resource.ai.review-assistant
+    timezone: Asia/Novosibirsk
+    windows:
+      - days: [monday, tuesday, wednesday, thursday, friday]
+        start_time: "00:00"
+        end_time: "23:59"
+  - id: availability.local-dev.default
+    resource_ref:
+      kind: resource
+      id: resource.environment.local-dev
+    timezone: Asia/Novosibirsk
+    windows:
+      - days: [monday, tuesday, wednesday, thursday, friday]
+        start_time: "09:00"
+        end_time: "22:00"

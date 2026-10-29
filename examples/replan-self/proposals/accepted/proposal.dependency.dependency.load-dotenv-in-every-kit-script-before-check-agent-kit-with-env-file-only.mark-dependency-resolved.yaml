@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.load-dotenv-in-every-kit-script-before-check-agent-kit-with-env-file-only.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-10-15T16:18:57+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.load-dotenv-in-every-kit-script-before-check-agent-kit-with-env-file-only
+    suggested_change:
+        op: set
+        path: dependencies.dependency.load-dotenv-in-every-kit-script-before-check-agent-kit-with-env-file-only.status
+        value: resolved
+    rationale: Dependency dependency.load-dotenv-in-every-kit-script-before-check-agent-kit-with-env-file-only (required) can be marked resolved because predecessor task.self.load-dotenv-in-every-kit-script is in the required state.
+    requires_confirmation: true

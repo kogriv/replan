@@ -1,0 +1,131 @@
+{
+  "changed_files": {
+    "audit/audit.2026-07.jsonl": "{\"id\":\"audit.20260706T120000.create-baseline\",\"occurred_at\":\"2026-07-06T12:00:00+07:00\",\"actor_ref\":{\"kind\":\"actor\",\"id\":\"actor.human.operator\"},\"operation\":\"create_baseline\",\"target_ref\":{\"kind\":\"baseline\",\"id\":\"baseline.2026-07-06.initial\"},\"result\":\"success\",\"reason\":\"Initial fixture baseline.\"}\n{\"id\":\"audit.20260730T120000000000000Z.import-accept-resource-links\",\"occurred_at\":\"2026-07-30T12:00:00Z\",\"actor_ref\":{\"kind\":\"actor\",\"id\":\"actor.human.operator\"},\"operation\":\"import_accept\",\"target_ref\":{\"kind\":\"source_snapshot\",\"id\":\"source_snapshot.openproject.20260725T120000\"},\"result\":\"success\",\"reason\":\"Golden run.\"}\n",
+    "canonical/resources.yaml": "resources:\n  - id: resource.ai.codex.local\n    class: ai_agent\n    name: Codex local agent\n    capabilities:\n      - coding\n      - documentation\n    actor_ref:\n      kind: actor\n      id: actor.ai.codex.local\n  - id: resource.environment.staging\n    class: environment\n    name: Staging environment\n  - id: resource.human.ivan\n    class: human\n    name: Ivan\n    capabilities:\n      - backend\n      - code_review\n    actor_ref:\n      kind: actor\n      id: actor.human.ivan\n    source_refs:\n        - source: openproject\n          object_type: user\n          object_id: \"11\"\n          url: /api/v3/users/11\n  - id: resource.human.operator\n    class: human\n    name: Operator\n    capabilities:\n      - architecture\n      - review\n      - operations\n    actor_ref:\n      kind: actor\n      id: actor.human.operator\n  - id: resource.human.petr\n    class: human\n    name: Petr\n    capabilities:\n      - frontend\n      - testing\n    actor_ref:\n      kind: actor\n      id: actor.human.petr\n  - id: resource.project.budget\n    class: budget\n    name: RePlan MVP project budget\n  - id: resource.service.openai.tokens\n    class: service_quota\n    name: OpenAI project token quota\n"
+  },
+  "error": "",
+  "result": {
+    "applied": true,
+    "dry_run": false,
+    "snapshot_id": "source_snapshot.openproject.20260725T120000",
+    "mapped_path": "imports/openproject/20260725T120000/mapped.json",
+    "planned_writes": [
+      {
+        "path": "canonical/resources.yaml",
+        "action": "append",
+        "format": "yaml",
+        "content": ""
+      }
+    ],
+    "written_files": [
+      "canonical/resources.yaml",
+      "audit/audit.2026-07.jsonl"
+    ],
+    "changes": [
+      {
+        "op": "add_resource_source_ref",
+        "target_kind": "resource",
+        "target_id": "resource.human.ivan",
+        "source_id": "11",
+        "path": "canonical/resources.yaml",
+        "description": "Attach OpenProject user 11 source reference to resource resource.human.ivan."
+      }
+    ],
+    "applied_changes": [
+      {
+        "op": "add_resource_source_ref",
+        "target_kind": "resource",
+        "target_id": "resource.human.ivan",
+        "source_id": "11",
+        "path": "canonical/resources.yaml",
+        "description": "Attach OpenProject user 11 source reference to resource resource.human.ivan."
+      }
+    ],
+    "audit_record_preview": {
+      "id": "audit.20260730T120000000000000Z.import-accept-resource-links",
+      "occurred_at": "2026-07-30T12:00:00Z",
+      "actor_ref": {
+        "kind": "actor",
+        "id": "actor.human.operator"
+      },
+      "operation": "import_accept",
+      "target_ref": {
+        "kind": "source_snapshot",
+        "id": "source_snapshot.openproject.20260725T120000"
+      },
+      "result": "success",
+      "reason": "Golden run."
+    },
+    "validation": {
+      "valid": true,
+      "project_path": "<project>",
+      "checked_files": 11,
+      "object_counts": {
+        "actors": 4,
+        "actuals": 1,
+        "audit_records": 2,
+        "availability": 5,
+        "baselines": 1,
+        "capacities": 7,
+        "dependencies": 2,
+        "evidence": 2,
+        "proposals": 1,
+        "resource_demands": 7,
+        "resource_pools": 3,
+        "resources": 7,
+        "scenarios": 6,
+        "tasks": 2
+      },
+      "warnings": [
+        {
+          "code": "required_dependency_unresolved",
+          "message": "required dependency dependency.repair-pump-before-validation is open",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.repair-pump-before-validation"
+          }
+        },
+        {
+          "code": "dependency_predecessor_finish_unknown",
+          "message": "dependency dependency.repair-pump-before-validation predecessor task task.offline.repair-pump has no planned_finish",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.repair-pump-before-validation"
+          }
+        },
+        {
+          "code": "dependency_successor_start_unknown",
+          "message": "dependency dependency.repair-pump-before-validation successor task task.op.1234 has no planned_start",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.repair-pump-before-validation"
+          }
+        },
+        {
+          "code": "required_dependency_unresolved",
+          "message": "required dependency dependency.openai-quota-blocks-validation is open",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.openai-quota-blocks-validation"
+          }
+        },
+        {
+          "code": "dependency_blocks_active_successor",
+          "message": "dependency dependency.openai-quota-blocks-validation is open while successor task task.op.1234 is ready",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.openai-quota-blocks-validation"
+          }
+        }
+      ],
+      "errors": []
+    },
+    "warnings": [],
+    "errors": []
+  }
+}

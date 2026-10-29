@@ -1,0 +1,1684 @@
+dependencies:
+    - id: dependency.cleanup-before-self-fixture
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.cleanup-oss-boundary
+      successor_ref:
+        kind: task
+        id: task.self.create-replan-self-fixture
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Public self-dogfood starts only after the repository boundary is cleaned.
+    - id: dependency.self-fixture-before-dashboard-design
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.create-replan-self-fixture
+      successor_ref:
+        kind: task
+        id: task.self.design-static-dashboard
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Dashboard sections should be designed against self-dogfood data.
+    - id: dependency.self-fixture-before-openproject-fixtures
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.create-replan-self-fixture
+      successor_ref:
+        kind: task
+        id: task.self.expand-openproject-fixtures
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Sanitized OpenProject fixtures should reuse the public dogfood shape.
+    - id: dependency.dashboard-design-before-impl
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.design-static-dashboard
+      successor_ref:
+        kind: task
+        id: task.self.implement-static-dashboard
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Implementation waits for accepted dashboard design.
+    - id: dependency.static-dashboard-before-gantt
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.implement-static-dashboard
+      successor_ref:
+        kind: task
+        id: task.self.add-static-gantt-dashboard
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The focused Gantt page builds on the generated dashboard artifact set.
+    - id: dependency.static-gantt-before-ux-cleanup
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.add-static-gantt-dashboard
+      successor_ref:
+        kind: task
+        id: task.self.improve-static-gantt-observability
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Gantt UX cleanup follows the first generated Gantt proof of concept.
+    - id: dependency.gantt-ux-before-resource-lanes
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.improve-static-gantt-observability
+      successor_ref:
+        kind: task
+        id: task.self.add-gantt-resource-allocation-lanes
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resource allocation lanes build on the readable static Gantt layout.
+    - id: dependency.resource-lanes-before-project-state-report
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.add-gantt-resource-allocation-lanes
+      successor_ref:
+        kind: task
+        id: task.self.add-project-state-report
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The operator project-state report reuses dashboard and Gantt observability data.
+    - id: dependency.project-state-before-plan-vs-actual
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.add-project-state-report
+      successor_ref:
+        kind: task
+        id: task.self.add-plan-vs-actual-state-tracking
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Plan versus actual tracking extends the operator project-state report.
+    - id: dependency.plan-vs-actual-before-tracking-suggest
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.add-plan-vs-actual-state-tracking
+      successor_ref:
+        kind: task
+        id: task.self.add-tracking-suggest-command
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Read-only tracking suggestions depend on stable Plan versus Actual rows.
+    - id: dependency.tracking-suggest-before-tracking-proposals
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.add-tracking-suggest-command
+      successor_ref:
+        kind: task
+        id: task.self.add-tracking-proposal-candidates
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Tracking proposal candidate writes depend on stable read-only tracking suggestions.
+    - id: dependency.tracking-proposals-before-tracking-apply
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.add-tracking-proposal-candidates
+      successor_ref:
+        kind: task
+        id: task.self.apply-tracking-remaining-proposals
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Applying tracking remaining-work proposals depends on materialized proposal candidates.
+    - id: dependency.tracking-apply-before-loop-observability
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.apply-tracking-remaining-proposals
+      successor_ref:
+        kind: task
+        id: task.self.add-tracking-loop-observability
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Tracking loop observability depends on a complete tracking proposal apply loop.
+    - id: dependency.loop-observability-before-dashboard-render
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.add-tracking-loop-observability
+      successor_ref:
+        kind: task
+        id: task.self.render-tracking-loop-dashboard
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Static dashboard rendering depends on tracking loop data in the dashboard overview model.
+    - id: dependency.dashboard-render-before-loop-priority
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.render-tracking-loop-dashboard
+      successor_ref:
+        kind: task
+        id: task.self.prioritize-tracking-loop
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Tracking loop prioritization depends on the dashboard tracking loop renderer.
+    - id: dependency.loop-priority-before-mvp-audit-plan
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.prioritize-tracking-loop
+      successor_ref:
+        kind: task
+        id: task.self.plan-mvp-readiness-audit
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The MVP readiness audit plan should use the finalized tracking loop observability surface as audit input.
+    - id: dependency.mvp-audit-plan-before-post-mvp-dogfood
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.plan-mvp-readiness-audit
+      successor_ref:
+        kind: task
+        id: task.self.plan-post-mvp-dogfood
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The post-MVP dogfood decision follows the readiness audit plan and stabilization result.
+    - id: dependency.post-mvp-dogfood-before-first-cleanup
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.plan-post-mvp-dogfood
+      successor_ref:
+        kind: task
+        id: task.self.run-first-dogfood-tracking-cleanup
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The first self-dogfood cleanup cycle follows the approved post-MVP dogfood plan.
+    - id: dependency.first-cleanup-before-plan-calibration
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.run-first-dogfood-tracking-cleanup
+      successor_ref:
+        kind: task
+        id: task.self.calibrate-plan-and-resources
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The real planning calibration starts after stale remaining work was removed and the project-state signals became readable.
+    - id: dependency.cleanup-before-oss-audit
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.cleanup-oss-boundary
+      successor_ref:
+        kind: task
+        id: task.self.write-oss-readiness-audit
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: OSS readiness audit is meaningful after the separation rule exists.
+    - id: dependency.dashboard-before-release-story
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.implement-static-dashboard
+      successor_ref:
+        kind: task
+        id: task.self.prepare-release-story
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Public release story should include the dashboard demo.
+    - id: dependency.oss-audit-before-release-story
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.write-oss-readiness-audit
+      successor_ref:
+        kind: task
+        id: task.self.prepare-release-story
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Release story should wait for the bounded OSS boundary checkpoint, not just generic release documentation.
+    - id: dependency.oss-checkpoint-before-full-dogfood
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.write-oss-readiness-audit
+      successor_ref:
+        kind: task
+        id: task.self.run-full-openproject-dogfood-cycle
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved by the 2026-08-02 OSS boundary checkpoint; full OpenProject-centered dogfood can proceed, while public release story remains blocked by checkpoint findings.
+    - id: dependency.oss-checkpoint-before-op-preflight-recon
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.write-oss-readiness-audit
+      successor_ref:
+        kind: task
+        id: task.self.reconstruct-openproject-functionality-and-pitfalls
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: OpenProject preflight work starts only after the OSS boundary checkpoint confirms that private live details stay outside committed public artifacts.
+    - id: dependency.op-preflight-recon-before-agent-interface-eval
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.reconstruct-openproject-functionality-and-pitfalls
+      successor_ref:
+        kind: task
+        id: task.self.evaluate-openproject-agent-interfaces
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved by the accepted OpenProject functionality and technical pitfalls reconstruction documented on 2026-08-04.
+    - id: dependency.op-agent-interface-eval-before-ai-cli-layer-design
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.evaluate-openproject-agent-interfaces
+      successor_ref:
+        kind: task
+        id: task.self.design-openproject-ai-cli-operating-layer
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved by the accepted OpenProject agent interface options evaluation documented on 2026-08-04. This remains a direct context dependency, while the hands-on tool audit adds a stronger execution gate before design.
+    - id: dependency.op-agent-interface-eval-before-agent-tools-hands-on
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.evaluate-openproject-agent-interfaces
+      successor_ref:
+        kind: task
+        id: task.self.audit-openproject-agent-tools-hands-on
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The hands-on audit follows the document-based interface evaluation so it can test the actual tools against the right questions.
+    - id: dependency.op-agent-tools-hands-on-before-ai-cli-layer-design
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.audit-openproject-agent-tools-hands-on
+      successor_ref:
+        kind: task
+        id: task.self.design-openproject-ai-cli-operating-layer
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved by the accepted hands-on audit of the official OpenProject CLI, current live MCP endpoint behavior and direct API patterns documented on 2026-08-04.
+    - id: dependency.op-ai-cli-layer-design-before-preflight-helpers
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.design-openproject-ai-cli-operating-layer
+      successor_ref:
+        kind: task
+        id: task.self.implement-openproject-preflight-operator-helpers
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved by the accepted OpenProject AI CLI operating-layer design documented on 2026-08-04.
+    - id: dependency.op-preflight-helpers-before-live-refactor
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.implement-openproject-preflight-operator-helpers
+      successor_ref:
+        kind: task
+        id: task.self.refactor-live-replan-self-openproject-plan
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Superseded as the immediate live-refactor gate by the OpenProject work-package operator toolkit design and implementation chain approved on 2026-08-04.
+    - id: dependency.op-preflight-helpers-before-work-package-toolkit-design
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.implement-openproject-preflight-operator-helpers
+      successor_ref:
+        kind: task
+        id: task.self.design-openproject-work-package-operator-toolkit
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: 'Resolved because the preflight operator report exposed the remaining gap: it gives visibility, but not enough safe OpenProject work-package manipulation capability.'
+    - id: dependency.op-work-package-toolkit-design-before-implementation
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.design-openproject-work-package-operator-toolkit
+      successor_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-operator-toolkit
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved by the accepted OpenProject work-package operator toolkit design documented on 2026-08-04.
+    - id: dependency.op-work-package-toolkit-implementation-before-live-refactor
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-operator-toolkit
+      successor_ref:
+        kind: task
+        id: task.self.refactor-live-replan-self-openproject-plan
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved by scripts/openproject-work-package-toolkit.sh, which provides read, catalog, dry-run write and guarded apply commands for OpenProject work-package operations.
+    - id: dependency.openproject-live-refactor-before-full-dogfood
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.refactor-live-replan-self-openproject-plan
+      successor_ref:
+        kind: task
+        id: task.self.run-full-openproject-dogfood-cycle
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: 'Resolved by the live RePlan self-dogfood OpenProject refactor pass: 34 task bindings, 40 relation bindings, no title/status/date/relation drift and no warning/error codes.'
+    - id: dependency.full-dogfood-before-surface-design
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.run-full-openproject-dogfood-cycle
+      successor_ref:
+        kind: task
+        id: task.self.design-openproject-native-surface
+      required_state: in_progress
+      status: resolved
+      criticality: required
+      notes: Resolved by the start of the full OpenProject-centered dogfood cycle. Surface design is now an in-cycle slice because the first real operator review exposed the need to compare OpenProject task views with the RePlan resource layer immediately, not only after cycle completion.
+    - id: dependency.surface-design-before-surface-prototype
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.design-openproject-native-surface
+      successor_ref:
+        kind: task
+        id: task.self.prototype-openproject-native-surface-level-0-1
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved by the accepted OpenProject-native RePlan surface design on 2026-08-04. The next prototype should implement Level 0 links/shared identity and Level 1 adjacent read-only dashboard/Gantt-style resource views before any plugin work.
+    - id: dependency.surface-prototype-before-dashboard-semantics
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.prototype-openproject-native-surface-level-0-1
+      successor_ref:
+        kind: task
+        id: task.self.reconcile-dashboard-load-semantics
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved by the Level 0 and Level 1 OpenProject-native surface prototype on 2026-08-04. Dashboard load semantics cleanup can now use the OpenProject Native Surface panel and Gantt resource views as the reference UI.
+    - id: dependency.full-dogfood-before-release-story
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.run-full-openproject-dogfood-cycle
+      successor_ref:
+        kind: task
+        id: task.self.prepare-release-story
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Public release story is deferred until RePlan has proved one full planning, execution, actuals and analysis loop.
+    - id: dependency.surface-prototype-before-release-story
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.prototype-openproject-native-surface-level-0-1
+      successor_ref:
+        kind: task
+        id: task.self.prepare-release-story
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Public release story should include the chosen OpenProject-native observability path.
+    - id: dependency.dashboard-semantics-before-release-story
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.reconcile-dashboard-load-semantics
+      successor_ref:
+        kind: task
+        id: task.self.prepare-release-story
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Public release story should not present resource-load views until their human-readable semantics are explicit.
+    - id: dependency.dashboard-semantics-before-load-profile-rendering
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.reconcile-dashboard-load-semantics
+      successor_ref:
+        kind: task
+        id: task.self.implement-dashboard-load-profile-rendering
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The accepted load profile semantics design is the input for implementing the dashboard rendering and raw JSON contract.
+    - id: dependency.load-profile-rendering-before-release-story
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.implement-dashboard-load-profile-rendering
+      successor_ref:
+        kind: task
+        id: task.self.prepare-release-story
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved by the dashboard load profile rendering implementation on 2026-08-06. Public release story can now refer to the capacity-height Gantt and resource-load view, subject to the remaining OSS boundary and full dogfood gates.
+    - id: dependency.op-work-package-toolkit-before-create-helper
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-operator-toolkit
+      successor_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-create-helper
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The guarded work-package create helper builds on the existing work-package operator toolkit and must preserve its dry-run/apply, private-binding and prompt-injection boundaries.
+    - id: dependency.op-create-helper-before-full-dogfood
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-create-helper
+      successor_ref:
+        kind: task
+        id: task.self.run-full-openproject-dogfood-cycle
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved by the guarded OpenProject work-package create helper implementation on 2026-08-06. The full live OpenProject-centered dogfood cycle can now create future backlog work packages through the reviewed toolkit once live credentials are present.
+    - id: dependency.op-create-helper-before-private-binding-helper
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-create-helper
+      successor_ref:
+        kind: task
+        id: task.self.implement-openproject-private-binding-helper
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The private binding helper builds on the guarded create helper because create apply returns the source reference that must be written to ignored private binding storage.
+    - id: dependency.op-private-binding-helper-before-full-dogfood
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.implement-openproject-private-binding-helper
+      successor_ref:
+        kind: task
+        id: task.self.run-full-openproject-dogfood-cycle
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved by the guarded OpenProject private binding helper implementation on 2026-08-06. The full live OpenProject-centered dogfood cycle can now bind existing or newly created OpenProject work packages through reviewed tooling once live credentials are present.
+    - id: dependency.op-private-binding-helper-before-dotenv-loader
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.implement-openproject-private-binding-helper
+      successor_ref:
+        kind: task
+        id: task.self.add-safe-openproject-dotenv-loader
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The dotenv loader builds on the guarded OpenProject helper layer and was completed on 2026-08-06.
+    - id: dependency.openproject-dotenv-loader-before-full-dogfood
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.add-safe-openproject-dotenv-loader
+      successor_ref:
+        kind: task
+        id: task.self.run-full-openproject-dogfood-cycle
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved by the safe OpenProject dotenv loader implementation on 2026-08-06. Future live dogfood work can reuse local OpenProject credentials across agent restarts without committing secrets.
+    - id: dependency.openproject-dotenv-loader-before-backlog-reconcile
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.add-safe-openproject-dotenv-loader
+      successor_ref:
+        kind: task
+        id: task.self.add-openproject-backlog-reconcile-helper
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The backlog reconcile helper builds on persistent local OpenProject credentials and was completed on 2026-08-06.
+    - id: dependency.openproject-backlog-reconcile-before-full-dogfood
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.add-openproject-backlog-reconcile-helper
+      successor_ref:
+        kind: task
+        id: task.self.run-full-openproject-dogfood-cycle
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved by the guarded OpenProject backlog reconcile helper implementation on 2026-08-06. Future live dogfood work can inspect missing private bindings and use reviewed create or bind actions instead of manual reconstruction.
+    - id: dependency.openproject-backlog-reconcile-before-tunnel-header-support
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.add-openproject-backlog-reconcile-helper
+      successor_ref:
+        kind: task
+        id: task.self.add-openproject-tunnel-header-support
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The tunnel header support builds on the safe dotenv loader and backlog reconcile helper because the issue was discovered during live reconciliation through a protected OpenProject endpoint.
+    - id: dependency.openproject-tunnel-header-support-before-full-dogfood
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.add-openproject-tunnel-header-support
+      successor_ref:
+        kind: task
+        id: task.self.run-full-openproject-dogfood-cycle
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved by adding safe Host and X-Forwarded-Proto override support to the OpenProject import path and guarded live helper scripts on 2026-08-06.
+    - id: dependency.openproject-tunnel-header-support-before-plugin-feasibility
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.add-openproject-tunnel-header-support
+      successor_ref:
+        kind: task
+        id: task.self.design-openproject-read-only-plugin-feasibility
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The read-only plugin feasibility design depends on a working OpenProject/RePlan live loop and safe tunnel access because it evaluates whether a plugin is still necessary after the aligned OpenProject-centered workflow works.
+    - id: dependency.plugin-feasibility-before-release-story
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.design-openproject-read-only-plugin-feasibility
+      successor_ref:
+        kind: task
+        id: task.self.prepare-release-story
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The public release story can mention the plugin path only after the read-only plugin feasibility design narrows the scope to an overlay artifact consumer rather than a second RePlan application.
+    - id: dependency.plugin-feasibility-before-overlay-json-contract
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.design-openproject-read-only-plugin-feasibility
+      successor_ref:
+        kind: task
+        id: task.self.define-openproject-overlay-json-contract
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The overlay JSON contract is the first implementation step after accepting that the OpenProject plugin is mandatory but must consume RePlan output rather than own RePlan core data.
+    - id: dependency.overlay-json-contract-before-release-story
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.define-openproject-overlay-json-contract
+      successor_ref:
+        kind: task
+        id: task.self.prepare-release-story
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The public release story should not describe the plugin path as usable until the overlay JSON contract exists and can be consumed by both the dashboard and the planned OpenProject plugin.
+    - id: dependency.overlay-json-contract-before-plugin-consumer
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.define-openproject-overlay-json-contract
+      successor_ref:
+        kind: task
+        id: task.self.scaffold-openproject-overlay-plugin-consumer
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The OpenProject plugin consumer must read a stable RePlan overlay artifact instead of querying or recomputing RePlan internals.
+    - id: dependency.plugin-consumer-before-release-story
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.scaffold-openproject-overlay-plugin-consumer
+      successor_ref:
+        kind: task
+        id: task.self.prepare-release-story
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The public release story should not describe the OpenProject plugin path as credible until the minimal read-only plugin consumer scaffold exists and has been reviewed.
+    - id: dependency.plugin-consumer-before-plugin-deployment-path
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.scaffold-openproject-overlay-plugin-consumer
+      successor_ref:
+        kind: task
+        id: task.self.design-openproject-plugin-deployment-path
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Runtime deployment planning starts only after the read-only plugin scaffold exists, because the deployment path must be written against the actual gem, overlay-loader and project-page shape.
+    - id: dependency.plugin-deployment-path-before-release-story
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.design-openproject-plugin-deployment-path
+      successor_ref:
+        kind: task
+        id: task.self.prepare-release-story
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved by the accepted safe OpenProject plugin deployment-path design documented on 2026-08-07. Public release story can now describe the plugin deployment direction, while runtime installation remains a separate gated task.
+    - id: dependency.plugin-deployment-path-before-throwaway-runtime
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.design-openproject-plugin-deployment-path
+      successor_ref:
+        kind: task
+        id: task.self.verify-openproject-plugin-throwaway-runtime
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The throwaway OpenProject runtime test starts only after the safe custom-image, overlay-artifact and rollback design is accepted.
+    - id: dependency.plugin-throwaway-runtime-before-release-story
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.verify-openproject-plugin-throwaway-runtime
+      successor_ref:
+        kind: task
+        id: task.self.prepare-release-story
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved on 2026-08-07 by a disposable OpenProject 17 runtime check that built the custom image, initialized a clean PostgreSQL-backed OpenProject runtime, loaded the RePlan plugin route, permission and project menu, rendered a valid overlay artifact and verified the safe missing-overlay state.
+    - id: dependency.plugin-throwaway-runtime-before-live-installation
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.verify-openproject-plugin-throwaway-runtime
+      successor_ref:
+        kind: task
+        id: task.self.prepare-live-openproject-plugin-installation
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The private live OpenProject plugin installation preflight can start because the read-only plugin already built and loaded in a disposable OpenProject 17 runtime.
+    - id: dependency.live-plugin-installation-before-release-story
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.execute-live-openproject-plugin-installation
+      successor_ref:
+        kind: task
+        id: task.self.prepare-release-story
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved on 2026-08-07 by the guarded private live OpenProject installation of the read-only RePlan overlay plugin. The first floating-tag image attempt was rolled back, the exact OpenProject 17.6.0 image was applied, OpenProject returned to healthy state, and the plugin route loaded the RePlan overlay with 47 work packages.
+    - id: dependency.live-plugin-preflight-before-live-installation
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.prepare-live-openproject-plugin-installation
+      successor_ref:
+        kind: task
+        id: task.self.execute-live-openproject-plugin-installation
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The first private live OpenProject plugin installation can be scheduled only after the backup, rollback, compose override, image tag and overlay artifact preflight plan has been accepted.
+    - id: dependency.live-plugin-installation-before-resource-view
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.execute-live-openproject-plugin-installation
+      successor_ref:
+        kind: task
+        id: task.self.improve-live-openproject-plugin-resource-view
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The resource-aware plugin view improvement can start only after the read-only RePlan plugin is installed in the live OpenProject dogfood project and visible through the normal OpenProject project menu.
+    - id: dependency.resource-view-before-work-package-panel-design
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.improve-live-openproject-plugin-resource-view
+      successor_ref:
+        kind: task
+        id: task.self.design-openproject-work-package-replan-panel
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved after the project-level live OpenProject RePlan plugin resource view was implemented, deployed and accepted as sufficient to start the work-package-level panel design. Further UI improvements remain separate future tasks.
+    - id: dependency.work-package-panel-design-before-release-story
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.design-openproject-work-package-replan-panel
+      successor_ref:
+        kind: task
+        id: task.self.prepare-release-story
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved by accepting the first work-package-level RePlan panel design on 2026-08-15. The remaining release gate is now the implementation prototype or an explicit deferral decision.
+    - id: dependency.work-package-panel-design-before-implementation
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.design-openproject-work-package-replan-panel
+      successor_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-replan-panel
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: 'Resolved by accepting the Placement A first-slice work-package panel design on 2026-08-15: a read-only plugin route for one OpenProject work package, linked from the project-level RePlan page, with resource rows, tracking/proposal/evidence summaries, compact timeline bars and no native OpenProject Gantt modification.'
+    - id: dependency.work-package-panel-implementation-before-release-story
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-replan-panel
+      successor_ref:
+        kind: task
+        id: task.self.prepare-release-story
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved on 2026-08-15 by rebuilding the private live OpenProject plugin image from the exact 17.6.0 OpenProject image pair, refreshing the mounted RePlan overlay artifact, verifying that the live Rails process sees the project-level and work-package-level RePlan routes, and confirming that the presenter can load a work-package row with resource demands. OpenProject task status synchronization remains pending because the API helper timed out after live verification.
+    - id: dependency.work-package-panel-implementation-before-helper-timeouts
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-replan-panel
+      successor_ref:
+        kind: task
+        id: task.self.stabilize-openproject-live-helper-timeouts
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The live work-package panel deployment exposed the timeout and autoheal behavior that the follow-up operations task must stabilize.
+    - id: dependency.openproject-helper-timeouts-before-release-story
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.stabilize-openproject-live-helper-timeouts
+      successor_ref:
+        kind: task
+        id: task.self.prepare-release-story
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved on 2026-08-16 by adding bounded OpenProject request timeouts, retry controls for guarded Python helpers, JSON request timing metadata, Go import timeout support and public-safe operator documentation. Live OpenProject backlog binding still has separate drift to resolve, but helper timeout behavior no longer blocks the release story.
+    - id: dependency.work-package-panel-implementation-before-build-layering
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-replan-panel
+      successor_ref:
+        kind: task
+        id: task.self.optimize-openproject-plugin-image-build-layering
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The live work-package panel deployment exposed the slow image rebuild cost that this tooling task optimizes.
+    - id: dependency.openproject-plugin-build-layering-before-helper-timeouts
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.optimize-openproject-plugin-image-build-layering
+      successor_ref:
+        kind: task
+        id: task.self.stabilize-openproject-live-helper-timeouts
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The build-layering helper is available before the broader OpenProject live helper timeout stabilization task.
+    - id: dependency.openproject-helper-timeouts-before-live-backlog-sync
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.stabilize-openproject-live-helper-timeouts
+      successor_ref:
+        kind: task
+        id: task.self.sync-latest-openproject-live-backlog-drift
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The live OpenProject helper timeout and retry behavior must be stable before using the guarded helpers to repair latest live backlog drift.
+    - id: dependency.live-backlog-sync-before-release-story
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.sync-latest-openproject-live-backlog-drift
+      successor_ref:
+        kind: task
+        id: task.self.prepare-release-story
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Resolved on 2026-08-16 by creating and binding the latest missing live OpenProject work packages through guarded helpers, applying missing live relations, reconciling status/date drift, assigning the maintainer in OpenProject and verifying final check-openproject-drift aligned with zero warnings or errors.
+    - id: dependency.live-backlog-sync-before-dogfood-reentry
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.sync-latest-openproject-live-backlog-drift
+      successor_ref:
+        kind: task
+        id: task.self.reenter-openproject-dogfood-cycle-after-pause
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The September re-entry starts from the last known aligned OpenProject/RePlan state recorded on 2026-08-16.
+    - id: dependency.dogfood-reentry-before-release-story
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.reenter-openproject-dogfood-cycle-after-pause
+      successor_ref:
+        kind: task
+        id: task.self.prepare-release-story
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Public release preparation must stay blocked until the post-pause re-entry confirms current plan state, resource state, human observability and OpenProject/RePlan drift, and records the decision on whether the active full OpenProject-centered dogfood cycle continues, splits, replans or closes.
+    - id: dependency.live-plugin-installation-before-documentation-sync
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.execute-live-openproject-plugin-installation
+      successor_ref:
+        kind: task
+        id: task.self.audit-and-sync-project-documentation
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Documentation synchronization depends on the accepted live OpenProject plugin installation because the audit aligns documents around the current implemented plugin state, project-level resource view direction and next work-package panel design gate.
+    - id: dependency.wiki-api-design-before-upstream-check
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.design-openproject-wiki-api-access
+      successor_ref:
+        kind: task
+        id: task.self.check-upstream-openproject-wiki-api-roadmap
+      required_state: accepted
+      status: resolved
+      criticality: preferred
+      notes: The upstream check uses the gap record and design as the precise statement of what is missing in API v3.
+    - id: dependency.wiki-api-design-before-plugin-implementation
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.design-openproject-wiki-api-access
+      successor_ref:
+        kind: task
+        id: task.self.implement-openproject-wiki-api-plugin
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The plugin is implemented only after the API surface, authorization model, write rules and plugin boundary are accepted in the design document.
+    - id: dependency.wiki-api-plugin-before-throwaway-runtime
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.implement-openproject-wiki-api-plugin
+      successor_ref:
+        kind: task
+        id: task.self.verify-openproject-wiki-api-plugin-throwaway-runtime
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The throwaway runtime proof needs the implemented gem and the multi-plugin image build helper.
+    - id: dependency.wiki-api-throwaway-runtime-before-live-deployment
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.verify-openproject-wiki-api-plugin-throwaway-runtime
+      successor_ref:
+        kind: task
+        id: task.self.deploy-openproject-wiki-api-plugin-live
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The live instance is changed only after the throwaway runtime proves the plugin and resolves the design verification points.
+    - id: dependency.ci-green-before-actual-audit-fix
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.fix-ci-smoke-ripgrep-dependency
+      successor_ref:
+        kind: task
+        id: task.self.fix-actual-audit-ids-and-demand-reopen
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The code slice is accepted only on CI evidence, so CI must be green first.
+    - id: dependency.ci-green-before-audit-hygiene
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.fix-ci-smoke-ripgrep-dependency
+      successor_ref:
+        kind: task
+        id: task.self.clean-post-pause-audit-hygiene
+      required_state: accepted
+      status: resolved
+      criticality: preferred
+      notes: Hygiene edits touch code formatting and usage output, which should land on a green CI.
+    - id: dependency.dogfood-reentry-before-next-product-slice
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.reenter-openproject-dogfood-cycle-after-pause
+      successor_ref:
+        kind: task
+        id: task.self.select-next-product-slice-from-replan-reports
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The next slice is chosen only after live alignment and the full-cycle decision are recorded.
+    - id: dependency.actual-audit-fix-before-next-product-slice
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.fix-actual-audit-ids-and-demand-reopen
+      successor_ref:
+        kind: task
+        id: task.self.select-next-product-slice-from-replan-reports
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The tracking data the decision reads must not depend on hand-edited demand state.
+    - id: dependency.audit-hygiene-before-next-product-slice
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.clean-post-pause-audit-hygiene
+      successor_ref:
+        kind: task
+        id: task.self.select-next-product-slice-from-replan-reports
+      required_state: accepted
+      status: resolved
+      criticality: preferred
+      notes: The command inventory used during the decision should be current.
+    - id: dependency.code-graph-evaluation-before-next-product-slice
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.evaluate-code-graph-quality-tooling
+      successor_ref:
+        kind: task
+        id: task.self.select-next-product-slice-from-replan-reports
+      required_state: accepted
+      status: resolved
+      criticality: preferred
+      notes: Code quality findings are an input to the fork choice.
+    - id: dependency.ci-green-before-lint-gate
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.fix-ci-smoke-ripgrep-dependency
+      successor_ref:
+        kind: task
+        id: task.self.add-go-lint-baseline-and-ci-gate
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: A new CI gate is meaningless while CI is already red for an unrelated reason.
+    - id: dependency.audit-hygiene-before-lint-gate
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.clean-post-pause-audit-hygiene
+      successor_ref:
+        kind: task
+        id: task.self.add-go-lint-baseline-and-ci-gate
+      required_state: accepted
+      status: resolved
+      criticality: preferred
+      notes: The hygiene task already fixes gofmt and usage drift; the baseline should start after it.
+    - id: dependency.dogfood-reentry-before-script-module-move
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.reenter-openproject-dogfood-cycle-after-pause
+      successor_ref:
+        kind: task
+        id: task.self.move-heredoc-python-into-script-modules
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The live OpenProject helpers are refactored only after the re-entry synchronization that uses them is finished.
+    - id: dependency.lint-gate-before-script-module-move
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.add-go-lint-baseline-and-ci-gate
+      successor_ref:
+        kind: task
+        id: task.self.move-heredoc-python-into-script-modules
+      required_state: accepted
+      status: resolved
+      criticality: preferred
+      notes: Moved Python should land under the same CI lint discipline as the Go code.
+    - id: dependency.next-slice-selection-before-state-report-work
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.select-next-product-slice-from-replan-reports
+      successor_ref:
+        kind: task
+        id: task.self.improve-state-report-next-actions
+      required_state: accepted
+      status: resolved
+      criticality: preferred
+      notes: The slice starts after the operator confirms the report-driven selection.
+    - id: dependency.plugin-review-before-gantt-design
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.review-openproject-replan-plugin-views
+      successor_ref:
+        kind: task
+        id: task.self.design-openproject-plugin-gantt-view
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The design starts from what the operator found useful and missing in the live plugin views.
+    - id: dependency.gantt-design-before-gantt-build
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.design-openproject-plugin-gantt-view
+      successor_ref:
+        kind: task
+        id: task.self.implement-openproject-plugin-gantt-view
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The view is built from the accepted design.
+    - id: dependency.plugin-design-before-overlay-contract
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.design-openproject-plugin-gantt-view
+      successor_ref:
+        kind: task
+        id: task.self.extend-overlay-contract-for-plugin-views
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The contract carries what the accepted design needs, no more.
+    - id: dependency.rendered-checks-before-plugin-theme
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.add-plugin-rendered-page-checks
+      successor_ref:
+        kind: task
+        id: task.self.theme-plugin-views-with-openproject-variables
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Visual changes are made against the rendered-page checks.
+    - id: dependency.overlay-contract-before-page-restructure
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.extend-overlay-contract-for-plugin-views
+      successor_ref:
+        kind: task
+        id: task.self.restructure-plugin-project-page
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Names and counters come from the extended contract.
+    - id: dependency.plugin-theme-before-page-restructure
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.theme-plugin-views-with-openproject-variables
+      successor_ref:
+        kind: task
+        id: task.self.restructure-plugin-project-page
+      required_state: accepted
+      status: resolved
+      criticality: preferred
+      notes: The restructure builds on the themed layout.
+    - id: dependency.page-restructure-before-milestone-1
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.restructure-plugin-project-page
+      successor_ref:
+        kind: task
+        id: task.self.deploy-plugin-milestone-1
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Milestone 1 ships the restructured page.
+    - id: dependency.gantt-build-before-load-profile
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.implement-openproject-plugin-gantt-view
+      successor_ref:
+        kind: task
+        id: task.self.add-plugin-resource-load-profile
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The load profile sits under the Gantt task view and shares its axis.
+    - id: dependency.load-profile-before-panel-lanes
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.add-plugin-resource-load-profile
+      successor_ref:
+        kind: task
+        id: task.self.show-evidence-and-actuals-in-plugin-panel
+      required_state: accepted
+      status: resolved
+      criticality: preferred
+      notes: The panel reuses the lane and axis components of the Gantt view.
+    - id: dependency.panel-before-milestone-2
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.show-evidence-and-actuals-in-plugin-panel
+      successor_ref:
+        kind: task
+        id: task.self.deploy-plugin-milestone-2
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Milestone 2 ships the Gantt view, load profile and panel together.
+    - id: dependency.milestone-2-before-work-package-link
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.deploy-plugin-milestone-2
+      successor_ref:
+        kind: task
+        id: task.self.link-openproject-work-package-to-replan-panel
+      required_state: accepted
+      status: cancelled
+      criticality: preferred
+      notes: The link points at the finished panel. Cancelled on 2026-09-27 by the operator's decision to build the link while they review the plugin; the task page it points at was accepted the same day (evidence.work-package-link.operator-go). Edited by hand, see GAP-032.
+    - id: dependency.work-package-link-before-milestone-3
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.link-openproject-work-package-to-replan-panel
+      successor_ref:
+        kind: task
+        id: task.self.deploy-plugin-milestone-3-and-accept-track
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Milestone 3 ships the work-package link.
+    - id: dependency.project-scope-before-milestone-3
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.scope-plugin-overlay-to-its-project
+      successor_ref:
+        kind: task
+        id: task.self.deploy-plugin-milestone-3-and-accept-track
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Milestone 3 ships the per-project overlay.
+    - id: dependency.page-restructure-before-gantt-build
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.restructure-plugin-project-page
+      successor_ref:
+        kind: task
+        id: task.self.implement-openproject-plugin-gantt-view
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The Gantt view replaces the timeline inside the restructured page.
+    - id: dependency.rendered-checks-before-overlay-contract
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.add-plugin-rendered-page-checks
+      successor_ref:
+        kind: task
+        id: task.self.extend-overlay-contract-for-plugin-views
+      required_state: accepted
+      status: resolved
+      criticality: preferred
+      notes: Contract changes reach the pages, so they are verified by the rendered-page checks; both also need the single development slot.
+    - id: dependency.gantt-build-before-gantt-navigation
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.implement-openproject-plugin-gantt-view
+      successor_ref:
+        kind: task
+        id: task.self.add-plugin-gantt-navigation
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Navigation works on the built Gantt view.
+    - id: dependency.gantt-navigation-before-load-profile
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.add-plugin-gantt-navigation
+      successor_ref:
+        kind: task
+        id: task.self.add-plugin-resource-load-profile
+      required_state: accepted
+      status: resolved
+      criticality: preferred
+      notes: The load profile lives on the Gantt page and follows its range and scale.
+    - id: dependency.unify-helper-json-envelope-before-derive-helper-exit-codes-from-ok
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.unify-helper-json-envelope
+      successor_ref:
+        kind: task
+        id: task.self.derive-helper-exit-codes-from-ok
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The exit code is derived in the shared emit function.
+    - id: dependency.unify-helper-json-envelope-before-fail-apply-without-openproject-token
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.unify-helper-json-envelope
+      successor_ref:
+        kind: task
+        id: task.self.fail-apply-without-openproject-token
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The missing-token failure uses the shared envelope.
+    - id: dependency.unify-helper-json-envelope-before-report-applied-actions-on-helper-failure
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.unify-helper-json-envelope
+      successor_ref:
+        kind: task
+        id: task.self.report-applied-actions-on-helper-failure
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: applied_so_far is a field of the shared failure envelope.
+    - id: dependency.load-dotenv-in-every-kit-script-before-check-agent-kit-with-env-file-only
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.load-dotenv-in-every-kit-script
+      successor_ref:
+        kind: task
+        id: task.self.check-agent-kit-with-env-file-only
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The env-file-only check fails until every kit script loads the file.
+    - id: dependency.drop-dogfood-defaults-from-kit-scripts-before-check-agent-kit-with-env-file-only
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.drop-dogfood-defaults-from-kit-scripts
+      successor_ref:
+        kind: task
+        id: task.self.check-agent-kit-with-env-file-only
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The env-file-only check fails while a script falls back to a dogfood default.
+    - id: dependency.share-openproject-http-client-and-settings-before-fix-openproject-relations-and-bootstrap-pagination
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.share-openproject-http-client-and-settings
+      successor_ref:
+        kind: task
+        id: task.self.fix-openproject-relations-and-bootstrap-pagination
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: Both fixes use the shared paginate function.
+    - id: dependency.share-openproject-http-client-and-settings-before-retry-only-idempotent-openproject-requests
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.share-openproject-http-client-and-settings
+      successor_ref:
+        kind: task
+        id: task.self.retry-only-idempotent-openproject-requests
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The retry rule lives in the shared request function.
+    - id: dependency.share-openproject-http-client-and-settings-before-pass-named-arguments-to-python-helpers
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.share-openproject-http-client-and-settings
+      successor_ref:
+        kind: task
+        id: task.self.pass-named-arguments-to-python-helpers
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The helpers read their settings with Settings.from_env.
+    - id: dependency.pass-named-arguments-to-python-helpers-before-add-help-to-every-script
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.pass-named-arguments-to-python-helpers
+      successor_ref:
+        kind: task
+        id: task.self.add-help-to-every-script
+      required_state: accepted
+      status: resolved
+      criticality: preferred
+      notes: Help is simpler once the wrappers only pass their arguments on.
+    - id: dependency.add-replan-evidence-add-before-track-the-task-acceptance-chain
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.add-replan-evidence-add
+      successor_ref:
+        kind: task
+        id: task.self.track-the-task-acceptance-chain
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The acceptance chain records its evidence with the new command.
+    - id: dependency.share-openproject-bindings-module-before-read-private-openproject-bindings-in-go
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.share-openproject-bindings-module
+      successor_ref:
+        kind: task
+        id: task.self.read-private-openproject-bindings-in-go
+      required_state: accepted
+      status: resolved
+      criticality: preferred
+      notes: The Go layer reads the format the shared module writes.
+    - id: dependency.read-private-openproject-bindings-in-go-before-guard-import-accept-against-real-ids
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.read-private-openproject-bindings-in-go
+      successor_ref:
+        kind: task
+        id: task.self.guard-import-accept-against-real-ids
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: import accept writes to the bindings layer the CLI can read.
+    - id: dependency.check-agent-kit-with-env-file-only-before-refresh-agent-kit-after-tooling-consolidation
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.check-agent-kit-with-env-file-only
+      successor_ref:
+        kind: task
+        id: task.self.refresh-agent-kit-after-tooling-consolidation
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The refreshed kit passes the env-file-only check.
+    - id: dependency.ship-overlay-publish-in-agent-kit-before-refresh-agent-kit-after-tooling-consolidation
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.ship-overlay-publish-in-agent-kit
+      successor_ref:
+        kind: task
+        id: task.self.refresh-agent-kit-after-tooling-consolidation
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The refreshed kit carries the overlay decision.
+    - id: dependency.move-pilot-narrative-to-private-storage-before-cut-public-repository-from-sanitized-tree
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.move-pilot-narrative-to-private-storage
+      successor_ref:
+        kind: task
+        id: task.self.cut-public-repository-from-sanitized-tree
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The public tree carries no pilot narrative.
+    - id: dependency.add-contributing-and-security-policy-before-cut-public-repository-from-sanitized-tree
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.add-contributing-and-security-policy
+      successor_ref:
+        kind: task
+        id: task.self.cut-public-repository-from-sanitized-tree
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The public repository has its entry points.
+    - id: dependency.cut-public-repository-from-sanitized-tree-before-prepare-release-story
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.cut-public-repository-from-sanitized-tree
+      successor_ref:
+        kind: task
+        id: task.self.prepare-release-story
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The release story describes the repository that is published.
+    - id: dependency.report-openproject-rescheduling-after-relation-create-before-refresh-agent-kit-after-tooling-consolidation
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.report-openproject-rescheduling-after-relation-create
+      successor_ref:
+        kind: task
+        id: task.self.refresh-agent-kit-after-tooling-consolidation
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The refreshed kit carries the relations helper that reports moved dates.
+    - id: dependency.store-estimates-in-baselines-before-report-estimate-accuracy
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.store-estimates-in-baselines
+      successor_ref:
+        kind: task
+        id: task.self.report-estimate-accuracy
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The accuracy report reads the planned amounts and dates that the baseline stores.
+    - id: dependency.record-actual-task-window-before-backfill-actual-task-windows
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.record-actual-task-window
+      successor_ref:
+        kind: task
+        id: task.self.backfill-actual-task-windows
+      required_state: accepted
+      status: resolved
+      criticality: required
+    - id: dependency.version-project-file-format-before-publish-public-repository
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.version-project-file-format
+      successor_ref:
+        kind: task
+        id: task.self.publish-public-repository
+      required_state: accepted
+      status: resolved
+      criticality: required
+    - id: dependency.add-version-command-and-release-build-before-publish-public-repository
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.add-version-command-and-release-build
+      successor_ref:
+        kind: task
+        id: task.self.publish-public-repository
+      required_state: accepted
+      status: resolved
+      criticality: required
+    - id: dependency.backfill-actual-task-windows-before-publish-public-repository
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.backfill-actual-task-windows
+      successor_ref:
+        kind: task
+        id: task.self.publish-public-repository
+      required_state: accepted
+      status: resolved
+      criticality: required
+    - id: dependency.publish-public-repository-before-publish-first-release
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.publish-public-repository
+      successor_ref:
+        kind: task
+        id: task.self.publish-first-release
+      required_state: accepted
+      status: open
+      criticality: required
+    - id: dependency.design-estimate-calibration-before-implement-estimate-calibration
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.design-estimate-calibration
+      successor_ref:
+        kind: task
+        id: task.self.implement-estimate-calibration
+      required_state: accepted
+      status: resolved
+      criticality: required
+    - id: dependency.design-second-tracker-adapter-before-import-second-tracker-from-file
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.design-second-tracker-adapter
+      successor_ref:
+        kind: task
+        id: task.self.import-second-tracker-from-file
+      required_state: accepted
+      status: resolved
+      criticality: required
+    - id: dependency.import-second-tracker-from-file-before-import-second-tracker-live
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.import-second-tracker-from-file
+      successor_ref:
+        kind: task
+        id: task.self.import-second-tracker-live
+      required_state: accepted
+      status: open
+      criticality: required
+    - id: dependency.design-local-web-view-before-implement-local-web-view
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.design-local-web-view
+      successor_ref:
+        kind: task
+        id: task.self.implement-local-web-view
+      required_state: accepted
+      status: resolved
+      criticality: required
+    - id: dependency.keep-non-working-day-dates-in-openproject-before-backfill-actual-task-windows
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.keep-non-working-day-dates-in-openproject
+      successor_ref:
+        kind: task
+        id: task.self.backfill-actual-task-windows
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The backfill pushes 27 weekend dates that OpenProject would otherwise move.
+    - id: dependency.keep-self-sample-dates-after-acceptance-before-backfill-actual-task-windows
+      type: finish_to_start
+      predecessor_ref:
+        kind: task
+        id: task.self.keep-self-sample-dates-after-acceptance
+      successor_ref:
+        kind: task
+        id: task.self.backfill-actual-task-windows
+      required_state: accepted
+      status: resolved
+      criticality: required
+      notes: The backfill moves the dates of about a hundred accepted tasks, which the sample has to follow.

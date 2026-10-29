@@ -1,0 +1,129 @@
+evidence:
+  - id: evidence.sync-latest-openproject-live-backlog-drift.completed
+    type: command_result
+    subtype: live_openproject_backlog_sync_completed
+    source: openproject_live
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-16T15:00:00+07:00"
+    confidence: observed
+    summary: The latest RePlan self-dogfood backlog drift was synchronized to the private live OpenProject project through guarded helpers only. Backlog reconcile initially reported five unbound local tasks and no existing title matches. The missing work packages were created through reviewed work-package create dry-runs and apply runs, then bound through the ignored private binding layer. Relation apply created the nine missing live OpenProject relations. Status push closed the two stale in-progress OpenProject work packages. Date synchronization first pushed reviewed RePlan dates, then accepted OpenProject working-calendar normalization for two completed tasks. Metadata updates assigned the eight recently created or updated OpenProject work packages to the live maintainer account. Final check-openproject-drift reported aligned with 54 local tasks, 54 live task candidates, 77 local dependencies, 77 live dependency candidates, zero task/status/date/relation drift, zero warnings and zero errors. The generated OpenProject overlay artifact was regenerated and republished to the private live OpenProject mount; the Rails loader read 54 work packages, 54 linked tasks and 0 missing links.
+    url: scripts/openproject-work-package-toolkit.sh
+    targets:
+      - kind: task
+        id: task.self.sync-latest-openproject-live-backlog-drift
+      - kind: dependency
+        id: dependency.live-backlog-sync-before-release-story
+  - id: evidence.openproject-live-helper-timeouts.completed
+    type: command_result
+    subtype: openproject_operator_loop_stabilized
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-16T13:30:00+07:00"
+    confidence: observed
+    summary: The live OpenProject operator helpers now share explicit timeout and retry controls. Python helpers use a shared request helper with bounded per-request timeout, transient retry support and JSON request timing metadata. The Go OpenProject importer now supports REPLAN_OPENPROJECT_TIMEOUT_SECONDS and the --request-timeout flag, so drift checks that import live OpenProject data no longer rely on an unbounded default HTTP client. Validation confirmed that the guarded status-list helper succeeds through the live tunnel with the extended timeout/retry settings, and check-openproject-drift reaches live OpenProject successfully before reporting substantive backlog binding drift.
+    url: scripts/lib/openproject_http.py
+    targets:
+      - kind: task
+        id: task.self.stabilize-openproject-live-helper-timeouts
+      - kind: dependency
+        id: dependency.openproject-helper-timeouts-before-release-story
+  - id: evidence.openproject-plugin-build-layering.completed
+    type: workspace_event
+    subtype: tooling_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-16T12:00:00+07:00"
+    confidence: observed
+    summary: The OpenProject RePlan plugin image build path now has a reusable build helper with modes for full builds, dependency-base builds, code-only builds and automatic selection. The heavy dependency base keeps the exact OpenProject 17.6.0 builder and slim image pair, Bundler output, OpenProject modules and precompiled assets. Ordinary plugin code changes can build a thin image by copying only the plugin source over the dependency base. The throwaway runtime check now uses the same build helper, so local runtime verification and live operations share the image-construction path. The private VPS was prepared by tagging the current healthy live image as the dependency base, and a code-only build test completed without running Bundler or asset precompile.
+    url: scripts/build-openproject-plugin-image.sh
+    targets:
+      - kind: task
+        id: task.self.optimize-openproject-plugin-image-build-layering
+      - kind: dependency
+        id: dependency.work-package-panel-implementation-before-build-layering
+  - id: evidence.openproject-work-package-replan-panel.live-deployed
+    type: command_result
+    subtype: live_openproject_plugin_deployment
+    source: openproject_live
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-15T20:30:00+07:00"
+    confidence: observed
+    summary: The private live OpenProject RePlan plugin was rebuilt from the exact OpenProject 17.6.0 builder and slim image pair, redeployed to the Rails services, and refreshed with a generated RePlan overlay artifact. The live web service returned healthy on the new image, autoheal was restored after the long Rails boot, and a Rails runner check confirmed that the plugin exposes both the project-level RePlan route and the work-package-level RePlan route. The same check loaded 51 overlay work packages and found a work-package row with resource demands through the live presenter. The initial apply had to be retried with autoheal temporarily stopped because Rails boot exceeded the health window after container recreation. OpenProject task-status synchronization remains pending because the API helper timed out after live verification; no direct database or unreviewed write was used.
+    url: docs/dev/openproject-work-package-replan-panel-design.md
+    targets:
+      - kind: task
+        id: task.self.implement-openproject-work-package-replan-panel
+      - kind: dependency
+        id: dependency.work-package-panel-implementation-before-release-story
+  - id: evidence.openproject-work-package-replan-panel.local-prototype
+    type: workspace_event
+    subtype: implementation_partially_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-15T13:00:00+07:00"
+    confidence: observed
+    summary: The local read-only OpenProject work-package-level RePlan panel prototype was implemented. The plugin now has a per-work-package route, controller action, presenter lookup by OpenProject work-package id, project-level links to the panel, a per-work-package ERB view with resource rows and compact timeline bars, safe missing-overlay and missing-row states, and scaffold checks including ERB syntax validation. Live OpenProject deploy and route verification remain pending because the live drift check returned openproject_network_error in this session.
+    url: integrations/openproject/plugins/openproject-replan_overlay/app/views/open_project/replan_overlay/overlays/work_package.html.erb
+    targets:
+      - kind: task
+        id: task.self.implement-openproject-work-package-replan-panel
+  - id: evidence.openproject-work-package-replan-panel-design.accepted
+    type: workspace_event
+    subtype: design_accepted
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-15T12:30:00+07:00"
+    confidence: observed
+    summary: "The OpenProject work-package-level RePlan panel design was accepted for the first implementation slice. The accepted path is Placement A: a read-only plugin route for one OpenProject work package, linked from the project-level RePlan page, showing resource rows, planned/actual/remaining amounts, tracking/proposal/evidence summaries and compact timeline bars while deferring native OpenProject work-package injection and native Gantt modification."
+    url: docs/dev/openproject-work-package-replan-panel-design.md
+    targets:
+      - kind: task
+        id: task.self.design-openproject-work-package-replan-panel
+      - kind: dependency
+        id: dependency.work-package-panel-design-before-implementation
+      - kind: dependency
+        id: dependency.work-package-panel-design-before-release-story
+  - id: evidence.live-openproject-plugin-resource-view.accepted
+    type: workspace_event
+    subtype: implementation_accepted
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-15T11:50:00+07:00"
+    confidence: observed
+    summary: The live project-level OpenProject RePlan resource view was accepted as sufficient for the next dogfood step. The view is not considered final UI, but it is good enough to unblock the work-package-level RePlan panel design and to close the resource-view-before-panel dependency.
+    url: docs/dev/openproject-plugin-live-installation-result.md
+    targets:
+      - kind: task
+        id: task.self.improve-live-openproject-plugin-resource-view
+      - kind: dependency
+        id: dependency.resource-view-before-work-package-panel-design
+  - id: evidence.documentation-sync-audit.completed
+    type: workspace_event
+    subtype: documentation_synchronized
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-15T12:00:00+07:00"
+    confidence: observed
+    summary: The project documentation was audited and synchronized after the live OpenProject plugin installation, project-level resource-aware plugin view and work-package panel design work. The pass updated related roadmap, design, specification and documentation-index files, recorded the current authoritative OpenProject/RePlan operating state, corrected stale plugin/static-dashboard wording and marked live OpenProject synchronization for the documentation task as pending.
+    url: docs/dev/documentation-sync-audit-2026-08-15.md
+    targets:
+      - kind: task
+        id: task.self.audit-and-sync-project-documentation
+      - kind: dependency
+        id: dependency.live-plugin-installation-before-documentation-sync

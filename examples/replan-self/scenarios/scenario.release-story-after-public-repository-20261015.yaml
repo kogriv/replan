@@ -1,0 +1,18 @@
+scenario:
+    id: scenario.release-story-after-public-repository-20261015
+    name: Release story moves to 10 to 23 December, after the tooling consolidation and the public repository preparation the operator ordered on 2026-10-15
+    status: applied
+    base_ref:
+        kind: current_plan
+        id: current
+    created_at: "2026-10-15T11:51:00+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    changes:
+        - op: replace
+          path: tasks.task.self.prepare-release-story.planned_start
+          value: "2026-12-10"
+        - op: replace
+          path: tasks.task.self.prepare-release-story.planned_finish
+          value: "2026-12-23"

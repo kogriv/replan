@@ -1,0 +1,2269 @@
+actuals:
+    - id: actual.self-design-openproject-wiki-api-access.ai-agent-executor.20260921T1200000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-wiki-api-access
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.wiki-api-design.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 3
+      unit: agent_hours
+      occurred_at: "2026-09-21T12:00:00+07:00"
+      status_date: "2026-09-21"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-wiki-api-design.accepted
+    - id: actual.self-design-openproject-wiki-api-access.human-maintainer.20260921T1200000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-wiki-api-access
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.wiki-api-design.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 1
+      unit: hours
+      occurred_at: "2026-09-21T12:00:00+07:00"
+      status_date: "2026-09-21"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-wiki-api-design.accepted
+    - id: actual.self-design-openproject-wiki-api-access.role-reviewer.20260921T1200000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-wiki-api-access
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.wiki-api-design.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.25
+      unit: review_hours
+      occurred_at: "2026-09-21T12:00:00+07:00"
+      status_date: "2026-09-21"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-wiki-api-design.accepted
+    - id: actual.self-implement-openproject-wiki-api-plugin.ai-review-assistant.20260921T1600000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-wiki-api-plugin
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.wiki-api-plugin.ai-review
+      resource_ref:
+        kind: resource
+        id: resource.ai.review-assistant
+      amount: 1
+      unit: agent_hours
+      occurred_at: "2026-09-21T16:00:00+07:00"
+      status_date: "2026-09-21"
+      accepted_by:
+        kind: actor
+        id: actor.ai.review-assistant
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-wiki-api-plugin.gate1-review-changes-required
+    - id: actual.self-implement-openproject-wiki-api-plugin.ai-review-assistant.20260921T1730000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-wiki-api-plugin
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.wiki-api-plugin.ai-review
+      resource_ref:
+        kind: resource
+        id: resource.ai.review-assistant
+      amount: 0.5
+      unit: agent_hours
+      occurred_at: "2026-09-21T17:30:00+07:00"
+      status_date: "2026-09-21"
+      accepted_by:
+        kind: actor
+        id: actor.ai.review-assistant
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-wiki-api-plugin.gate1-rereview-accepted-with-notes
+    - id: actual.self-implement-openproject-wiki-api-plugin.ai-agent-executor.20260921T1801000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-wiki-api-plugin
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.wiki-api-plugin.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 2
+      unit: agent_hours
+      occurred_at: "2026-09-21T18:01:00+07:00"
+      status_date: "2026-09-21"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-wiki-api-plugin.gate1-rereview-accepted-with-notes
+    - id: actual.self-implement-openproject-wiki-api-plugin.human-maintainer.20260921T1801000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-wiki-api-plugin
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.wiki-api-plugin.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 0.5
+      unit: hours
+      occurred_at: "2026-09-21T18:01:00+07:00"
+      status_date: "2026-09-21"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-wiki-api-plugin.gate1-rereview-accepted-with-notes
+    - id: actual.self-implement-openproject-wiki-api-plugin.role-reviewer.20260921T1801000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-wiki-api-plugin
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.wiki-api-plugin.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.25
+      unit: review_hours
+      occurred_at: "2026-09-21T18:01:00+07:00"
+      status_date: "2026-09-21"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-wiki-api-plugin.gate1-rereview-accepted-with-notes
+    - id: actual.self-implement-openproject-wiki-api-plugin.environment-local-dev.20260921T1801000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-wiki-api-plugin
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.wiki-api-plugin.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-21T18:01:00+07:00"
+      status_date: "2026-09-21"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-wiki-api-plugin.gate1-rereview-accepted-with-notes
+    - id: actual.self-verify-openproject-wiki-api-plugin-throwaway-runtime.ai-agent-executor.20260921T2100000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.verify-openproject-wiki-api-plugin-throwaway-runtime
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.wiki-api-throwaway-runtime.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 3
+      unit: agent_hours
+      occurred_at: "2026-09-21T21:00:00+07:00"
+      status_date: "2026-09-21"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-wiki-api-plugin.throwaway-runtime-proven
+    - id: actual.self-verify-openproject-wiki-api-plugin-throwaway-runtime.environment-local-dev.20260921T2101000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.verify-openproject-wiki-api-plugin-throwaway-runtime
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.wiki-api-throwaway-runtime.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-21T21:01:00+07:00"
+      status_date: "2026-09-21"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-wiki-api-plugin.throwaway-runtime-proven
+    - id: actual.self-verify-openproject-wiki-api-plugin-throwaway-runtime.human-maintainer.20260921T2200000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.verify-openproject-wiki-api-plugin-throwaway-runtime
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.wiki-api-throwaway-runtime.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 0.5
+      unit: hours
+      occurred_at: "2026-09-21T22:00:00+07:00"
+      status_date: "2026-09-21"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-wiki-api-plugin.throwaway-runtime-proven
+    - id: actual.self-verify-openproject-wiki-api-plugin-throwaway-runtime.role-reviewer.20260921T2201000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.verify-openproject-wiki-api-plugin-throwaway-runtime
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.wiki-api-throwaway-runtime.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.25
+      unit: review_hours
+      occurred_at: "2026-09-21T22:01:00+07:00"
+      status_date: "2026-09-21"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-wiki-api-plugin.throwaway-runtime-proven
+    - id: actual.self-deploy-openproject-wiki-api-plugin-live.ai-agent-executor.20260921T2300000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.deploy-openproject-wiki-api-plugin-live
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.wiki-api-live-deployment.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 1.5
+      unit: agent_hours
+      occurred_at: "2026-09-21T23:00:00+07:00"
+      status_date: "2026-09-21"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-wiki-api-plugin.live-deployed
+    - id: actual.self-evaluate-code-graph-quality-tooling.ai-agent-executor.20260924T1800000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.evaluate-code-graph-quality-tooling
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.evaluate-code-graph-quality-tooling.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 1.25
+      unit: agent_hours
+      occurred_at: "2026-09-24T18:00:00+07:00"
+      status_date: "2026-09-24"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.code-quality-tooling.bounded-trial
+    - id: actual.self-fix-ci-smoke-ripgrep-dependency.ai-agent-executor.20260924T1410000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.fix-ci-smoke-ripgrep-dependency
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.fix-ci-smoke-ripgrep-dependency.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.75
+      unit: agent_hours
+      occurred_at: "2026-09-24T14:10:00+07:00"
+      status_date: "2026-09-24"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.ci.green-after-scaffold-portability-fix
+    - id: actual.self-fix-ci-smoke-ripgrep-dependency.ci-github-actions.20260924T1410010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.fix-ci-smoke-ripgrep-dependency
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.fix-ci-smoke-ripgrep-dependency.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 2
+      unit: ci_minutes
+      occurred_at: "2026-09-24T14:10:01+07:00"
+      status_date: "2026-09-24"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.ci.green-after-scaffold-portability-fix
+    - id: actual.self-fix-actual-audit-ids-and-demand-reopen.ai-agent-executor.20260924T1700000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.fix-actual-audit-ids-and-demand-reopen
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.fix-actual-audit-ids-and-demand-reopen.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 4
+      unit: agent_hours
+      occurred_at: "2026-09-24T17:00:00+07:00"
+      status_date: "2026-09-24"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.actuals-staging-fix.ci-green-and-reviewed
+    - id: actual.self-fix-actual-audit-ids-and-demand-reopen.ai-review-assistant.20260924T1701000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.fix-actual-audit-ids-and-demand-reopen
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.fix-actual-audit-ids-and-demand-reopen.ai-review
+      resource_ref:
+        kind: resource
+        id: resource.ai.review-assistant
+      amount: 0.1
+      unit: agent_hours
+      occurred_at: "2026-09-24T17:01:00+07:00"
+      status_date: "2026-09-24"
+      accepted_by:
+        kind: actor
+        id: actor.ai.review-assistant
+      evidence_refs:
+        - kind: evidence
+          id: evidence.actuals-staging-fix.ci-green-and-reviewed
+    - id: actual.self-fix-actual-audit-ids-and-demand-reopen.environment-local-dev.20260924T1703000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.fix-actual-audit-ids-and-demand-reopen
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.fix-actual-audit-ids-and-demand-reopen.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-24T17:03:00+07:00"
+      status_date: "2026-09-24"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.actuals-staging-fix.ci-green-and-reviewed
+    - id: actual.self-fix-actual-audit-ids-and-demand-reopen.ci-github-actions.20260924T1704000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.fix-actual-audit-ids-and-demand-reopen
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.fix-actual-audit-ids-and-demand-reopen.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-09-24T17:04:00+07:00"
+      status_date: "2026-09-24"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.actuals-staging-fix.ci-green-and-reviewed
+    - id: actual.self-clean-post-pause-audit-hygiene.ai-agent-executor.20260924T1705000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.clean-post-pause-audit-hygiene
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.clean-post-pause-audit-hygiene.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 1
+      unit: agent_hours
+      occurred_at: "2026-09-24T17:05:00+07:00"
+      status_date: "2026-09-24"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.audit-hygiene.committed
+    - id: actual.self-reenter-openproject-dogfood-cycle-after-pause.ai-agent-executor.20260924T1840000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.reenter-openproject-dogfood-cycle-after-pause
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.dogfood-reentry-after-pause.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 3.25
+      unit: agent_hours
+      occurred_at: "2026-09-24T18:40:00+07:00"
+      status_date: "2026-09-24"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.dogfood-reentry.live-sync-20260924
+    - id: actual.self-reenter-openproject-dogfood-cycle-after-pause.environment-local-dev.20260924T1841000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.reenter-openproject-dogfood-cycle-after-pause
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.dogfood-reentry-after-pause.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-24T18:41:00+07:00"
+      status_date: "2026-09-24"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.dogfood-reentry.live-sync-20260924
+    - id: actual.self-check-upstream-openproject-wiki-api-roadmap.ai-agent-executor.20260924T1931000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.check-upstream-openproject-wiki-api-roadmap
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.wiki-api-upstream-check.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.75
+      unit: agent_hours
+      occurred_at: "2026-09-24T19:31:00+07:00"
+      status_date: "2026-09-24"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.wiki-api-upstream-check.20260924
+    - id: actual.self-add-go-lint-baseline-and-ci-gate.ai-agent-executor.20260924T2000000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-go-lint-baseline-and-ci-gate
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-go-lint-baseline-and-ci-gate.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 1.25
+      unit: agent_hours
+      occurred_at: "2026-09-24T20:00:00+07:00"
+      status_date: "2026-09-24"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.lint-gate.ci-green-20260924
+    - id: actual.self-add-go-lint-baseline-and-ci-gate.environment-local-dev.20260924T2001000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-go-lint-baseline-and-ci-gate
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-go-lint-baseline-and-ci-gate.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-24T20:01:00+07:00"
+      status_date: "2026-09-24"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.lint-gate.ci-green-20260924
+    - id: actual.self-add-go-lint-baseline-and-ci-gate.ci-github-actions.20260924T2002000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-go-lint-baseline-and-ci-gate
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-go-lint-baseline-and-ci-gate.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 2
+      unit: ci_minutes
+      occurred_at: "2026-09-24T20:02:00+07:00"
+      status_date: "2026-09-24"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.lint-gate.ci-green-20260924
+    - id: actual.self-move-heredoc-python-into-script-modules.ai-agent-executor.20260924T2030000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.move-heredoc-python-into-script-modules
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.move-heredoc-python-into-script-modules.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 2.5
+      unit: agent_hours
+      occurred_at: "2026-09-24T20:30:00+07:00"
+      status_date: "2026-09-24"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.heredoc-module-move.byte-identical-20260924
+    - id: actual.self-move-heredoc-python-into-script-modules.environment-local-dev.20260924T2031000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.move-heredoc-python-into-script-modules
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.move-heredoc-python-into-script-modules.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-24T20:31:00+07:00"
+      status_date: "2026-09-24"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.heredoc-module-move.byte-identical-20260924
+    - id: actual.self-move-heredoc-python-into-script-modules.ci-github-actions.20260924T2032000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.move-heredoc-python-into-script-modules
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.move-heredoc-python-into-script-modules.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-09-24T20:32:00+07:00"
+      status_date: "2026-09-24"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.heredoc-module-move.byte-identical-20260924
+    - id: actual.self-select-next-product-slice-from-replan-reports.ai-agent-executor.20260924T2101000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.select-next-product-slice-from-replan-reports
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.select-next-product-slice-from-replan-reports.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.5
+      unit: agent_hours
+      occurred_at: "2026-09-24T21:01:00+07:00"
+      status_date: "2026-09-24"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.next-product-slice.report-snapshot-20260924
+    - id: actual.self-add-wiki-api-page-delete.ai-agent-executor.20260925T1030000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-wiki-api-page-delete
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-wiki-api-page-delete.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 2.5
+      unit: agent_hours
+      occurred_at: "2026-09-25T10:30:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.wiki-api-page-delete.deployed-20260925
+    - id: actual.self-add-wiki-api-page-delete.environment-local-dev.20260925T1040100700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-wiki-api-page-delete
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-wiki-api-page-delete.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-25T10:40:10+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.wiki-api-page-delete.deployed-20260925
+    - id: actual.self-add-wiki-api-page-delete.ai-agent-executor.20260925T1100000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-wiki-api-page-delete
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-wiki-api-page-delete.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.25
+      unit: agent_hours
+      occurred_at: "2026-09-25T11:00:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.wiki-api-page-delete.member-token-accepted
+    - id: actual.self-add-wiki-api-page-delete.ci-github-actions.20260925T1100100700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-wiki-api-page-delete
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-wiki-api-page-delete.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 10
+      unit: ci_minutes
+      occurred_at: "2026-09-25T11:00:10+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.wiki-api-page-delete.member-token-accepted
+    - id: actual.self-improve-state-report-next-actions.ai-agent-executor.20260925T1230000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.improve-state-report-next-actions
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.improve-state-report-next-actions.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 2.5
+      unit: agent_hours
+      occurred_at: "2026-09-25T12:30:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.state-report-next-actions.backtest-20260925
+    - id: actual.self-improve-state-report-next-actions.environment-local-dev.20260925T1230200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.improve-state-report-next-actions
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.improve-state-report-next-actions.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-25T12:30:20+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.state-report-next-actions.backtest-20260925
+    - id: actual.self-improve-state-report-next-actions.ai-agent-executor.20260925T1330000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.improve-state-report-next-actions
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.improve-state-report-next-actions.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 1
+      unit: agent_hours
+      occurred_at: "2026-09-25T13:30:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.state-report-next-actions.brief-view-20260925
+    - id: actual.self-improve-state-report-next-actions.ci-github-actions.20260925T1405000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.improve-state-report-next-actions
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.improve-state-report-next-actions.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 10
+      unit: ci_minutes
+      occurred_at: "2026-09-25T14:05:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.state-report-next-actions.operator-accepted
+    - id: actual.self-fix-close-demand-stale-remaining.ai-agent-executor.20260925T1420000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.fix-close-demand-stale-remaining
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.fix-close-demand-stale-remaining.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.75
+      unit: agent_hours
+      occurred_at: "2026-09-25T14:20:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.close-demand-clears-remaining.20260925
+    - id: actual.self-fix-close-demand-stale-remaining.environment-local-dev.20260925T1420200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.fix-close-demand-stale-remaining
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.fix-close-demand-stale-remaining.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-25T14:20:20+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.close-demand-clears-remaining.20260925
+    - id: actual.self-fix-close-demand-stale-remaining.ci-github-actions.20260925T1440000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.fix-close-demand-stale-remaining
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.fix-close-demand-stale-remaining.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 5
+      unit: ci_minutes
+      occurred_at: "2026-09-25T14:40:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.close-demand-clears-remaining.operator-accepted
+    - id: actual.self-set-project-status-date-command.ai-agent-executor.20260925T1530000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.set-project-status-date-command
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.set-project-status-date-command.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 1.5
+      unit: agent_hours
+      occurred_at: "2026-09-25T15:30:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.project-set-status-date.first-use-20260925
+    - id: actual.self-set-project-status-date-command.environment-local-dev.20260925T1530200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.set-project-status-date-command
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.set-project-status-date-command.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-25T15:30:20+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.project-set-status-date.first-use-20260925
+    - id: actual.self-set-project-status-date-command.ci-github-actions.20260925T1600000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.set-project-status-date-command
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.set-project-status-date-command.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 5
+      unit: ci_minutes
+      occurred_at: "2026-09-25T16:00:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.project-set-status-date.operator-accepted
+    - id: actual.self-warn-accepted-task-future-window.ai-agent-executor.20260925T1700000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.warn-accepted-task-future-window
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.warn-accepted-task-future-window.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 2
+      unit: agent_hours
+      occurred_at: "2026-09-25T17:00:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.accepted-task-windows.first-run-20260925
+    - id: actual.self-warn-accepted-task-future-window.environment-local-dev.20260925T1700200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.warn-accepted-task-future-window
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.warn-accepted-task-future-window.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-25T17:00:20+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.accepted-task-windows.first-run-20260925
+    - id: actual.self-warn-accepted-task-future-window.ci-github-actions.20260925T1730000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.warn-accepted-task-future-window
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.warn-accepted-task-future-window.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 5
+      unit: ci_minutes
+      occurred_at: "2026-09-25T17:30:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.accepted-task-windows.operator-accepted
+    - id: actual.self-clean-dead-code-and-workload-spec.ai-agent-executor.20260925T1800000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.clean-dead-code-and-workload-spec
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.clean-dead-code-and-workload-spec.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 1.25
+      unit: agent_hours
+      occurred_at: "2026-09-25T18:00:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.cleanup-dead-code-workload-spec.20260925
+    - id: actual.self-clean-dead-code-and-workload-spec.environment-local-dev.20260925T1800200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.clean-dead-code-and-workload-spec
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.clean-dead-code-and-workload-spec.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-25T18:00:20+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.cleanup-dead-code-workload-spec.20260925
+    - id: actual.self-clean-dead-code-and-workload-spec.ci-github-actions.20260925T1820000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.clean-dead-code-and-workload-spec
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.clean-dead-code-and-workload-spec.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 5
+      unit: ci_minutes
+      occurred_at: "2026-09-25T18:20:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.cleanup-dead-code-workload-spec.operator-accepted
+    - id: actual.self-pin-dashboard-html-golden.ai-agent-executor.20260925T1900000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.pin-dashboard-html-golden
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.pin-dashboard-html-golden.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 1.5
+      unit: agent_hours
+      occurred_at: "2026-09-25T19:00:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.dashboard-html-golden.20260925
+    - id: actual.self-pin-dashboard-html-golden.environment-local-dev.20260925T1900200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.pin-dashboard-html-golden
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.pin-dashboard-html-golden.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-25T19:00:20+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.dashboard-html-golden.20260925
+    - id: actual.self-pin-dashboard-html-golden.ci-github-actions.20260925T1920000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.pin-dashboard-html-golden
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.pin-dashboard-html-golden.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 5
+      unit: ci_minutes
+      occurred_at: "2026-09-25T19:20:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.dashboard-html-golden.operator-accepted
+    - id: actual.self-split-project-state-markdown.ai-agent-executor.20260925T2010000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.split-project-state-markdown
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.split-project-state-markdown.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 1
+      unit: agent_hours
+      occurred_at: "2026-09-25T20:10:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.split-project-state-markdown.20260925
+    - id: actual.self-split-project-state-markdown.environment-local-dev.20260925T2010200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.split-project-state-markdown
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.split-project-state-markdown.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-25T20:10:20+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.split-project-state-markdown.20260925
+    - id: actual.self-split-project-state-markdown.ci-github-actions.20260925T2040000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.split-project-state-markdown
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.split-project-state-markdown.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 5
+      unit: ci_minutes
+      occurred_at: "2026-09-25T20:40:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.split-project-state-markdown.operator-accepted
+    - id: actual.self-honour-capacity-effective-dates.ai-agent-executor.20260925T2140000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.honour-capacity-effective-dates
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.honour-capacity-effective-dates.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 1.5
+      unit: agent_hours
+      occurred_at: "2026-09-25T21:40:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.honour-capacity-effective-dates.20260925
+    - id: actual.self-honour-capacity-effective-dates.environment-local-dev.20260925T2140200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.honour-capacity-effective-dates
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.honour-capacity-effective-dates.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-25T21:40:20+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.honour-capacity-effective-dates.20260925
+    - id: actual.self-warn-dependency-only-when-due.ai-agent-executor.20260925T2240000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.warn-dependency-only-when-due
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.warn-dependency-only-when-due.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.75
+      unit: agent_hours
+      occurred_at: "2026-09-25T22:40:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.warn-dependency-only-when-due.20260925
+    - id: actual.self-warn-dependency-only-when-due.environment-local-dev.20260925T2240200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.warn-dependency-only-when-due
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.warn-dependency-only-when-due.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-25T22:40:20+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.warn-dependency-only-when-due.20260925
+    - id: actual.self-honour-capacity-effective-dates.ci-github-actions.20260925T2301000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.honour-capacity-effective-dates
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.honour-capacity-effective-dates.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 5
+      unit: ci_minutes
+      occurred_at: "2026-09-25T23:01:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.capacity-dates-and-dependency-warnings.operator-accepted
+    - id: actual.self-warn-dependency-only-when-due.ci-github-actions.20260925T2302000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.warn-dependency-only-when-due
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.warn-dependency-only-when-due.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 5
+      unit: ci_minutes
+      occurred_at: "2026-09-25T23:02:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.capacity-dates-and-dependency-warnings.operator-accepted
+    - id: actual.self-review-openproject-replan-plugin-views.ai-agent-executor.20260925T1410000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.review-openproject-replan-plugin-views
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.review-openproject-replan-plugin-views.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 2
+      unit: agent_hours
+      occurred_at: "2026-09-25T14:10:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-views-review.agent-findings
+    - id: actual.self-fix-plugin-panel-permission.ai-agent-executor.20260925T1500000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.fix-plugin-panel-permission
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.fix-plugin-panel-permission.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 1
+      unit: agent_hours
+      occurred_at: "2026-09-25T15:00:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.fix-plugin-panel-permission.20260925
+    - id: actual.self-fix-plugin-panel-permission.environment-local-dev.20260925T1500200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.fix-plugin-panel-permission
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.fix-plugin-panel-permission.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-25T15:00:20+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.fix-plugin-panel-permission.20260925
+    - id: actual.self-design-openproject-plugin-gantt-view.ai-agent-executor.20260925T1550000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-plugin-gantt-view
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.design-openproject-plugin-gantt-view.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.75
+      unit: agent_hours
+      occurred_at: "2026-09-25T15:50:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-ui-audit.agent-findings
+    - id: actual.self-fix-plugin-panel-permission.ci-github-actions.20260925T1630000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.fix-plugin-panel-permission
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.fix-plugin-panel-permission.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 5
+      unit: ci_minutes
+      occurred_at: "2026-09-25T16:30:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-panel-permission.operator-accepted
+    - id: actual.self-honest-weekly-workload-for-multi-week-and-concurrent-demands.ai-agent-executor.20260925T1730000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.honest-weekly-workload-for-multi-week-and-concurrent-demands
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.honest-weekly-workload-for-multi-week-and-concurrent-demands.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 3
+      unit: agent_hours
+      occurred_at: "2026-09-25T17:30:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.honest-weekly-workload.20260925
+    - id: actual.self-honest-weekly-workload-for-multi-week-and-concurrent-demands.environment-local-dev.20260925T1730200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.honest-weekly-workload-for-multi-week-and-concurrent-demands
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.honest-weekly-workload-for-multi-week-and-concurrent-demands.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-25T17:30:20+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.honest-weekly-workload.20260925
+    - id: actual.self-design-openproject-plugin-gantt-view.ai-agent-executor.20260925T1830000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-plugin-gantt-view
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.design-openproject-plugin-gantt-view.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 2.25
+      unit: agent_hours
+      occurred_at: "2026-09-25T18:30:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-redesign-design.proposed
+    - id: actual.self-suggest-dependency-reviews-only-when-due.ai-agent-executor.20260925T1940000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.suggest-dependency-reviews-only-when-due
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.suggest-dependency-reviews-only-when-due.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.75
+      unit: agent_hours
+      occurred_at: "2026-09-25T19:40:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.suggest-dependency-reviews-only-when-due.20260925
+    - id: actual.self-suggest-dependency-reviews-only-when-due.environment-local-dev.20260925T1940200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.suggest-dependency-reviews-only-when-due
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.suggest-dependency-reviews-only-when-due.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-25T19:40:20+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.suggest-dependency-reviews-only-when-due.20260925
+    - id: actual.self-honest-weekly-workload-for-multi-week-and-concurrent-demands.ci-github-actions.20260925T2001000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.honest-weekly-workload-for-multi-week-and-concurrent-demands
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.honest-weekly-workload-for-multi-week-and-concurrent-demands.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 5
+      unit: ci_minutes
+      occurred_at: "2026-09-25T20:01:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.workload-and-proposal-fixes.operator-accepted
+    - id: actual.self-suggest-dependency-reviews-only-when-due.ci-github-actions.20260925T2002000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.suggest-dependency-reviews-only-when-due
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.suggest-dependency-reviews-only-when-due.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 5
+      unit: ci_minutes
+      occurred_at: "2026-09-25T20:02:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.workload-and-proposal-fixes.operator-accepted
+    - id: actual.self-add-plugin-rendered-page-checks.ai-agent-executor.20260925T2140000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-plugin-rendered-page-checks
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-plugin-rendered-page-checks.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 2.5
+      unit: agent_hours
+      occurred_at: "2026-09-25T21:40:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-rendered-page-checks.20260925
+    - id: actual.self-add-plugin-rendered-page-checks.environment-local-dev.20260925T2140200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-plugin-rendered-page-checks
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-plugin-rendered-page-checks.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-25T21:40:20+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-rendered-page-checks.20260925
+    - id: actual.self-add-plugin-rendered-page-checks.ci-github-actions.20260925T2210000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-plugin-rendered-page-checks
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-plugin-rendered-page-checks.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-09-25T22:10:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-rendered-page-checks.operator-accepted
+    - id: actual.self-extend-overlay-contract-for-plugin-views.ai-agent-executor.20260925T2330000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.extend-overlay-contract-for-plugin-views
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.extend-overlay-contract-for-plugin-views.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 3.5
+      unit: agent_hours
+      occurred_at: "2026-09-25T23:30:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.overlay-contract-v2.20260925
+    - id: actual.self-extend-overlay-contract-for-plugin-views.environment-local-dev.20260925T2330200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.extend-overlay-contract-for-plugin-views
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.extend-overlay-contract-for-plugin-views.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-25T23:30:20+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.overlay-contract-v2.20260925
+    - id: actual.self-extend-overlay-contract-for-plugin-views.ci-github-actions.20260925T2350000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.extend-overlay-contract-for-plugin-views
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.extend-overlay-contract-for-plugin-views.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-09-25T23:50:00+07:00"
+      status_date: "2026-09-25"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.overlay-contract-v2.operator-accepted
+    - id: actual.self-theme-plugin-views-with-openproject-variables.ai-agent-executor.20260926T0120000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.theme-plugin-views-with-openproject-variables
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.theme-plugin-views-with-openproject-variables.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 2.5
+      unit: agent_hours
+      occurred_at: "2026-09-26T01:20:00+07:00"
+      status_date: "2026-09-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-theme.20260926
+    - id: actual.self-theme-plugin-views-with-openproject-variables.environment-local-dev.20260926T0120200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.theme-plugin-views-with-openproject-variables
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.theme-plugin-views-with-openproject-variables.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-26T01:20:20+07:00"
+      status_date: "2026-09-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-theme.20260926
+    - id: actual.self-theme-plugin-views-with-openproject-variables.ci-github-actions.20260926T0900000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.theme-plugin-views-with-openproject-variables
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.theme-plugin-views-with-openproject-variables.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-09-26T09:00:00+07:00"
+      status_date: "2026-09-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-theme.operator-accepted
+    - id: actual.self-restructure-plugin-project-page.ai-agent-executor.20260926T1130000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.restructure-plugin-project-page
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.restructure-plugin-project-page.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 4
+      unit: agent_hours
+      occurred_at: "2026-09-26T11:30:00+07:00"
+      status_date: "2026-09-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-project-page.20260926
+    - id: actual.self-restructure-plugin-project-page.environment-local-dev.20260926T1130200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.restructure-plugin-project-page
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.restructure-plugin-project-page.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-26T11:30:20+07:00"
+      status_date: "2026-09-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-project-page.20260926
+    - id: actual.self-restructure-plugin-project-page.ci-github-actions.20260926T1200000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.restructure-plugin-project-page
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.restructure-plugin-project-page.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-09-26T12:00:00+07:00"
+      status_date: "2026-09-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-project-page.operator-accepted
+    - id: actual.self-deploy-plugin-milestone-1.ai-agent-executor.20260926T1240000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.deploy-plugin-milestone-1
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.deploy-plugin-milestone-1.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 1
+      unit: agent_hours
+      occurred_at: "2026-09-26T12:40:00+07:00"
+      status_date: "2026-09-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-milestone-1.deployed
+    - id: actual.self-deploy-plugin-milestone-1.environment-local-dev.20260926T1240200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.deploy-plugin-milestone-1
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.deploy-plugin-milestone-1.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-26T12:40:20+07:00"
+      status_date: "2026-09-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-milestone-1.deployed
+    - id: actual.self-implement-openproject-plugin-gantt-view.ai-agent-executor.20260926T1730000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-plugin-gantt-view
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.implement-openproject-plugin-gantt-view.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 5
+      unit: agent_hours
+      occurred_at: "2026-09-26T17:30:00+07:00"
+      status_date: "2026-09-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-gantt-page.deployed
+    - id: actual.self-implement-openproject-plugin-gantt-view.environment-local-dev.20260926T1730200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-plugin-gantt-view
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.implement-openproject-plugin-gantt-view.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-26T17:30:20+07:00"
+      status_date: "2026-09-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-gantt-page.deployed
+    - id: actual.self-implement-openproject-plugin-gantt-view.ci-github-actions.20260926T1830000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-plugin-gantt-view
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.implement-openproject-plugin-gantt-view.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-09-26T18:30:00+07:00"
+      status_date: "2026-09-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-gantt-page.operator-accepted
+    - id: actual.self-add-plugin-gantt-navigation.ai-agent-executor.20260926T2130000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-plugin-gantt-navigation
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-plugin-gantt-navigation.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 5.5
+      unit: agent_hours
+      occurred_at: "2026-09-26T21:30:00+07:00"
+      status_date: "2026-09-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-gantt-navigation.deployed
+    - id: actual.self-add-plugin-gantt-navigation.environment-local-dev.20260926T2130200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-plugin-gantt-navigation
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-plugin-gantt-navigation.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-26T21:30:20+07:00"
+      status_date: "2026-09-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-gantt-navigation.deployed
+    - id: actual.self-add-plugin-gantt-navigation.ci-github-actions.20260926T2200000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-plugin-gantt-navigation
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-plugin-gantt-navigation.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-09-26T22:00:00+07:00"
+      status_date: "2026-09-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-gantt-navigation.operator-accepted
+    - id: actual.self-add-plugin-resource-load-profile.ai-agent-executor.20260926T2330000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-plugin-resource-load-profile
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-plugin-resource-load-profile.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 3
+      unit: agent_hours
+      occurred_at: "2026-09-26T23:30:00+07:00"
+      status_date: "2026-09-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-load-profile.deployed
+    - id: actual.self-add-plugin-resource-load-profile.environment-local-dev.20260926T2330200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-plugin-resource-load-profile
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-plugin-resource-load-profile.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-26T23:30:20+07:00"
+      status_date: "2026-09-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-load-profile.deployed
+    - id: actual.self-add-plugin-resource-load-profile.ci-github-actions.20260926T2359000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-plugin-resource-load-profile
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.add-plugin-resource-load-profile.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-09-26T23:59:00+07:00"
+      status_date: "2026-09-26"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-load-profile.operator-accepted
+    - id: actual.self-show-evidence-and-actuals-in-plugin-panel.ai-agent-executor.20260927T0200000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.show-evidence-and-actuals-in-plugin-panel
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.show-evidence-and-actuals-in-plugin-panel.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 3.5
+      unit: agent_hours
+      occurred_at: "2026-09-27T02:00:00+07:00"
+      status_date: "2026-09-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-task-page.deployed
+    - id: actual.self-show-evidence-and-actuals-in-plugin-panel.environment-local-dev.20260927T0200200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.show-evidence-and-actuals-in-plugin-panel
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.show-evidence-and-actuals-in-plugin-panel.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-27T02:00:20+07:00"
+      status_date: "2026-09-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-task-page.deployed
+    - id: actual.self-show-evidence-and-actuals-in-plugin-panel.ci-github-actions.20260927T0900000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.show-evidence-and-actuals-in-plugin-panel
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.show-evidence-and-actuals-in-plugin-panel.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-09-27T09:00:00+07:00"
+      status_date: "2026-09-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.plugin-task-page.operator-accepted
+    - id: actual.self-remove-old-task-list-from-plugin-overview.ai-agent-executor.20260927T1100000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.remove-old-task-list-from-plugin-overview
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.remove-old-task-list-from-plugin-overview.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 1.5
+      unit: agent_hours
+      occurred_at: "2026-09-27T11:00:00+07:00"
+      status_date: "2026-09-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.remove-old-task-list.deployed
+    - id: actual.self-remove-old-task-list-from-plugin-overview.environment-local-dev.20260927T1100200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.remove-old-task-list-from-plugin-overview
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.remove-old-task-list-from-plugin-overview.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-27T11:00:20+07:00"
+      status_date: "2026-09-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.remove-old-task-list.deployed
+    - id: actual.self-remove-old-task-list-from-plugin-overview.ci-github-actions.20260927T1200000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.remove-old-task-list-from-plugin-overview
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.remove-old-task-list-from-plugin-overview.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-09-27T12:00:00+07:00"
+      status_date: "2026-09-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.remove-old-task-list.operator-accepted
+    - id: actual.self-link-openproject-work-package-to-replan-panel.ai-agent-executor.20260927T1300100700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.link-openproject-work-package-to-replan-panel
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.link-openproject-work-package-to-replan-panel.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 1
+      unit: agent_hours
+      occurred_at: "2026-09-27T13:00:10+07:00"
+      status_date: "2026-09-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.work-package-link.research
+    - id: actual.self-link-openproject-work-package-to-replan-panel.ai-agent-executor.20260927T1500000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.link-openproject-work-package-to-replan-panel
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.link-openproject-work-package-to-replan-panel.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 3
+      unit: agent_hours
+      occurred_at: "2026-09-27T15:00:00+07:00"
+      status_date: "2026-09-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.work-package-link.deployed
+    - id: actual.self-link-openproject-work-package-to-replan-panel.environment-local-dev.20260927T1500200700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.link-openproject-work-package-to-replan-panel
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.link-openproject-work-package-to-replan-panel.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-09-27T15:00:20+07:00"
+      status_date: "2026-09-27"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.work-package-link.deployed

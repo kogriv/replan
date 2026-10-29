@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.overlay-contract-before-page-restructure.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-09-25T19:30:11+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.overlay-contract-before-page-restructure
+    suggested_change:
+        op: set
+        path: dependencies.dependency.overlay-contract-before-page-restructure.status
+        value: resolved
+    rationale: Dependency dependency.overlay-contract-before-page-restructure (required) can be marked resolved because predecessor task.self.extend-overlay-contract-for-plugin-views is in the required state.
+    requires_confirmation: true

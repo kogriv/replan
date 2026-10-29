@@ -1,0 +1,169 @@
+actuals:
+    - id: actual.self-calibrate-plan-and-resources.human-maintainer.20260730T1505040700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.calibrate-plan-and-resources
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.plan-calibration.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 4
+      unit: hours
+      occurred_at: "2026-07-30T15:05:04+07:00"
+      status_date: "2026-07-30"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.docs.self-dogfood-calibration-closure
+    - id: actual.self-calibrate-plan-and-resources.ai-codex-local.20260730T1505050700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.calibrate-plan-and-resources
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.plan-calibration.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 3
+      unit: agent_hours
+      occurred_at: "2026-07-30T15:05:05+07:00"
+      status_date: "2026-07-30"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.docs.self-dogfood-calibration-closure
+    - id: actual.self-calibrate-plan-and-resources.role-reviewer.20260730T1505060700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.calibrate-plan-and-resources
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.plan-calibration.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 1
+      unit: review_hours
+      occurred_at: "2026-07-30T15:05:06+07:00"
+      status_date: "2026-07-30"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.docs.self-dogfood-calibration-closure
+    - id: actual.self-expand-openproject-fixtures.human-maintainer.20260802T2249010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.expand-openproject-fixtures
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-fixtures.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 8
+      unit: hours
+      occurred_at: "2026-08-02T22:49:01+07:00"
+      status_date: "2026-08-02"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject.replan-backlog-materialized
+    - id: actual.self-expand-openproject-fixtures.ai-codex-local.20260802T2249020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.expand-openproject-fixtures
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-fixtures.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 5
+      unit: agent_hours
+      occurred_at: "2026-08-02T22:49:02+07:00"
+      status_date: "2026-08-02"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject.replan-backlog-materialized
+    - id: actual.self-expand-openproject-fixtures.role-reviewer.20260802T2249030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.expand-openproject-fixtures
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-fixtures.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 2
+      unit: review_hours
+      occurred_at: "2026-08-02T22:49:03+07:00"
+      status_date: "2026-08-02"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject.replan-backlog-materialized
+    - id: actual.self-write-oss-readiness-audit.human-maintainer.20260802T2320010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.write-oss-readiness-audit
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.oss-audit.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 5
+      unit: hours
+      occurred_at: "2026-08-02T23:20:01+07:00"
+      status_date: "2026-08-02"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.oss-boundary-checkpoint.completed
+    - id: actual.self-write-oss-readiness-audit.role-reviewer.20260802T2320020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.write-oss-readiness-audit
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.oss-audit.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 2
+      unit: review_hours
+      occurred_at: "2026-08-02T23:20:02+07:00"
+      status_date: "2026-08-02"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.oss-boundary-checkpoint.completed

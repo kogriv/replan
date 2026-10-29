@@ -1,0 +1,18 @@
+scenario:
+    id: scenario.dogfood-defaults-done-early-20261016
+    name: Dogfood defaults removed from the kit scripts on 2026-10-15 and 16 instead of 23 October
+    status: applied
+    base_ref:
+        kind: current_plan
+        id: current
+    created_at: "2026-10-16T00:31:00+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    changes:
+        - op: replace
+          path: tasks.task.self.drop-dogfood-defaults-from-kit-scripts.planned_start
+          value: "2026-10-15"
+        - op: replace
+          path: tasks.task.self.drop-dogfood-defaults-from-kit-scripts.planned_finish
+          value: "2026-10-16"

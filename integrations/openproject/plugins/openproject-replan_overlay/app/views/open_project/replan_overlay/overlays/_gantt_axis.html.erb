@@ -1,0 +1,18 @@
+<%# The grid under the whole canvas and the pinned date axis; locals: gantt, label. %>
+<%# One grid for the whole canvas, under every row. %>
+<div class="replan-gantt__grid" style="width: <%= gantt.width %>px;">
+  <% gantt.weekends.each do |weekend| %><div class="replan-gantt__weekend" style="left: <%= weekend["left"] %>px; width: <%= weekend["width"] %>px;"></div><% end %>
+  <% gantt.mondays.each do |left| %><div class="replan-gantt__monday" style="left: <%= left %>px;"></div><% end %>
+  <% if gantt.status_line %><div class="replan-gantt__status" style="left: <%= gantt.status_line["left"] %>px;"></div><% end %>
+</div>
+<div class="replan-gantt__row replan-gantt__axis">
+  <div class="replan-gantt__label"><%= h label %></div>
+  <div class="replan-gantt__track" style="width: <%= gantt.width %>px;">
+    <% gantt.ticks.each do |tick| %>
+      <div class="replan-gantt__tick -<%= tick["kind"] %>" style="left: <%= tick["left"] %>px;"><span><%= h tick["label"] %></span></div>
+    <% end %>
+    <% if gantt.status_line %>
+      <div class="replan-gantt__status" style="left: <%= gantt.status_line["left"] %>px;" title="<%= h gantt.status_line["label"] %>"></div>
+    <% end %>
+  </div>
+</div>

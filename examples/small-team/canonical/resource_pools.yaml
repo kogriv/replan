@@ -1,0 +1,27 @@
+resource_pools:
+  - id: resource_pool.ai_coding_agents
+    name: AI coding agents
+    resource_class: ai_agent
+    members:
+      - kind: resource
+        id: resource.ai.codex.local
+    capabilities:
+      - coding
+  - id: resource_pool.backend_developers
+    name: Backend developers
+    resource_class: human
+    members:
+      - kind: resource
+        id: resource.human.ivan
+    capabilities:
+      - backend
+  - id: resource_pool.reviewers
+    name: Reviewers
+    resource_class: human
+    members:
+      - kind: resource
+        id: resource.human.operator
+      - kind: resource
+        id: resource.human.ivan
+    capabilities:
+      - code_review

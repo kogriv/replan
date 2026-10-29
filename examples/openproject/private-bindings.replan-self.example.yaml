@@ -1,0 +1,1009 @@
+# Example only. Real live bindings belong in ignored private storage, for
+# example:
+#
+#   private/openproject/replan-self-bindings.yaml
+#
+# This file uses sanitized OpenProject-like ids from
+# examples/imports/openproject/replan-self.work-packages.sample.json.
+openproject_private_bindings:
+  project:
+    source: openproject
+    project_id: replan-self
+    base_url: https://op.example.internal
+  tasks:
+    - replan_task_id: task.self.cleanup-oss-boundary
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2101"
+        url: https://op.example.internal/work_packages/2101
+    - replan_task_id: task.self.create-replan-self-fixture
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2102"
+        url: https://op.example.internal/work_packages/2102
+    - replan_task_id: task.self.design-static-dashboard
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2103"
+        url: https://op.example.internal/work_packages/2103
+    - replan_task_id: task.self.implement-static-dashboard
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2104"
+        url: https://op.example.internal/work_packages/2104
+    - replan_task_id: task.self.add-static-gantt-dashboard
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2108"
+        url: https://op.example.internal/work_packages/2108
+    - replan_task_id: task.self.improve-static-gantt-observability
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2109"
+        url: https://op.example.internal/work_packages/2109
+    - replan_task_id: task.self.add-gantt-resource-allocation-lanes
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2110"
+        url: https://op.example.internal/work_packages/2110
+    - replan_task_id: task.self.add-project-state-report
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2111"
+        url: https://op.example.internal/work_packages/2111
+    - replan_task_id: task.self.add-plan-vs-actual-state-tracking
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2112"
+        url: https://op.example.internal/work_packages/2112
+    - replan_task_id: task.self.add-tracking-suggest-command
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2113"
+        url: https://op.example.internal/work_packages/2113
+    - replan_task_id: task.self.add-tracking-proposal-candidates
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2114"
+        url: https://op.example.internal/work_packages/2114
+    - replan_task_id: task.self.apply-tracking-remaining-proposals
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2115"
+        url: https://op.example.internal/work_packages/2115
+    - replan_task_id: task.self.add-tracking-loop-observability
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2116"
+        url: https://op.example.internal/work_packages/2116
+    - replan_task_id: task.self.render-tracking-loop-dashboard
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2117"
+        url: https://op.example.internal/work_packages/2117
+    - replan_task_id: task.self.prioritize-tracking-loop
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2118"
+        url: https://op.example.internal/work_packages/2118
+    - replan_task_id: task.self.plan-mvp-readiness-audit
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2119"
+        url: https://op.example.internal/work_packages/2119
+    - replan_task_id: task.self.plan-post-mvp-dogfood
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2120"
+        url: https://op.example.internal/work_packages/2120
+    - replan_task_id: task.self.run-first-dogfood-tracking-cleanup
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2121"
+        url: https://op.example.internal/work_packages/2121
+    - replan_task_id: task.self.calibrate-plan-and-resources
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2122"
+        url: https://op.example.internal/work_packages/2122
+    - replan_task_id: task.self.expand-openproject-fixtures
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2105"
+        url: https://op.example.internal/work_packages/2105
+    - replan_task_id: task.self.write-oss-readiness-audit
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2106"
+        url: https://op.example.internal/work_packages/2106
+    - replan_task_id: task.self.add-openproject-tunnel-header-support
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2140"
+        url: https://op.example.internal/work_packages/2140
+    - replan_task_id: task.self.design-openproject-read-only-plugin-feasibility
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2141"
+        url: https://op.example.internal/work_packages/2141
+    - replan_task_id: task.self.define-openproject-overlay-json-contract
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2142"
+        url: https://op.example.internal/work_packages/2142
+    - replan_task_id: task.self.scaffold-openproject-overlay-plugin-consumer
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2143"
+        url: https://op.example.internal/work_packages/2143
+    - replan_task_id: task.self.design-openproject-plugin-deployment-path
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2144"
+        url: https://op.example.internal/work_packages/2144
+    - replan_task_id: task.self.verify-openproject-plugin-throwaway-runtime
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2145"
+        url: https://op.example.internal/work_packages/2145
+    - replan_task_id: task.self.prepare-release-story
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2107"
+        url: https://op.example.internal/work_packages/2107
+    - replan_task_id: task.self.refresh-second-project-agent-kit
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2250"
+        url: https://op.example.internal/work_packages/2250
+    - replan_task_id: task.self.record-actual-task-window
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2251"
+        url: https://op.example.internal/work_packages/2251
+    - replan_task_id: task.self.keep-non-working-day-dates-in-openproject
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2264"
+        url: https://op.example.internal/work_packages/2264
+    - replan_task_id: task.self.keep-self-sample-dates-after-acceptance
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2265"
+        url: https://op.example.internal/work_packages/2265
+    - replan_task_id: task.self.keep-openproject-successors-manually-scheduled
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2266"
+        url: https://op.example.internal/work_packages/2266
+    - replan_task_id: task.self.backfill-actual-task-windows
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2252"
+        url: https://op.example.internal/work_packages/2252
+    - replan_task_id: task.self.version-project-file-format
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2253"
+        url: https://op.example.internal/work_packages/2253
+    - replan_task_id: task.self.add-version-command-and-release-build
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2254"
+        url: https://op.example.internal/work_packages/2254
+    - replan_task_id: task.self.publish-public-repository
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2255"
+        url: https://op.example.internal/work_packages/2255
+    - replan_task_id: task.self.publish-first-release
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2256"
+        url: https://op.example.internal/work_packages/2256
+    - replan_task_id: task.self.design-estimate-calibration
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2257"
+        url: https://op.example.internal/work_packages/2257
+    - replan_task_id: task.self.implement-estimate-calibration
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2258"
+        url: https://op.example.internal/work_packages/2258
+    - replan_task_id: task.self.design-second-tracker-adapter
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2259"
+        url: https://op.example.internal/work_packages/2259
+    - replan_task_id: task.self.import-second-tracker-from-file
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2260"
+        url: https://op.example.internal/work_packages/2260
+    - replan_task_id: task.self.import-second-tracker-live
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2261"
+        url: https://op.example.internal/work_packages/2261
+    - replan_task_id: task.self.design-local-web-view
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2262"
+        url: https://op.example.internal/work_packages/2262
+    - replan_task_id: task.self.implement-local-web-view
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2263"
+        url: https://op.example.internal/work_packages/2263
+    - replan_task_id: task.self.run-full-openproject-dogfood-cycle
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2123"
+        url: https://op.example.internal/work_packages/2123
+    - replan_task_id: task.self.design-openproject-native-surface
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2124"
+        url: https://op.example.internal/work_packages/2124
+    - replan_task_id: task.self.prototype-openproject-native-surface-level-0-1
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2125"
+        url: https://op.example.internal/work_packages/2125
+    - replan_task_id: task.self.reconcile-dashboard-load-semantics
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2126"
+        url: https://op.example.internal/work_packages/2126
+    - replan_task_id: task.self.implement-dashboard-load-profile-rendering
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2135"
+        url: https://op.example.internal/work_packages/2135
+    - replan_task_id: task.self.implement-openproject-work-package-create-helper
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2136"
+        url: https://op.example.internal/work_packages/2136
+    - replan_task_id: task.self.implement-openproject-private-binding-helper
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2137"
+        url: https://op.example.internal/work_packages/2137
+    - replan_task_id: task.self.add-safe-openproject-dotenv-loader
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2138"
+        url: https://op.example.internal/work_packages/2138
+    - replan_task_id: task.self.add-openproject-backlog-reconcile-helper
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2139"
+        url: https://op.example.internal/work_packages/2139
+    - replan_task_id: task.self.reconstruct-openproject-functionality-and-pitfalls
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2127"
+        url: https://op.example.internal/work_packages/2127
+    - replan_task_id: task.self.evaluate-openproject-agent-interfaces
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2128"
+        url: https://op.example.internal/work_packages/2128
+    - replan_task_id: task.self.audit-openproject-agent-tools-hands-on
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2132"
+        url: https://op.example.internal/work_packages/2132
+    - replan_task_id: task.self.design-openproject-ai-cli-operating-layer
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2129"
+        url: https://op.example.internal/work_packages/2129
+    - replan_task_id: task.self.implement-openproject-preflight-operator-helpers
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2130"
+        url: https://op.example.internal/work_packages/2130
+    - replan_task_id: task.self.design-openproject-work-package-operator-toolkit
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2133"
+        url: https://op.example.internal/work_packages/2133
+    - replan_task_id: task.self.implement-openproject-work-package-operator-toolkit
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2134"
+        url: https://op.example.internal/work_packages/2134
+    - replan_task_id: task.self.refactor-live-replan-self-openproject-plan
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2131"
+        url: https://op.example.internal/work_packages/2131
+    - replan_task_id: task.self.prepare-live-openproject-plugin-installation
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2146"
+        url: https://op.example.internal/work_packages/2146
+    - replan_task_id: task.self.execute-live-openproject-plugin-installation
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2147"
+        url: https://op.example.internal/work_packages/2147
+    - replan_task_id: task.self.improve-live-openproject-plugin-resource-view
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2148"
+        url: https://op.example.internal/work_packages/2148
+    - replan_task_id: task.self.design-openproject-work-package-replan-panel
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2149"
+        url: https://op.example.internal/work_packages/2149
+    - replan_task_id: task.self.audit-and-sync-project-documentation
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2150"
+        url: https://op.example.internal/work_packages/2150
+    - replan_task_id: task.self.implement-openproject-work-package-replan-panel
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2151"
+        url: https://op.example.internal/work_packages/2151
+    - replan_task_id: task.self.stabilize-openproject-live-helper-timeouts
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2152"
+        url: https://op.example.internal/work_packages/2152
+    - replan_task_id: task.self.optimize-openproject-plugin-image-build-layering
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2153"
+        url: https://op.example.internal/work_packages/2153
+    - replan_task_id: task.self.sync-latest-openproject-live-backlog-drift
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2154"
+        url: https://op.example.internal/work_packages/2154
+    - replan_task_id: task.self.reenter-openproject-dogfood-cycle-after-pause
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2155"
+        url: https://op.example.internal/work_packages/2155
+    - replan_task_id: task.self.design-openproject-wiki-api-access
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2156"
+        url: https://op.example.internal/work_packages/2156
+    - replan_task_id: task.self.check-upstream-openproject-wiki-api-roadmap
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2157"
+        url: https://op.example.internal/work_packages/2157
+    - replan_task_id: task.self.implement-openproject-wiki-api-plugin
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2158"
+        url: https://op.example.internal/work_packages/2158
+    - replan_task_id: task.self.verify-openproject-wiki-api-plugin-throwaway-runtime
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2159"
+        url: https://op.example.internal/work_packages/2159
+    - replan_task_id: task.self.deploy-openproject-wiki-api-plugin-live
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2160"
+        url: https://op.example.internal/work_packages/2160
+    - replan_task_id: task.self.fix-ci-smoke-ripgrep-dependency
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2161"
+        url: https://op.example.internal/work_packages/2161
+    - replan_task_id: task.self.fix-actual-audit-ids-and-demand-reopen
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2162"
+        url: https://op.example.internal/work_packages/2162
+    - replan_task_id: task.self.clean-post-pause-audit-hygiene
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2163"
+        url: https://op.example.internal/work_packages/2163
+    - replan_task_id: task.self.evaluate-code-graph-quality-tooling
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2164"
+        url: https://op.example.internal/work_packages/2164
+    - replan_task_id: task.self.select-next-product-slice-from-replan-reports
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2165"
+        url: https://op.example.internal/work_packages/2165
+    - replan_task_id: task.self.add-go-lint-baseline-and-ci-gate
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2166"
+        url: https://op.example.internal/work_packages/2166
+    - replan_task_id: task.self.move-heredoc-python-into-script-modules
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2167"
+        url: https://op.example.internal/work_packages/2167
+    - replan_task_id: task.self.improve-state-report-next-actions
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2168"
+        url: https://op.example.internal/work_packages/2168
+    - replan_task_id: task.self.add-wiki-api-page-delete
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2169"
+        url: https://op.example.internal/work_packages/2169
+    - replan_task_id: task.self.fix-close-demand-stale-remaining
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2170"
+        url: https://op.example.internal/work_packages/2170
+    - replan_task_id: task.self.set-project-status-date-command
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2171"
+        url: https://op.example.internal/work_packages/2171
+    - replan_task_id: task.self.warn-accepted-task-future-window
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2172"
+        url: https://op.example.internal/work_packages/2172
+    - replan_task_id: task.self.clean-dead-code-and-workload-spec
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2173"
+        url: https://op.example.internal/work_packages/2173
+    - replan_task_id: task.self.pin-dashboard-html-golden
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2174"
+        url: https://op.example.internal/work_packages/2174
+    - replan_task_id: task.self.split-project-state-markdown
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2175"
+        url: https://op.example.internal/work_packages/2175
+    - replan_task_id: task.self.honour-capacity-effective-dates
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2176"
+        url: https://op.example.internal/work_packages/2176
+    - replan_task_id: task.self.warn-dependency-only-when-due
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2183"
+        url: https://op.example.internal/work_packages/2183
+    - replan_task_id: task.self.fix-plugin-panel-permission
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2184"
+        url: https://op.example.internal/work_packages/2184
+    - replan_task_id: task.self.honest-weekly-workload-for-multi-week-and-concurrent-demands
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2185"
+        url: https://op.example.internal/work_packages/2185
+    - replan_task_id: task.self.add-plugin-rendered-page-checks
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2186"
+        url: https://op.example.internal/work_packages/2186
+    - replan_task_id: task.self.extend-overlay-contract-for-plugin-views
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2187"
+        url: https://op.example.internal/work_packages/2187
+    - replan_task_id: task.self.theme-plugin-views-with-openproject-variables
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2188"
+        url: https://op.example.internal/work_packages/2188
+    - replan_task_id: task.self.restructure-plugin-project-page
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2189"
+        url: https://op.example.internal/work_packages/2189
+    - replan_task_id: task.self.deploy-plugin-milestone-1
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2190"
+        url: https://op.example.internal/work_packages/2190
+    - replan_task_id: task.self.add-plugin-resource-load-profile
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2191"
+        url: https://op.example.internal/work_packages/2191
+    - replan_task_id: task.self.show-evidence-and-actuals-in-plugin-panel
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2192"
+        url: https://op.example.internal/work_packages/2192
+    - replan_task_id: task.self.remove-old-task-list-from-plugin-overview
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2199"
+        url: https://op.example.internal/work_packages/2199
+    - replan_task_id: task.self.package-openproject-tooling-for-outside-agents
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2200"
+        url: https://op.example.internal/work_packages/2200
+    - replan_task_id: task.self.serve-plugin-overlays-per-project-live
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2201"
+        url: https://op.example.internal/work_packages/2201
+    - replan_task_id: task.self.pass-perimeter-key-to-openproject
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2203"
+        url: https://op.example.internal/work_packages/2203
+    - replan_task_id: task.self.add-wiki-commands-to-agent-kit
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2204"
+        url: https://op.example.internal/work_packages/2204
+    - replan_task_id: task.self.give-third-project-agent-own-identity
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2205"
+        url: https://op.example.internal/work_packages/2205
+    - replan_task_id: task.self.deploy-plugin-milestone-2
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2193"
+        url: https://op.example.internal/work_packages/2193
+    - replan_task_id: task.self.link-openproject-work-package-to-replan-panel
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2194"
+        url: https://op.example.internal/work_packages/2194
+    - replan_task_id: task.self.scope-plugin-overlay-to-its-project
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2195"
+        url: https://op.example.internal/work_packages/2195
+    - replan_task_id: task.self.deploy-plugin-milestone-3-and-accept-track
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2196"
+        url: https://op.example.internal/work_packages/2196
+    - replan_task_id: task.self.give-replan-menu-item-an-icon
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2206"
+        url: https://op.example.internal/work_packages/2206
+    - replan_task_id: task.self.review-openproject-replan-plugin-views
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2177"
+        url: https://op.example.internal/work_packages/2177
+    - replan_task_id: task.self.remove-yaml-rewrite-noise
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2178"
+        url: https://op.example.internal/work_packages/2178
+    - replan_task_id: task.self.design-openproject-plugin-gantt-view
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2179"
+        url: https://op.example.internal/work_packages/2179
+    - replan_task_id: task.self.split-validate-workspace
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2180"
+        url: https://op.example.internal/work_packages/2180
+    - replan_task_id: task.self.implement-openproject-plugin-gantt-view
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2181"
+        url: https://op.example.internal/work_packages/2181
+    - replan_task_id: task.self.add-plugin-gantt-navigation
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2197"
+        url: https://op.example.internal/work_packages/2197
+    - replan_task_id: task.self.suggest-dependency-reviews-only-when-due
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2198"
+        url: https://op.example.internal/work_packages/2198
+    - replan_task_id: task.self.dedupe-import-accept-modes
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2182"
+        url: https://op.example.internal/work_packages/2182
+    - replan_task_id: task.self.cancel-dependency-with-audit
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2202"
+        url: https://op.example.internal/work_packages/2202
+    - replan_task_id: task.self.refresh-agent-kit-for-second-project
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2207"
+        url: https://op.example.internal/work_packages/2207
+    - replan_task_id: task.self.license-and-audit-repo-for-publication
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2208"
+        url: https://op.example.internal/work_packages/2208
+    - replan_task_id: task.self.review-agent-tooling-consistency
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2209"
+        url: https://op.example.internal/work_packages/2209
+    - replan_task_id: task.self.count-concurrent-slots-in-schedule-drift-like-workload
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2245"
+        url: https://op.example.internal/work_packages/2245
+    - replan_task_id: task.self.unify-helper-json-envelope
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2210"
+        url: https://op.example.internal/work_packages/2210
+    - replan_task_id: task.self.derive-helper-exit-codes-from-ok
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2211"
+        url: https://op.example.internal/work_packages/2211
+    - replan_task_id: task.self.fail-apply-without-openproject-token
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2212"
+        url: https://op.example.internal/work_packages/2212
+    - replan_task_id: task.self.load-dotenv-in-every-kit-script
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2213"
+        url: https://op.example.internal/work_packages/2213
+    - replan_task_id: task.self.drop-dogfood-defaults-from-kit-scripts
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2214"
+        url: https://op.example.internal/work_packages/2214
+    - replan_task_id: task.self.check-agent-kit-with-env-file-only
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2215"
+        url: https://op.example.internal/work_packages/2215
+    - replan_task_id: task.self.keep-existing-bindings-on-bootstrap
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2216"
+        url: https://op.example.internal/work_packages/2216
+    - replan_task_id: task.self.share-openproject-bindings-module
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2217"
+        url: https://op.example.internal/work_packages/2217
+    - replan_task_id: task.self.single-openproject-status-map
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2218"
+        url: https://op.example.internal/work_packages/2218
+    - replan_task_id: task.self.share-openproject-http-client-and-settings
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2219"
+        url: https://op.example.internal/work_packages/2219
+    - replan_task_id: task.self.fix-openproject-relations-and-bootstrap-pagination
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2220"
+        url: https://op.example.internal/work_packages/2220
+    - replan_task_id: task.self.retry-only-idempotent-openproject-requests
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2221"
+        url: https://op.example.internal/work_packages/2221
+    - replan_task_id: task.self.report-applied-actions-on-helper-failure
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2222"
+        url: https://op.example.internal/work_packages/2222
+    - replan_task_id: task.self.pass-named-arguments-to-python-helpers
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2223"
+        url: https://op.example.internal/work_packages/2223
+    - replan_task_id: task.self.add-help-to-every-script
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2224"
+        url: https://op.example.internal/work_packages/2224
+    - replan_task_id: task.self.sync-cli-spec-and-getting-started
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2225"
+        url: https://op.example.internal/work_packages/2225
+    - replan_task_id: task.self.add-agent-surface-map-and-date-direction-rule
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2226"
+        url: https://op.example.internal/work_packages/2226
+    - replan_task_id: task.self.index-openproject-design-docs
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2227"
+        url: https://op.example.internal/work_packages/2227
+    - replan_task_id: task.self.clean-up-openproject-env-vars
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2228"
+        url: https://op.example.internal/work_packages/2228
+    - replan_task_id: task.self.one-apply-gate-rule-for-cli-and-helpers
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2229"
+        url: https://op.example.internal/work_packages/2229
+    - replan_task_id: task.self.add-replan-evidence-add
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2230"
+        url: https://op.example.internal/work_packages/2230
+    - replan_task_id: task.self.add-replan-task-add
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2231"
+        url: https://op.example.internal/work_packages/2231
+    - replan_task_id: task.self.accept-openproject-dates-through-import-accept
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2232"
+        url: https://op.example.internal/work_packages/2232
+    - replan_task_id: task.self.track-the-task-acceptance-chain
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2233"
+        url: https://op.example.internal/work_packages/2233
+    - replan_task_id: task.self.derive-self-plan-counts-from-fixture
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2234"
+        url: https://op.example.internal/work_packages/2234
+    - replan_task_id: task.self.read-private-openproject-bindings-in-go
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2235"
+        url: https://op.example.internal/work_packages/2235
+    - replan_task_id: task.self.guard-import-accept-against-real-ids
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2236"
+        url: https://op.example.internal/work_packages/2236
+    - replan_task_id: task.self.ship-overlay-publish-in-agent-kit
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2237"
+        url: https://op.example.internal/work_packages/2237
+    - replan_task_id: task.self.report-openproject-rescheduling-after-relation-create
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2246"
+        url: https://op.example.internal/work_packages/2246
+    - replan_task_id: task.self.refresh-agent-kit-after-tooling-consolidation
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2238"
+        url: https://op.example.internal/work_packages/2238
+    - replan_task_id: task.self.preview-moved-task-dates-in-scenarios
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2239"
+        url: https://op.example.internal/work_packages/2239
+    - replan_task_id: task.self.clear-remaining-lint-baseline
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2240"
+        url: https://op.example.internal/work_packages/2240
+    - replan_task_id: task.self.report-missing-project-root-as-not-found
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2241"
+        url: https://op.example.internal/work_packages/2241
+    - replan_task_id: task.self.move-pilot-narrative-to-private-storage
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2242"
+        url: https://op.example.internal/work_packages/2242
+    - replan_task_id: task.self.add-contributing-and-security-policy
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2243"
+        url: https://op.example.internal/work_packages/2243
+    - replan_task_id: task.self.cut-public-repository-from-sanitized-tree
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2244"
+        url: https://op.example.internal/work_packages/2244
+    - replan_task_id: task.self.edit-work-package-subject-and-description-in-toolkit
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2247"
+        url: https://op.example.internal/work_packages/2247
+    - replan_task_id: task.self.store-estimates-in-baselines
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2248"
+        url: https://op.example.internal/work_packages/2248
+    - replan_task_id: task.self.report-estimate-accuracy
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2249"
+        url: https://op.example.internal/work_packages/2249

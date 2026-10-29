@@ -1,0 +1,46 @@
+# The self-dogfood project's resource pool policy, read by
+# scripts/review-resource-pool.sh. A project without this file gets the
+# generic checks only: every resource is "needs_operator_decision".
+resource_pool_review:
+  buckets:
+    core_now:
+      - resource.human.maintainer
+      - resource.ai.codex.local
+      - resource.ai.agent.executor
+      - resource.ai.review-assistant
+      - resource.role.reviewer
+    provisional_side_constraint:
+      - resource.ci.github-actions
+      - resource.service.llm.tokens
+      - resource.environment.local-dev
+      - resource.window.oss-release
+    future_placeholder: []
+  rationale:
+    core_now: Primary planning resource for the current self-dogfood cycle.
+    future_placeholder: Useful design placeholder, but not assigned to current demands.
+    provisional_side_constraint: Represents a real non-human constraint, but current usage is sparse or coarse.
+    needs_operator_decision: Resource is not in the current self-dogfood resource policy buckets.
+  # Issues the operator recorded for a resource, always or only while it has
+  # no demands.
+  resource_issues:
+    resource.ai.codex.local:
+      - subscription_limit_pressure_not_modeled_as_public_capacity
+    resource.ai.agent.executor:
+      - subscription_limit_pressure_not_modeled_as_public_capacity
+    resource.environment.local-dev:
+      - concurrent_slot_value_is_coarse_for_single_operator_work
+  issues_without_demands:
+    resource.ai.review-assistant:
+      - future_placeholder_has_no_current_demands
+  bootstrap_gate:
+    must_decide_before_apply:
+      - Whether to create a new OpenProject project such as replan-self.
+      - Whether maintainer-only assignment is acceptable for the first OpenProject task skeleton.
+    accepted_operator_decisions:
+      - Use replan-self as the clean live OpenProject project identifier for the current self-dogfood task skeleton.
+      - Use maintainer/operator assignment for the first OpenProject task skeleton where assignment is needed.
+      - Keep live OpenProject source refs in an ignored private binding layer instead of public canonical files.
+    can_defer_until_after_bootstrap:
+      - Codex subscription limit tracker.
+      - "Exact reviewer implementation: human reviewer, AI reviewer or abstract role."
+      - Whether CI, token budget, local-dev and release-window resources stay active planning constraints or only examples.

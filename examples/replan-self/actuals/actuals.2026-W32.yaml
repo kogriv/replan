@@ -1,0 +1,1744 @@
+actuals:
+    - id: actual.self-reconstruct-openproject-functionality-and-pitfalls.human-maintainer.20260804T1356010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.reconstruct-openproject-functionality-and-pitfalls
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-preflight-recon.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 2
+      unit: hours
+      occurred_at: "2026-08-04T13:56:01+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-preflight-recon.completed
+    - id: actual.self-reconstruct-openproject-functionality-and-pitfalls.ai-codex-local.20260804T1356020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.reconstruct-openproject-functionality-and-pitfalls
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-preflight-recon.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 2
+      unit: agent_hours
+      occurred_at: "2026-08-04T13:56:02+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-preflight-recon.completed
+    - id: actual.self-reconstruct-openproject-functionality-and-pitfalls.role-reviewer.20260804T1356030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.reconstruct-openproject-functionality-and-pitfalls
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-preflight-recon.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.5
+      unit: review_hours
+      occurred_at: "2026-08-04T13:56:03+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-preflight-recon.completed
+    - id: actual.self-evaluate-openproject-agent-interfaces.human-maintainer.20260804T1408010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.evaluate-openproject-agent-interfaces
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-agent-interfaces.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 1.5
+      unit: hours
+      occurred_at: "2026-08-04T14:08:01+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-agent-interface-options.completed
+    - id: actual.self-evaluate-openproject-agent-interfaces.ai-codex-local.20260804T1408020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.evaluate-openproject-agent-interfaces
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-agent-interfaces.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 2
+      unit: agent_hours
+      occurred_at: "2026-08-04T14:08:02+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-agent-interface-options.completed
+    - id: actual.self-evaluate-openproject-agent-interfaces.role-reviewer.20260804T1408030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.evaluate-openproject-agent-interfaces
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-agent-interfaces.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.5
+      unit: review_hours
+      occurred_at: "2026-08-04T14:08:03+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-agent-interface-options.completed
+    - id: actual.self-audit-openproject-agent-tools-hands-on.human-maintainer.20260804T1522010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.audit-openproject-agent-tools-hands-on
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-agent-tools-hands-on.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 2
+      unit: hours
+      occurred_at: "2026-08-04T15:22:01+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-agent-tools-hands-on.completed
+    - id: actual.self-audit-openproject-agent-tools-hands-on.ai-codex-local.20260804T1522020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.audit-openproject-agent-tools-hands-on
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-agent-tools-hands-on.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 3
+      unit: agent_hours
+      occurred_at: "2026-08-04T15:22:02+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-agent-tools-hands-on.completed
+    - id: actual.self-audit-openproject-agent-tools-hands-on.role-reviewer.20260804T1522030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.audit-openproject-agent-tools-hands-on
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-agent-tools-hands-on.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.5
+      unit: review_hours
+      occurred_at: "2026-08-04T15:22:03+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-agent-tools-hands-on.completed
+    - id: actual.self-design-openproject-ai-cli-operating-layer.human-maintainer.20260804T1605010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-ai-cli-operating-layer
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-ai-cli-layer-design.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 2.5
+      unit: hours
+      occurred_at: "2026-08-04T16:05:01+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-ai-cli-layer-design.completed
+    - id: actual.self-design-openproject-ai-cli-operating-layer.ai-codex-local.20260804T1605020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-ai-cli-operating-layer
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-ai-cli-layer-design.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 2
+      unit: agent_hours
+      occurred_at: "2026-08-04T16:05:02+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-ai-cli-layer-design.completed
+    - id: actual.self-design-openproject-ai-cli-operating-layer.role-reviewer.20260804T1605030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-ai-cli-operating-layer
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-ai-cli-layer-design.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.5
+      unit: review_hours
+      occurred_at: "2026-08-04T16:05:03+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-ai-cli-layer-design.completed
+    - id: actual.self-implement-openproject-preflight-operator-helpers.human-maintainer.20260804T1710010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-preflight-operator-helpers
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-preflight-helpers.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 4
+      unit: hours
+      occurred_at: "2026-08-04T17:10:01+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-preflight-operator-helpers.completed
+    - id: actual.self-implement-openproject-preflight-operator-helpers.ai-codex-local.20260804T1710020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-preflight-operator-helpers
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-preflight-helpers.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 4
+      unit: agent_hours
+      occurred_at: "2026-08-04T17:10:02+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-preflight-operator-helpers.completed
+    - id: actual.self-implement-openproject-preflight-operator-helpers.local-dev.20260804T1710030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-preflight-operator-helpers
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-preflight-helpers.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-08-04T17:10:03+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-preflight-operator-helpers.completed
+    - id: actual.self-implement-openproject-preflight-operator-helpers.role-reviewer.20260804T1710040700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-preflight-operator-helpers
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-preflight-helpers.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.5
+      unit: review_hours
+      occurred_at: "2026-08-04T17:10:04+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-preflight-operator-helpers.completed
+    - id: actual.self-design-openproject-work-package-operator-toolkit.human-maintainer.20260804T1805010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-work-package-operator-toolkit
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-work-package-toolkit-design.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 3
+      unit: hours
+      occurred_at: "2026-08-04T18:05:01+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-work-package-operator-toolkit-design.completed
+    - id: actual.self-design-openproject-work-package-operator-toolkit.ai-codex-local.20260804T1805020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-work-package-operator-toolkit
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-work-package-toolkit-design.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 2
+      unit: agent_hours
+      occurred_at: "2026-08-04T18:05:02+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-work-package-operator-toolkit-design.completed
+    - id: actual.self-design-openproject-work-package-operator-toolkit.role-reviewer.20260804T1805030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-work-package-operator-toolkit
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-work-package-toolkit-design.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.5
+      unit: review_hours
+      occurred_at: "2026-08-04T18:05:03+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-work-package-operator-toolkit-design.completed
+    - id: actual.self-implement-openproject-work-package-operator-toolkit.human-maintainer.20260804T2030010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-operator-toolkit
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-work-package-toolkit-implementation.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 6
+      unit: hours
+      occurred_at: "2026-08-04T20:30:01+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-work-package-operator-toolkit-implementation.completed
+    - id: actual.self-implement-openproject-work-package-operator-toolkit.ai-codex-local.20260804T2030020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-operator-toolkit
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-work-package-toolkit-implementation.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 6
+      unit: agent_hours
+      occurred_at: "2026-08-04T20:30:02+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-work-package-operator-toolkit-implementation.completed
+    - id: actual.self-implement-openproject-work-package-operator-toolkit.local-dev.20260804T2030030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-operator-toolkit
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-work-package-toolkit-implementation.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-08-04T20:30:03+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-work-package-operator-toolkit-implementation.completed
+    - id: actual.self-implement-openproject-work-package-operator-toolkit.role-reviewer.20260804T2030040700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-operator-toolkit
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-work-package-toolkit-implementation.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 1
+      unit: review_hours
+      occurred_at: "2026-08-04T20:30:04+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-work-package-operator-toolkit-implementation.completed
+    - id: actual.self-refactor-live-replan-self-openproject-plan.human-maintainer.20260804T2105010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.refactor-live-replan-self-openproject-plan
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-live-refactor.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 4
+      unit: hours
+      occurred_at: "2026-08-04T21:05:01+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-live-refactor-pass.completed
+    - id: actual.self-refactor-live-replan-self-openproject-plan.ai-codex-local.20260804T2105020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.refactor-live-replan-self-openproject-plan
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-live-refactor.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 3
+      unit: agent_hours
+      occurred_at: "2026-08-04T21:05:02+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-live-refactor-pass.completed
+    - id: actual.self-refactor-live-replan-self-openproject-plan.role-reviewer.20260804T2105030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.refactor-live-replan-self-openproject-plan
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-live-refactor.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 1
+      unit: review_hours
+      occurred_at: "2026-08-04T21:05:03+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-live-refactor-pass.completed
+    - id: actual.self-design-openproject-native-surface.human-maintainer.20260804T2220010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-native-surface
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-native-surface-design.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 1.5
+      unit: hours
+      occurred_at: "2026-08-04T22:20:01+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-native-replan-surface-design.completed
+    - id: actual.self-design-openproject-native-surface.ai-codex-local.20260804T2220020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-native-surface
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-native-surface-design.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 2
+      unit: agent_hours
+      occurred_at: "2026-08-04T22:20:02+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-native-replan-surface-design.completed
+    - id: actual.self-design-openproject-native-surface.role-reviewer.20260804T2220030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-native-surface
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-native-surface-design.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.5
+      unit: review_hours
+      occurred_at: "2026-08-04T22:20:03+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-native-replan-surface-design.completed
+    - id: actual.self-prototype-openproject-native-surface-level-0-1.human-maintainer.20260804T2305010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.prototype-openproject-native-surface-level-0-1
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-native-surface-prototype.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 3
+      unit: hours
+      occurred_at: "2026-08-04T23:05:01+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-native-replan-surface-prototype.completed
+    - id: actual.self-prototype-openproject-native-surface-level-0-1.ai-codex-local.20260804T2305020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.prototype-openproject-native-surface-level-0-1
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-native-surface-prototype.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 4
+      unit: agent_hours
+      occurred_at: "2026-08-04T23:05:02+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-native-replan-surface-prototype.completed
+    - id: actual.self-prototype-openproject-native-surface-level-0-1.role-reviewer.20260804T2305030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.prototype-openproject-native-surface-level-0-1
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-native-surface-prototype.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 1
+      unit: review_hours
+      occurred_at: "2026-08-04T23:05:03+07:00"
+      status_date: "2026-08-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-native-replan-surface-prototype.completed
+    - id: actual.self-reconcile-dashboard-load-semantics.human-maintainer.20260806T1115010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.reconcile-dashboard-load-semantics
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.dashboard-load-semantics.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 2
+      unit: hours
+      occurred_at: "2026-08-06T11:15:01+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.dashboard-load-profile-semantics-design.completed
+    - id: actual.self-reconcile-dashboard-load-semantics.ai-codex-local.20260806T1115020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.reconcile-dashboard-load-semantics
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.dashboard-load-semantics.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 2
+      unit: agent_hours
+      occurred_at: "2026-08-06T11:15:02+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.dashboard-load-profile-semantics-design.completed
+    - id: actual.self-reconcile-dashboard-load-semantics.role-reviewer.20260806T1115030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.reconcile-dashboard-load-semantics
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.dashboard-load-semantics.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.5
+      unit: review_hours
+      occurred_at: "2026-08-06T11:15:03+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.dashboard-load-profile-semantics-design.completed
+    - id: actual.self-implement-dashboard-load-profile-rendering.human-maintainer.20260806T1720010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-dashboard-load-profile-rendering
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.dashboard-load-profile-rendering.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 3
+      unit: hours
+      occurred_at: "2026-08-06T17:20:01+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.dashboard-load-profile-rendering.completed
+    - id: actual.self-implement-dashboard-load-profile-rendering.ai-codex-local.20260806T1720020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-dashboard-load-profile-rendering
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.dashboard-load-profile-rendering.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 3.5
+      unit: agent_hours
+      occurred_at: "2026-08-06T17:20:02+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.dashboard-load-profile-rendering.completed
+    - id: actual.self-implement-dashboard-load-profile-rendering.role-reviewer.20260806T1720030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-dashboard-load-profile-rendering
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.dashboard-load-profile-rendering.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.5
+      unit: review_hours
+      occurred_at: "2026-08-06T17:20:03+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.dashboard-load-profile-rendering.completed
+    - id: actual.self-implement-openproject-work-package-create-helper.human-maintainer.20260806T1750010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-create-helper
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-work-package-create-helper.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 2
+      unit: hours
+      occurred_at: "2026-08-06T17:50:01+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-work-package-create-helper.completed
+    - id: actual.self-implement-openproject-work-package-create-helper.ai-codex-local.20260806T1750020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-create-helper
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-work-package-create-helper.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 3
+      unit: agent_hours
+      occurred_at: "2026-08-06T17:50:02+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-work-package-create-helper.completed
+    - id: actual.self-implement-openproject-work-package-create-helper.role-reviewer.20260806T1750030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-work-package-create-helper
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-work-package-create-helper.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.5
+      unit: review_hours
+      occurred_at: "2026-08-06T17:50:03+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-work-package-create-helper.completed
+    - id: actual.self-implement-openproject-private-binding-helper.human-maintainer.20260806T1810010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-private-binding-helper
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-private-binding-helper.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 2
+      unit: hours
+      occurred_at: "2026-08-06T18:10:01+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-private-binding-helper.completed
+    - id: actual.self-implement-openproject-private-binding-helper.ai-codex-local.20260806T1810020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-private-binding-helper
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-private-binding-helper.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 2.5
+      unit: agent_hours
+      occurred_at: "2026-08-06T18:10:02+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-private-binding-helper.completed
+    - id: actual.self-implement-openproject-private-binding-helper.role-reviewer.20260806T1810030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-openproject-private-binding-helper
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.op-private-binding-helper.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.5
+      unit: review_hours
+      occurred_at: "2026-08-06T18:10:03+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-private-binding-helper.completed
+    - id: actual.self-add-safe-openproject-dotenv-loader.human-maintainer.20260806T1850010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-safe-openproject-dotenv-loader
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-dotenv-loader.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 1
+      unit: hours
+      occurred_at: "2026-08-06T18:50:01+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-dotenv-loader.completed
+    - id: actual.self-add-safe-openproject-dotenv-loader.ai-codex-local.20260806T1850020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-safe-openproject-dotenv-loader
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-dotenv-loader.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 2
+      unit: agent_hours
+      occurred_at: "2026-08-06T18:50:02+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-dotenv-loader.completed
+    - id: actual.self-add-safe-openproject-dotenv-loader.role-reviewer.20260806T1850030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-safe-openproject-dotenv-loader
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-dotenv-loader.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.5
+      unit: review_hours
+      occurred_at: "2026-08-06T18:50:03+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-dotenv-loader.completed
+    - id: actual.self-add-openproject-backlog-reconcile-helper.human-maintainer.20260806T1920010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-openproject-backlog-reconcile-helper
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-backlog-reconcile.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 2
+      unit: hours
+      occurred_at: "2026-08-06T19:20:01+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-backlog-reconcile-helper.completed
+    - id: actual.self-add-openproject-backlog-reconcile-helper.ai-codex-local.20260806T1920020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-openproject-backlog-reconcile-helper
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-backlog-reconcile.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 3
+      unit: agent_hours
+      occurred_at: "2026-08-06T19:20:02+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-backlog-reconcile-helper.completed
+    - id: actual.self-add-openproject-backlog-reconcile-helper.role-reviewer.20260806T1920030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-openproject-backlog-reconcile-helper
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-backlog-reconcile.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.5
+      unit: review_hours
+      occurred_at: "2026-08-06T19:20:03+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-backlog-reconcile-helper.completed
+    - id: actual.self-add-openproject-tunnel-header-support.human-maintainer.20260806T2010010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-openproject-tunnel-header-support
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-tunnel-header-support.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 1
+      unit: hours
+      occurred_at: "2026-08-06T20:10:01+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-tunnel-header-support.completed
+    - id: actual.self-add-openproject-tunnel-header-support.ai-codex-local.20260806T2010020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-openproject-tunnel-header-support
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-tunnel-header-support.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 2
+      unit: agent_hours
+      occurred_at: "2026-08-06T20:10:02+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-tunnel-header-support.completed
+    - id: actual.self-add-openproject-tunnel-header-support.role-reviewer.20260806T2010030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.add-openproject-tunnel-header-support
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-tunnel-header-support.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.5
+      unit: review_hours
+      occurred_at: "2026-08-06T20:10:03+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-tunnel-header-support.completed
+    - id: actual.self-design-openproject-read-only-plugin-feasibility.human-maintainer.20260806T2110010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-read-only-plugin-feasibility
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-plugin-feasibility.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 1
+      unit: hours
+      occurred_at: "2026-08-06T21:10:01+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-read-only-plugin-feasibility.completed
+    - id: actual.self-design-openproject-read-only-plugin-feasibility.ai-codex-local.20260806T2110020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-read-only-plugin-feasibility
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-plugin-feasibility.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 2
+      unit: agent_hours
+      occurred_at: "2026-08-06T21:10:02+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-read-only-plugin-feasibility.completed
+    - id: actual.self-design-openproject-read-only-plugin-feasibility.role-reviewer.20260806T2110030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-read-only-plugin-feasibility
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-plugin-feasibility.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.5
+      unit: review_hours
+      occurred_at: "2026-08-06T21:10:03+07:00"
+      status_date: "2026-08-06"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-read-only-plugin-feasibility.completed
+    - id: actual.self-define-openproject-overlay-json-contract.human-maintainer.20260807T1200010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.define-openproject-overlay-json-contract
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-overlay-json-contract.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 1.5
+      unit: hours
+      occurred_at: "2026-08-07T12:00:01+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-overlay-json-contract.completed
+    - id: actual.self-define-openproject-overlay-json-contract.ai-codex-local.20260807T1200020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.define-openproject-overlay-json-contract
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-overlay-json-contract.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 3
+      unit: agent_hours
+      occurred_at: "2026-08-07T12:00:02+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-overlay-json-contract.completed
+    - id: actual.self-define-openproject-overlay-json-contract.role-reviewer.20260807T1200030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.define-openproject-overlay-json-contract
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-overlay-json-contract.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.5
+      unit: review_hours
+      occurred_at: "2026-08-07T12:00:03+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-overlay-json-contract.completed
+    - id: actual.self-scaffold-openproject-overlay-plugin-consumer.human-maintainer.20260807T1300010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.scaffold-openproject-overlay-plugin-consumer
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-overlay-plugin-consumer.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 2
+      unit: hours
+      occurred_at: "2026-08-07T13:00:01+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-overlay-plugin-consumer-scaffold.completed
+    - id: actual.self-scaffold-openproject-overlay-plugin-consumer.ai-codex-local.20260807T1300020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.scaffold-openproject-overlay-plugin-consumer
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-overlay-plugin-consumer.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 5
+      unit: agent_hours
+      occurred_at: "2026-08-07T13:00:02+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-overlay-plugin-consumer-scaffold.completed
+    - id: actual.self-scaffold-openproject-overlay-plugin-consumer.role-reviewer.20260807T1300030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.scaffold-openproject-overlay-plugin-consumer
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-overlay-plugin-consumer.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 1
+      unit: review_hours
+      occurred_at: "2026-08-07T13:00:03+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-overlay-plugin-consumer-scaffold.completed
+    - id: actual.self-design-openproject-plugin-deployment-path.human-maintainer.20260807T1400010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-plugin-deployment-path
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-plugin-deployment-path.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 2
+      unit: hours
+      occurred_at: "2026-08-07T14:00:01+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-plugin-deployment-path.completed
+    - id: actual.self-design-openproject-plugin-deployment-path.ai-codex-local.20260807T1400020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-plugin-deployment-path
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-plugin-deployment-path.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 3
+      unit: agent_hours
+      occurred_at: "2026-08-07T14:00:02+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-plugin-deployment-path.completed
+    - id: actual.self-design-openproject-plugin-deployment-path.role-reviewer.20260807T1400030700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-plugin-deployment-path
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-plugin-deployment-path.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.5
+      unit: review_hours
+      occurred_at: "2026-08-07T14:00:03+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-plugin-deployment-path.completed
+    - id: actual.self-verify-openproject-plugin-throwaway-runtime.human-maintainer.20260807T1500010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.verify-openproject-plugin-throwaway-runtime
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-plugin-throwaway-runtime.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 2.5
+      unit: hours
+      occurred_at: "2026-08-07T15:00:01+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-plugin-throwaway-runtime.completed
+    - id: actual.self-verify-openproject-plugin-throwaway-runtime.ai-codex-local.20260807T1500020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.verify-openproject-plugin-throwaway-runtime
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-plugin-throwaway-runtime.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 5
+      unit: agent_hours
+      occurred_at: "2026-08-07T15:00:02+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-plugin-throwaway-runtime.completed
+    - id: actual.self-verify-openproject-plugin-throwaway-runtime.local-dev.20260807T1500030700.runtime-consumed
+      type: runtime_consumed
+      task_ref:
+        kind: task
+        id: task.self.verify-openproject-plugin-throwaway-runtime
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-plugin-throwaway-runtime.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-08-07T15:00:03+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-plugin-throwaway-runtime.completed
+    - id: actual.self-verify-openproject-plugin-throwaway-runtime.role-reviewer.20260807T1500040700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.verify-openproject-plugin-throwaway-runtime
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-plugin-throwaway-runtime.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.75
+      unit: review_hours
+      occurred_at: "2026-08-07T15:00:04+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-plugin-throwaway-runtime.completed
+    - id: actual.self-prepare-live-openproject-plugin-installation.human-maintainer.20260807T1700010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.prepare-live-openproject-plugin-installation
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.live-openproject-plugin-installation.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 4
+      unit: hours
+      occurred_at: "2026-08-07T17:00:01+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.live-openproject-plugin-preflight.completed
+    - id: actual.self-prepare-live-openproject-plugin-installation.ai-codex-local.20260807T1700020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.prepare-live-openproject-plugin-installation
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.live-openproject-plugin-installation.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 6
+      unit: agent_hours
+      occurred_at: "2026-08-07T17:00:02+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.live-openproject-plugin-preflight.completed
+    - id: actual.self-prepare-live-openproject-plugin-installation.local-dev.20260807T1700030700.runtime-consumed
+      type: runtime_consumed
+      task_ref:
+        kind: task
+        id: task.self.prepare-live-openproject-plugin-installation
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.live-openproject-plugin-installation.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-08-07T17:00:03+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.live-openproject-plugin-preflight.completed
+    - id: actual.self-prepare-live-openproject-plugin-installation.role-reviewer.20260807T1700040700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.prepare-live-openproject-plugin-installation
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.live-openproject-plugin-installation.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 1.5
+      unit: review_hours
+      occurred_at: "2026-08-07T17:00:04+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.live-openproject-plugin-preflight.completed
+    - id: actual.self-execute-live-openproject-plugin-installation.human-maintainer.20260807T1800010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.execute-live-openproject-plugin-installation
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.execute-live-openproject-plugin-installation.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 3
+      unit: hours
+      occurred_at: "2026-08-07T18:00:01+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.live-openproject-plugin-installation.completed
+    - id: actual.self-execute-live-openproject-plugin-installation.ai-codex-local.20260807T1800020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.execute-live-openproject-plugin-installation
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.execute-live-openproject-plugin-installation.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 4
+      unit: agent_hours
+      occurred_at: "2026-08-07T18:00:02+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.live-openproject-plugin-installation.completed
+    - id: actual.self-execute-live-openproject-plugin-installation.local-dev.20260807T1800030700.runtime-consumed
+      type: runtime_consumed
+      task_ref:
+        kind: task
+        id: task.self.execute-live-openproject-plugin-installation
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.execute-live-openproject-plugin-installation.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-08-07T18:00:03+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.live-openproject-plugin-installation.completed
+    - id: actual.self-execute-live-openproject-plugin-installation.role-reviewer.20260807T1800040700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.execute-live-openproject-plugin-installation
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.execute-live-openproject-plugin-installation.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 1.5
+      unit: review_hours
+      occurred_at: "2026-08-07T18:00:04+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.live-openproject-plugin-installation.completed
+    - id: actual.self-live-plugin-resource-view.human-maintainer.20260807T1930010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.improve-live-openproject-plugin-resource-view
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.live-plugin-resource-view.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 3
+      unit: hours
+      occurred_at: "2026-08-07T19:30:01+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.live-openproject-plugin-resource-view.deployed
+    - id: actual.self-live-plugin-resource-view.ai-codex-local.20260807T1930020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.improve-live-openproject-plugin-resource-view
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.live-plugin-resource-view.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 5
+      unit: agent_hours
+      occurred_at: "2026-08-07T19:30:02+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.live-openproject-plugin-resource-view.deployed
+    - id: actual.self-live-plugin-resource-view.local-dev.20260807T1930030700.runtime-consumed
+      type: runtime_consumed
+      task_ref:
+        kind: task
+        id: task.self.improve-live-openproject-plugin-resource-view
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.live-plugin-resource-view.local-dev
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      amount: 1
+      unit: concurrent_slots
+      occurred_at: "2026-08-07T19:30:03+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.live-openproject-plugin-resource-view.deployed
+    - id: actual.self-live-plugin-resource-view.role-reviewer.20260807T1930040700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.improve-live-openproject-plugin-resource-view
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.live-plugin-resource-view.review
+      resource_ref:
+        kind: resource
+        id: resource.role.reviewer
+      amount: 0.5
+      unit: review_hours
+      occurred_at: "2026-08-07T19:30:04+07:00"
+      status_date: "2026-08-07"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.live-openproject-plugin-resource-view.deployed
+    - id: actual.self-work-package-replan-panel-design.human-maintainer.20260811T1900010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-work-package-replan-panel
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.work-package-replan-panel-design.maintainer
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      amount: 0.5
+      unit: hours
+      occurred_at: "2026-08-11T19:00:01+07:00"
+      status_date: "2026-08-11"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-work-package-replan-panel-design.draft
+    - id: actual.self-work-package-replan-panel-design.ai-codex-local.20260811T1900020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-openproject-work-package-replan-panel
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.work-package-replan-panel-design.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 1
+      unit: agent_hours
+      occurred_at: "2026-08-11T19:00:02+07:00"
+      status_date: "2026-08-11"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.openproject-work-package-replan-panel-design.draft

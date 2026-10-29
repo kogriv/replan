@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.audit-hygiene-before-next-product-slice.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-09-24T14:46:15+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.audit-hygiene-before-next-product-slice
+    suggested_change:
+        op: set
+        path: dependencies.dependency.audit-hygiene-before-next-product-slice.status
+        value: resolved
+    rationale: Dependency dependency.audit-hygiene-before-next-product-slice (preferred) can be marked resolved because predecessor task.self.clean-post-pause-audit-hygiene is in the required state.
+    requires_confirmation: true

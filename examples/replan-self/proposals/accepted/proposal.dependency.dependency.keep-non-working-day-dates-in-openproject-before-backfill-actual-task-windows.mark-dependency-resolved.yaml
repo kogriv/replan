@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.keep-non-working-day-dates-in-openproject-before-backfill-actual-task-windows.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-10-29T11:00:50+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.keep-non-working-day-dates-in-openproject-before-backfill-actual-task-windows
+    suggested_change:
+        op: set
+        path: dependencies.dependency.keep-non-working-day-dates-in-openproject-before-backfill-actual-task-windows.status
+        value: resolved
+    rationale: Dependency dependency.keep-non-working-day-dates-in-openproject-before-backfill-actual-task-windows (required) can be marked resolved because predecessor task.self.keep-non-working-day-dates-in-openproject is in the required state.
+    requires_confirmation: true

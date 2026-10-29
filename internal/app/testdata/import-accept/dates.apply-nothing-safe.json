@@ -1,0 +1,57 @@
+{
+  "changed_files": {},
+  "error": "",
+  "result": {
+    "applied": false,
+    "dry_run": false,
+    "snapshot_id": "source_snapshot.openproject.20260728T120000",
+    "mapped_path": "imports/openproject/20260728T120000/mapped.json",
+    "planned_writes": null,
+    "changes": null,
+    "audit_record_preview": {
+      "id": "audit.20260730T120000000000000Z.import-accept-dates",
+      "occurred_at": "2026-07-30T12:00:00Z",
+      "actor_ref": {
+        "kind": "actor",
+        "id": "actor.human.operator"
+      },
+      "operation": "import_accept",
+      "target_ref": {
+        "kind": "source_snapshot",
+        "id": "source_snapshot.openproject.20260728T120000"
+      },
+      "result": "success",
+      "reason": "Golden run."
+    },
+    "warnings": [
+      {
+        "code": "openproject_dates_missing",
+        "message": "OpenProject work package 1234 has no start or due date",
+        "severity": "warning",
+        "target": {
+          "kind": "openproject_work_package",
+          "id": "1234"
+        }
+      },
+      {
+        "code": "import_accept_no_changes",
+        "message": "import accept dry-run produced no canonical changes",
+        "severity": "warning",
+        "target": {
+          "kind": "source_snapshot",
+          "id": "source_snapshot.openproject.20260728T120000"
+        }
+      },
+      {
+        "code": "import_accept_no_applicable_dates",
+        "message": "import accept --apply --accept-dates has no safe planned dates to write",
+        "severity": "warning",
+        "target": {
+          "kind": "source_snapshot",
+          "id": "source_snapshot.openproject.20260728T120000"
+        }
+      }
+    ],
+    "errors": []
+  }
+}

@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.gantt-design-before-gantt-build.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-09-25T15:41:17+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.gantt-design-before-gantt-build
+    suggested_change:
+        op: set
+        path: dependencies.dependency.gantt-design-before-gantt-build.status
+        value: resolved
+    rationale: Dependency dependency.gantt-design-before-gantt-build (required) can be marked resolved because predecessor task.self.design-openproject-plugin-gantt-view is in the required state.
+    requires_confirmation: true

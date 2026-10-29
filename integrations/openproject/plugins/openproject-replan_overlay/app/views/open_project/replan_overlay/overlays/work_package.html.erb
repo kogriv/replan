@@ -1,0 +1,288 @@
+<% html_title "RePlan", (@work_package_row ? @work_package_row["title"].to_s : "Work package ##{@work_package_id}") %>
+
+<%= render partial: "open_project/replan_overlay/overlays/gantt_styles" %>
+<style>
+  .replan-panel {
+    /* OpenProject's Primer variables, so its light and dark themes and
+       extensions such as Dark Reader recolour the plugin with the rest of
+       the page. No colour is fixed here. */
+    --replan-border: var(--borderColor-default);
+    --replan-grid: var(--borderColor-muted);
+    --replan-muted: var(--fgColor-muted);
+    --replan-ink: var(--fgColor-default);
+    --replan-surface: var(--bgColor-muted);
+    --replan-attention: var(--fgColor-attention);
+    --replan-attention-surface: var(--bgColor-attention-muted);
+    --replan-danger: var(--fgColor-danger);
+    --replan-danger-surface: var(--bgColor-danger-muted);
+    color: var(--replan-ink);
+  }
+
+  .replan-panel__facts {
+    align-items: baseline;
+    color: var(--replan-muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    margin: 0 0 0.75rem;
+  }
+
+  .replan-panel__signals {
+    display: grid;
+    gap: 0.4rem;
+    list-style: none;
+    margin: 0 0 1rem;
+    padding: 0;
+  }
+
+  .replan-panel__signal {
+    border-left: 3px solid var(--replan-border);
+    padding: 0.2rem 0.6rem;
+  }
+
+  .replan-panel__signal.-attention {
+    background: var(--replan-attention-surface);
+    border-left-color: var(--replan-attention);
+  }
+
+  .replan-panel__signal.-danger {
+    background: var(--replan-danger-surface);
+    border-left-color: var(--replan-danger);
+  }
+
+  .replan-panel__chart {
+    margin: 0 0 1.5rem;
+  }
+
+  .replan-panel__grid {
+    display: grid;
+    gap: 1.5rem 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 30rem), 1fr));
+  }
+
+  .replan-panel__grid h3 {
+    font-size: 1rem;
+    margin: 0 0 0.6rem;
+  }
+
+  .replan-panel__grid h3:not(:first-child) {
+    margin-top: 1.25rem;
+  }
+
+  .replan-panel__list {
+    display: grid;
+    gap: 0.75rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .replan-panel__list li {
+    border-left: 2px solid var(--replan-border);
+    display: grid;
+    gap: 0.15rem;
+    padding-left: 0.65rem;
+  }
+
+  .replan-panel__when {
+    color: var(--replan-muted);
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .replan-panel__text {
+    max-width: 72ch;
+    overflow-wrap: anywhere;
+  }
+
+  .replan-panel__table-box {
+    border: 1px solid var(--replan-border);
+    border-radius: 6px;
+    margin: 0 0 1rem;
+    overflow-x: auto;
+  }
+
+  .replan-panel__table {
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    width: 100%;
+  }
+
+  .replan-panel__table th,
+  .replan-panel__table td {
+    border-bottom: 1px solid var(--replan-grid);
+    padding: 0.4rem 0.6rem;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .replan-panel__table th {
+    background: var(--replan-surface);
+    color: var(--replan-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .replan-panel__table tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .replan-panel__table .-num {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .replan-panel__empty {
+    color: var(--replan-muted);
+  }
+</style>
+
+<% page_title = @work_package_row ? @work_package_row["title"].to_s : "Work package ##{@work_package_id}" %>
+<%= render(Primer::OpenProject::PageHeader.new) do |header| %>
+  <% header.with_title { page_title } %>
+  <% header.with_breadcrumbs([{ href: project_path(@project), text: @project.name },
+                              { href: project_replan_overlay_path(@project.identifier), text: "RePlan" },
+                              "##{@work_package_id}"]) %>
+<% end %>
+
+<%= render partial: "open_project/replan_overlay/overlays/nav",
+           locals: { current: "task",
+                     task: (@work_package_row ? { work_package_id: @work_package_id, title: page_title } : nil),
+                     missing_work_package_id: (@work_package_row ? nil : @work_package_id) } %>
+
+<div class="replan-panel">
+  <% if !@state["available"] %>
+    <div class="op-toast -warning">
+      <p><strong>No RePlan overlay for this project.</strong></p>
+      <p><%= h @state["message"] %></p>
+    </div>
+  <% elsif @work_package_row.nil? %>
+    <div class="op-toast -warning">
+      <p><strong>No RePlan overlay for this work package.</strong></p>
+      <p>OpenProject work package #<%= h @work_package_id %> is not in the current RePlan overlay.</p>
+    </div>
+  <% else %>
+    <% task = @task %>
+    <p class="replan-panel__facts">
+      <span><%= h task.facts.join(" · ") %></span>
+      <% if @work_package_row["work_package_url"].present? %>
+        <a href="<%= h @work_package_row["work_package_url"] %>">Open #<%= h @work_package_row["work_package_id"] %> in OpenProject</a>
+      <% end %>
+    </p>
+
+    <% if task.signals.any? %>
+      <ul class="replan-panel__signals">
+        <% task.signals.each do |signal| %>
+          <li class="replan-panel__signal -<%= h signal["tone"] %>"<% if signal["title"] %> title="<%= h signal["title"] %>"<% end %>><%= h signal["text"] %></li>
+        <% end %>
+      </ul>
+    <% end %>
+
+    <% if task.gantt.available? %>
+      <div class="replan-gantt replan-panel__chart">
+        <div class="replan-gantt__scroll -mini">
+          <div class="replan-gantt__canvas">
+            <%= render partial: "open_project/replan_overlay/overlays/gantt_axis", locals: { gantt: task.gantt, label: "Task and resources" } %>
+            <% task.gantt.tasks.each do |row| %>
+              <%= render partial: "open_project/replan_overlay/overlays/gantt_task", locals: { task: row, gantt: task.gantt, show_lanes: true } %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <% if !task.detailed? %>
+      <div class="op-toast -info">
+        <p>What was done, time booked and dependencies need a RePlan overlay of version 2 or later; this one is version <%= h @presenter.schema_version %>.</p>
+      </div>
+    <% end %>
+
+    <div class="replan-panel__grid">
+      <section>
+        <h3>What was done</h3>
+        <% if task.evidence.any? %>
+          <ul class="replan-panel__list">
+            <% task.evidence.each do |item| %>
+              <li title="<%= h item["id"] %>">
+                <span class="replan-panel__when"><%= h item["date"] %> · <%= h item["kind"] %></span>
+                <span class="replan-panel__text"><%= h item["summary"] %></span>
+              </li>
+            <% end %>
+          </ul>
+        <% else %>
+          <p class="replan-panel__empty">Nothing recorded yet.</p>
+        <% end %>
+      </section>
+
+      <section>
+        <h3>Resources</h3>
+        <% if task.demands.any? %>
+          <div class="replan-panel__table-box">
+            <table class="replan-panel__table">
+              <thead><tr><th>Resource</th><th>Planned</th><th>Booked</th><th>Remaining</th><th>Window</th></tr></thead>
+              <tbody>
+                <% task.demands.each do |demand| %>
+                  <tr title="<%= h demand["demand_id"] %>">
+                    <td><%= h demand["resource"] %></td>
+                    <td class="-num"><%= h demand["planned"] %></td>
+                    <td class="-num"><%= h demand["actual"] %></td>
+                    <td class="-num"><%= h demand["remaining"] %></td>
+                    <td class="-num"><%= h demand["window"] %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <p class="replan-panel__empty">No resource demands.</p>
+        <% end %>
+
+        <h3>Time booked</h3>
+        <% if task.actuals.any? %>
+          <div class="replan-panel__table-box">
+            <table class="replan-panel__table">
+              <thead><tr><th>Date</th><th>Resource</th><th>Amount</th></tr></thead>
+              <tbody>
+                <% task.actuals.each do |actual| %>
+                  <tr title="<%= h actual["demand_id"] %>">
+                    <td class="-num"><%= h actual["date"] %></td>
+                    <td><%= h actual["resource"] %></td>
+                    <td class="-num"><%= h actual["amount"] %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <p class="replan-panel__empty">No time booked yet.</p>
+        <% end %>
+      </section>
+
+      <section>
+        <% [["Depends on", task.predecessors, "after"], ["Waiting on this", task.successors, "before"]].each do |heading, dependencies, word| %>
+          <h3><%= h heading %></h3>
+          <% if dependencies.any? %>
+            <ul class="replan-panel__list">
+              <% dependencies.each do |dependency| %>
+                <li>
+                  <span class="replan-panel__when"><%= h [dependency["criticality"], dependency["status"], dependency["task_status"]].reject(&:empty?).join(" · ") %></span>
+                  <span class="replan-panel__text"><%= h word %>
+                    <% if dependency["work_package_id"].present? %>
+                      <a href="<%= h project_replan_overlay_work_package_path(@project.identifier, dependency["work_package_id"]) %>" title="<%= h dependency["task_id"] %>">#<%= h dependency["work_package_id"] %> <%= h dependency["title"] %></a>
+                    <% else %>
+                      <span title="<%= h dependency["task_id"] %>"><%= h dependency["title"] %></span>
+                    <% end %>
+                  </span>
+                </li>
+              <% end %>
+            </ul>
+          <% else %>
+            <p class="replan-panel__empty">None.</p>
+          <% end %>
+        <% end %>
+      </section>
+    </div>
+  <% end %>
+</div>

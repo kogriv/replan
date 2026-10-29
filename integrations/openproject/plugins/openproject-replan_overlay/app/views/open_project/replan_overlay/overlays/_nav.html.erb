@@ -1,0 +1,76 @@
+<% task = local_assigns[:task] %>
+<nav class="replan-nav" aria-label="RePlan views"
+     data-replan-nav
+     data-project="<%= h @project.identifier %>"
+     data-overview="<%= h project_replan_overlay_path(@project.identifier) %>"
+     <% if task %>data-task-wp="<%= h task[:work_package_id] %>" data-task-title="<%= h task[:title] %>"<% end %>
+     <% if local_assigns[:missing_work_package_id] %>data-task-missing="<%= h local_assigns[:missing_work_package_id] %>"<% end %>>
+  <a href="<%= h project_replan_overlay_path(@project.identifier) %>"<% if current == "overview" %> aria-current="page"<% end %>>Overview</a>
+  <a href="<%= h project_replan_overlay_gantt_path(@project.identifier) %>"<% if current == "gantt" %> aria-current="page"<% end %>>Gantt</a>
+  <span class="replan-nav__tabs" data-replan-tabs>
+    <% if task %>
+      <a href="<%= h request.fullpath %>" aria-current="page">#<%= h task[:work_package_id] %></a>
+    <% end %>
+  </span>
+</nav>
+<style>
+  .replan-nav {
+    align-items: flex-end;
+    border-bottom: 1px solid var(--borderColor-default);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin: 0 0 1rem;
+  }
+
+  .replan-nav a,
+  .replan-nav__tab {
+    border-bottom: 2px solid transparent;
+    color: var(--fgColor-muted);
+    font-weight: 600;
+    padding: 0.4rem 0.75rem;
+    text-decoration: none;
+  }
+
+  .replan-nav a[aria-current="page"],
+  .replan-nav__tab[aria-current="page"] {
+    border-bottom-color: var(--bgColor-accent-emphasis);
+    color: var(--fgColor-default);
+  }
+
+  .replan-nav__tabs {
+    display: contents;
+  }
+
+  .replan-nav__tab {
+    align-items: center;
+    display: inline-flex;
+    gap: 0.25rem;
+    max-width: 16rem;
+    padding-right: 0.25rem;
+  }
+
+  .replan-nav__tab a {
+    border: 0;
+    overflow: hidden;
+    padding: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .replan-nav__close {
+    background: none;
+    border: 0;
+    border-radius: 4px;
+    color: var(--fgColor-muted);
+    cursor: pointer;
+    font: inherit;
+    padding: 0 0.3rem;
+  }
+
+  .replan-nav__close:hover {
+    background: var(--bgColor-muted);
+    color: var(--fgColor-default);
+  }
+</style>
+<%= render partial: "open_project/replan_overlay/overlays/script" %>

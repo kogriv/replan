@@ -1,0 +1,41 @@
+baseline:
+  id: baseline.2026-07-20.self-dogfood
+  name: RePlan self-dogfood initial baseline
+  created_at: "2026-07-20T12:00:00+07:00"
+  approved_at: "2026-07-20T12:30:00+07:00"
+  approved_by:
+    kind: actor
+    id: actor.human.maintainer
+  status_date: "2026-07-20"
+  included_tasks:
+    - kind: task
+      id: task.self.cleanup-oss-boundary
+    - kind: task
+      id: task.self.create-replan-self-fixture
+    - kind: task
+      id: task.self.design-static-dashboard
+    - kind: task
+      id: task.self.implement-static-dashboard
+    - kind: task
+      id: task.self.expand-openproject-fixtures
+    - kind: task
+      id: task.self.write-oss-readiness-audit
+    - kind: task
+      id: task.self.prepare-release-story
+  included_demands:
+    - kind: resource_demand
+      id: resource_demand.self-fixture.maintainer
+    - kind: resource_demand
+      id: resource_demand.static-dashboard-design.maintainer
+    - kind: resource_demand
+      id: resource_demand.static-dashboard-impl.maintainer
+    - kind: resource_demand
+      id: resource_demand.openproject-fixtures.maintainer
+    - kind: resource_demand
+      id: resource_demand.oss-audit.maintainer
+    - kind: resource_demand
+      id: resource_demand.release-story.maintainer
+  assumptions:
+    - RePlan itself is the public dogfood project.
+    - Private pilot evidence stays outside the OSS repository.
+    - Static dashboard work should start from generated reports, not from a daemon.

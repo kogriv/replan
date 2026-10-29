@@ -1,0 +1,43 @@
+evidence:
+  - id: evidence.docs.self-dogfood-calibration-closure
+    type: workspace_event
+    subtype: planning_accepted
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-07-30T15:05:03+07:00"
+    confidence: observed
+    summary: Self-dogfood plan calibration was accepted after reviewer policy, maintainer planning horizon, Codex limit model, dependency gate cleanup and the next OpenProject/RePlan sync slice were documented and applied.
+    targets:
+      - kind: task
+        id: task.self.calibrate-plan-and-resources
+  - id: evidence.oss-boundary-checkpoint.started
+    type: workspace_event
+    subtype: checkpoint_started
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-02T23:05:00+07:00"
+    confidence: observed
+    summary: OSS boundary checkpoint started after OpenProject/RePlan dogfood backlog materialization.
+    targets:
+      - kind: task
+        id: task.self.write-oss-readiness-audit
+  - id: evidence.oss-boundary-checkpoint.completed
+    type: workspace_event
+    subtype: checkpoint_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-02T23:20:00+07:00"
+    confidence: observed
+    summary: OSS boundary checkpoint completed with release blockers documented and private incubation dogfood allowed to continue.
+    url: docs/dev/oss-boundary-checkpoint-2026-08-02.md
+    targets:
+      - kind: task
+        id: task.self.write-oss-readiness-audit
+      - kind: dependency
+        id: dependency.oss-checkpoint-before-full-dogfood

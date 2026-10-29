@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.design-second-tracker-adapter-before-import-second-tracker-from-file.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-10-29T11:02:42+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.design-second-tracker-adapter-before-import-second-tracker-from-file
+    suggested_change:
+        op: set
+        path: dependencies.dependency.design-second-tracker-adapter-before-import-second-tracker-from-file.status
+        value: resolved
+    rationale: Dependency dependency.design-second-tracker-adapter-before-import-second-tracker-from-file (required) can be marked resolved because predecessor task.self.design-second-tracker-adapter is in the required state.
+    requires_confirmation: true

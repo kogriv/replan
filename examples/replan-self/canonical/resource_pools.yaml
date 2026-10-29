@@ -1,0 +1,22 @@
+resource_pools:
+  - id: resource_pool.ai_coding_agents
+    name: AI coding agents
+    resource_class: ai_agent
+    members:
+      - kind: resource
+        id: resource.ai.codex.local
+      - kind: resource
+        id: resource.ai.agent.executor
+    capabilities:
+      - coding
+      - documentation
+  - id: resource_pool.reviewers
+    name: Reviewers
+    resource_class: role
+    members:
+      - kind: resource
+        id: resource.role.reviewer
+    capabilities:
+      - code_review
+      - design_review
+      - acceptance_review

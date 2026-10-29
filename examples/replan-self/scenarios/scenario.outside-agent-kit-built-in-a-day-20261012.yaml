@@ -1,0 +1,15 @@
+scenario:
+    id: scenario.outside-agent-kit-built-in-a-day-20261012
+    name: The agent kit was checked, built and packaged on 2026-10-12, two days ahead of its window
+    status: applied
+    base_ref:
+        kind: current_plan
+        id: current
+    created_at: "2026-10-12T14:00:00+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    changes:
+        - op: replace
+          path: tasks.task.self.package-openproject-tooling-for-outside-agents.planned_finish
+          value: "2026-10-12"

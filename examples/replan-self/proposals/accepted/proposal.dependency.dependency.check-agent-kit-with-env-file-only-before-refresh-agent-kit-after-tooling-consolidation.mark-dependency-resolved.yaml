@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.check-agent-kit-with-env-file-only-before-refresh-agent-kit-after-tooling-consolidation.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-10-25T15:02:03+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.check-agent-kit-with-env-file-only-before-refresh-agent-kit-after-tooling-consolidation
+    suggested_change:
+        op: set
+        path: dependencies.dependency.check-agent-kit-with-env-file-only-before-refresh-agent-kit-after-tooling-consolidation.status
+        value: resolved
+    rationale: Dependency dependency.check-agent-kit-with-env-file-only-before-refresh-agent-kit-after-tooling-consolidation (required) can be marked resolved because predecessor task.self.check-agent-kit-with-env-file-only is in the required state.
+    requires_confirmation: true

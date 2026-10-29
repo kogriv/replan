@@ -1,0 +1,343 @@
+current_plan:
+  id: current
+  version: 1
+  updated_at: "2026-09-24T12:00:00+07:00"
+  updated_by:
+    kind: actor
+    id: actor.human.maintainer
+  based_on_baseline:
+    kind: baseline
+    id: baseline.2026-07-20.self-dogfood
+  included_tasks:
+    - kind: task
+      id: task.self.cleanup-oss-boundary
+    - kind: task
+      id: task.self.create-replan-self-fixture
+    - kind: task
+      id: task.self.design-static-dashboard
+    - kind: task
+      id: task.self.implement-static-dashboard
+    - kind: task
+      id: task.self.add-static-gantt-dashboard
+    - kind: task
+      id: task.self.improve-static-gantt-observability
+    - kind: task
+      id: task.self.add-gantt-resource-allocation-lanes
+    - kind: task
+      id: task.self.add-project-state-report
+    - kind: task
+      id: task.self.add-plan-vs-actual-state-tracking
+    - kind: task
+      id: task.self.add-tracking-suggest-command
+    - kind: task
+      id: task.self.add-tracking-proposal-candidates
+    - kind: task
+      id: task.self.apply-tracking-remaining-proposals
+    - kind: task
+      id: task.self.add-tracking-loop-observability
+    - kind: task
+      id: task.self.render-tracking-loop-dashboard
+    - kind: task
+      id: task.self.prioritize-tracking-loop
+    - kind: task
+      id: task.self.plan-mvp-readiness-audit
+    - kind: task
+      id: task.self.plan-post-mvp-dogfood
+    - kind: task
+      id: task.self.run-first-dogfood-tracking-cleanup
+    - kind: task
+      id: task.self.calibrate-plan-and-resources
+    - kind: task
+      id: task.self.expand-openproject-fixtures
+    - kind: task
+      id: task.self.write-oss-readiness-audit
+    - kind: task
+      id: task.self.reconstruct-openproject-functionality-and-pitfalls
+    - kind: task
+      id: task.self.evaluate-openproject-agent-interfaces
+    - kind: task
+      id: task.self.audit-openproject-agent-tools-hands-on
+    - kind: task
+      id: task.self.design-openproject-ai-cli-operating-layer
+    - kind: task
+      id: task.self.implement-openproject-preflight-operator-helpers
+    - kind: task
+      id: task.self.design-openproject-work-package-operator-toolkit
+    - kind: task
+      id: task.self.implement-openproject-work-package-operator-toolkit
+    - kind: task
+      id: task.self.refactor-live-replan-self-openproject-plan
+    - kind: task
+      id: task.self.run-full-openproject-dogfood-cycle
+    - kind: task
+      id: task.self.design-openproject-native-surface
+    - kind: task
+      id: task.self.prototype-openproject-native-surface-level-0-1
+    - kind: task
+      id: task.self.reconcile-dashboard-load-semantics
+    - kind: task
+      id: task.self.implement-dashboard-load-profile-rendering
+    - kind: task
+      id: task.self.implement-openproject-work-package-create-helper
+    - kind: task
+      id: task.self.implement-openproject-private-binding-helper
+    - kind: task
+      id: task.self.add-safe-openproject-dotenv-loader
+    - kind: task
+      id: task.self.add-openproject-backlog-reconcile-helper
+    - kind: task
+      id: task.self.add-openproject-tunnel-header-support
+    - kind: task
+      id: task.self.design-openproject-read-only-plugin-feasibility
+    - kind: task
+      id: task.self.define-openproject-overlay-json-contract
+    - kind: task
+      id: task.self.scaffold-openproject-overlay-plugin-consumer
+    - kind: task
+      id: task.self.design-openproject-plugin-deployment-path
+    - kind: task
+      id: task.self.verify-openproject-plugin-throwaway-runtime
+    - kind: task
+      id: task.self.prepare-live-openproject-plugin-installation
+    - kind: task
+      id: task.self.execute-live-openproject-plugin-installation
+    - kind: task
+      id: task.self.improve-live-openproject-plugin-resource-view
+    - kind: task
+      id: task.self.design-openproject-work-package-replan-panel
+    - kind: task
+      id: task.self.implement-openproject-work-package-replan-panel
+    - kind: task
+      id: task.self.audit-and-sync-project-documentation
+    - kind: task
+      id: task.self.optimize-openproject-plugin-image-build-layering
+    - kind: task
+      id: task.self.stabilize-openproject-live-helper-timeouts
+    - kind: task
+      id: task.self.sync-latest-openproject-live-backlog-drift
+    - kind: task
+      id: task.self.reenter-openproject-dogfood-cycle-after-pause
+    - kind: task
+      id: task.self.design-openproject-wiki-api-access
+    - kind: task
+      id: task.self.check-upstream-openproject-wiki-api-roadmap
+    - kind: task
+      id: task.self.implement-openproject-wiki-api-plugin
+    - kind: task
+      id: task.self.verify-openproject-wiki-api-plugin-throwaway-runtime
+    - kind: task
+      id: task.self.deploy-openproject-wiki-api-plugin-live
+    - kind: task
+      id: task.self.fix-ci-smoke-ripgrep-dependency
+    - kind: task
+      id: task.self.fix-actual-audit-ids-and-demand-reopen
+    - kind: task
+      id: task.self.clean-post-pause-audit-hygiene
+    - kind: task
+      id: task.self.evaluate-code-graph-quality-tooling
+    - kind: task
+      id: task.self.select-next-product-slice-from-replan-reports
+    - kind: task
+      id: task.self.add-go-lint-baseline-and-ci-gate
+    - kind: task
+      id: task.self.move-heredoc-python-into-script-modules
+    - kind: task
+      id: task.self.improve-state-report-next-actions
+    - kind: task
+      id: task.self.add-wiki-api-page-delete
+    - kind: task
+      id: task.self.fix-close-demand-stale-remaining
+    - kind: task
+      id: task.self.set-project-status-date-command
+    - kind: task
+      id: task.self.warn-accepted-task-future-window
+    - kind: task
+      id: task.self.clean-dead-code-and-workload-spec
+    - kind: task
+      id: task.self.pin-dashboard-html-golden
+    - kind: task
+      id: task.self.split-project-state-markdown
+    - kind: task
+      id: task.self.honour-capacity-effective-dates
+    - kind: task
+      id: task.self.warn-dependency-only-when-due
+    - kind: task
+      id: task.self.fix-plugin-panel-permission
+    - kind: task
+      id: task.self.honest-weekly-workload-for-multi-week-and-concurrent-demands
+    - kind: task
+      id: task.self.add-plugin-rendered-page-checks
+    - kind: task
+      id: task.self.extend-overlay-contract-for-plugin-views
+    - kind: task
+      id: task.self.theme-plugin-views-with-openproject-variables
+    - kind: task
+      id: task.self.restructure-plugin-project-page
+    - kind: task
+      id: task.self.deploy-plugin-milestone-1
+    - kind: task
+      id: task.self.add-plugin-resource-load-profile
+    - kind: task
+      id: task.self.show-evidence-and-actuals-in-plugin-panel
+    - kind: task
+      id: task.self.remove-old-task-list-from-plugin-overview
+    - kind: task
+      id: task.self.package-openproject-tooling-for-outside-agents
+    - kind: task
+      id: task.self.serve-plugin-overlays-per-project-live
+    - kind: task
+      id: task.self.pass-perimeter-key-to-openproject
+    - kind: task
+      id: task.self.add-wiki-commands-to-agent-kit
+    - kind: task
+      id: task.self.give-third-project-agent-own-identity
+    - kind: task
+      id: task.self.deploy-plugin-milestone-2
+    - kind: task
+      id: task.self.link-openproject-work-package-to-replan-panel
+    - kind: task
+      id: task.self.scope-plugin-overlay-to-its-project
+    - kind: task
+      id: task.self.deploy-plugin-milestone-3-and-accept-track
+    - kind: task
+      id: task.self.give-replan-menu-item-an-icon
+    - kind: task
+      id: task.self.review-openproject-replan-plugin-views
+    - kind: task
+      id: task.self.remove-yaml-rewrite-noise
+    - kind: task
+      id: task.self.design-openproject-plugin-gantt-view
+    - kind: task
+      id: task.self.split-validate-workspace
+    - kind: task
+      id: task.self.implement-openproject-plugin-gantt-view
+    - kind: task
+      id: task.self.add-plugin-gantt-navigation
+    - kind: task
+      id: task.self.suggest-dependency-reviews-only-when-due
+    - kind: task
+      id: task.self.dedupe-import-accept-modes
+    - kind: task
+      id: task.self.cancel-dependency-with-audit
+    - kind: task
+      id: task.self.refresh-agent-kit-for-second-project
+    - kind: task
+      id: task.self.license-and-audit-repo-for-publication
+    - kind: task
+      id: task.self.review-agent-tooling-consistency
+    - kind: task
+      id: task.self.count-concurrent-slots-in-schedule-drift-like-workload
+    - kind: task
+      id: task.self.unify-helper-json-envelope
+    - kind: task
+      id: task.self.derive-helper-exit-codes-from-ok
+    - kind: task
+      id: task.self.fail-apply-without-openproject-token
+    - kind: task
+      id: task.self.load-dotenv-in-every-kit-script
+    - kind: task
+      id: task.self.drop-dogfood-defaults-from-kit-scripts
+    - kind: task
+      id: task.self.check-agent-kit-with-env-file-only
+    - kind: task
+      id: task.self.keep-existing-bindings-on-bootstrap
+    - kind: task
+      id: task.self.share-openproject-bindings-module
+    - kind: task
+      id: task.self.single-openproject-status-map
+    - kind: task
+      id: task.self.share-openproject-http-client-and-settings
+    - kind: task
+      id: task.self.fix-openproject-relations-and-bootstrap-pagination
+    - kind: task
+      id: task.self.retry-only-idempotent-openproject-requests
+    - kind: task
+      id: task.self.report-applied-actions-on-helper-failure
+    - kind: task
+      id: task.self.pass-named-arguments-to-python-helpers
+    - kind: task
+      id: task.self.add-help-to-every-script
+    - kind: task
+      id: task.self.sync-cli-spec-and-getting-started
+    - kind: task
+      id: task.self.add-agent-surface-map-and-date-direction-rule
+    - kind: task
+      id: task.self.index-openproject-design-docs
+    - kind: task
+      id: task.self.clean-up-openproject-env-vars
+    - kind: task
+      id: task.self.one-apply-gate-rule-for-cli-and-helpers
+    - kind: task
+      id: task.self.add-replan-evidence-add
+    - kind: task
+      id: task.self.add-replan-task-add
+    - kind: task
+      id: task.self.accept-openproject-dates-through-import-accept
+    - kind: task
+      id: task.self.track-the-task-acceptance-chain
+    - kind: task
+      id: task.self.derive-self-plan-counts-from-fixture
+    - kind: task
+      id: task.self.read-private-openproject-bindings-in-go
+    - kind: task
+      id: task.self.guard-import-accept-against-real-ids
+    - kind: task
+      id: task.self.ship-overlay-publish-in-agent-kit
+    - kind: task
+      id: task.self.report-openproject-rescheduling-after-relation-create
+    - kind: task
+      id: task.self.refresh-agent-kit-after-tooling-consolidation
+    - kind: task
+      id: task.self.preview-moved-task-dates-in-scenarios
+    - kind: task
+      id: task.self.clear-remaining-lint-baseline
+    - kind: task
+      id: task.self.report-missing-project-root-as-not-found
+    - kind: task
+      id: task.self.move-pilot-narrative-to-private-storage
+    - kind: task
+      id: task.self.add-contributing-and-security-policy
+    - kind: task
+      id: task.self.cut-public-repository-from-sanitized-tree
+    - kind: task
+      id: task.self.edit-work-package-subject-and-description-in-toolkit
+    - kind: task
+      id: task.self.store-estimates-in-baselines
+    - kind: task
+      id: task.self.report-estimate-accuracy
+    - kind: task
+      id: task.self.prepare-release-story
+    - kind: task
+      id: task.self.refresh-second-project-agent-kit
+    - kind: task
+      id: task.self.record-actual-task-window
+    - kind: task
+      id: task.self.keep-non-working-day-dates-in-openproject
+    - kind: task
+      id: task.self.keep-self-sample-dates-after-acceptance
+    - kind: task
+      id: task.self.keep-openproject-successors-manually-scheduled
+    - kind: task
+      id: task.self.backfill-actual-task-windows
+    - kind: task
+      id: task.self.version-project-file-format
+    - kind: task
+      id: task.self.add-version-command-and-release-build
+    - kind: task
+      id: task.self.publish-public-repository
+    - kind: task
+      id: task.self.publish-first-release
+    - kind: task
+      id: task.self.design-estimate-calibration
+    - kind: task
+      id: task.self.implement-estimate-calibration
+    - kind: task
+      id: task.self.design-second-tracker-adapter
+    - kind: task
+      id: task.self.import-second-tracker-from-file
+    - kind: task
+      id: task.self.import-second-tracker-live
+    - kind: task
+      id: task.self.design-local-web-view
+    - kind: task
+      id: task.self.implement-local-web-view

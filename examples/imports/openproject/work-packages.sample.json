@@ -1,0 +1,57 @@
+{
+  "_type": "Collection",
+  "total": 2,
+  "count": 2,
+  "_embedded": {
+    "elements": [
+      {
+        "id": 1234,
+        "subject": "Implement validation command",
+        "description": {
+          "raw": "Load local files and validate canonical ids, references and statuses."
+        },
+        "status": {
+          "name": "In progress"
+        },
+        "assignee": {
+          "name": "Ivan"
+        },
+        "estimatedTime": "PT8H",
+        "spentTime": "PT3H",
+        "startDate": "2026-07-06",
+        "dueDate": "2026-07-10",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/1234"
+          },
+          "status": {
+            "title": "In progress"
+          },
+          "assignee": {
+            "title": "Ivan",
+            "href": "/api/v3/users/11"
+          }
+        }
+      },
+      {
+        "id": 1235,
+        "subject": "Unknown task from OpenProject",
+        "description": {
+          "raw": "A source work package that is not yet represented in RePlan canonical tasks."
+        },
+        "status": {
+          "name": "New"
+        },
+        "estimatedTime": "PT2H30M",
+        "spentTime": "PT0H",
+        "startDate": "2026-07-08",
+        "dueDate": "2026-07-09",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/1235"
+          }
+        }
+      }
+    ]
+  }
+}

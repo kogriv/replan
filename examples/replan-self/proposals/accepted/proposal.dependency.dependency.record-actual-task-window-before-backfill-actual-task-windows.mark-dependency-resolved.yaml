@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.record-actual-task-window-before-backfill-actual-task-windows.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-10-29T11:00:20+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.record-actual-task-window-before-backfill-actual-task-windows
+    suggested_change:
+        op: set
+        path: dependencies.dependency.record-actual-task-window-before-backfill-actual-task-windows.status
+        value: resolved
+    rationale: Dependency dependency.record-actual-task-window-before-backfill-actual-task-windows (required) can be marked resolved because predecessor task.self.record-actual-task-window is in the required state.
+    requires_confirmation: true

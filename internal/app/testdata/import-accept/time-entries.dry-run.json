@@ -1,0 +1,59 @@
+{
+  "changed_files": {},
+  "error": "",
+  "result": {
+    "applied": false,
+    "dry_run": true,
+    "snapshot_id": "source_snapshot.openproject.20260723T120000",
+    "mapped_path": "imports/openproject/20260723T120000/mapped.json",
+    "planned_writes": [
+      {
+        "path": "evidence/evidence.2026-W30.yaml",
+        "action": "preview_update",
+        "format": "yaml",
+        "content": ""
+      },
+      {
+        "path": "actuals/actuals.2026-W30.yaml",
+        "action": "preview_update",
+        "format": "yaml",
+        "content": ""
+      }
+    ],
+    "changes": [
+      {
+        "op": "create_evidence",
+        "target_kind": "evidence",
+        "target_id": "evidence.openproject.time-entry.77",
+        "source_id": "77",
+        "path": "evidence/evidence.2026-W30.yaml",
+        "description": "Create evidence evidence.openproject.time-entry.77 from OpenProject time entry 77."
+      },
+      {
+        "op": "create_actual",
+        "target_kind": "actual",
+        "target_id": "actual.openproject.time-entry.77.work-consumed",
+        "source_id": "77",
+        "path": "actuals/actuals.2026-W30.yaml",
+        "description": "Create actual actual.openproject.time-entry.77.work-consumed for task task.op.1234, resource resource.human.ivan and demand resource_demand.task-op-1234.implementer from OpenProject time entry 77."
+      }
+    ],
+    "audit_record_preview": {
+      "id": "audit.20260730T120000000000000Z.import-accept-time-entries",
+      "occurred_at": "2026-07-30T12:00:00Z",
+      "actor_ref": {
+        "kind": "actor",
+        "id": "actor.human.operator"
+      },
+      "operation": "import_accept",
+      "target_ref": {
+        "kind": "source_snapshot",
+        "id": "source_snapshot.openproject.20260723T120000"
+      },
+      "result": "dry_run",
+      "reason": "Golden run."
+    },
+    "warnings": [],
+    "errors": []
+  }
+}

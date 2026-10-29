@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.surface-prototype-before-release-story.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-09-24T14:46:15+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.surface-prototype-before-release-story
+    suggested_change:
+        op: set
+        path: dependencies.dependency.surface-prototype-before-release-story.status
+        value: resolved
+    rationale: Dependency dependency.surface-prototype-before-release-story (required) can be marked resolved because predecessor task.self.prototype-openproject-native-surface-level-0-1 is in the required state.
+    requires_confirmation: true

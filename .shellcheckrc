@@ -1,0 +1,4 @@
+# Project-wide shellcheck policy (task.self.add-go-lint-baseline-and-ci-gate).
+# SC1007: `CDPATH= cd` is the intentional idiom for a clean cd.
+# SC1091: sourced helpers are resolved at run time from the repository.
+disable=SC1007,SC1091

@@ -1,0 +1,61 @@
+{
+  "changed_files": {},
+  "error": "",
+  "result": {
+    "applied": false,
+    "dry_run": true,
+    "snapshot_id": "source_snapshot.openproject.20260710T123000",
+    "mapped_path": "imports/openproject/20260710T123000/mapped.json",
+    "planned_writes": [
+      {
+        "path": "canonical/tasks.yaml",
+        "action": "preview_update",
+        "format": "yaml",
+        "content": ""
+      }
+    ],
+    "changes": [
+      {
+        "op": "update_task_source_refs",
+        "target_kind": "task",
+        "target_id": "task.op.1234",
+        "source_id": "1234",
+        "path": "canonical/tasks.yaml",
+        "description": "Attach OpenProject source reference 1234 to task task.op.1234."
+      },
+      {
+        "op": "update_task_tracking_status",
+        "target_kind": "task",
+        "target_id": "task.op.1234",
+        "source_id": "1234",
+        "path": "canonical/tasks.yaml",
+        "description": "Update task task.op.1234 tracking_status from ready to in_progress."
+      },
+      {
+        "op": "create_task",
+        "target_kind": "task",
+        "target_id": "task.op.1235",
+        "source_id": "1235",
+        "path": "canonical/tasks.yaml",
+        "description": "Create task task.op.1235 from OpenProject work package 1235."
+      }
+    ],
+    "audit_record_preview": {
+      "id": "audit.20260730T120000000000000Z.import-accept-tasks",
+      "occurred_at": "2026-07-30T12:00:00Z",
+      "actor_ref": {
+        "kind": "actor",
+        "id": "actor.human.operator"
+      },
+      "operation": "import_accept",
+      "target_ref": {
+        "kind": "source_snapshot",
+        "id": "source_snapshot.openproject.20260710T123000"
+      },
+      "result": "dry_run",
+      "reason": "Golden run."
+    },
+    "warnings": [],
+    "errors": []
+  }
+}

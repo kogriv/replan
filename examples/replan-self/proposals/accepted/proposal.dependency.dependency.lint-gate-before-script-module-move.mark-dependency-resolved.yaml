@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.lint-gate-before-script-module-move.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-09-24T15:13:53+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.lint-gate-before-script-module-move
+    suggested_change:
+        op: set
+        path: dependencies.dependency.lint-gate-before-script-module-move.status
+        value: resolved
+    rationale: Dependency dependency.lint-gate-before-script-module-move (preferred) can be marked resolved because predecessor task.self.add-go-lint-baseline-and-ci-gate is in the required state.
+    requires_confirmation: true

@@ -1,0 +1,9 @@
+policy:
+  id: policy.local-trusted
+  mode: local_trusted
+  default_actor: actor.human.maintainer
+  require_dry_run_for:
+    - write_back_to_source
+    - apply_scenario
+  ai_agents:
+    default_mutation_mode: proposal_only

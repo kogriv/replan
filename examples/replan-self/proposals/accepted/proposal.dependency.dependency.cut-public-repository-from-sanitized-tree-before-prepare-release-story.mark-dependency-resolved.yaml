@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.cut-public-repository-from-sanitized-tree-before-prepare-release-story.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-10-28T09:25:55+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.cut-public-repository-from-sanitized-tree-before-prepare-release-story
+    suggested_change:
+        op: set
+        path: dependencies.dependency.cut-public-repository-from-sanitized-tree-before-prepare-release-story.status
+        value: resolved
+    rationale: Dependency dependency.cut-public-repository-from-sanitized-tree-before-prepare-release-story (required) can be marked resolved because predecessor task.self.cut-public-repository-from-sanitized-tree is in the required state.
+    requires_confirmation: true

@@ -1,0 +1,1044 @@
+# Superseded by baseline.2026-10-15.tooling-consolidation for the original
+# estimates. This frozen snapshot keeps its changes list as plan history.
+estimate_snapshot:
+  id: estimate_snapshot.2026-10-15.tooling-consolidation
+  name: Original estimates of the tooling consolidation plan
+  source_commit: 390f9c7
+  status_date: '2026-10-15'
+  note: The baseline schema holds task and demand refs only, not amounts or dates, so the plan's original
+    estimates are kept here until baselines carry them (task.self.store-estimates-in-baselines). Later
+    changes are listed, never written over the snapshot.
+  tasks:
+  - task: task.self.unify-helper-json-envelope
+    planned_start: '2026-10-19'
+    planned_finish: '2026-10-19'
+    demands:
+    - id: resource_demand.unify-helper-json-envelope.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 5
+    - id: resource_demand.unify-helper-json-envelope.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.unify-helper-json-envelope.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.unify-helper-json-envelope.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.derive-helper-exit-codes-from-ok
+    planned_start: '2026-10-20'
+    planned_finish: '2026-10-20'
+    demands:
+    - id: resource_demand.derive-helper-exit-codes-from-ok.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 3
+    - id: resource_demand.derive-helper-exit-codes-from-ok.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.derive-helper-exit-codes-from-ok.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.derive-helper-exit-codes-from-ok.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.fail-apply-without-openproject-token
+    planned_start: '2026-10-21'
+    planned_finish: '2026-10-21'
+    demands:
+    - id: resource_demand.fail-apply-without-openproject-token.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 2
+    - id: resource_demand.fail-apply-without-openproject-token.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.fail-apply-without-openproject-token.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.fail-apply-without-openproject-token.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.load-dotenv-in-every-kit-script
+    planned_start: '2026-10-22'
+    planned_finish: '2026-10-22'
+    demands:
+    - id: resource_demand.load-dotenv-in-every-kit-script.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 2
+    - id: resource_demand.load-dotenv-in-every-kit-script.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.load-dotenv-in-every-kit-script.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.load-dotenv-in-every-kit-script.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.drop-dogfood-defaults-from-kit-scripts
+    planned_start: '2026-10-23'
+    planned_finish: '2026-10-23'
+    demands:
+    - id: resource_demand.drop-dogfood-defaults-from-kit-scripts.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 3
+    - id: resource_demand.drop-dogfood-defaults-from-kit-scripts.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.drop-dogfood-defaults-from-kit-scripts.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.drop-dogfood-defaults-from-kit-scripts.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.check-agent-kit-with-env-file-only
+    planned_start: '2026-10-26'
+    planned_finish: '2026-10-26'
+    demands:
+    - id: resource_demand.check-agent-kit-with-env-file-only.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 2
+    - id: resource_demand.check-agent-kit-with-env-file-only.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.check-agent-kit-with-env-file-only.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.check-agent-kit-with-env-file-only.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.keep-existing-bindings-on-bootstrap
+    planned_start: '2026-10-27'
+    planned_finish: '2026-10-27'
+    demands:
+    - id: resource_demand.keep-existing-bindings-on-bootstrap.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 2
+    - id: resource_demand.keep-existing-bindings-on-bootstrap.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.keep-existing-bindings-on-bootstrap.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.keep-existing-bindings-on-bootstrap.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.share-openproject-bindings-module
+    planned_start: '2026-10-28'
+    planned_finish: '2026-10-28'
+    demands:
+    - id: resource_demand.share-openproject-bindings-module.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 4
+    - id: resource_demand.share-openproject-bindings-module.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.share-openproject-bindings-module.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.share-openproject-bindings-module.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.single-openproject-status-map
+    planned_start: '2026-10-29'
+    planned_finish: '2026-10-29'
+    demands:
+    - id: resource_demand.single-openproject-status-map.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 4
+    - id: resource_demand.single-openproject-status-map.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.single-openproject-status-map.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.single-openproject-status-map.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.share-openproject-http-client-and-settings
+    planned_start: '2026-10-30'
+    planned_finish: '2026-10-30'
+    demands:
+    - id: resource_demand.share-openproject-http-client-and-settings.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 5
+    - id: resource_demand.share-openproject-http-client-and-settings.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.share-openproject-http-client-and-settings.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.share-openproject-http-client-and-settings.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.fix-openproject-relations-and-bootstrap-pagination
+    planned_start: '2026-11-02'
+    planned_finish: '2026-11-02'
+    demands:
+    - id: resource_demand.fix-openproject-relations-and-bootstrap-pagination.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 2
+    - id: resource_demand.fix-openproject-relations-and-bootstrap-pagination.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.fix-openproject-relations-and-bootstrap-pagination.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.fix-openproject-relations-and-bootstrap-pagination.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.retry-only-idempotent-openproject-requests
+    planned_start: '2026-11-03'
+    planned_finish: '2026-11-03'
+    demands:
+    - id: resource_demand.retry-only-idempotent-openproject-requests.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 2
+    - id: resource_demand.retry-only-idempotent-openproject-requests.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.retry-only-idempotent-openproject-requests.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.retry-only-idempotent-openproject-requests.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.report-applied-actions-on-helper-failure
+    planned_start: '2026-11-04'
+    planned_finish: '2026-11-04'
+    demands:
+    - id: resource_demand.report-applied-actions-on-helper-failure.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 3
+    - id: resource_demand.report-applied-actions-on-helper-failure.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.report-applied-actions-on-helper-failure.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.report-applied-actions-on-helper-failure.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.pass-named-arguments-to-python-helpers
+    planned_start: '2026-11-05'
+    planned_finish: '2026-11-05'
+    demands:
+    - id: resource_demand.pass-named-arguments-to-python-helpers.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 4
+    - id: resource_demand.pass-named-arguments-to-python-helpers.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.pass-named-arguments-to-python-helpers.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.pass-named-arguments-to-python-helpers.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.add-help-to-every-script
+    planned_start: '2026-11-06'
+    planned_finish: '2026-11-06'
+    demands:
+    - id: resource_demand.add-help-to-every-script.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 4
+    - id: resource_demand.add-help-to-every-script.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.add-help-to-every-script.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.add-help-to-every-script.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.sync-cli-spec-and-getting-started
+    planned_start: '2026-11-09'
+    planned_finish: '2026-11-09'
+    demands:
+    - id: resource_demand.sync-cli-spec-and-getting-started.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 4
+    - id: resource_demand.sync-cli-spec-and-getting-started.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.sync-cli-spec-and-getting-started.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.sync-cli-spec-and-getting-started.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.add-agent-surface-map-and-date-direction-rule
+    planned_start: '2026-11-10'
+    planned_finish: '2026-11-10'
+    demands:
+    - id: resource_demand.add-agent-surface-map-and-date-direction-rule.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 3
+    - id: resource_demand.add-agent-surface-map-and-date-direction-rule.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.add-agent-surface-map-and-date-direction-rule.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.add-agent-surface-map-and-date-direction-rule.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.index-openproject-design-docs
+    planned_start: '2026-11-11'
+    planned_finish: '2026-11-11'
+    demands:
+    - id: resource_demand.index-openproject-design-docs.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 3
+    - id: resource_demand.index-openproject-design-docs.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.index-openproject-design-docs.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.index-openproject-design-docs.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.clean-up-openproject-env-vars
+    planned_start: '2026-11-12'
+    planned_finish: '2026-11-12'
+    demands:
+    - id: resource_demand.clean-up-openproject-env-vars.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 3
+    - id: resource_demand.clean-up-openproject-env-vars.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.clean-up-openproject-env-vars.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.clean-up-openproject-env-vars.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.one-apply-gate-rule-for-cli-and-helpers
+    planned_start: '2026-11-13'
+    planned_finish: '2026-11-13'
+    demands:
+    - id: resource_demand.one-apply-gate-rule-for-cli-and-helpers.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 5
+    - id: resource_demand.one-apply-gate-rule-for-cli-and-helpers.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.one-apply-gate-rule-for-cli-and-helpers.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.one-apply-gate-rule-for-cli-and-helpers.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.add-replan-evidence-add
+    planned_start: '2026-11-16'
+    planned_finish: '2026-11-16'
+    demands:
+    - id: resource_demand.add-replan-evidence-add.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 4
+    - id: resource_demand.add-replan-evidence-add.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.add-replan-evidence-add.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.add-replan-evidence-add.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.add-replan-task-add
+    planned_start: '2026-11-17'
+    planned_finish: '2026-11-18'
+    demands:
+    - id: resource_demand.add-replan-task-add.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 6
+    - id: resource_demand.add-replan-task-add.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.add-replan-task-add.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.add-replan-task-add.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.accept-openproject-dates-through-import-accept
+    planned_start: '2026-11-19'
+    planned_finish: '2026-11-19'
+    demands:
+    - id: resource_demand.accept-openproject-dates-through-import-accept.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 5
+    - id: resource_demand.accept-openproject-dates-through-import-accept.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.accept-openproject-dates-through-import-accept.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.accept-openproject-dates-through-import-accept.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.track-the-task-acceptance-chain
+    planned_start: '2026-11-20'
+    planned_finish: '2026-11-20'
+    demands:
+    - id: resource_demand.track-the-task-acceptance-chain.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 5
+    - id: resource_demand.track-the-task-acceptance-chain.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.track-the-task-acceptance-chain.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.track-the-task-acceptance-chain.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.derive-self-plan-counts-from-fixture
+    planned_start: '2026-11-23'
+    planned_finish: '2026-11-23'
+    demands:
+    - id: resource_demand.derive-self-plan-counts-from-fixture.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 3
+    - id: resource_demand.derive-self-plan-counts-from-fixture.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.derive-self-plan-counts-from-fixture.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.derive-self-plan-counts-from-fixture.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.read-private-openproject-bindings-in-go
+    planned_start: '2026-11-24'
+    planned_finish: '2026-11-25'
+    demands:
+    - id: resource_demand.read-private-openproject-bindings-in-go.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 6
+    - id: resource_demand.read-private-openproject-bindings-in-go.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.read-private-openproject-bindings-in-go.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.read-private-openproject-bindings-in-go.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.guard-import-accept-against-real-ids
+    planned_start: '2026-11-26'
+    planned_finish: '2026-11-26'
+    demands:
+    - id: resource_demand.guard-import-accept-against-real-ids.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 3
+    - id: resource_demand.guard-import-accept-against-real-ids.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.guard-import-accept-against-real-ids.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.guard-import-accept-against-real-ids.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.ship-overlay-publish-in-agent-kit
+    planned_start: '2026-11-27'
+    planned_finish: '2026-11-27'
+    demands:
+    - id: resource_demand.ship-overlay-publish-in-agent-kit.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 3
+    - id: resource_demand.ship-overlay-publish-in-agent-kit.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.ship-overlay-publish-in-agent-kit.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.ship-overlay-publish-in-agent-kit.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.refresh-agent-kit-after-tooling-consolidation
+    planned_start: '2026-12-01'
+    planned_finish: '2026-12-01'
+    demands:
+    - id: resource_demand.refresh-agent-kit-after-tooling-consolidation.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 2
+    - id: resource_demand.refresh-agent-kit-after-tooling-consolidation.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.refresh-agent-kit-after-tooling-consolidation.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.refresh-agent-kit-after-tooling-consolidation.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.preview-moved-task-dates-in-scenarios
+    planned_start: '2026-12-02'
+    planned_finish: '2026-12-03'
+    demands:
+    - id: resource_demand.preview-moved-task-dates-in-scenarios.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 6
+    - id: resource_demand.preview-moved-task-dates-in-scenarios.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.preview-moved-task-dates-in-scenarios.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.preview-moved-task-dates-in-scenarios.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.clear-remaining-lint-baseline
+    planned_start: '2026-12-04'
+    planned_finish: '2026-12-07'
+    demands:
+    - id: resource_demand.clear-remaining-lint-baseline.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 6
+    - id: resource_demand.clear-remaining-lint-baseline.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.clear-remaining-lint-baseline.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.clear-remaining-lint-baseline.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.report-missing-project-root-as-not-found
+    planned_start: '2026-12-08'
+    planned_finish: '2026-12-08'
+    demands:
+    - id: resource_demand.report-missing-project-root-as-not-found.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 4
+    - id: resource_demand.report-missing-project-root-as-not-found.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.report-missing-project-root-as-not-found.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.report-missing-project-root-as-not-found.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.move-pilot-narrative-to-private-storage
+    planned_start: '2026-12-09'
+    planned_finish: '2026-12-09'
+    demands:
+    - id: resource_demand.move-pilot-narrative-to-private-storage.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 4
+    - id: resource_demand.move-pilot-narrative-to-private-storage.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.move-pilot-narrative-to-private-storage.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.move-pilot-narrative-to-private-storage.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.add-contributing-and-security-policy
+    planned_start: '2026-12-10'
+    planned_finish: '2026-12-10'
+    demands:
+    - id: resource_demand.add-contributing-and-security-policy.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 2
+    - id: resource_demand.add-contributing-and-security-policy.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.add-contributing-and-security-policy.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.add-contributing-and-security-policy.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.cut-public-repository-from-sanitized-tree
+    planned_start: '2026-12-11'
+    planned_finish: '2026-12-11'
+    demands:
+    - id: resource_demand.cut-public-repository-from-sanitized-tree.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 4
+    - id: resource_demand.cut-public-repository-from-sanitized-tree.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.cut-public-repository-from-sanitized-tree.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.cut-public-repository-from-sanitized-tree.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.count-concurrent-slots-in-schedule-drift-like-workload
+    planned_start: '2026-10-16'
+    planned_finish: '2026-10-16'
+    demands:
+    - id: resource_demand.count-concurrent-slots-in-schedule-drift-like-workload.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 4
+    - id: resource_demand.count-concurrent-slots-in-schedule-drift-like-workload.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.count-concurrent-slots-in-schedule-drift-like-workload.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.count-concurrent-slots-in-schedule-drift-like-workload.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.report-openproject-rescheduling-after-relation-create
+    planned_start: '2026-11-30'
+    planned_finish: '2026-11-30'
+    demands:
+    - id: resource_demand.report-openproject-rescheduling-after-relation-create.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 3
+    - id: resource_demand.report-openproject-rescheduling-after-relation-create.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.report-openproject-rescheduling-after-relation-create.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.report-openproject-rescheduling-after-relation-create.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  - task: task.self.edit-work-package-subject-and-description-in-toolkit
+    planned_start: '2026-12-14'
+    planned_finish: '2026-12-14'
+    demands:
+    - id: resource_demand.edit-work-package-subject-and-description-in-toolkit.agent
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 3
+    - id: resource_demand.edit-work-package-subject-and-description-in-toolkit.maintainer
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - id: resource_demand.edit-work-package-subject-and-description-in-toolkit.local-dev
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - id: resource_demand.edit-work-package-subject-and-description-in-toolkit.ci
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  changes:
+  - date: '2026-10-15'
+    kind: dates
+    tasks:
+    - task.self.count-concurrent-slots-in-schedule-drift-like-workload
+    - task.self.unify-helper-json-envelope
+    - task.self.derive-helper-exit-codes-from-ok
+    - task.self.fail-apply-without-openproject-token
+    - task.self.load-dotenv-in-every-kit-script
+    - task.self.drop-dogfood-defaults-from-kit-scripts
+    reason: Finished early; done-early scenarios moved the plan to the real dates.
+  - date: '2026-10-25'
+    kind: split
+    demand: resource_demand.check-agent-kit-with-env-file-only.agent
+    from: 2
+    to:
+      agent: 1
+      codex: 1.5
+    reason: 'First Codex trial: Codex writes the change, the executor agent briefs and reviews. The sum
+      rose from 2 to 2.5 without a separate decision.'
+  - date: '2026-10-25'
+    kind: split
+    demand: resource_demand.keep-existing-bindings-on-bootstrap.agent
+    from: 2
+    to:
+      agent: 1
+      codex: 1.5
+    reason: Codex as implementer; the sum rose from 2 to 2.5.
+  - date: '2026-10-25'
+    kind: split
+    demand: resource_demand.share-openproject-bindings-module.agent
+    from: 4
+    to:
+      agent: 1.5
+      codex: 3
+    reason: Codex as implementer; the sum rose from 4 to 4.5.
+  - date: '2026-10-25'
+    kind: re_estimate
+    demand: resource_demand.report-openproject-rescheduling-after-relation-create.agent
+    from: 3
+    to: 4
+    reason: Finding C-18 joined the C-16 task (evidence.self.find-date-push-reports-unstored-dates).
+  - date: '2026-10-25'
+    kind: re_estimate
+    demand: resource_demand.add-help-to-every-script.agent
+    from: 4
+    to: 5
+    reason: Finding C-19 joined the first C-13 task (evidence.self.find-toolkit-usage-errors-in-plain-text).
+  - date: '2026-10-25'
+    kind: split
+    demand: resource_demand.single-openproject-status-map.agent
+    from: 4
+    to:
+      agent: 1.5
+      codex: 3.0
+    reason: Codex as implementer; the sum went from 4 to 4.5.
+  - date: '2026-10-25'
+    kind: split
+    demand: resource_demand.share-openproject-http-client-and-settings.agent
+    from: 5
+    to:
+      agent: 2.0
+      codex: 3.0
+    reason: Codex as implementer; the sum went from 5 to 5.
+  - date: '2026-10-25'
+    kind: split
+    demand: resource_demand.fix-openproject-relations-and-bootstrap-pagination.agent
+    from: 2
+    to:
+      agent: 1.25
+      codex: 0.75
+    reason: The relations half was done on 2026-10-15 (0.75 h consumed); the remaining 1.25 h is split
+      0.75 to Codex and 0.5 to the executor agent; the sum stays 2.
+  - date: '2026-10-25'
+    kind: split
+    demand: resource_demand.retry-only-idempotent-openproject-requests.agent
+    from: 2
+    to:
+      agent: 0.75
+      codex: 1.25
+    reason: Codex as implementer; the sum went from 2 to 2.
+  - date: '2026-10-25'
+    kind: split
+    demand: resource_demand.report-applied-actions-on-helper-failure.agent
+    from: 3
+    to:
+      agent: 1.0
+      codex: 2.0
+    reason: Codex as implementer; the sum went from 3 to 3.
+  - date: '2026-10-26'
+    kind: split
+    demand: resource_demand.pass-named-arguments-to-python-helpers.agent
+    from: 4
+    to:
+      agent: 1.5
+      codex: 2.5
+    reason: Codex as implementer; the sum went from 4 to 4.
+  - date: '2026-10-26'
+    kind: split
+    demand: resource_demand.add-help-to-every-script.agent
+    from: 4
+    to:
+      agent: 2.0
+      codex: 3.0
+    reason: Codex as implementer; the sum went from 4 to 5.
+  - date: '2026-10-26'
+    kind: split
+    demand: resource_demand.sync-cli-spec-and-getting-started.agent
+    from: 4
+    to:
+      agent: 1.5
+      codex: 2.5
+    reason: Codex as implementer; the sum went from 4 to 4.
+  - date: '2026-10-26'
+    kind: split
+    demand: resource_demand.add-agent-surface-map-and-date-direction-rule.agent
+    from: 3
+    to:
+      agent: 1.25
+      codex: 1.75
+    reason: Codex as implementer; the sum went from 3 to 3.
+  - date: '2026-10-26'
+    kind: split
+    demand: resource_demand.index-openproject-design-docs.agent
+    from: 3
+    to:
+      agent: 1.25
+      codex: 1.75
+    reason: Codex as implementer; the sum went from 3 to 3.
+  - date: '2026-10-26'
+    kind: split
+    demand: resource_demand.clean-up-openproject-env-vars.agent
+    from: 3
+    to:
+      agent: 1.25
+      codex: 1.75
+    reason: Codex as implementer; the sum went from 3 to 3.
+  - date: '2026-10-26'
+    kind: split
+    demand: resource_demand.one-apply-gate-rule-for-cli-and-helpers.agent
+    from: 5
+    to:
+      agent: 2.0
+      codex: 3.0
+    reason: Codex as implementer; the sum went from 5 to 5.
+  - date: '2026-10-26'
+    kind: split
+    demand: resource_demand.add-replan-evidence-add.agent
+    from: 4
+    to:
+      agent: 1.5
+      codex: 2.5
+    reason: Codex as implementer; the sum went from 4 to 4.
+  - date: '2026-10-26'
+    kind: split
+    demand: resource_demand.add-replan-task-add.agent
+    from: 6
+    to:
+      agent: 2.5
+      codex: 3.5
+    reason: Codex as implementer; the sum went from 6 to 6.
+  - date: '2026-10-26'
+    kind: split
+    demand: resource_demand.accept-openproject-dates-through-import-accept.agent
+    from: 5
+    to:
+      agent: 2.0
+      codex: 3.0
+    reason: Codex as implementer; the sum went from 5 to 5.
+  - date: '2026-10-26'
+    kind: split
+    demand: resource_demand.track-the-task-acceptance-chain.agent
+    from: 5
+    to:
+      agent: 2.0
+      codex: 3.0
+    reason: Codex as implementer; the sum went from 5 to 5.
+  - date: '2026-10-26'
+    kind: split
+    demand: resource_demand.derive-self-plan-counts-from-fixture.agent
+    from: 3
+    to:
+      agent: 1.25
+      codex: 1.75
+    reason: Codex as implementer; the sum went from 3 to 3.
+  - date: '2026-10-27'
+    kind: split
+    demand: resource_demand.read-private-openproject-bindings-in-go.agent
+    from: 6
+    to:
+      agent: 2.5
+      codex: 3.5
+    reason: Codex as implementer; the sum went from 6 to 6.
+  - date: '2026-10-27'
+    kind: split
+    demand: resource_demand.guard-import-accept-against-real-ids.agent
+    from: 3
+    to:
+      agent: 1.25
+      codex: 1.75
+    reason: Codex as implementer; the sum went from 3 to 3.
+  - date: '2026-10-27'
+    kind: split
+    demand: resource_demand.ship-overlay-publish-in-agent-kit.agent
+    from: 3
+    to:
+      agent: 1.25
+      codex: 1.75
+    reason: Codex as implementer; the sum went from 3 to 3.
+  - date: '2026-10-27'
+    kind: split
+    demand: resource_demand.report-openproject-rescheduling-after-relation-create.agent
+    from: 3
+    to:
+      agent: 1.5
+      codex: 2.5
+    reason: Codex as implementer; the sum went from 3 to 4.
+  - date: '2026-10-27'
+    kind: split
+    demand: resource_demand.preview-moved-task-dates-in-scenarios.agent
+    from: 6
+    to:
+      agent: 2.5
+      codex: 3.5
+    reason: Codex as implementer; the sum went from 6 to 6.
+  - date: '2026-10-27'
+    kind: split
+    demand: resource_demand.clear-remaining-lint-baseline.agent
+    from: 6
+    to:
+      agent: 2.5
+      codex: 3.5
+    reason: Codex as implementer; the sum went from 6 to 6.
+  - date: '2026-10-27'
+    kind: split
+    demand: resource_demand.report-missing-project-root-as-not-found.agent
+    from: 4
+    to:
+      agent: 1.5
+      codex: 2.5
+    reason: Codex as implementer; the sum went from 4 to 4.
+  - date: '2026-10-27'
+    kind: split
+    demand: resource_demand.move-pilot-narrative-to-private-storage.agent
+    from: 4
+    to:
+      agent: 1.5
+      codex: 2.5
+    reason: Codex as implementer; the sum went from 4 to 4.
+  - date: '2026-10-28'
+    kind: split
+    demand: resource_demand.edit-work-package-subject-and-description-in-toolkit.agent
+    from: 3
+    to:
+      agent: 1.0
+      codex: 2.0
+    reason: Codex as implementer; the sum went from 3 to 3.
+  - date: '2026-10-28'
+    kind: split
+    demand: resource_demand.add-contributing-and-security-policy.agent
+    from: 2
+    to:
+      agent: 0.8
+      codex: 1.2
+    reason: Codex as implementer; the sum went from 2 to 2.
+  - date: '2026-10-28'
+    kind: split
+    demand: resource_demand.cut-public-repository-from-sanitized-tree.agent
+    from: 4
+    to:
+      agent: 1.5
+      codex: 2.5
+    reason: Codex as implementer; the sum went from 4 to 4.

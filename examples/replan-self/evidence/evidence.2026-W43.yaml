@@ -1,0 +1,344 @@
+evidence:
+  - id: evidence.self.accept-drop-dogfood-defaults-from-kit-scripts
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-25T15:00:00+07:00"
+    confidence: observed
+    summary: "The operator accepted removing this repository's dogfood defaults from the agent kit scripts."
+    targets:
+      - kind: task
+        id: task.self.drop-dogfood-defaults-from-kit-scripts
+  - id: evidence.self.start-check-agent-kit-with-env-file-only
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-25T14:30:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the dropped dogfood defaults and asked to try this task on the Codex CLI agent (gpt-5.6-sol, medium effort) on the operator's own build machine, under the operator's account, without a separate user. Codex writes the change; the executor agent writes the brief, reviews the diff, runs the local gate and keeps the dogfood loop."
+    targets:
+      - kind: task
+        id: task.self.check-agent-kit-with-env-file-only
+  - id: evidence.self.check-agent-kit-with-env-file-only
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-25T14:50:00+07:00"
+    confidence: observed
+    summary: "check-agent-kit.sh runs every script of the unpacked kit with only a settings file built from env.local.example and fails on a missing setting, a project path other than the file's, a mention of this repository's plan or project, a stdout that is not one helper envelope, a traceback, a call to go, an exit code other than the expected one, or a kit script without an invocation (34 checks). The first Codex trial: the Codex CLI agent (gpt-5.6-sol, medium) wrote the change in two rounds, about 7 and 2 minutes; the second round reverted an unrequested change to the overload explainer's interface and restored the project path assertion. Review, the local gate (go test, smoke in place and on a copy without private settings, shellcheck, helper unittest, golangci-lint, diff check) and two deliberate breakages, a script that skips the settings file and a kit script without an invocation, both caught, were done by the executor agent."
+    targets:
+      - kind: task
+        id: task.self.check-agent-kit-with-env-file-only
+  - id: evidence.self.find-date-push-reports-unstored-dates
+    type: observation
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-25T15:05:00+07:00"
+    confidence: observed
+    summary: "Review finding C-18: push-openproject-date-drift.sh answered ok with applied_actions 1 three times for a task finished on Sunday 2026-10-25, while OpenProject's working-day calendar stored Monday 2026-10-26 each time; the plan keeps 2026-10-26. Planned in the C-16 task, whose agent estimate goes from 3 to 4 hours, under the operator's rule to plan every finding."
+    targets:
+      - kind: task
+        id: task.self.report-openproject-rescheduling-after-relation-create
+  - id: evidence.self.accept-check-agent-kit-with-env-file-only
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-25T15:02:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the kit check that runs every helper with only the settings file, the first task written by the Codex CLI agent, and asked to hand the next tasks to Codex."
+    targets:
+      - kind: task
+        id: task.self.check-agent-kit-with-env-file-only
+  - id: evidence.self.start-keep-existing-bindings-on-bootstrap
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-25T15:04:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the first Codex trial and made the Codex CLI agent the implementer of the next tasks; the executor agent writes the brief, reviews, runs the local gate and keeps the dogfood loop."
+    targets:
+      - kind: task
+        id: task.self.keep-existing-bindings-on-bootstrap
+  - id: evidence.self.keep-existing-bindings-on-bootstrap
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-25T15:20:00+07:00"
+    confidence: observed
+    summary: "apply_openproject_bootstrap.py merges into an existing private bindings file: it keeps every task, dependency and resource binding and unknown keys, adds a task or resource binding only when its RePlan id is unbound, warns binding_conflict when an id is bound elsewhere, refuses another project's file (bindings_project_mismatch, exit 5) or an invalid one (bindings_file_invalid, exit 2) before any OpenProject call, reports the merge in a dry run and replaces the file atomically. Six stand-in tests. Written by the Codex CLI agent (gpt-5.6-sol, medium) in two rounds, about 9 and 2 minutes; the second added the atomic write and the shared diagnostic shape. Local gate passed; a live dry run on this project keeps 147 task and 129 dependency bindings and adds none, where the old write would have dropped the 129."
+    targets:
+      - kind: task
+        id: task.self.keep-existing-bindings-on-bootstrap
+  - id: evidence.self.accept-keep-existing-bindings-on-bootstrap
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-25T15:31:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the bootstrap that keeps the existing private bindings and asked to hand the next task to Codex."
+    targets:
+      - kind: task
+        id: task.self.keep-existing-bindings-on-bootstrap
+  - id: evidence.self.start-share-openproject-bindings-module
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-25T15:35:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the bootstrap that keeps existing bindings and asked to hand the next task, the shared bindings module, to the Codex CLI agent."
+    targets:
+      - kind: task
+        id: task.self.share-openproject-bindings-module
+  - id: evidence.self.share-openproject-bindings-module
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-25T15:55:00+07:00"
+    confidence: observed
+    summary: "scripts/lib/openproject_bindings.py loads the private bindings file keeping unknown keys, builds the task, work package, dependency and relation maps, and writes atomically; the drift check, both pushes, the soft drift accept, the operator report, the live alignment check, the relations helper, the overlay build, the toolkit (bind, dependency bindings, backlog reconcile) and bootstrap use it, and the kit ships it. Helper differences were kept on purpose behind flags (duplicate diagnostics, zero ids, the overlay's permissive refs, the toolkit's loaded flag). Six module tests. Written by the Codex CLI agent (gpt-5.6-sol, medium) in one round of 7 minutes, no second round needed. On this project the old and new code give the same output for 13 helpers in read-only and dry-run mode (only timestamps and temp paths differ) and the bindings file is untouched; the local gate and the throwaway runtime (167, 8, 51) pass. Times are measured from file and evidence timestamps: Codex 0.12 h, the executor agent about 0.5 h."
+    targets:
+      - kind: task
+        id: task.self.share-openproject-bindings-module
+  - id: evidence.self.find-toolkit-usage-errors-in-plain-text
+    type: observation
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-25T16:02:00+07:00"
+    confidence: observed
+    summary: "Review finding C-19: openproject-work-package-toolkit.sh work-package create without --subject printed argparse usage to stderr with exit 2 and nothing on stdout. Planned in the first C-13 task, whose agent estimate goes from 4 to 5 hours."
+    targets:
+      - kind: task
+        id: task.self.add-help-to-every-script
+  - id: evidence.self.plan-estimate-tracking
+    type: decision
+    subtype: operator_decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-25T16:02:00+07:00"
+    confidence: observed
+    summary: "The operator agreed to keep the original estimates and see how far they miss: a snapshot of the tooling consolidation plan's original estimates from commit 390f9c7 (examples/replan-self/review/estimate-snapshot.2026-10-15.yaml) with every later change listed, the executor agent's time taken from timestamps instead of judgement, and two tasks: baselines that store planned amounts and dates with replan baseline create, and an estimate accuracy report per task and resource."
+    targets:
+      - kind: task
+        id: task.self.store-estimates-in-baselines
+      - kind: task
+        id: task.self.report-estimate-accuracy
+  - id: evidence.self.accept-share-openproject-bindings-module
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-25T16:12:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the shared private bindings module and asked to continue."
+    targets:
+      - kind: task
+        id: task.self.share-openproject-bindings-module
+  - id: evidence.self.start-single-openproject-status-map
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-25T16:15:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the shared bindings module and asked to continue; the single status mapping goes to the Codex CLI agent."
+    targets:
+      - kind: task
+        id: task.self.single-openproject-status-map
+  - id: evidence.self.single-openproject-status-map
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-25T16:44:00+07:00"
+    confidence: observed
+    summary: "The seven RePlan to OpenProject status pairs live in scripts/lib/openproject_status_map.json, loaded by openproject_status_map.py; the bootstrap plan, the status push and the toolkit use it, a Go test checks every pair against mapOpenProjectStatus (all matched, Go unchanged), and the kit ships both files. The toolkit now maps Developed to review_ready and Rejected to cancelled, update-status takes a RePlan status or an OpenProject name, refuses anything else with invalid_status (exit 2) before contacting the server, and drops on_hold and done. Written by the Codex CLI agent (gpt-5.6-sol, medium) in two rounds of about 5 and 2 minutes; the second fixed the throwaway runtime's kit check, which expected the old error code and which Codex cannot run. On this project 13 helpers give the same output before and after; a live dry run maps review_ready to Developed and refuses done; the local gate and the throwaway runtime (167, 8, 52) pass. Measured: Codex 0.12 h, the executor agent 0.47 h (16:15 to 16:43)."
+    targets:
+      - kind: task
+        id: task.self.single-openproject-status-map
+  - id: evidence.self.accept-single-openproject-status-map
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-25T16:50:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the single status mapping and asked to continue in full."
+    targets:
+      - kind: task
+        id: task.self.single-openproject-status-map
+  - id: evidence.self.start-share-openproject-http-client-and-settings
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-25T16:52:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the single status mapping and asked to continue in full; the shared HTTP client and settings go to the Codex CLI agent, with the 5 hour estimate split 3 to Codex and 2 to the executor agent."
+    targets:
+      - kind: task
+        id: task.self.share-openproject-http-client-and-settings
+  - id: evidence.self.share-openproject-http-client-and-settings
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-25T17:41:00+07:00"
+    confidence: observed
+    summary: "openproject_http.py has one OpenProjectClient (request_json, paginate on openproject_collect_pages) and Settings.from_env (token, perimeter key and header, timeout, retries, retry delay); the bootstrap, relations, both pushes, the wiki helper and the toolkit use it instead of their own wrappers, with each module's differences kept (eager token lookup, the 404-inclusive default expected statuses). The dotenv allowlist is scripts/lib/settings.list, read by load-dotenv.sh from its root argument and shipped in the kit; a test checks it covers env.local.example. replan import openproject honours REPLAN_OPENPROJECT_RETRIES and REPLAN_OPENPROJECT_RETRY_DELAY_SECONDS for GET on the Python transient statuses, with the timeout applied to each attempt as in Python, and reports them under openproject_request. Written by the Codex CLI agent (gpt-5.6-sol, medium) in three rounds of about 11, 5 and 4 minutes: the second moved the settings list path from a global to the loader's argument, the third made the Go timeout per attempt and fixed a staticcheck finding (golangci-lint is not on the Codex machine). On this project 13 helpers give the same output before and after, the drift check works with retries 1, and the local gate, go test -race on the retry tests and the throwaway runtime (167, 8, 52) pass. During round one the Codex sandbox created /tmp/.git on the build machine, which broke another project's tests; Codex runs now exclude /tmp. Measured: Codex 0.35 h, the executor agent 0.78 h (16:52 to 17:39)."
+    targets:
+      - kind: task
+        id: task.self.share-openproject-http-client-and-settings
+  - id: evidence.self.accept-share-openproject-http-client-and-settings
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-25T17:45:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the shared OpenProject client and settings list and asked to continue in full."
+    targets:
+      - kind: task
+        id: task.self.share-openproject-http-client-and-settings
+  - id: evidence.self.start-fix-openproject-relations-and-bootstrap-pagination
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-25T17:46:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the shared OpenProject client and asked to continue in full; the remaining bootstrap half of the pagination fix goes to the Codex CLI agent."
+    targets:
+      - kind: task
+        id: task.self.fix-openproject-relations-and-bootstrap-pagination
+  - id: evidence.self.fix-openproject-relations-and-bootstrap-pagination
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-25T18:06:00+07:00"
+    confidence: observed
+    summary: "Bootstrap reads every page of the project's work packages through OpenProjectClient.paginate before matching subjects (last one wins for equal subjects, as before), so a task whose work package is past page one is matched instead of duplicated; the wiki helper's attachment existence check before an upload also reads every page. Other single-page reads are metadata catalogs (statuses, types) and stay. A stand-in test serves 1,001 work packages in three pages with the match on page three and asserts no work package is created. Written by the Codex CLI agent (gpt-5.6-sol, medium) in one round of about 5 minutes. On this project 13 helpers give the same output before and after; the local gate and the throwaway runtime, which uploads and downloads a wiki attachment, pass. Measured: Codex 0.09 h, the executor agent 0.32 h (17:46 to 18:05)."
+    targets:
+      - kind: task
+        id: task.self.fix-openproject-relations-and-bootstrap-pagination
+  - id: evidence.self.accept-fix-openproject-relations-and-bootstrap-pagination
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-25T18:26:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the bootstrap that reads every page and asked to start the idempotent retry task."
+    targets:
+      - kind: task
+        id: task.self.fix-openproject-relations-and-bootstrap-pagination
+  - id: evidence.self.start-retry-only-idempotent-openproject-requests
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-25T18:28:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the bootstrap that reads every page and asked to start the idempotent retry task, implemented by the Codex CLI agent."
+    targets:
+      - kind: task
+        id: task.self.retry-only-idempotent-openproject-requests
+  - id: evidence.self.retry-only-idempotent-openproject-requests
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-25T18:51:00+07:00"
+    confidence: observed
+    summary: "openproject_request_json retries GET, HEAD, PATCH with a lockVersion and calls marked idempotent (the three OpenProject form calls) only; POST, PUT, DELETE and PATCH without a lockVersion are sent once. Any request other than GET, HEAD or an idempotent call that ends in a timeout, a network error, a 408 or a 5xx reports outcome_unknown with retried and, when the policy refused a retry, retry_skipped; a 409 on a retried PATCH after such a failure adds earlier_attempt_may_have_applied. The fields reach the helper envelope, and the creating and updating helpers say to check OpenProject before running again. All six PATCH calls in the helpers already carry a lockVersion. Docs that recommend two retries say what is retried. Written by the Codex CLI agent (gpt-5.6-sol, medium) in three rounds of about 6, 3 and 3 minutes: the second covered a retried PATCH that meets 409 after its first attempt applied, the third the default of zero retries, where a timed out PATCH was still a plain failure. A connection refused also counts as outcome_unknown, which is cautious. On this project 13 helpers give the same output; the local gate and the throwaway runtime pass. Measured: Codex 0.19 h, the executor agent 0.38 h (18:28 to 18:51)."
+    targets:
+      - kind: task
+        id: task.self.retry-only-idempotent-openproject-requests
+  - id: evidence.self.accept-retry-only-idempotent-openproject-requests
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-25T19:12:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the retry rule for OpenProject requests and asked to start the next task."
+    targets:
+      - kind: task
+        id: task.self.retry-only-idempotent-openproject-requests
+  - id: evidence.self.start-report-applied-actions-on-helper-failure
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-25T19:13:00+07:00"
+    confidence: observed
+    summary: "The operator accepted the retry rule and asked to start reporting applied actions when a helper fails mid-apply, implemented by the Codex CLI agent."
+    targets:
+      - kind: task
+        id: task.self.report-applied-actions-on-helper-failure
+  - id: evidence.self.report-applied-actions-on-helper-failure
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-25T19:44:00+07:00"
+    confidence: observed
+    summary: "helper_envelope.PartialApply keeps the writes of one apply: a failure mid-apply reports applied_so_far and failed_step, with may_have_been_applied only when the write itself had an unknown outcome, and exits 7 once something was applied. The status push, the date push, bootstrap, relations, backlog reconcile and the wiki attachment replacement record each write; bootstrap and relations still write the bindings of what they created before the failure; the next steps say to rerun as a dry run and why that resumes safely. Tests fail the second of three writes for the four main helpers, and a read before the second write for both pushes. Written by the Codex CLI agent (gpt-5.6-sol, medium) in two rounds of about 8 and 6 minutes; the second kept applied_so_far when the failing call is a read before the next write. On this project 13 helpers give the same output; the local gate and the throwaway runtime pass. Measured: Codex 0.22 h, the executor agent 0.5 h (19:13 to 19:43)."
+    targets:
+      - kind: task
+        id: task.self.report-applied-actions-on-helper-failure

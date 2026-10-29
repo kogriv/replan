@@ -1,0 +1,175 @@
+<%# The only script of the RePlan pages. It carries OpenProject's Content
+    Security Policy nonce, without which OpenProject refuses it. Every page
+    works without it; it adds task tabs and the Gantt's movement and
+    viewing-area controls. %>
+<%= javascript_tag nonce: true do %>
+(function () {
+  "use strict";
+  var MAX_TABS = 5;
+  var store = {
+    get: function (key, fallback) {
+      try { var v = window.localStorage.getItem(key); return v === null ? fallback : JSON.parse(v); } catch (e) { return fallback; }
+    },
+    set: function (key, value) {
+      try { window.localStorage.setItem(key, JSON.stringify(value)); } catch (e) { /* storage refused: nothing is remembered */ }
+    }
+  };
+
+  // Task tabs: up to five task pages stay open across RePlan pages; opening
+  // a sixth drops the one used least recently; closing the current one
+  // returns to where it was opened from.
+  function initTabs() {
+    var nav = document.querySelector("[data-replan-nav]");
+    if (!nav || nav.dataset.replanReady) { return; }
+    nav.dataset.replanReady = "1";
+    var key = "replan.tabs." + nav.dataset.project;
+    var tabs = store.get(key, []);
+    var current = nav.dataset.taskWp || null;
+    // A work package the overlay does not know gets no tab, and a tab
+    // remembered for it is dropped.
+    if (nav.dataset.taskMissing) {
+      tabs = tabs.filter(function (t) { return t.wp !== nav.dataset.taskMissing; });
+      store.set(key, tabs);
+    }
+    // OpenProject navigates with Turbo, which leaves document.referrer
+    // empty, so the script remembers the last RePlan page that was not a
+    // task page and a new tab returns there.
+    var lastKey = "replan.last." + nav.dataset.project;
+    if (!current) {
+      try { window.sessionStorage.setItem(lastKey, window.location.pathname + window.location.search); } catch (e) { /* not remembered */ }
+    }
+    if (current) {
+      var existing = tabs.filter(function (t) { return t.wp === current; })[0];
+      var from = existing ? existing.from : null;
+      if (!from) {
+        try { from = window.sessionStorage.getItem(lastKey); } catch (e) { from = null; }
+      }
+      tabs = tabs.filter(function (t) { return t.wp !== current; });
+      tabs.push({ wp: current, title: nav.dataset.taskTitle || ("#" + current), href: window.location.pathname + window.location.search, from: from, used: Date.now() });
+      while (tabs.length > MAX_TABS) {
+        var oldest = tabs.filter(function (t) { return t.wp !== current; }).sort(function (a, b) { return a.used - b.used; })[0];
+        tabs = tabs.filter(function (t) { return t !== oldest; });
+      }
+      store.set(key, tabs);
+    }
+    var holder = nav.querySelector("[data-replan-tabs]");
+    holder.textContent = "";
+    tabs.forEach(function (t) {
+      var tab = document.createElement("span");
+      tab.className = "replan-nav__tab";
+      if (t.wp === current) { tab.setAttribute("aria-current", "page"); }
+      var link = document.createElement("a");
+      link.href = t.href;
+      link.textContent = "#" + t.wp + " " + t.title;
+      link.title = t.title;
+      var close = document.createElement("button");
+      close.type = "button";
+      close.className = "replan-nav__close";
+      close.textContent = "×";
+      close.setAttribute("aria-label", "Close #" + t.wp);
+      close.addEventListener("click", function () {
+        var left = store.get(key, []).filter(function (other) { return other.wp !== t.wp; });
+        store.set(key, left);
+        if (t.wp === current) { window.location.href = t.from || nav.dataset.overview; } else { tab.remove(); }
+      });
+      tab.appendChild(link);
+      tab.appendChild(close);
+      holder.appendChild(tab);
+    });
+  }
+
+  // Gantt: jumps, the time slider, folding, full screen and a chart height
+  // that fits the window. The folded state and the slider are remembered
+  // per browser.
+  function initGantt() {
+    var root = document.querySelector("[data-replan-gantt-root]");
+    var scroll = document.querySelector("[data-replan-gantt]");
+    if (!root || !scroll || root.dataset.js) { return; }
+    root.dataset.js = "1";
+    var prefsKey = "replan.gantt.view";
+    var prefs = store.get(prefsKey, { controls: true, header: true, slider: false });
+    var controls = root.querySelector("[data-replan-controls]");
+    var pan = root.querySelector("[data-replan-pan]");
+    var range = pan.querySelector("input");
+    var controlsButton = root.querySelector('[data-replan-toggle="controls"]');
+    var headerButton = root.querySelector('[data-replan-toggle="header"]');
+    var fullButton = root.querySelector('[data-replan-toggle="fullscreen"]');
+    var sliderBox = root.querySelector('[data-replan-toggle="slider"]');
+    var labelWidth = function () { var l = scroll.querySelector(".replan-gantt__label"); return l ? l.offsetWidth : 0; };
+
+    function fit() {
+      var top = scroll.getBoundingClientRect().top;
+      var below = pan.hidden ? 16 : pan.offsetHeight + 24;
+      scroll.style.maxHeight = Math.max(240, window.innerHeight - top - below) + "px";
+    }
+    function apply() {
+      controls.hidden = !prefs.controls;
+      controlsButton.textContent = prefs.controls ? "Hide controls" : "Controls";
+      controlsButton.setAttribute("aria-expanded", String(prefs.controls));
+      document.body.classList.toggle("replan-compact", !prefs.header);
+      headerButton.textContent = prefs.header ? "Hide page header" : "Show page header";
+      headerButton.setAttribute("aria-pressed", String(!prefs.header));
+      pan.hidden = !prefs.slider;
+      sliderBox.checked = prefs.slider;
+      store.set(prefsKey, prefs);
+      syncPan();
+      window.requestAnimationFrame(fit);
+    }
+    function syncPan() {
+      var max = scroll.scrollWidth - scroll.clientWidth;
+      range.disabled = max <= 0;
+      range.value = max > 0 ? Math.round(scroll.scrollLeft / max * 1000) : 0;
+    }
+    function maximized() { return root.classList.contains("-maximized") || document.fullscreenElement === root; }
+    function setFull(on) {
+      fullButton.textContent = on ? "Exit full screen" : "Full screen";
+      fullButton.setAttribute("aria-pressed", String(on));
+      window.requestAnimationFrame(fit);
+    }
+
+    controlsButton.addEventListener("click", function () { prefs.controls = !prefs.controls; apply(); });
+    headerButton.addEventListener("click", function () { prefs.header = !prefs.header; apply(); });
+    sliderBox.addEventListener("change", function () { prefs.slider = sliderBox.checked; apply(); });
+    range.addEventListener("input", function () {
+      scroll.scrollLeft = (scroll.scrollWidth - scroll.clientWidth) * range.value / 1000;
+    });
+    scroll.addEventListener("scroll", syncPan, { passive: true });
+    root.querySelectorAll("[data-replan-jump]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var where = button.dataset.replanJump;
+        if (where === "top") { scroll.scrollTop = 0; return; }
+        if (where === "start") { scroll.scrollLeft = 0; return; }
+        if (where === "load") {
+          var load = scroll.querySelector("[data-replan-load]");
+          if (load) { scroll.scrollTop = load.offsetTop - 44; }
+          return;
+        }
+        var status = Number(scroll.dataset.statusLeft || 0);
+        scroll.scrollLeft = Math.max(0, status - (scroll.clientWidth - labelWidth()) / 4);
+      });
+    });
+    fullButton.addEventListener("click", function () {
+      if (maximized()) {
+        if (document.fullscreenElement) { document.exitFullscreen(); } else { root.classList.remove("-maximized"); setFull(false); }
+        return;
+      }
+      var request = root.requestFullscreen ? root.requestFullscreen() : null;
+      if (request && request.catch) {
+        request.catch(function () { root.classList.add("-maximized"); setFull(true); });
+      } else if (!request) {
+        root.classList.add("-maximized"); setFull(true);
+      }
+    });
+    document.addEventListener("fullscreenchange", function () { setFull(document.fullscreenElement === root); });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && root.classList.contains("-maximized")) { root.classList.remove("-maximized"); setFull(false); }
+    });
+    window.addEventListener("resize", fit);
+    apply();
+  }
+
+  function init() { initTabs(); initGantt(); }
+  if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", init); } else { init(); }
+  document.addEventListener("turbo:load", init);
+})();
+<% end %>

@@ -1,0 +1,757 @@
+actuals:
+  - id: actual.cleanup.maintainer.20260720
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.cleanup-oss-boundary
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.cleanup.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 4
+    unit: hours
+    occurred_at: "2026-07-20T13:00:00+07:00"
+    status_date: "2026-07-20"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.git.commit.oss-separation
+  - id: actual.self-fixture.maintainer.20260720
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.create-replan-self-fixture
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.self-fixture.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 2
+    unit: hours
+    occurred_at: "2026-07-20T15:00:00+07:00"
+    status_date: "2026-07-20"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.workspace.examples-replan-self
+  - id: actual.static-dashboard-design.maintainer.20260720
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.design-static-dashboard
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.static-dashboard-design.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 2
+    unit: hours
+    occurred_at: "2026-07-20T17:00:00+07:00"
+    status_date: "2026-07-20"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.docs.static-observability-dashboard
+  - id: actual.static-dashboard-impl.maintainer.20260720
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.implement-static-dashboard
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.static-dashboard-impl.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 3
+    unit: hours
+    occurred_at: "2026-07-20T18:00:00+07:00"
+    status_date: "2026-07-20"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.report-dashboard
+  - id: actual.static-dashboard-impl.codex.20260720
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.implement-static-dashboard
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.static-dashboard-impl.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 4
+    unit: agent_hours
+    occurred_at: "2026-07-20T18:00:00+07:00"
+    status_date: "2026-07-20"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.report-dashboard
+  - id: actual.static-gantt-dashboard.maintainer.20260720
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.add-static-gantt-dashboard
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.static-gantt-dashboard.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 2
+    unit: hours
+    occurred_at: "2026-07-20T19:00:00+07:00"
+    status_date: "2026-07-20"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.report-dashboard-gantt
+  - id: actual.static-gantt-dashboard.codex.20260720
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.add-static-gantt-dashboard
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.static-gantt-dashboard.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 4
+    unit: agent_hours
+    occurred_at: "2026-07-20T19:00:00+07:00"
+    status_date: "2026-07-20"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.report-dashboard-gantt
+  - id: actual.static-gantt-ux.maintainer.20260722
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.improve-static-gantt-observability
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.static-gantt-ux.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 2
+    unit: hours
+    occurred_at: "2026-07-22T12:00:00+07:00"
+    status_date: "2026-07-22"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.report-dashboard-gantt-ux
+  - id: actual.static-gantt-ux.codex.20260722
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.improve-static-gantt-observability
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.static-gantt-ux.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 4
+    unit: agent_hours
+    occurred_at: "2026-07-22T12:00:00+07:00"
+    status_date: "2026-07-22"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.report-dashboard-gantt-ux
+  - id: actual.gantt-resource-lanes.maintainer.20260722
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.add-gantt-resource-allocation-lanes
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.gantt-resource-lanes.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 2
+    unit: hours
+    occurred_at: "2026-07-22T13:00:00+07:00"
+    status_date: "2026-07-22"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.report-dashboard-gantt-resource-lanes
+  - id: actual.gantt-resource-lanes.codex.20260722
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.add-gantt-resource-allocation-lanes
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.gantt-resource-lanes.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 4
+    unit: agent_hours
+    occurred_at: "2026-07-22T13:00:00+07:00"
+    status_date: "2026-07-22"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.report-dashboard-gantt-resource-lanes
+  - id: actual.project-state-report.maintainer.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.add-project-state-report
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.project-state-report.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 2
+    unit: hours
+    occurred_at: "2026-07-24T12:00:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.report-state
+  - id: actual.project-state-report.codex.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.add-project-state-report
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.project-state-report.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 3
+    unit: agent_hours
+    occurred_at: "2026-07-24T12:00:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.report-state
+  - id: actual.plan-vs-actual-state.maintainer.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.add-plan-vs-actual-state-tracking
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.plan-vs-actual-state.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 2
+    unit: hours
+    occurred_at: "2026-07-24T13:00:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.report-state-plan-vs-actual
+  - id: actual.plan-vs-actual-state.codex.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.add-plan-vs-actual-state-tracking
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.plan-vs-actual-state.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 3
+    unit: agent_hours
+    occurred_at: "2026-07-24T13:00:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.report-state-plan-vs-actual
+  - id: actual.tracking-suggest.maintainer.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.add-tracking-suggest-command
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.tracking-suggest.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 2
+    unit: hours
+    occurred_at: "2026-07-24T14:00:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.tracking-suggest
+  - id: actual.tracking-suggest.codex.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.add-tracking-suggest-command
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.tracking-suggest.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 3
+    unit: agent_hours
+    occurred_at: "2026-07-24T14:00:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.tracking-suggest
+  - id: actual.tracking-proposals.maintainer.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.add-tracking-proposal-candidates
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.tracking-proposals.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 2
+    unit: hours
+    occurred_at: "2026-07-24T15:00:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.tracking-proposal-candidates
+  - id: actual.tracking-proposals.codex.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.add-tracking-proposal-candidates
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.tracking-proposals.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 3
+    unit: agent_hours
+    occurred_at: "2026-07-24T15:00:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.tracking-proposal-candidates
+  - id: actual.tracking-apply.maintainer.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.apply-tracking-remaining-proposals
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.tracking-apply.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 2
+    unit: hours
+    occurred_at: "2026-07-24T16:00:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.tracking-proposal-apply
+  - id: actual.tracking-apply.codex.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.apply-tracking-remaining-proposals
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.tracking-apply.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 3
+    unit: agent_hours
+    occurred_at: "2026-07-24T16:00:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.tracking-proposal-apply
+  - id: actual.tracking-loop-observability.maintainer.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.add-tracking-loop-observability
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.tracking-loop-observability.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 2
+    unit: hours
+    occurred_at: "2026-07-24T17:00:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.tracking-loop-observability
+  - id: actual.tracking-loop-observability.codex.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.add-tracking-loop-observability
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.tracking-loop-observability.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 3
+    unit: agent_hours
+    occurred_at: "2026-07-24T17:00:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.tracking-loop-observability
+  - id: actual.tracking-loop-dashboard.maintainer.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.render-tracking-loop-dashboard
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.tracking-loop-dashboard.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 2
+    unit: hours
+    occurred_at: "2026-07-24T18:00:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.tracking-loop-dashboard
+  - id: actual.tracking-loop-dashboard.codex.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.render-tracking-loop-dashboard
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.tracking-loop-dashboard.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 3
+    unit: agent_hours
+    occurred_at: "2026-07-24T18:00:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.tracking-loop-dashboard
+  - id: actual.tracking-loop-priority.maintainer.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.prioritize-tracking-loop
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.tracking-loop-priority.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 2
+    unit: hours
+    occurred_at: "2026-07-24T19:00:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.tracking-loop-priority
+  - id: actual.tracking-loop-priority.codex.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.prioritize-tracking-loop
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.tracking-loop-priority.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 3
+    unit: agent_hours
+    occurred_at: "2026-07-24T19:00:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.cli.tracking-loop-priority
+  - id: actual.post-mvp-dogfood-plan.maintainer.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.plan-post-mvp-dogfood
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.post-mvp-dogfood-plan.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 2
+    unit: hours
+    occurred_at: "2026-07-24T20:00:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.docs.post-mvp-dogfood-plan
+  - id: actual.mvp-readiness-audit-plan.maintainer.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.plan-mvp-readiness-audit
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.mvp-readiness-audit-plan.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 3
+    unit: hours
+    occurred_at: "2026-07-24T19:30:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.docs.mvp-readiness-audit-plan
+  - id: actual.mvp-readiness-audit-plan.codex.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.plan-mvp-readiness-audit
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.mvp-readiness-audit-plan.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 3
+    unit: agent_hours
+    occurred_at: "2026-07-24T19:30:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.docs.mvp-readiness-audit-plan
+  - id: actual.mvp-readiness-audit-plan.review.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.plan-mvp-readiness-audit
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.mvp-readiness-audit-plan.review
+    resource_ref:
+      kind: resource
+      id: resource.role.reviewer
+    amount: 1
+    unit: review_hours
+    occurred_at: "2026-07-24T19:30:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.docs.mvp-readiness-audit-plan
+  - id: actual.post-mvp-dogfood-plan.codex.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.plan-post-mvp-dogfood
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.post-mvp-dogfood-plan.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 2
+    unit: agent_hours
+    occurred_at: "2026-07-24T20:00:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.docs.post-mvp-dogfood-plan
+  - id: actual.post-mvp-dogfood-plan.review.20260724
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.plan-post-mvp-dogfood
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.post-mvp-dogfood-plan.review
+    resource_ref:
+      kind: resource
+      id: resource.role.reviewer
+    amount: 1
+    unit: review_hours
+    occurred_at: "2026-07-24T20:00:00+07:00"
+    status_date: "2026-07-24"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.docs.post-mvp-dogfood-plan
+  - id: actual.first-dogfood-cleanup.maintainer.20260726
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.run-first-dogfood-tracking-cleanup
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.first-dogfood-cleanup.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 3
+    unit: hours
+    occurred_at: "2026-07-26T19:10:00+07:00"
+    status_date: "2026-07-26"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.dogfood.first-tracking-cleanup
+  - id: actual.first-dogfood-cleanup.codex.20260726
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.run-first-dogfood-tracking-cleanup
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.first-dogfood-cleanup.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 4
+    unit: agent_hours
+    occurred_at: "2026-07-26T19:10:00+07:00"
+    status_date: "2026-07-26"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.dogfood.first-tracking-cleanup
+  - id: actual.first-dogfood-cleanup.review.20260726
+    type: consumption
+    task_ref:
+      kind: task
+      id: task.self.run-first-dogfood-tracking-cleanup
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.first-dogfood-cleanup.review
+    resource_ref:
+      kind: resource
+      id: resource.role.reviewer
+    amount: 1
+    unit: review_hours
+    occurred_at: "2026-07-26T19:10:00+07:00"
+    status_date: "2026-07-26"
+    accepted_by:
+      kind: actor
+      id: actor.human.maintainer
+    evidence_refs:
+      - kind: evidence
+        id: evidence.dogfood.first-tracking-cleanup

@@ -1,0 +1,155 @@
+{
+  "changed_files": {
+    "actuals/actuals.2026-W30.yaml": "actuals:\n    - id: actual.openproject.time-entry.77.work-consumed\n      type: work_consumed\n      task_ref:\n        kind: task\n        id: task.op.1234\n      demand_ref:\n        kind: resource_demand\n        id: resource_demand.task-op-1234.implementer\n      resource_ref:\n        kind: resource\n        id: resource.human.ivan\n      amount: 2.5\n      unit: hours\n      occurred_at: \"2026-07-23T12:00:00Z\"\n      status_date: \"2026-07-23\"\n      accepted_by:\n        kind: actor\n        id: actor.human.operator\n      evidence_refs:\n        - kind: evidence\n          id: evidence.openproject.time-entry.77\n",
+    "audit/audit.2026-07.jsonl": "{\"id\":\"audit.20260706T120000.create-baseline\",\"occurred_at\":\"2026-07-06T12:00:00+07:00\",\"actor_ref\":{\"kind\":\"actor\",\"id\":\"actor.human.operator\"},\"operation\":\"create_baseline\",\"target_ref\":{\"kind\":\"baseline\",\"id\":\"baseline.2026-07-06.initial\"},\"result\":\"success\",\"reason\":\"Initial fixture baseline.\"}\n{\"id\":\"audit.20260730T120000000000000Z.import-accept-time-entries\",\"occurred_at\":\"2026-07-30T12:00:00Z\",\"actor_ref\":{\"kind\":\"actor\",\"id\":\"actor.human.operator\"},\"operation\":\"import_accept\",\"target_ref\":{\"kind\":\"source_snapshot\",\"id\":\"source_snapshot.openproject.20260723T120000\"},\"result\":\"success\",\"reason\":\"Golden run.\"}\n",
+    "evidence/evidence.2026-W30.yaml": "evidence:\n    - id: evidence.openproject.time-entry.77\n      type: pm_time_entry\n      subtype: openproject_time_entry\n      source: openproject\n      source_ref:\n        source: openproject\n        object_type: time_entry\n        object_id: \"77\"\n        url: /api/v3/time_entries/77\n      observed_at: \"2026-07-23T12:00:00Z\"\n      confidence: observed\n      summary: 'OpenProject time entry 77; 2.50 hours; by Ivan; activity Development; comment: Implemented API import'\n      targets:\n        - kind: task\n          id: task.op.1234\n        - kind: resource\n          id: resource.human.ivan\n"
+  },
+  "error": "",
+  "result": {
+    "applied": true,
+    "dry_run": false,
+    "snapshot_id": "source_snapshot.openproject.20260723T120000",
+    "mapped_path": "imports/openproject/20260723T120000/mapped.json",
+    "planned_writes": [
+      {
+        "path": "evidence/evidence.2026-W30.yaml",
+        "action": "append",
+        "format": "yaml",
+        "content": ""
+      },
+      {
+        "path": "actuals/actuals.2026-W30.yaml",
+        "action": "append",
+        "format": "yaml",
+        "content": ""
+      }
+    ],
+    "written_files": [
+      "actuals/actuals.2026-W30.yaml",
+      "evidence/evidence.2026-W30.yaml",
+      "audit/audit.2026-07.jsonl"
+    ],
+    "changes": [
+      {
+        "op": "create_evidence",
+        "target_kind": "evidence",
+        "target_id": "evidence.openproject.time-entry.77",
+        "source_id": "77",
+        "path": "evidence/evidence.2026-W30.yaml",
+        "description": "Create evidence evidence.openproject.time-entry.77 from OpenProject time entry 77."
+      },
+      {
+        "op": "create_actual",
+        "target_kind": "actual",
+        "target_id": "actual.openproject.time-entry.77.work-consumed",
+        "source_id": "77",
+        "path": "actuals/actuals.2026-W30.yaml",
+        "description": "Create actual actual.openproject.time-entry.77.work-consumed for task task.op.1234, resource resource.human.ivan and demand resource_demand.task-op-1234.implementer from OpenProject time entry 77."
+      }
+    ],
+    "applied_changes": [
+      {
+        "op": "create_evidence",
+        "target_kind": "evidence",
+        "target_id": "evidence.openproject.time-entry.77",
+        "source_id": "77",
+        "path": "evidence/evidence.2026-W30.yaml",
+        "description": "Create evidence evidence.openproject.time-entry.77 from OpenProject time entry 77."
+      },
+      {
+        "op": "create_actual",
+        "target_kind": "actual",
+        "target_id": "actual.openproject.time-entry.77.work-consumed",
+        "source_id": "77",
+        "path": "actuals/actuals.2026-W30.yaml",
+        "description": "Create actual actual.openproject.time-entry.77.work-consumed for task task.op.1234, resource resource.human.ivan and demand resource_demand.task-op-1234.implementer from OpenProject time entry 77."
+      }
+    ],
+    "audit_record_preview": {
+      "id": "audit.20260730T120000000000000Z.import-accept-time-entries",
+      "occurred_at": "2026-07-30T12:00:00Z",
+      "actor_ref": {
+        "kind": "actor",
+        "id": "actor.human.operator"
+      },
+      "operation": "import_accept",
+      "target_ref": {
+        "kind": "source_snapshot",
+        "id": "source_snapshot.openproject.20260723T120000"
+      },
+      "result": "success",
+      "reason": "Golden run."
+    },
+    "validation": {
+      "valid": true,
+      "project_path": "<project>",
+      "checked_files": 11,
+      "object_counts": {
+        "actors": 4,
+        "actuals": 2,
+        "audit_records": 2,
+        "availability": 5,
+        "baselines": 1,
+        "capacities": 7,
+        "dependencies": 2,
+        "evidence": 3,
+        "proposals": 1,
+        "resource_demands": 7,
+        "resource_pools": 3,
+        "resources": 7,
+        "scenarios": 6,
+        "tasks": 2
+      },
+      "warnings": [
+        {
+          "code": "required_dependency_unresolved",
+          "message": "required dependency dependency.repair-pump-before-validation is open",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.repair-pump-before-validation"
+          }
+        },
+        {
+          "code": "dependency_predecessor_finish_unknown",
+          "message": "dependency dependency.repair-pump-before-validation predecessor task task.offline.repair-pump has no planned_finish",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.repair-pump-before-validation"
+          }
+        },
+        {
+          "code": "dependency_successor_start_unknown",
+          "message": "dependency dependency.repair-pump-before-validation successor task task.op.1234 has no planned_start",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.repair-pump-before-validation"
+          }
+        },
+        {
+          "code": "required_dependency_unresolved",
+          "message": "required dependency dependency.openai-quota-blocks-validation is open",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.openai-quota-blocks-validation"
+          }
+        },
+        {
+          "code": "dependency_blocks_active_successor",
+          "message": "dependency dependency.openai-quota-blocks-validation is open while successor task task.op.1234 is ready",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.openai-quota-blocks-validation"
+          }
+        }
+      ],
+      "errors": []
+    },
+    "warnings": [],
+    "errors": []
+  }
+}

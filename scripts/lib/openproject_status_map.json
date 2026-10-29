@@ -1,0 +1,9 @@
+[
+  {"tracking_status": "not_started", "openproject_status": "New"},
+  {"tracking_status": "ready", "openproject_status": "To be scheduled"},
+  {"tracking_status": "in_progress", "openproject_status": "In progress"},
+  {"tracking_status": "blocked", "openproject_status": "On hold"},
+  {"tracking_status": "review_ready", "openproject_status": "Developed"},
+  {"tracking_status": "accepted", "openproject_status": "Closed"},
+  {"tracking_status": "cancelled", "openproject_status": "Rejected"}
+]

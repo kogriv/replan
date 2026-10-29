@@ -1,0 +1,57 @@
+{
+  "changed_files": {},
+  "error": "",
+  "result": {
+    "applied": false,
+    "dry_run": false,
+    "snapshot_id": "source_snapshot.openproject.20260725T120000",
+    "mapped_path": "imports/openproject/20260725T120000/mapped.json",
+    "planned_writes": null,
+    "changes": null,
+    "audit_record_preview": {
+      "id": "audit.20260730T120000000000000Z.import-accept-resource-links",
+      "occurred_at": "2026-07-30T12:00:00Z",
+      "actor_ref": {
+        "kind": "actor",
+        "id": "actor.human.operator"
+      },
+      "operation": "import_accept",
+      "target_ref": {
+        "kind": "source_snapshot",
+        "id": "source_snapshot.openproject.20260725T120000"
+      },
+      "result": "success",
+      "reason": "Golden run."
+    },
+    "warnings": [
+      {
+        "code": "openproject_resource_link_resource_unmatched",
+        "message": "OpenProject user 11 is not matched to a canonical resource",
+        "severity": "warning",
+        "target": {
+          "kind": "openproject_user",
+          "id": "11"
+        }
+      },
+      {
+        "code": "import_accept_no_changes",
+        "message": "import accept dry-run produced no canonical changes",
+        "severity": "warning",
+        "target": {
+          "kind": "source_snapshot",
+          "id": "source_snapshot.openproject.20260725T120000"
+        }
+      },
+      {
+        "code": "import_accept_no_applicable_resource_links",
+        "message": "import accept --apply --accept-resource-links has no safe resource links to write",
+        "severity": "warning",
+        "target": {
+          "kind": "source_snapshot",
+          "id": "source_snapshot.openproject.20260725T120000"
+        }
+      }
+    ],
+    "errors": []
+  }
+}

@@ -1,0 +1,11 @@
+Test project | status date 2026-07-20 | week 2026-W30
+
+Waiting on a person (2)
+  1. Accept or return: Ship the second task (due 2026-07-17)
+     task.2
+  2. Overloaded resource: resource.human.ivan
+
+An agent can prepare (1)
+  1. Check actuals of: task.1 (due 2026-07-10)
+
+Health: 2 tasks, 1 active, 1 overloaded resources, 1 open proposals, 1 warnings, 0 errors

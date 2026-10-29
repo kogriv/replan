@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.design-local-web-view-before-implement-local-web-view.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-10-29T11:03:09+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.design-local-web-view-before-implement-local-web-view
+    suggested_change:
+        op: set
+        path: dependencies.dependency.design-local-web-view-before-implement-local-web-view.status
+        value: resolved
+    rationale: Dependency dependency.design-local-web-view-before-implement-local-web-view (required) can be marked resolved because predecessor task.self.design-local-web-view is in the required state.
+    requires_confirmation: true

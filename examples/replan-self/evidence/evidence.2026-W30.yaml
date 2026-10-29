@@ -1,0 +1,239 @@
+evidence:
+  - id: evidence.git.commit.oss-separation
+    type: git_event
+    subtype: commit
+    source: git
+    source_ref:
+      source: git
+      object_type: commit
+      object_id: "0958f56"
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-07-20T13:00:00+07:00"
+    confidence: observed
+    summary: OSS separation cleanup was committed and pushed.
+    targets:
+      - kind: task
+        id: task.self.cleanup-oss-boundary
+  - id: evidence.workspace.examples-replan-self
+    type: workspace_event
+    subtype: fixture_created
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.codex.local
+    observed_at: "2026-07-20T15:00:00+07:00"
+    confidence: reported
+    summary: Self-dogfood fixture files were created for validation.
+    targets:
+      - kind: task
+        id: task.self.create-replan-self-fixture
+  - id: evidence.docs.static-observability-dashboard
+    type: workspace_event
+    subtype: design_accepted
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.codex.local
+    observed_at: "2026-07-20T17:00:00+07:00"
+    confidence: reported
+    summary: Static observability dashboard design accepted for the first generated human project-state surface.
+    targets:
+      - kind: task
+        id: task.self.design-static-dashboard
+  - id: evidence.cli.report-dashboard
+    type: workspace_event
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.codex.local
+    observed_at: "2026-07-20T18:00:00+07:00"
+    confidence: reported
+    summary: The first report dashboard CLI slice generates index.html, raw overview JSON and raw manifest JSON.
+    targets:
+      - kind: task
+        id: task.self.implement-static-dashboard
+  - id: evidence.cli.report-dashboard-gantt
+    type: workspace_event
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.codex.local
+    observed_at: "2026-07-20T19:00:00+07:00"
+    confidence: reported
+    summary: The generated dashboard artifact set now includes gantt.html and raw/gantt.json for a read-only timeline view over RePlan tasks.
+    targets:
+      - kind: task
+        id: task.self.add-static-gantt-dashboard
+  - id: evidence.cli.report-dashboard-gantt-ux
+    type: workspace_event
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.codex.local
+    observed_at: "2026-07-22T12:00:00+07:00"
+    confidence: reported
+    summary: The generated Gantt page was made more readable with compact indicators, status-date marker, legend and a documented OpenProject overlay strategy.
+    targets:
+      - kind: task
+        id: task.self.improve-static-gantt-observability
+  - id: evidence.cli.report-dashboard-gantt-resource-lanes
+    type: workspace_event
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.codex.local
+    observed_at: "2026-07-22T13:00:00+07:00"
+    confidence: reported
+    summary: The generated Gantt page now includes resource allocation sub-rows under tasks and an aggregated resource load section.
+    targets:
+      - kind: task
+        id: task.self.add-gantt-resource-allocation-lanes
+  - id: evidence.cli.report-state
+    type: workspace_event
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.codex.local
+    observed_at: "2026-07-24T12:00:00+07:00"
+    confidence: reported
+    summary: The report state command now renders a compact operator project-state overview in JSON and Markdown.
+    targets:
+      - kind: task
+        id: task.self.add-project-state-report
+  - id: evidence.cli.report-state-plan-vs-actual
+    type: workspace_event
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.codex.local
+    observed_at: "2026-07-24T13:00:00+07:00"
+    confidence: reported
+    summary: The report state command now includes Plan vs Actual rows with planned, actual, remaining, forecast, variance and tracking flags.
+    targets:
+      - kind: task
+        id: task.self.add-plan-vs-actual-state-tracking
+  - id: evidence.cli.tracking-suggest
+    type: workspace_event
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.codex.local
+    observed_at: "2026-07-24T14:00:00+07:00"
+    confidence: reported
+    summary: The tracking suggest command now provides read-only operator recommendations for stale remaining work, missing actuals and missing evidence.
+    targets:
+      - kind: task
+        id: task.self.add-tracking-suggest-command
+  - id: evidence.cli.tracking-proposal-candidates
+    type: workspace_event
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.codex.local
+    observed_at: "2026-07-24T15:00:00+07:00"
+    confidence: reported
+    summary: The tracking suggest command now writes supported stale-remaining suggestions as reviewable proposal candidate files in explicit write-candidates mode.
+    targets:
+      - kind: task
+        id: task.self.add-tracking-proposal-candidates
+  - id: evidence.cli.tracking-proposal-apply
+    type: workspace_event
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.codex.local
+    observed_at: "2026-07-24T16:00:00+07:00"
+    confidence: reported
+    summary: Proposal accept now applies update_remaining_work proposals by updating resource demand remaining work, moving the proposal, appending audit and validating the project.
+    targets:
+      - kind: task
+        id: task.self.apply-tracking-remaining-proposals
+  - id: evidence.cli.tracking-loop-observability
+    type: workspace_event
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.codex.local
+    observed_at: "2026-07-24T17:00:00+07:00"
+    confidence: reported
+    summary: Report state and dashboard overview now expose tracking proposal loop observability for stale remaining rows and reviewable proposal coverage.
+    targets:
+      - kind: task
+        id: task.self.add-tracking-loop-observability
+  - id: evidence.cli.tracking-loop-dashboard
+    type: workspace_event
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.codex.local
+    observed_at: "2026-07-24T18:00:00+07:00"
+    confidence: reported
+    summary: The generated static dashboard now renders the tracking proposal loop summary and row table for human observability.
+    targets:
+      - kind: task
+        id: task.self.render-tracking-loop-dashboard
+  - id: evidence.cli.tracking-loop-priority
+    type: workspace_event
+    subtype: implementation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.codex.local
+    observed_at: "2026-07-24T19:00:00+07:00"
+    confidence: reported
+    summary: Tracking proposal loop rows now include status, priority, reason and deterministic sorting for clearer operator decisions.
+    targets:
+      - kind: task
+        id: task.self.prioritize-tracking-loop
+  - id: evidence.docs.post-mvp-dogfood-plan
+    type: workspace_event
+    subtype: documentation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.codex.local
+    observed_at: "2026-07-24T20:00:00+07:00"
+    confidence: reported
+    summary: The post-MVP fork analysis and first RePlan-on-RePlan dogfood cycle were documented and approved as the next operating plan.
+    targets:
+      - kind: task
+        id: task.self.plan-post-mvp-dogfood
+  - id: evidence.docs.mvp-readiness-audit-plan
+    type: workspace_event
+    subtype: documentation_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.codex.local
+    observed_at: "2026-07-24T19:30:00+07:00"
+    confidence: reported
+    summary: The MVP readiness audit plan was written, used by parallel auditors and then reconciled into the readiness record.
+    targets:
+      - kind: task
+        id: task.self.plan-mvp-readiness-audit
+  - id: evidence.dogfood.first-tracking-cleanup
+    type: workspace_event
+    subtype: dogfood_cycle_completed
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.codex.local
+    observed_at: "2026-07-26T19:10:00+07:00"
+    confidence: reported
+    summary: The first RePlan-on-RePlan cycle used report state, workload, tracking suggest, tracking proposal candidates and proposal accept to clear stale remaining-work rows. The cycle discovered a duplicate proposal decision audit id collision, fixed it by including the proposal id slug in the audit id, accepted twenty-five tracking proposals and left tracking suggestions at zero.
+    targets:
+      - kind: task
+        id: task.self.run-first-dogfood-tracking-cleanup
