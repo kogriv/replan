@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.publish-public-repository-before-publish-first-release.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-10-29T15:05:47+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.publish-public-repository-before-publish-first-release
+    suggested_change:
+        op: set
+        path: dependencies.dependency.publish-public-repository-before-publish-first-release.status
+        value: resolved
+    rationale: Dependency dependency.publish-public-repository-before-publish-first-release (required) can be marked resolved because predecessor task.self.publish-public-repository is in the required state.
+    requires_confirmation: true

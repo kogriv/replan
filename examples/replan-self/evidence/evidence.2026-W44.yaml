@@ -1622,3 +1622,16 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-public-repository
+  - id: evidence.self.accept-publish-public-repository
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-29T15:05:25+07:00"
+    confidence: observed
+    summary: Operator accepted the published public repository.
+    targets:
+      - kind: task
+        id: task.self.publish-public-repository

@@ -1469,3 +1469,24 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.publish-public-repository
+    - id: actual.self-publish-public-repository.ci-github-actions.20261029T1505250700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.publish-public-repository
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.publish-public-repository.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-29T15:05:25+07:00"
+      status_date: "2026-10-29"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-publish-public-repository
