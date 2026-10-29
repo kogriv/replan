@@ -1744,3 +1744,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.report-unknown-build-info-plainly
+  - id: evidence.self.implement-estimate-calibration
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T16:49:28+07:00"
+    summary: 'Commit 8eac2a9: replan estimate calibrate, list, show and apply, calibration sections in report estimates, calibrated values in task add, next suggestions, fixture examples/estimate-calibration. Check on a temporary copy of examples/replan-self: baseline.2026-10-15.tooling-consolidation, executor and Codex agent_hours, six judged tasks excluded: 32 tasks, factor 0.21, total ratio 0.20, p25 0.14, p75 0.26, bands up to 2: 0.39, up to 4: 0.20, above 4: 0.14; apply scales 5 open demands; scenario diff and report estimates read it; next suggests one group calibration, then one apply item, then nothing. Gate green, agent kit live checks 66. Codex rounds 15:56-16:21 and 16:25-16:36.'
+    targets:
+      - kind: task
+        id: task.self.implement-estimate-calibration
