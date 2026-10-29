@@ -1,0 +1,7 @@
+project:
+  id: project.estimate-calibration
+  name: Estimate calibration fixture
+  format_version: 1
+  timezone: UTC
+  default_status_date: "2026-10-12"
+  policy_ref: {kind: policy, id: policy.fixture}

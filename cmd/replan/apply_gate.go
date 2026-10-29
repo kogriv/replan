@@ -25,6 +25,8 @@ var canonicalWriteCommands = []string{
 	"actual set-remaining",
 	"baseline create",
 	"evidence add",
+	"estimate apply",
+	"estimate calibrate",
 	"import accept",
 	"project migrate",
 	"project set-status-date",

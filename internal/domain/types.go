@@ -244,6 +244,54 @@ type BaselineSeal struct {
 	Digest    string `json:"digest" yaml:"digest"`
 }
 
+type Calibration struct {
+	ID              string                      `json:"id" yaml:"id"`
+	Name            string                      `json:"name" yaml:"name"`
+	ApprovedBy      Ref                         `json:"approved_by" yaml:"approved_by"`
+	ApprovedAt      string                      `json:"approved_at" yaml:"approved_at"`
+	SourceBaselines []CalibrationSourceBaseline `json:"source_baselines" yaml:"source_baselines"`
+	Scope           CalibrationScope            `json:"scope" yaml:"scope"`
+	Sample          CalibrationSample           `json:"sample" yaml:"sample"`
+	Result          CalibrationResult           `json:"result" yaml:"result"`
+	SealSHA256      string                      `json:"seal_sha256" yaml:"seal_sha256"`
+}
+
+type CalibrationSourceBaseline struct {
+	ID         string `json:"id" yaml:"id"`
+	SealSHA256 string `json:"seal_sha256" yaml:"seal_sha256"`
+}
+
+type CalibrationScope struct {
+	Resources []string `json:"resources" yaml:"resources"`
+	Unit      string   `json:"unit" yaml:"unit"`
+	Tag       string   `json:"tag,omitempty" yaml:"tag,omitempty"`
+}
+
+type CalibrationSample struct {
+	Tasks    []string               `json:"tasks" yaml:"tasks"`
+	Excluded []CalibrationExclusion `json:"excluded" yaml:"excluded"`
+}
+
+type CalibrationExclusion struct {
+	Task   string `json:"task" yaml:"task"`
+	Reason string `json:"reason" yaml:"reason"`
+}
+
+type CalibrationResult struct {
+	Factor     float64               `json:"factor" yaml:"factor"`
+	TotalRatio float64               `json:"total_ratio" yaml:"total_ratio"`
+	P25        float64               `json:"p25" yaml:"p25"`
+	P75        float64               `json:"p75" yaml:"p75"`
+	Count      int                   `json:"count" yaml:"count"`
+	SizeBands  []CalibrationSizeBand `json:"size_bands" yaml:"size_bands"`
+}
+
+type CalibrationSizeBand struct {
+	UpTo   *float64 `json:"up_to,omitempty" yaml:"up_to,omitempty"`
+	Count  int      `json:"count" yaml:"count"`
+	Median float64  `json:"median" yaml:"median"`
+}
+
 type Actual struct {
 	ID           string  `json:"id" yaml:"id"`
 	Type         string  `json:"type" yaml:"type"`
@@ -292,13 +340,14 @@ type SuggestedChange struct {
 }
 
 type Scenario struct {
-	ID        string           `json:"id" yaml:"id"`
-	Name      string           `json:"name" yaml:"name"`
-	Status    string           `json:"status" yaml:"status"`
-	BaseRef   Ref              `json:"base_ref" yaml:"base_ref"`
-	CreatedAt string           `json:"created_at,omitempty" yaml:"created_at,omitempty"`
-	CreatedBy Ref              `json:"created_by,omitempty" yaml:"created_by,omitempty"`
-	Changes   []ScenarioChange `json:"changes,omitempty" yaml:"changes,omitempty"`
+	ID             string           `json:"id" yaml:"id"`
+	Name           string           `json:"name" yaml:"name"`
+	Status         string           `json:"status" yaml:"status"`
+	BaseRef        Ref              `json:"base_ref" yaml:"base_ref"`
+	CreatedAt      string           `json:"created_at,omitempty" yaml:"created_at,omitempty"`
+	CreatedBy      Ref              `json:"created_by,omitempty" yaml:"created_by,omitempty"`
+	CalibrationRef Ref              `json:"calibration_ref,omitempty" yaml:"calibration_ref,omitempty"`
+	Changes        []ScenarioChange `json:"changes,omitempty" yaml:"changes,omitempty"`
 }
 
 type ScenarioChange struct {
@@ -336,6 +385,7 @@ type Workspace struct {
 	Availabilities  []Availability
 	CurrentPlan     CurrentPlan
 	Baselines       []Baseline
+	Calibrations    []Calibration
 	Actuals         []Actual
 	Evidence        []Evidence
 	Proposals       []Proposal

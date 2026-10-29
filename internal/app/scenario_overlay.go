@@ -348,6 +348,7 @@ func cloneWorkspace(ws domain.Workspace) domain.Workspace {
 	cloned.Capacities = append([]domain.Capacity(nil), ws.Capacities...)
 	cloned.Availabilities = cloneAvailabilities(ws.Availabilities)
 	cloned.Baselines = append([]domain.Baseline(nil), ws.Baselines...)
+	cloned.Calibrations = append([]domain.Calibration(nil), ws.Calibrations...)
 	cloned.Actuals = append([]domain.Actual(nil), ws.Actuals...)
 	cloned.Evidence = append([]domain.Evidence(nil), ws.Evidence...)
 	cloned.Proposals = append([]domain.Proposal(nil), ws.Proposals...)

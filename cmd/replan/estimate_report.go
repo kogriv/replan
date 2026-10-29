@@ -45,9 +45,40 @@ func writeEstimateReportMarkdown(out io.Writer, result app.EstimateReportResult)
 	if err := writeEstimateSplitGroupsMarkdown(out, result.SplitGroups); err != nil {
 		return err
 	}
+	if err := writeEstimateCalibrationsMarkdown(out, result.Calibrations); err != nil {
+		return err
+	}
 	for _, task := range result.Tasks {
 		if err := writeEstimateTaskMarkdown(out, task); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+func writeEstimateCalibrationsMarkdown(out io.Writer, calibrations []app.CalibrationSummary) error {
+	if _, err := fmt.Fprintln(out, "\n### Calibrations from this baseline"); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintln(out); err != nil {
+		return err
+	}
+	if len(calibrations) == 0 {
+		_, err := fmt.Fprintln(out, "No calibrations use this baseline.")
+		return err
+	}
+	for _, calibration := range calibrations {
+		if _, err := fmt.Fprintf(out, "- `%s`: factor %s, total ratio %s, p25/p75 %s/%s, %d tasks, seal %s\n", calibration.ID, estimateNumber(calibration.Factor), estimateNumber(calibration.TotalRatio), estimateNumber(calibration.P25), estimateNumber(calibration.P75), calibration.Count, calibration.SealStatus); err != nil {
+			return err
+		}
+		for _, band := range calibration.SizeBands {
+			label := "above 4"
+			if band.UpTo != nil {
+				label = "up to " + estimateNumber(*band.UpTo)
+			}
+			if _, err := fmt.Fprintf(out, "  - %s: %d tasks, median %s\n", label, band.Count, estimateNumber(band.Median)); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

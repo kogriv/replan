@@ -128,6 +128,50 @@ copy_project() {
 assert_openproject_dotenv_loader
 
 run_json_ok validate "$BIN" validate "$PROJECT_PATH" --format json
+CALIBRATION_PROJECT="$TMP_DIR/estimate-calibration"
+cp -a "$ROOT_DIR/examples/estimate-calibration" "$CALIBRATION_PROJECT"
+run_json_ok estimate-calibrate-dry-run "$BIN" estimate calibrate \
+  --project "$CALIBRATION_PROJECT" \
+  --baseline baseline.fixture.original \
+  --resource resource.ai.executor \
+  --resource resource.ai.codex \
+  --unit agent_hours \
+  --tag calibration \
+  --exclude task.cal.09=actuals_judged \
+  --id calibration.fixture.agents \
+  --name "Fixture agent calibration" \
+  --approved-by actor.human.operator \
+  --occurred-at 2026-10-12T09:00:00Z \
+  --dry-run \
+  --format json
+assert_contains "$TMP_DIR/estimate-calibrate-dry-run.json" '"count": 8'
+run_json_ok estimate-calibrate-apply "$BIN" estimate calibrate \
+  --project "$CALIBRATION_PROJECT" \
+  --baseline baseline.fixture.original \
+  --resource resource.ai.executor \
+  --resource resource.ai.codex \
+  --unit agent_hours \
+  --tag calibration \
+  --exclude task.cal.09=actuals_judged \
+  --id calibration.fixture.agents \
+  --name "Fixture agent calibration" \
+  --approved-by actor.human.operator \
+  --occurred-at 2026-10-12T09:00:00Z \
+  --apply \
+  --format json
+run_json_ok estimate-list "$BIN" estimate list --project "$CALIBRATION_PROJECT" --format json
+assert_contains "$TMP_DIR/estimate-list.json" '"calibration.fixture.agents"'
+run_json_ok estimate-show "$BIN" estimate show --project "$CALIBRATION_PROJECT" calibration.fixture.agents --format json
+assert_contains "$TMP_DIR/estimate-show.json" '"seal_status": "verified"'
+run_json_ok estimate-apply-dry-run "$BIN" estimate apply \
+  --project "$CALIBRATION_PROJECT" \
+  --calibration calibration.fixture.agents \
+  --scenario-id scenario.fixture.calibrated \
+  --actor actor.human.operator \
+  --occurred-at 2026-10-12T10:00:00Z \
+  --dry-run \
+  --format json
+assert_contains "$TMP_DIR/estimate-apply-dry-run.json" '"calibration_ref"'
 run_json_ok workload "$BIN" workload --project "$PROJECT_PATH" --week "$WEEK" --format json
 run_json_ok workload-human-hours "$BIN" workload --project "$PROJECT_PATH" --week "$WEEK" --resource-class human --unit hours --format json
 assert_contains "$TMP_DIR/workload-human-hours.json" '"resource.human.ivan"'

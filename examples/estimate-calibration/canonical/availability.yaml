@@ -1,0 +1,15 @@
+availability:
+  - id: availability.executor
+    resource_ref: {kind: resource, id: resource.ai.executor}
+    timezone: UTC
+    windows:
+      - days: [monday, tuesday, wednesday, thursday, friday]
+        start_time: "00:00"
+        end_time: "23:59"
+  - id: availability.codex
+    resource_ref: {kind: resource, id: resource.ai.codex}
+    timezone: UTC
+    windows:
+      - days: [monday, tuesday, wednesday, thursday, friday]
+        start_time: "00:00"
+        end_time: "23:59"

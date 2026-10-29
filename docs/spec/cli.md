@@ -1465,6 +1465,45 @@ Implemented dependency overview slice:
 - read-only; does not write proposals, mutate tasks, mutate dependencies or
   write back to OpenProject.
 
+## `replan estimate`
+
+Purpose:
+
+Create, inspect and apply sealed estimate calibrations from clean finished-task
+samples.
+
+Implemented command flags:
+
+```text
+replan estimate calibrate --project -p --bindings --format --baseline --resource --unit --tag --exclude --id --name --approved-by --occurred-at --dry-run --apply
+replan estimate list --project -p --bindings --format
+replan estimate show --project -p --bindings --format
+replan estimate apply --project -p --bindings --format --calibration --scenario-id --actor --occurred-at --dry-run --apply
+```
+
+`calibrate` requires eight clean finished tasks, a verified estimate baseline
+approved before each task's derived actual start, counted actuals in the scope
+unit and a positive baseline amount. Multiple `--resource` values form one
+split group. `--exclude task-id=reason` records explicit exclusions. The factor
+is the median per-task actual/baseline ratio; the record also stores total
+ratio, interpolated p25 and p75, and medians for baseline-size bands up to 2,
+up to 4 and above 4. Apply creates a sealed, immutable
+`calibrations/<id>.yaml` and an audit record. The approver must be human.
+
+`estimate apply` creates one ordinary scenario linked by `calibration_ref`.
+It does not yet skip demands whose amount was set by a person after the calibration date because the current audit and demand history do not reliably identify that edit.
+It scales open in-scope planned and recorded remaining amounts, rounds to the
+nearest quarter-unit with a quarter-unit floor, and skips closed demands or
+demands whose counted actuals exceed the scaled plan. The existing `scenario
+diff` and `scenario apply` commands inspect and apply it.
+
+`task add` reports the latest matching calibrated value beside each typed
+demand without changing the stored amount. `next` emits one actionable
+`estimate apply` item per calibration with per-demand values in JSON, hides it
+after a scenario references the calibration, and suggests `estimate calibrate`
+only for maximal scopes with at least eight clean finished tasks not used by a
+same-unit calibration over a resource superset.
+
 ## `replan baseline`
 
 Purpose:

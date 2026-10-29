@@ -1087,6 +1087,7 @@ func (s Store) Load(ctx context.Context) (domain.Workspace, []app.Diagnostic) {
 	}{CurrentPlan: &ws.CurrentPlan})
 
 	ws.Baselines = readYAMLGlob[domain.Baseline](s, &diags, "baselines/*.yaml", "baseline")
+	ws.Calibrations = readYAMLGlob[domain.Calibration](s, &diags, "calibrations/*.yaml", "calibration")
 	ws.Actuals = readYAMLGlobList[domain.Actual](s, &diags, "actuals/*.yaml", "actuals")
 	ws.Evidence = readYAMLGlobList[domain.Evidence](s, &diags, "evidence/*.yaml", "evidence")
 	ws.Proposals = readProposalDirs(s, &diags)

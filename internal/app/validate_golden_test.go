@@ -93,6 +93,10 @@ func everyDiagnosticWorkspace() domain.Workspace {
 			},
 			{ID: "baseline.modified", ApprovedBy: ref("actor", "actor.ok"), Seal: &domain.BaselineSeal{Algorithm: "sha256", Digest: "bad"}},
 		},
+		Calibrations: []domain.Calibration{
+			{ID: "calibration.unsealed", ApprovedBy: ref("actor", "actor.ok"), Result: domain.CalibrationResult{Count: 1}},
+			{ID: "calibration.modified", ApprovedBy: ref("actor", "actor.ok"), SourceBaselines: []domain.CalibrationSourceBaseline{{ID: "baseline.modified", SealSHA256: "other"}}, SealSHA256: "bad"},
+		},
 		Actuals:      []domain.Actual{{ID: "actual.bad", Amount: 1}},
 		Evidence:     []domain.Evidence{{ID: "evidence.bad"}},
 		Proposals:    []domain.Proposal{{ID: "proposal.bad", Status: "pending"}},

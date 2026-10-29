@@ -557,6 +557,15 @@ type DashboardNextAction struct {
 	// Date orders actions within an actor: the task's planned finish where
 	// there is one.
 	Date string `json:"date,omitempty"`
+	// Details carries machine-readable values for an aggregate action.
+	Details []CalibrationDemandDetail `json:"details,omitempty"`
+}
+
+type CalibrationDemandDetail struct {
+	DemandID        string  `json:"demand_id"`
+	TypedAmount     float64 `json:"typed_amount"`
+	CalibratedValue float64 `json:"calibrated_value"`
+	Unit            string  `json:"unit"`
 }
 
 type DashboardManifest struct {

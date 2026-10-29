@@ -632,11 +632,12 @@ func TestProjectStateMarkdownGolden(t *testing.T) {
 
 func TestNextBriefTextGolden(t *testing.T) {
 	overview := projectStateFixture()
+	overview.NextActions = append(overview.NextActions, reports.DashboardNextAction{Code: "apply_calibration", Label: "Apply calibration calibration.test to 5 open demands", Target: "calibration.test", Command: "replan estimate apply --project . --calibration calibration.test --scenario-id <scenario-id> --actor <actor-id> --dry-run --format json", Actor: reports.NextActionActorAgent})
 	overview.NextActions = append(overview.NextActions, reports.DashboardNextAction{Code: "inspect_project", Label: "Nothing waits."})
 	overview.Tasks = []reports.DashboardTaskRow{{ID: "task.2", Title: "Ship the second task"}}
 	brief := reports.BuildNextBrief(overview)
-	if len(brief.WaitingOnPerson) != 2 || len(brief.AgentCanPrepare) != 1 {
-		t.Fatalf("brief groups = %d person, %d agent; want 2 and 1 (inspect_project dropped)", len(brief.WaitingOnPerson), len(brief.AgentCanPrepare))
+	if len(brief.WaitingOnPerson) != 2 || len(brief.AgentCanPrepare) != 2 {
+		t.Fatalf("brief groups = %d person, %d agent; want 2 and 2 (inspect_project dropped)", len(brief.WaitingOnPerson), len(brief.AgentCanPrepare))
 	}
 	var text bytes.Buffer
 	if err := reports.WriteNextBriefText(&text, brief); err != nil {

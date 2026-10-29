@@ -1303,6 +1303,29 @@ func dashboardScenarioRows(scenarios []domain.Scenario) []reports.DashboardScena
 func dashboardNextActions(ws domain.Workspace, overview reports.DashboardOverview) []reports.DashboardNextAction {
 	person, agent := reports.NextActionActorPerson, reports.NextActionActorAgent
 	actions := []reports.DashboardNextAction{}
+	for _, group := range CalibrationOpenDemandGroups(ws) {
+		details := make([]reports.CalibrationDemandDetail, 0, len(group.Demands))
+		for _, value := range group.Demands {
+			details = append(details, reports.CalibrationDemandDetail{DemandID: value.DemandID, TypedAmount: value.TypedAmount, CalibratedValue: value.Calibrated, Unit: value.Unit})
+		}
+		actions = append(actions, reports.DashboardNextAction{
+			Code: "apply_calibration", Label: fmt.Sprintf("Apply calibration %s to %d open demands", group.CalibrationID, len(group.Demands)),
+			Target: group.CalibrationID, Command: fmt.Sprintf("replan estimate apply --project %s --calibration %s --scenario-id <scenario-id> --actor <actor-id> --dry-run --format json", overview.ProjectPath, group.CalibrationID),
+			Actor: reports.NextActionActorAgent, Details: details,
+		})
+	}
+	for _, suggestion := range CalibrationSuggestions(ws) {
+		resourceFlags := ""
+		for _, resourceID := range suggestion.Resources {
+			resourceFlags += " --resource " + resourceID
+		}
+		actions = append(actions, reports.DashboardNextAction{
+			Code: "suggest_calibration", Label: fmt.Sprintf("%d clean finished tasks can calibrate this estimate scope.", suggestion.Count),
+			Target:  suggestion.BaselineID + ":" + strings.Join(suggestion.Resources, ",") + ":" + suggestion.Unit,
+			Command: fmt.Sprintf("replan estimate calibrate --project %s --baseline %s%s --unit %s --id <id> --name <name> --approved-by <human-actor-id> --dry-run --format markdown", overview.ProjectPath, suggestion.BaselineID, resourceFlags, suggestion.Unit),
+			Actor:   reports.NextActionActorAgent,
+		})
+	}
 	for _, row := range overview.Workload {
 		if row.Overload <= 0 {
 			continue

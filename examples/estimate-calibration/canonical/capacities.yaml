@@ -1,0 +1,19 @@
+capacities:
+  - id: capacity.executor
+    resource_ref: {kind: resource, id: resource.ai.executor}
+    resource_class: ai_agent
+    type: periodic_capacity
+    unit: agent_hours
+    amount: 40
+    period: week
+    effective_from: "2026-09-01"
+    timezone: UTC
+  - id: capacity.codex
+    resource_ref: {kind: resource, id: resource.ai.codex}
+    resource_class: ai_agent
+    type: periodic_capacity
+    unit: agent_hours
+    amount: 40
+    period: week
+    effective_from: "2026-09-01"
+    timezone: UTC

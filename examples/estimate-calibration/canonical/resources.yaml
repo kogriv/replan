@@ -1,0 +1,12 @@
+resources:
+  - id: resource.human.operator
+    class: human
+    name: Operator
+    actor_ref: {kind: actor, id: actor.human.operator}
+  - id: resource.ai.executor
+    class: ai_agent
+    name: Executor
+    actor_ref: {kind: actor, id: actor.ai.executor}
+  - id: resource.ai.codex
+    class: ai_agent
+    name: Codex split worker

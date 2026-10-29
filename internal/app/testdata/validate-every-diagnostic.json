@@ -677,15 +677,6 @@
       }
     },
     {
-      "code": "invalid_scenario_status",
-      "message": "invalid scenario status \"pending\"",
-      "severity": "error",
-      "target": {
-        "kind": "scenario",
-        "id": "scenario.bad"
-      }
-    },
-    {
       "code": "missing_accepted_actor",
       "message": "actual accepted_by is required",
       "severity": "error",
@@ -809,6 +800,51 @@
       "target": {
         "kind": "baseline",
         "id": "baseline.modified"
+      }
+    },
+    {
+      "code": "invalid_calibration_count",
+      "message": "calibration count 1 does not match 0 sample tasks",
+      "severity": "error",
+      "target": {
+        "kind": "calibration",
+        "id": "calibration.unsealed"
+      }
+    },
+    {
+      "code": "missing_calibration_seal",
+      "message": "calibration seal_sha256 is required",
+      "severity": "error",
+      "target": {
+        "kind": "calibration",
+        "id": "calibration.unsealed"
+      }
+    },
+    {
+      "code": "calibration_source_baseline_changed",
+      "message": "source baseline baseline.modified seal no longer matches the calibration record",
+      "severity": "error",
+      "target": {
+        "kind": "calibration",
+        "id": "calibration.modified"
+      }
+    },
+    {
+      "code": "calibration_modified",
+      "message": "sealed calibration content does not match its digest",
+      "severity": "error",
+      "target": {
+        "kind": "calibration",
+        "id": "calibration.modified"
+      }
+    },
+    {
+      "code": "invalid_scenario_status",
+      "message": "invalid scenario status \"pending\"",
+      "severity": "error",
+      "target": {
+        "kind": "scenario",
+        "id": "scenario.bad"
       }
     },
     {

@@ -1,0 +1,16 @@
+current_plan:
+  id: current
+  version: 1
+  updated_at: "2026-09-30T09:00:00Z"
+  updated_by: {kind: actor, id: actor.human.operator}
+  included_tasks:
+    - {kind: task, id: task.cal.01}
+    - {kind: task, id: task.cal.02}
+    - {kind: task, id: task.cal.03}
+    - {kind: task, id: task.cal.04}
+    - {kind: task, id: task.cal.05}
+    - {kind: task, id: task.cal.06}
+    - {kind: task, id: task.cal.07}
+    - {kind: task, id: task.cal.08}
+    - {kind: task, id: task.cal.09}
+    - {kind: task, id: task.cal.open}

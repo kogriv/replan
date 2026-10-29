@@ -20,12 +20,13 @@ type NextBrief struct {
 }
 
 type NextBriefItem struct {
-	Code    string `json:"code"`
-	What    string `json:"what"`
-	Subject string `json:"subject,omitempty"`
-	Target  string `json:"target,omitempty"`
-	Date    string `json:"date,omitempty"`
-	Command string `json:"command,omitempty"`
+	Code    string                    `json:"code"`
+	What    string                    `json:"what"`
+	Subject string                    `json:"subject,omitempty"`
+	Target  string                    `json:"target,omitempty"`
+	Date    string                    `json:"date,omitempty"`
+	Command string                    `json:"command,omitempty"`
+	Details []CalibrationDemandDetail `json:"details,omitempty"`
 }
 
 type NextBriefHealth struct {
@@ -47,6 +48,7 @@ var nextBriefWhat = map[string]string{
 	"resolve_dependency":    "Resolve dependency",
 	"review_tracking":       "Check actuals of",
 	"record_actual_window":  "Record actual dates of",
+	"suggest_calibration":   "Calibrate estimate scope",
 }
 
 func BuildNextBrief(overview DashboardOverview) NextBrief {
@@ -72,6 +74,9 @@ func BuildNextBrief(overview DashboardOverview) NextBrief {
 	}
 	for _, action := range overview.NextActions {
 		what, known := nextBriefWhat[action.Code]
+		if action.Code == "apply_calibration" {
+			what, known = action.Label, true
+		}
 		if !known {
 			// inspect_project and any future code without a short phrase.
 			continue
@@ -83,6 +88,7 @@ func BuildNextBrief(overview DashboardOverview) NextBrief {
 			Target:  action.Target,
 			Date:    action.Date,
 			Command: action.Command,
+			Details: action.Details,
 		}
 		switch action.Actor {
 		case NextActionActorPerson:
@@ -122,6 +128,10 @@ func writeNextBriefGroup(b *strings.Builder, title string, items []NextBriefItem
 		return
 	}
 	for i, item := range items {
+		if item.Code == "apply_calibration" {
+			fmt.Fprintf(b, "  %d. %s\n", i+1, item.What)
+			continue
+		}
 		subject := item.Subject
 		if subject == "" {
 			subject = item.Target

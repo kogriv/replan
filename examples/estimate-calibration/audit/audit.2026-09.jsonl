@@ -1,0 +1,1 @@
+{"id":"audit.20260930T090000Z.baseline-create.baseline-fixture-original","occurred_at":"2026-09-30T09:00:00Z","actor_ref":{"kind":"actor","id":"actor.human.operator"},"operation":"baseline_create","target_ref":{"kind":"baseline","id":"baseline.fixture.original"},"result":"success","reason":"Created approved baseline snapshot."}

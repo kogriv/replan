@@ -29,6 +29,7 @@ const (
 	exitSuccess          = 0
 	exitGeneralError     = 1
 	exitValidationFailed = 2
+	exitPolicyDenied     = 3
 	exitNotFound         = 4
 	exitExternalSource   = 6
 	exitInvalidUsage     = 8
@@ -226,6 +227,8 @@ func runCommand(args []string, stdout, stderr *os.File) int {
 		return runDependency(args[1:], stdout, stderr)
 	case "baseline":
 		return runBaseline(args[1:], stdout, stderr)
+	case "estimate":
+		return runEstimate(args[1:], stdout, stderr)
 	case "audit":
 		return runAudit(args[1:], stdout, stderr)
 	case "actual":
@@ -2458,6 +2461,21 @@ func runTaskAdd(args []string, stdout, stderr *os.File) int {
 	}
 	result, err := app.NewTaskService(newStore(*projectPath)).Add(context.Background(), app.TaskAddRequest{ID: *id, Title: *title, Description: *description, Type: *taskType, PlannedStart: *plannedStart, PlannedFinish: *plannedFinish, Tags: tags, AssigneeID: *assignee, AfterTaskID: *after, DemandSpecs: demands, ActorID: *actor, EvidenceID: *evidence, OccurredAt: *occurredAt, DryRun: dryRun})
 	env := envelope{OK: err == nil && len(result.Errors) == 0, Command: "task add", ProjectPath: *projectPath, Result: result, Warnings: result.Warnings, Errors: result.Errors}
+	if strings.EqualFold(*format, "text") && err == nil {
+		fmt.Fprintf(stdout, "Task `%s`\n", result.Task.ID)
+		hints := map[string]app.TaskCalibratedValue{}
+		for _, hint := range result.CalibratedValues {
+			hints[hint.DemandID] = hint
+		}
+		for _, demand := range result.Demands {
+			fmt.Fprintf(stdout, "- `%s`: %g %s", demand.ID, demand.PlannedAmount, demand.Unit)
+			if hint, ok := hints[demand.ID]; ok {
+				fmt.Fprintf(stdout, ", calibrated %g (%s)", hint.Calibrated, hint.CalibrationID)
+			}
+			fmt.Fprintln(stdout)
+		}
+		return exitSuccess
+	}
 	return printScenarioEnvelope(stdout, stderr, *format, env, err)
 }
 
@@ -3359,6 +3377,9 @@ func printScenarioEnvelope(stdout, stderr *os.File, format string, env envelope,
 	}
 	if err != nil {
 		if errors.Is(err, app.ErrValidationFailed) {
+			if firstDiagnostic(env.Errors, "approver_not_human") != nil {
+				return exitPolicyDenied
+			}
 			if diagnosticsContainPrivateOpenProjectIDs(env.Errors) {
 				return exitInvalidUsage
 			}
@@ -3451,6 +3472,7 @@ func diagnosticIsNotFound(code string) bool {
 	switch code {
 	case "project_not_found",
 		"baseline_not_found",
+		"calibration_not_found",
 		"scenario_not_found",
 		"proposal_not_found",
 		"source_profile_not_found",
@@ -4523,6 +4545,10 @@ func printUsage(out *os.File) {
 	fmt.Fprintln(out, "  replan workload --project <path> [--week <YYYY-Www>] [--resource <id>] [--resource-class <class>] [--unit <unit>] [--scenario <id>] [--demands] [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan report weekly --project <path> --week <YYYY-Www> [--format json|markdown|csv|html] [--write]")
 	fmt.Fprintln(out, "  replan report estimates --project <path> --baseline <id> [--format json|markdown]")
+	fmt.Fprintln(out, "  replan estimate calibrate --project <path> --baseline <id> [--baseline <id> ...] --resource <id> [--resource <id> ...] --unit <unit> [--tag <tag>] [--exclude <task-id>=<reason> ...] --id <id> --name <name> --approved-by <actor-id> (--dry-run|--apply) [--format json|markdown]")
+	fmt.Fprintln(out, "  replan estimate list --project <path> [--format json|markdown|text]")
+	fmt.Fprintln(out, "  replan estimate show --project <path> <id> [--format json|markdown|text]")
+	fmt.Fprintln(out, "  replan estimate apply --project <path> --calibration <id> --scenario-id <id> --actor <id> (--dry-run|--apply) [--format json|markdown]")
 	fmt.Fprintln(out, "  replan next --project <path> [--week <YYYY-Www>] [--format text|json]")
 	fmt.Fprintln(out, "  replan project migrate --project <path> --actor <id> [--reason <text>] [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|markdown]")
 	fmt.Fprintln(out, "  replan project set-status-date --project <path> --date <YYYY-MM-DD|today> --actor <id> [--reason <text>] (--dry-run|--apply) [--format json|markdown]")

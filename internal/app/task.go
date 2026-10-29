@@ -37,6 +37,7 @@ type TaskAddResult struct {
 	Applied            bool                    `json:"applied"`
 	Task               domain.Task             `json:"task"`
 	Demands            []domain.ResourceDemand `json:"demands"`
+	CalibratedValues   []TaskCalibratedValue   `json:"calibrated_values"`
 	AfterTaskID        string                  `json:"after_task_id,omitempty"`
 	PlannedWrites      []PlannedWrite          `json:"planned_writes"`
 	WrittenFiles       []string                `json:"written_files,omitempty"`
@@ -44,6 +45,14 @@ type TaskAddResult struct {
 	Validation         *ValidateResult         `json:"validation,omitempty"`
 	Warnings           []Diagnostic            `json:"warnings"`
 	Errors             []Diagnostic            `json:"errors"`
+}
+
+type TaskCalibratedValue struct {
+	DemandID      string  `json:"demand_id"`
+	TypedAmount   float64 `json:"typed_amount"`
+	Calibrated    float64 `json:"calibrated_amount"`
+	Unit          string  `json:"unit"`
+	CalibrationID string  `json:"calibration_id"`
 }
 
 type TaskSetDatesRequest struct {
@@ -125,7 +134,7 @@ var demandSuffixPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]*$`)
 
 func (s TaskService) Add(ctx context.Context, req TaskAddRequest) (TaskAddResult, error) {
 	ws, loadDiags := s.loader.Load(ctx)
-	result := TaskAddResult{DryRun: req.DryRun, AfterTaskID: req.AfterTaskID, Demands: []domain.ResourceDemand{}, PlannedWrites: []PlannedWrite{}, WrittenFiles: []string{}, Warnings: []Diagnostic{}, Errors: []Diagnostic{}}
+	result := TaskAddResult{DryRun: req.DryRun, AfterTaskID: req.AfterTaskID, Demands: []domain.ResourceDemand{}, CalibratedValues: []TaskCalibratedValue{}, PlannedWrites: []PlannedWrite{}, WrittenFiles: []string{}, Warnings: []Diagnostic{}, Errors: []Diagnostic{}}
 	appendLoadDiagnostics(&result.Warnings, &result.Errors, loadDiags)
 	validateTaskAddBasics(&result.Errors, ws, req)
 	demands := parseTaskDemandSpecs(&result.Errors, ws, req.ID, req.DemandSpecs)
@@ -142,6 +151,7 @@ func (s TaskService) Add(ctx context.Context, req TaskAddRequest) (TaskAddResult
 		task.AssigneeHint = domain.Ref{Kind: "resource", ID: req.AssigneeID}
 	}
 	result.Task, result.Demands = task, demands
+	result.CalibratedValues = calibratedTaskValues(ws.Calibrations, task, demands)
 
 	occurredAt := taskOccurredAt(req.OccurredAt)
 	audit := domain.AuditRecord{ID: "audit." + compactTimestamp(occurredAt) + ".task-add." + slugID(req.ID), OccurredAt: occurredAt, ActorRef: domain.Ref{Kind: "actor", ID: req.ActorID}, Operation: "task_add", TargetRef: domain.Ref{Kind: "task", ID: req.ID}, Reason: "Created task and resource demands.", EvidenceRefs: []domain.Ref{{Kind: "evidence", ID: req.EvidenceID}}, Result: "success"}
@@ -179,6 +189,29 @@ func (s TaskService) Add(ctx context.Context, req TaskAddRequest) (TaskAddResult
 	}
 	result.Applied = true
 	return result, nil
+}
+
+func calibratedTaskValues(calibrations []domain.Calibration, task domain.Task, demands []domain.ResourceDemand) []TaskCalibratedValue {
+	values := []TaskCalibratedValue{}
+	for _, demand := range demands {
+		var selected *domain.Calibration
+		for i := range calibrations {
+			calibration := &calibrations[i]
+			if calibrationSealStatus(*calibration) != "verified" || calibration.Scope.Unit != demand.Unit || !containsString(calibration.Scope.Resources, demandResourceID(demand)) {
+				continue
+			}
+			if calibration.Scope.Tag != "" && !containsString(task.Tags, calibration.Scope.Tag) {
+				continue
+			}
+			if selected == nil || calibration.ApprovedAt > selected.ApprovedAt {
+				selected = calibration
+			}
+		}
+		if selected != nil {
+			values = append(values, TaskCalibratedValue{DemandID: demand.ID, TypedAmount: demand.PlannedAmount, Calibrated: RoundCalibrationAmount(demand.PlannedAmount * selected.Result.Factor), Unit: demand.Unit, CalibrationID: selected.ID})
+		}
+	}
+	return values
 }
 
 func (s TaskService) SetDates(ctx context.Context, req TaskSetDatesRequest) (TaskSetDatesResult, error) {

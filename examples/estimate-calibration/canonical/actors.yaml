@@ -1,0 +1,11 @@
+actors:
+  - id: actor.human.operator
+    kind: human
+    display_name: Operator
+    trust_level: owner
+    resource_ref: {kind: resource, id: resource.human.operator}
+  - id: actor.ai.executor
+    kind: ai_agent
+    display_name: Executor
+    trust_level: limited
+    resource_ref: {kind: resource, id: resource.ai.executor}

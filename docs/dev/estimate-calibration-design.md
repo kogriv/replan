@@ -2,9 +2,14 @@
 
 Date: 2026-10-28
 
-Status: proposed; waits for the operator's approval
-(`task.self.design-estimate-calibration`). Implementation is
-`task.self.implement-estimate-calibration`.
+Status: implemented on 2026-10-29
+(`task.self.implement-estimate-calibration`).
+
+Implementation note: project format version remains 1. `calibrations/` is an
+optional additive record directory, like `baselines/` and `scenarios/`; old
+version-1 projects load unchanged and no existing canonical field needs a
+migration. Scenarios gain an optional `calibration_ref`, which is likewise
+backward compatible.
 
 ## Purpose
 
@@ -143,18 +148,20 @@ dates once, and accept or reject them together.
 
 ### 6. New estimates see the factor, but are not changed
 
-When a calibration exists for a scope, `replan task add` and `replan next`
-show the calibrated value next to a new demand in that scope
-("4 agent_hours, calibrated 0.92"). The demand keeps the amount that was
-typed. Estimating stays a human or agent decision; RePlan shows the
-evidence.
+When a calibration exists for a scope, `replan task add` shows the calibrated
+value next to a new demand in that scope ("4 agent_hours, calibrated 0.92").
+The demand keeps the amount that was typed. `replan next` groups open-demand
+values into one actionable `estimate apply` item per calibration, and hides
+the item after a scenario records that calibration. Estimating stays a human
+or agent decision; RePlan shows the evidence.
 
 ### 7. Reports and the next list
 
 - `replan report estimates` gains a section per calibration that used the
   baseline: factor, spread and size bands.
 - `replan next` suggests a new calibration when at least 8 finished tasks
-  in a scope have clean samples that no calibration has used yet.
+  in a maximal scope have clean samples that no same-unit calibration with a
+  resource superset has used yet.
 
 ## Commands
 
@@ -174,6 +181,8 @@ Refusals: `baseline_not_found` (4), `baseline_has_no_estimates` and
 does not verify; `approver_not_human` (3, policy denied).
 
 ## Not in the first version
+
+Skipping a demand whose amount was set by a person after the calibration date is not implemented because the current audit and demand history do not reliably identify that edit.
 
 - factors per estimate-size band or per tag combination;
 - calibrating durations or dates: the schedule follows from amounts and

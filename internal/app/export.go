@@ -42,6 +42,7 @@ type ExportWorkspace struct {
 	Availability    []domain.Availability   `json:"availability"`
 	CurrentPlan     domain.CurrentPlan      `json:"current_plan"`
 	Baselines       []domain.Baseline       `json:"baselines"`
+	Calibrations    []domain.Calibration    `json:"calibrations"`
 	Actuals         []domain.Actual         `json:"actuals"`
 	Evidence        []domain.Evidence       `json:"evidence"`
 	Proposals       []domain.Proposal       `json:"proposals"`
@@ -83,6 +84,7 @@ func (s ExportService) JSON(ctx context.Context, req ExportJSONRequest) (ExportJ
 			Availability:    ws.Availabilities,
 			CurrentPlan:     ws.CurrentPlan,
 			Baselines:       ws.Baselines,
+			Calibrations:    ws.Calibrations,
 			Actuals:         ws.Actuals,
 			Evidence:        ws.Evidence,
 			Proposals:       ws.Proposals,

@@ -31,6 +31,7 @@ type EstimateReportResult struct {
 	SplitRule            string                      `json:"split_rule"`
 	Resources            []EstimateResourceSummary   `json:"resources"`
 	SplitGroups          []EstimateSplitGroupSummary `json:"split_groups"`
+	Calibrations         []CalibrationSummary        `json:"calibrations"`
 	Tasks                []EstimateTask              `json:"tasks"`
 	Warnings             []Diagnostic                `json:"warnings"`
 	Errors               []Diagnostic                `json:"errors"`
@@ -128,7 +129,7 @@ func (s ReportService) Estimates(ctx context.Context, req EstimateReportRequest)
 		ProjectID: ws.Project.ID, ProjectName: ws.Project.Name, BaselineID: req.BaselineID,
 		ActualTypes: []string{"consumption", "runtime_consumed", "work_consumed"},
 		SplitRule:   "For a resource absent from the baseline, an added demand uses the same-task, same-unit baseline demand with the largest positive planned reduction; ties use demand id. Otherwise it uses the task baseline total for the unit.",
-		Resources:   []EstimateResourceSummary{}, SplitGroups: []EstimateSplitGroupSummary{}, Tasks: []EstimateTask{}, Warnings: []Diagnostic{}, Errors: []Diagnostic{},
+		Resources:   []EstimateResourceSummary{}, SplitGroups: []EstimateSplitGroupSummary{}, Calibrations: []CalibrationSummary{}, Tasks: []EstimateTask{}, Warnings: []Diagnostic{}, Errors: []Diagnostic{},
 	}
 	appendLoadDiagnostics(&result.Warnings, &result.Errors, loadDiags)
 	if len(result.Errors) > 0 {
@@ -151,6 +152,15 @@ func (s ReportService) Estimates(ctx context.Context, req EstimateReportRequest)
 	}
 
 	buildEstimateReport(&result, ws, baseline)
+	for _, calibration := range ws.Calibrations {
+		for _, source := range calibration.SourceBaselines {
+			if source.ID == baseline.ID {
+				result.Calibrations = append(result.Calibrations, calibrationSummary(calibration))
+				break
+			}
+		}
+	}
+	sort.Slice(result.Calibrations, func(i, j int) bool { return result.Calibrations[i].ID < result.Calibrations[j].ID })
 	return result, nil
 }
 

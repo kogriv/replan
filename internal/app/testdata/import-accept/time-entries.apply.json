@@ -90,6 +90,7 @@
         "audit_records": 2,
         "availability": 5,
         "baselines": 1,
+        "calibrations": 0,
         "capacities": 7,
         "dependencies": 2,
         "evidence": 3,

@@ -60,6 +60,7 @@ func (s ValidateService) Validate(ctx context.Context, req ValidateRequest) (Val
 			"capacities":       len(ws.Capacities),
 			"availability":     len(ws.Availabilities),
 			"baselines":        len(ws.Baselines),
+			"calibrations":     len(ws.Calibrations),
 			"actuals":          len(ws.Actuals),
 			"evidence":         len(ws.Evidence),
 			"proposals":        len(ws.Proposals),
@@ -126,10 +127,11 @@ func validateWorkspace(result *ValidateResult, ws domain.Workspace) {
 	v.capacities(ws.Capacities)
 	v.availabilities(ws.Availabilities)
 	v.proposals(ws.Proposals)
-	v.scenarios(ws.Scenarios)
 	v.actuals(ws.Actuals)
 	v.evidence(ws.Evidence)
 	v.baselines(ws.Baselines)
+	v.calibrations(ws.Calibrations, ws.Baselines)
+	v.scenarios(ws.Scenarios)
 	v.currentPlan(ws.CurrentPlan)
 	v.auditRecords(ws.AuditRecords)
 	v.overrunReviews(ws.ResourceDemands)
@@ -417,6 +419,36 @@ func (v *workspaceValidator) scenarios(scenarios []domain.Scenario) {
 		v.register("scenario", scenario.ID)
 		if !domain.ValidScenarioStatus(scenario.Status) {
 			v.errorf("invalid_scenario_status", "scenario", scenario.ID, "invalid scenario status %q", scenario.Status)
+		}
+		if scenario.CalibrationRef.ID != "" {
+			v.resolves(scenario.CalibrationRef, "scenario", scenario.ID, "scenario calibration_ref")
+		}
+	}
+}
+
+func (v *workspaceValidator) calibrations(calibrations []domain.Calibration, baselines []domain.Baseline) {
+	baselineSeals := map[string]string{}
+	for _, baseline := range baselines {
+		if baseline.Seal != nil {
+			baselineSeals[baseline.ID] = baseline.Seal.Digest
+		}
+	}
+	for _, calibration := range calibrations {
+		v.register("calibration", calibration.ID)
+		v.resolves(calibration.ApprovedBy, "calibration", calibration.ID, "calibration approved_by")
+		for _, source := range calibration.SourceBaselines {
+			v.resolves(domain.Ref{Kind: "baseline", ID: source.ID}, "calibration", calibration.ID, "calibration source baseline")
+			if digest, ok := baselineSeals[source.ID]; ok && source.SealSHA256 != digest {
+				v.errorf("calibration_source_baseline_changed", "calibration", calibration.ID, "source baseline %s seal no longer matches the calibration record", source.ID)
+			}
+		}
+		if calibration.Result.Count != len(calibration.Sample.Tasks) {
+			v.errorf("invalid_calibration_count", "calibration", calibration.ID, "calibration count %d does not match %d sample tasks", calibration.Result.Count, len(calibration.Sample.Tasks))
+		}
+		if calibration.SealSHA256 == "" {
+			v.errorf("missing_calibration_seal", "calibration", calibration.ID, "calibration seal_sha256 is required")
+		} else if digest, err := domain.CalibrationDigest(calibration); err != nil || digest != calibration.SealSHA256 {
+			v.errorf("calibration_modified", "calibration", calibration.ID, "sealed calibration content does not match its digest")
 		}
 	}
 }
