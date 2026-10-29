@@ -242,7 +242,7 @@ func (s ImportAcceptService) Accept(ctx context.Context, req ImportAcceptRequest
 		return result, ErrValidationFailed
 	}
 	result.MappedPath = mappedPath
-	var mapped OpenProjectMappedSnapshot
+	var mapped ImportMappedSnapshot
 	if err := json.Unmarshal(data, &mapped); err != nil {
 		result.Errors = append(result.Errors, Diagnostic{
 			Code:     "import_snapshot_parse_error",
@@ -260,11 +260,20 @@ func (s ImportAcceptService) Accept(ctx context.Context, req ImportAcceptRequest
 			Target:   Target{Kind: "source_snapshot", ID: req.SnapshotID},
 		})
 	}
+	if req.AcceptTimeEntries && importSnapshotSource(mapped) != "openproject" {
+		result.Errors = append(result.Errors, Diagnostic{
+			Code:     "import_accept_time_entries_unsupported_source",
+			Message:  fmt.Sprintf("tracker time-entry candidates are not supported for %s snapshots; only OpenProject snapshots currently produce time entries", importSnapshotSource(mapped)),
+			Severity: "error",
+			Target:   Target{Kind: "source_snapshot", ID: req.SnapshotID},
+		})
+		return result, ErrValidationFailed
+	}
 
 	mode := selectImportAcceptMode(req)
 	result.Changes = mode.preview(ws, mapped, &result.Warnings)
 	result.PlannedWrites = importAcceptPlannedWrites(result.Changes)
-	if ws.Project.EffectiveOpenProjectIDs() == domain.OpenProjectIDsPrivateBindings {
+	if importSnapshotSource(mapped) == "openproject" && ws.Project.EffectiveOpenProjectIDs() == domain.OpenProjectIDsPrivateBindings {
 		result.Errors = append(result.Errors, privateOpenProjectIDDiagnostics(ws, mapped, mode.applied(result.Changes))...)
 		if len(result.Errors) > 0 {
 			return result, ErrValidationFailed
@@ -621,14 +630,14 @@ func buildImportAcceptChanges(ws domain.Workspace, mapped OpenProjectMappedSnaps
 	var changes []ImportAcceptChange
 	for _, candidate := range mapped.TaskCandidates {
 		if candidate.MatchedTaskID == "" || candidate.WouldCreate {
-			targetID := canonicalTaskIDForOpenProject(candidate.SourceID)
+			targetID := canonicalTaskIDForImportCandidate(candidate)
 			changes = append(changes, ImportAcceptChange{
 				Op:          "create_task",
 				TargetKind:  "task",
 				TargetID:    targetID,
 				SourceID:    candidate.SourceID,
 				Path:        "canonical/tasks.yaml",
-				Description: fmt.Sprintf("Create task %s from OpenProject work package %s.", targetID, candidate.SourceID),
+				Description: fmt.Sprintf("Create task %s from %s %s.", targetID, importTaskObjectLabel(candidate), candidate.SourceID),
 			})
 			continue
 		}
@@ -636,14 +645,14 @@ func buildImportAcceptChanges(ws domain.Workspace, mapped OpenProjectMappedSnaps
 		if !ok {
 			continue
 		}
-		if !taskHasSourceRef(task, "openproject", "work_package", candidate.SourceID) {
+		if !taskHasSourceRef(task, importTaskSource(candidate), importTaskObjectType(candidate), candidate.SourceID) {
 			changes = append(changes, ImportAcceptChange{
 				Op:          "update_task_source_refs",
 				TargetKind:  "task",
 				TargetID:    candidate.MatchedTaskID,
 				SourceID:    candidate.SourceID,
 				Path:        "canonical/tasks.yaml",
-				Description: fmt.Sprintf("Attach OpenProject source reference %s to task %s.", candidate.SourceID, candidate.MatchedTaskID),
+				Description: fmt.Sprintf("Attach %s source reference %s to task %s.", importSourceDisplay(importTaskSource(candidate)), candidate.SourceID, candidate.MatchedTaskID),
 			})
 		}
 		if candidate.MappedStatus != "" && task.TrackingStatus != candidate.MappedStatus {
@@ -659,14 +668,14 @@ func buildImportAcceptChanges(ws domain.Workspace, mapped OpenProjectMappedSnaps
 	}
 	for _, candidate := range mapped.ResourceCandidates {
 		if candidate.MatchedRefID == "" || candidate.WouldCreate {
-			targetID := canonicalResourceIDForOpenProject(candidate.DisplayName, candidate.SourceID)
+			targetID := canonicalResourceIDForImportCandidate(candidate)
 			changes = append(changes, ImportAcceptChange{
 				Op:          "create_resource",
 				TargetKind:  "resource",
 				TargetID:    targetID,
 				SourceID:    candidate.SourceID,
 				Path:        "canonical/resources.yaml",
-				Description: fmt.Sprintf("Create resource %s for OpenProject assignee %s.", targetID, candidate.DisplayName),
+				Description: fmt.Sprintf("Create resource %s for %s assignee %s.", targetID, importSourceDisplay(importResourceSource(candidate)), candidate.DisplayName),
 			})
 		}
 	}
@@ -714,7 +723,7 @@ func buildImportAcceptResourceDemandChanges(ws domain.Workspace, mapped OpenProj
 			TargetID:    candidate.Canonical.ID,
 			SourceID:    candidate.SourceID,
 			Path:        "canonical/resource_demands.yaml",
-			Description: fmt.Sprintf("Create resource demand %s from OpenProject sidecar demand %s.", candidate.Canonical.ID, candidate.SourceID),
+			Description: fmt.Sprintf("Create resource demand %s from %s sidecar demand %s.", candidate.Canonical.ID, importSourceDisplay(importDemandSource(candidate)), candidate.SourceID),
 		})
 	}
 	return changes
@@ -732,7 +741,7 @@ func buildImportAcceptResourceLinkChanges(ws domain.Workspace, mapped OpenProjec
 			TargetID:    candidate.MatchedRefID,
 			SourceID:    candidate.SourceID,
 			Path:        "canonical/resources.yaml",
-			Description: fmt.Sprintf("Attach OpenProject user %s source reference to resource %s.", candidate.SourceID, candidate.MatchedRefID),
+			Description: fmt.Sprintf("Attach %s user %s source reference to resource %s.", importSourceDisplay(importResourceSource(candidate)), candidate.SourceID, candidate.MatchedRefID),
 		})
 	}
 	return changes
@@ -797,9 +806,9 @@ func buildImportAcceptDependencyChanges(ws domain.Workspace, mapped OpenProjectM
 		if !seen.add(candidate, dependency, op, warnings) {
 			continue
 		}
-		description := fmt.Sprintf("Create dependency %s from OpenProject relation %s.", dependency.ID, candidate.SourceID)
+		description := fmt.Sprintf("Create dependency %s from %s %s.", dependency.ID, importDependencyObjectLabel(candidate), candidate.SourceID)
 		if op == "update_dependency_source_refs" {
-			description = fmt.Sprintf("Attach OpenProject relation %s source reference to dependency %s.", candidate.SourceID, dependency.ID)
+			description = fmt.Sprintf("Attach %s %s source reference to dependency %s.", importDependencyObjectLabel(candidate), candidate.SourceID, dependency.ID)
 		}
 		changes = append(changes, ImportAcceptChange{
 			Op:          op,
@@ -817,13 +826,13 @@ func buildSafeImportAcceptTaskChanges(ws domain.Workspace, mapped OpenProjectMap
 	var changes []ImportAcceptTaskChange
 	for _, candidate := range mapped.TaskCandidates {
 		sourceRef := domain.SourceRef{
-			Source:     "openproject",
-			ObjectType: "work_package",
+			Source:     importTaskSource(candidate),
+			ObjectType: importTaskObjectType(candidate),
 			ObjectID:   candidate.SourceID,
 			URL:        candidate.SourceURL,
 		}
 		if candidate.MatchedTaskID == "" || candidate.WouldCreate {
-			taskID := canonicalTaskIDForOpenProject(candidate.SourceID)
+			taskID := canonicalTaskIDForImportCandidate(candidate)
 			if _, exists := findTaskByID(ws.Tasks, taskID); exists {
 				continue
 			}
@@ -835,8 +844,8 @@ func buildSafeImportAcceptTaskChanges(ws domain.Workspace, mapped OpenProjectMap
 					Title:          candidate.Title,
 					Description:    candidate.Description,
 					Type:           "imported",
-					TrackingStatus: "ready",
-					Tags:           []string{"openproject", "imported"},
+					TrackingStatus: initialImportTrackingStatus(candidate),
+					Tags:           []string{importTaskSource(candidate), "imported"},
 					SourceRefs:     []domain.SourceRef{sourceRef},
 				},
 			})
@@ -846,7 +855,7 @@ func buildSafeImportAcceptTaskChanges(ws domain.Workspace, mapped OpenProjectMap
 		if !ok {
 			continue
 		}
-		if !taskHasSourceRef(task, "openproject", "work_package", candidate.SourceID) {
+		if !taskHasSourceRef(task, importTaskSource(candidate), importTaskObjectType(candidate), candidate.SourceID) {
 			changes = append(changes, ImportAcceptTaskChange{
 				Op:        "add_task_source_ref",
 				TaskID:    candidate.MatchedTaskID,
@@ -880,8 +889,8 @@ func buildSafeImportAcceptResourceLinkChanges(ws domain.Workspace, mapped OpenPr
 		changes = append(changes, ImportAcceptResourceLinkChange{
 			ResourceID: candidate.MatchedRefID,
 			SourceRef: domain.SourceRef{
-				Source:     "openproject",
-				ObjectType: "user",
+				Source:     importResourceSource(candidate),
+				ObjectType: importResourceObjectType(candidate),
 				ObjectID:   candidate.SourceID,
 				URL:        candidate.SourceHref,
 			},
@@ -1107,22 +1116,22 @@ func safeOpenProjectDateCandidate(ws domain.Workspace, candidate OpenProjectTask
 		return domain.Task{}, "", "", false
 	}
 	if strings.TrimSpace(candidate.MatchedTaskID) == "" || candidate.WouldCreate {
-		*warnings = append(*warnings, Diagnostic{Code: "openproject_dates_task_unmatched", Message: fmt.Sprintf("OpenProject work package %s is not matched to an existing canonical task", candidate.SourceID), Severity: "warning", Target: Target{Kind: "openproject_work_package", ID: candidate.SourceID}})
+		*warnings = append(*warnings, importTaskDiagnostic(candidate, "dates_task_unmatched", fmt.Sprintf("%s %s is not matched to an existing canonical task", importTaskObjectLabel(candidate), candidate.SourceID)))
 		return domain.Task{}, "", "", false
 	}
 	task, ok := findTaskByID(ws.Tasks, candidate.MatchedTaskID)
 	if !ok {
-		*warnings = append(*warnings, Diagnostic{Code: "openproject_dates_task_unknown", Message: fmt.Sprintf("OpenProject work package %s references unknown task %s", candidate.SourceID, candidate.MatchedTaskID), Severity: "warning", Target: Target{Kind: "task", ID: candidate.MatchedTaskID}})
+		*warnings = append(*warnings, Diagnostic{Code: importTaskSource(candidate) + "_dates_task_unknown", Message: fmt.Sprintf("%s %s references unknown task %s", importTaskObjectLabel(candidate), candidate.SourceID, candidate.MatchedTaskID), Severity: "warning", Target: Target{Kind: "task", ID: candidate.MatchedTaskID}})
 		return domain.Task{}, "", "", false
 	}
 	start, finish := strings.TrimSpace(candidate.StartDate), strings.TrimSpace(candidate.DueDate)
 	if start == "" && finish == "" {
-		*warnings = append(*warnings, Diagnostic{Code: "openproject_dates_missing", Message: fmt.Sprintf("OpenProject work package %s has no start or due date", candidate.SourceID), Severity: "warning", Target: Target{Kind: "openproject_work_package", ID: candidate.SourceID}})
+		*warnings = append(*warnings, importTaskDiagnostic(candidate, "dates_missing", fmt.Sprintf("%s %s has no start or finish date", importTaskObjectLabel(candidate), candidate.SourceID)))
 		return domain.Task{}, "", "", false
 	}
 	if start != "" {
 		if parsed, err := time.Parse("2006-01-02", start); err != nil || parsed.Format("2006-01-02") != start {
-			*warnings = append(*warnings, Diagnostic{Code: "openproject_planned_start_invalid", Message: fmt.Sprintf("OpenProject work package %s start date %q must use YYYY-MM-DD", candidate.SourceID, start), Severity: "warning", Target: Target{Kind: "openproject_work_package", ID: candidate.SourceID}})
+			*warnings = append(*warnings, importTaskDiagnostic(candidate, "planned_start_invalid", fmt.Sprintf("%s %s start date %q must use YYYY-MM-DD", importTaskObjectLabel(candidate), candidate.SourceID, start)))
 			return domain.Task{}, "", "", false
 		}
 	} else {
@@ -1130,18 +1139,18 @@ func safeOpenProjectDateCandidate(ws domain.Workspace, candidate OpenProjectTask
 	}
 	if finish != "" {
 		if parsed, err := time.Parse("2006-01-02", finish); err != nil || parsed.Format("2006-01-02") != finish {
-			*warnings = append(*warnings, Diagnostic{Code: "openproject_planned_finish_invalid", Message: fmt.Sprintf("OpenProject work package %s due date %q must use YYYY-MM-DD", candidate.SourceID, finish), Severity: "warning", Target: Target{Kind: "openproject_work_package", ID: candidate.SourceID}})
+			*warnings = append(*warnings, importTaskDiagnostic(candidate, "planned_finish_invalid", fmt.Sprintf("%s %s finish date %q must use YYYY-MM-DD", importTaskObjectLabel(candidate), candidate.SourceID, finish)))
 			return domain.Task{}, "", "", false
 		}
 	} else {
 		finish = task.PlannedFinish
 	}
 	if start != "" && finish != "" && finish < start {
-		*warnings = append(*warnings, Diagnostic{Code: "openproject_dates_finish_before_start", Message: fmt.Sprintf("OpenProject work package %s would set planned_finish %s before planned_start %s", candidate.SourceID, finish, start), Severity: "warning", Target: Target{Kind: "openproject_work_package", ID: candidate.SourceID}})
+		*warnings = append(*warnings, importTaskDiagnostic(candidate, "dates_finish_before_start", fmt.Sprintf("%s %s would set planned_finish %s before planned_start %s", importTaskObjectLabel(candidate), candidate.SourceID, finish, start)))
 		return domain.Task{}, "", "", false
 	}
 	if start == task.PlannedStart && finish == task.PlannedFinish {
-		*warnings = append(*warnings, Diagnostic{Code: "openproject_dates_already_current", Message: fmt.Sprintf("task %s already has the imported OpenProject dates", task.ID), Severity: "warning", Target: Target{Kind: "task", ID: task.ID}})
+		*warnings = append(*warnings, Diagnostic{Code: importTaskSource(candidate) + "_dates_already_current", Message: fmt.Sprintf("task %s already has the imported %s dates", task.ID, importSourceDisplay(importTaskSource(candidate))), Severity: "warning", Target: Target{Kind: "task", ID: task.ID}})
 		return domain.Task{}, "", "", false
 	}
 	return task, start, finish, true
@@ -1206,27 +1215,27 @@ func safeOpenProjectTrackingStatusCandidate(ws domain.Workspace, candidate OpenP
 	}
 	if strings.TrimSpace(candidate.MatchedTaskID) == "" || candidate.WouldCreate {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_tracking_status_task_unmatched",
-			Message:  fmt.Sprintf("OpenProject work package %s is not matched to an existing canonical task", candidate.SourceID),
+			Code:     importTaskSource(candidate) + "_tracking_status_task_unmatched",
+			Message:  fmt.Sprintf("%s %s is not matched to an existing canonical task", importTaskObjectLabel(candidate), candidate.SourceID),
 			Severity: "warning",
-			Target:   Target{Kind: "openproject_work_package", ID: candidate.SourceID},
+			Target:   importTaskTarget(candidate),
 		})
 		return domain.Task{}, false
 	}
 	if strings.TrimSpace(candidate.MappedStatus) == "" {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_tracking_status_unmapped",
-			Message:  fmt.Sprintf("OpenProject work package %s has no mapped RePlan tracking status", candidate.SourceID),
+			Code:     importTaskSource(candidate) + "_tracking_status_unmapped",
+			Message:  fmt.Sprintf("%s %s has no mapped RePlan tracking status", importTaskObjectLabel(candidate), candidate.SourceID),
 			Severity: "warning",
-			Target:   Target{Kind: "openproject_work_package", ID: candidate.SourceID},
+			Target:   importTaskTarget(candidate),
 		})
 		return domain.Task{}, false
 	}
 	task, ok := findTaskByID(ws.Tasks, candidate.MatchedTaskID)
 	if !ok {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_tracking_status_task_unknown",
-			Message:  fmt.Sprintf("OpenProject work package %s references unknown task %s", candidate.SourceID, candidate.MatchedTaskID),
+			Code:     importTaskSource(candidate) + "_tracking_status_task_unknown",
+			Message:  fmt.Sprintf("%s %s references unknown task %s", importTaskObjectLabel(candidate), candidate.SourceID, candidate.MatchedTaskID),
 			Severity: "warning",
 			Target:   Target{Kind: "task", ID: candidate.MatchedTaskID},
 		})
@@ -1234,7 +1243,7 @@ func safeOpenProjectTrackingStatusCandidate(ws domain.Workspace, candidate OpenP
 	}
 	if task.TrackingStatus == candidate.MappedStatus {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_tracking_status_already_current",
+			Code:     importTaskSource(candidate) + "_tracking_status_already_current",
 			Message:  fmt.Sprintf("task %s already has tracking_status %s", candidate.MatchedTaskID, candidate.MappedStatus),
 			Severity: "warning",
 			Target:   Target{Kind: "task", ID: candidate.MatchedTaskID},
@@ -1245,47 +1254,50 @@ func safeOpenProjectTrackingStatusCandidate(ws domain.Workspace, candidate OpenP
 }
 
 func safeOpenProjectResourceLinkCandidate(ws domain.Workspace, candidate OpenProjectResourceCandidate, warnings *[]Diagnostic) bool {
+	source := importResourceSource(candidate)
+	display := importSourceDisplay(source)
+	target := Target{Kind: source + "_" + importResourceObjectType(candidate), ID: candidate.SourceID}
 	if strings.TrimSpace(candidate.SourceID) == "" {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_resource_link_user_missing",
-			Message:  fmt.Sprintf("OpenProject resource candidate %q has no user id", candidate.DisplayName),
+			Code:     source + "_resource_link_user_missing",
+			Message:  fmt.Sprintf("%s resource candidate %q has no user id", display, candidate.DisplayName),
 			Severity: "warning",
-			Target:   Target{Kind: "openproject_user", ID: candidate.DisplayName},
+			Target:   Target{Kind: source + "_user", ID: candidate.DisplayName},
 		})
 		return false
 	}
 	if strings.TrimSpace(candidate.MatchedRefID) == "" {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_resource_link_resource_unmatched",
-			Message:  fmt.Sprintf("OpenProject user %s is not matched to a canonical resource", candidate.SourceID),
+			Code:     source + "_resource_link_resource_unmatched",
+			Message:  fmt.Sprintf("%s user %s is not matched to a canonical resource", display, candidate.SourceID),
 			Severity: "warning",
-			Target:   Target{Kind: "openproject_user", ID: candidate.SourceID},
+			Target:   target,
 		})
 		return false
 	}
 	if candidate.MatchReason != "resource_link" {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_resource_link_not_explicit",
-			Message:  fmt.Sprintf("OpenProject user %s is matched by %q, not by explicit resource link", candidate.SourceID, candidate.MatchReason),
+			Code:     source + "_resource_link_not_explicit",
+			Message:  fmt.Sprintf("%s user %s is matched by %q, not by explicit resource link", display, candidate.SourceID, candidate.MatchReason),
 			Severity: "warning",
-			Target:   Target{Kind: "openproject_user", ID: candidate.SourceID},
+			Target:   target,
 		})
 		return false
 	}
 	resource, ok := findResourceByID(ws.Resources, candidate.MatchedRefID)
 	if !ok {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_resource_link_resource_unknown",
-			Message:  fmt.Sprintf("OpenProject user %s is matched to unknown resource %s", candidate.SourceID, candidate.MatchedRefID),
+			Code:     source + "_resource_link_resource_unknown",
+			Message:  fmt.Sprintf("%s user %s is matched to unknown resource %s", display, candidate.SourceID, candidate.MatchedRefID),
 			Severity: "warning",
 			Target:   Target{Kind: "resource", ID: candidate.MatchedRefID},
 		})
 		return false
 	}
-	if resourceHasSourceRef(resource, "openproject", "user", candidate.SourceID) {
+	if resourceHasSourceRef(resource, importResourceSource(candidate), importResourceObjectType(candidate), candidate.SourceID) {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_resource_link_already_exists",
-			Message:  fmt.Sprintf("resource %s already has OpenProject user source ref %s", candidate.MatchedRefID, candidate.SourceID),
+			Code:     source + "_resource_link_already_exists",
+			Message:  fmt.Sprintf("resource %s already has %s user source ref %s", candidate.MatchedRefID, display, candidate.SourceID),
 			Severity: "warning",
 			Target:   Target{Kind: "resource", ID: candidate.MatchedRefID},
 		})
@@ -1295,10 +1307,12 @@ func safeOpenProjectResourceLinkCandidate(ws domain.Workspace, candidate OpenPro
 }
 
 func safeOpenProjectResourceDemandCandidate(ws domain.Workspace, candidate OpenProjectResourceDemandCandidate, warnings *[]Diagnostic) bool {
+	source := importDemandSource(candidate)
+	display := importSourceDisplay(source)
 	if candidate.AcceptStatus != "safe_to_accept" {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_resource_demand_not_safe_to_accept",
-			Message:  fmt.Sprintf("OpenProject resource-demand candidate %s has accept_status %q", candidate.SourceID, candidate.AcceptStatus),
+			Code:     source + "_resource_demand_not_safe_to_accept",
+			Message:  fmt.Sprintf("%s resource-demand candidate %s has accept_status %q", display, candidate.SourceID, candidate.AcceptStatus),
 			Severity: "warning",
 			Target:   Target{Kind: "resource_demand", ID: candidate.Canonical.ID},
 		})
@@ -1306,16 +1320,16 @@ func safeOpenProjectResourceDemandCandidate(ws domain.Workspace, candidate OpenP
 	}
 	if candidate.Canonical.ID == "" {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_resource_demand_id_missing",
-			Message:  "OpenProject resource-demand candidate has no canonical id",
+			Code:     source + "_resource_demand_id_missing",
+			Message:  display + " resource-demand candidate has no canonical id",
 			Severity: "warning",
-			Target:   Target{Kind: "openproject_resource_demand", ID: candidate.SourceID},
+			Target:   Target{Kind: source + "_resource_demand", ID: candidate.SourceID},
 		})
 		return false
 	}
 	if hasResourceDemandID(ws.ResourceDemands, candidate.Canonical.ID) {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_resource_demand_already_exists",
+			Code:     source + "_resource_demand_already_exists",
 			Message:  fmt.Sprintf("resource demand %s already exists", candidate.Canonical.ID),
 			Severity: "warning",
 			Target:   Target{Kind: "resource_demand", ID: candidate.Canonical.ID},
@@ -1324,7 +1338,7 @@ func safeOpenProjectResourceDemandCandidate(ws domain.Workspace, candidate OpenP
 	}
 	if _, ok := findTaskByID(ws.Tasks, candidate.Canonical.TaskRef.ID); !ok {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_resource_demand_task_unmatched",
+			Code:     source + "_resource_demand_task_unmatched",
 			Message:  fmt.Sprintf("resource demand %s cannot be accepted because task %s does not exist", candidate.Canonical.ID, candidate.Canonical.TaskRef.ID),
 			Severity: "warning",
 			Target:   Target{Kind: "resource_demand", ID: candidate.Canonical.ID},
@@ -1335,7 +1349,7 @@ func safeOpenProjectResourceDemandCandidate(ws domain.Workspace, candidate OpenP
 	hasPool := strings.TrimSpace(candidate.Canonical.ResourcePoolRef.ID) != ""
 	if !hasResource && !hasPool {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_resource_demand_resource_missing",
+			Code:     source + "_resource_demand_resource_missing",
 			Message:  fmt.Sprintf("resource demand %s has no resource or resource pool", candidate.Canonical.ID),
 			Severity: "warning",
 			Target:   Target{Kind: "resource_demand", ID: candidate.Canonical.ID},
@@ -1344,7 +1358,7 @@ func safeOpenProjectResourceDemandCandidate(ws domain.Workspace, candidate OpenP
 	}
 	if hasResource && !resourceExists(ws.Resources, candidate.Canonical.ResourceRef.ID) {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_resource_demand_resource_unknown",
+			Code:     source + "_resource_demand_resource_unknown",
 			Message:  fmt.Sprintf("resource demand %s references unknown resource %s", candidate.Canonical.ID, candidate.Canonical.ResourceRef.ID),
 			Severity: "warning",
 			Target:   Target{Kind: "resource", ID: candidate.Canonical.ResourceRef.ID},
@@ -1353,7 +1367,7 @@ func safeOpenProjectResourceDemandCandidate(ws domain.Workspace, candidate OpenP
 	}
 	if hasPool && !resourcePoolExists(ws.ResourcePools, candidate.Canonical.ResourcePoolRef.ID) {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_resource_demand_resource_unknown",
+			Code:     source + "_resource_demand_resource_unknown",
 			Message:  fmt.Sprintf("resource demand %s references unknown resource pool %s", candidate.Canonical.ID, candidate.Canonical.ResourcePoolRef.ID),
 			Severity: "warning",
 			Target:   Target{Kind: "resource_pool", ID: candidate.Canonical.ResourcePoolRef.ID},
@@ -1364,65 +1378,68 @@ func safeOpenProjectResourceDemandCandidate(ws domain.Workspace, candidate OpenP
 }
 
 func safeOpenProjectDependencyCandidate(ws domain.Workspace, candidate OpenProjectDependencyCandidate, warnings *[]Diagnostic) (domain.Dependency, string, bool) {
+	source := importDependencySource(candidate)
+	display := importSourceDisplay(source)
+	target := Target{Kind: source + "_" + importDependencyObjectType(candidate), ID: candidate.SourceID}
 	dependency := dependencyFromOpenProjectCandidate(candidate)
 	if candidate.AcceptStatus != "safe_to_accept" || !candidate.WouldCreate {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_dependency_not_safe_to_accept",
-			Message:  fmt.Sprintf("OpenProject dependency candidate %s has accept_status %q", candidate.SourceID, candidate.AcceptStatus),
+			Code:     source + "_dependency_not_safe_to_accept",
+			Message:  fmt.Sprintf("%s dependency candidate %s has accept_status %q", display, candidate.SourceID, candidate.AcceptStatus),
 			Severity: "warning",
-			Target:   Target{Kind: "openproject_relation", ID: candidate.SourceID},
+			Target:   target,
 		})
 		return domain.Dependency{}, "", false
 	}
 	if strings.TrimSpace(candidate.SourceID) == "" {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_dependency_source_missing",
-			Message:  "OpenProject dependency candidate has no relation source id",
+			Code:     source + "_dependency_source_missing",
+			Message:  display + " dependency candidate has no source id",
 			Severity: "warning",
-			Target:   Target{Kind: "openproject_relation"},
+			Target:   Target{Kind: source + "_" + importDependencyObjectType(candidate)},
 		})
 		return domain.Dependency{}, "", false
 	}
 	if strings.TrimSpace(dependency.ID) == "" {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_dependency_id_missing",
-			Message:  fmt.Sprintf("OpenProject relation %s has no dependency id", candidate.SourceID),
+			Code:     source + "_dependency_id_missing",
+			Message:  fmt.Sprintf("%s %s has no dependency id", importDependencyObjectLabel(candidate), candidate.SourceID),
 			Severity: "warning",
-			Target:   Target{Kind: "openproject_relation", ID: candidate.SourceID},
+			Target:   target,
 		})
 		return domain.Dependency{}, "", false
 	}
 	if hasDependencyID(ws.Dependencies, dependency.ID) {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_dependency_already_exists",
+			Code:     source + "_dependency_already_exists",
 			Message:  fmt.Sprintf("dependency %s already exists", dependency.ID),
 			Severity: "warning",
 			Target:   Target{Kind: "dependency", ID: dependency.ID},
 		})
 		return domain.Dependency{}, "", false
 	}
-	if hasDependencySourceRef(ws.Dependencies, "openproject", "relation", candidate.SourceID) {
+	if hasDependencySourceRef(ws.Dependencies, importDependencySource(candidate), importDependencyObjectType(candidate), candidate.SourceID) {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_dependency_source_already_imported",
-			Message:  fmt.Sprintf("OpenProject relation %s already has an accepted dependency", candidate.SourceID),
+			Code:     source + "_dependency_source_already_imported",
+			Message:  fmt.Sprintf("%s %s already has an accepted dependency", importDependencyObjectLabel(candidate), candidate.SourceID),
 			Severity: "warning",
-			Target:   Target{Kind: "openproject_relation", ID: candidate.SourceID},
+			Target:   target,
 		})
 		return domain.Dependency{}, "", false
 	}
 	if !domain.ValidDependencyType(dependency.Type) {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_dependency_type_unsupported",
-			Message:  fmt.Sprintf("OpenProject relation %s maps to unsupported dependency type %q", candidate.SourceID, dependency.Type),
+			Code:     source + "_dependency_type_unsupported",
+			Message:  fmt.Sprintf("%s %s maps to unsupported dependency type %q", importDependencyObjectLabel(candidate), candidate.SourceID, dependency.Type),
 			Severity: "warning",
-			Target:   Target{Kind: "openproject_relation", ID: candidate.SourceID},
+			Target:   target,
 		})
 		return domain.Dependency{}, "", false
 	}
 	if _, ok := findTaskByID(ws.Tasks, dependency.PredecessorRef.ID); !ok {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_dependency_predecessor_unmatched",
-			Message:  fmt.Sprintf("OpenProject relation %s cannot be accepted because predecessor task %s does not exist", candidate.SourceID, dependency.PredecessorRef.ID),
+			Code:     source + "_dependency_predecessor_unmatched",
+			Message:  fmt.Sprintf("%s %s cannot be accepted because predecessor task %s does not exist", importDependencyObjectLabel(candidate), candidate.SourceID, dependency.PredecessorRef.ID),
 			Severity: "warning",
 			Target:   Target{Kind: "task", ID: dependency.PredecessorRef.ID},
 		})
@@ -1430,8 +1447,8 @@ func safeOpenProjectDependencyCandidate(ws domain.Workspace, candidate OpenProje
 	}
 	if _, ok := findTaskByID(ws.Tasks, dependency.SuccessorRef.ID); !ok {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_dependency_successor_unmatched",
-			Message:  fmt.Sprintf("OpenProject relation %s cannot be accepted because successor task %s does not exist", candidate.SourceID, dependency.SuccessorRef.ID),
+			Code:     source + "_dependency_successor_unmatched",
+			Message:  fmt.Sprintf("%s %s cannot be accepted because successor task %s does not exist", importDependencyObjectLabel(candidate), candidate.SourceID, dependency.SuccessorRef.ID),
 			Severity: "warning",
 			Target:   Target{Kind: "task", ID: dependency.SuccessorRef.ID},
 		})
@@ -1439,18 +1456,18 @@ func safeOpenProjectDependencyCandidate(ws domain.Workspace, candidate OpenProje
 	}
 	if dependency.PredecessorRef.ID == dependency.SuccessorRef.ID {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_dependency_self_reference",
-			Message:  fmt.Sprintf("OpenProject relation %s maps to a self-dependency on task %s", candidate.SourceID, dependency.PredecessorRef.ID),
+			Code:     source + "_dependency_self_reference",
+			Message:  fmt.Sprintf("%s %s maps to a self-dependency on task %s", importDependencyObjectLabel(candidate), candidate.SourceID, dependency.PredecessorRef.ID),
 			Severity: "warning",
 			Target:   Target{Kind: "dependency", ID: dependency.ID},
 		})
 		return domain.Dependency{}, "", false
 	}
 	if existing, ok := findDependencyByTriple(ws.Dependencies, dependency.Type, dependency.PredecessorRef, dependency.SuccessorRef); ok {
-		if dependencyHasSourceRef(existing, "openproject", "relation", candidate.SourceID) {
+		if dependencyHasSourceRef(existing, importDependencySource(candidate), importDependencyObjectType(candidate), candidate.SourceID) {
 			*warnings = append(*warnings, Diagnostic{
-				Code:     "openproject_dependency_source_already_imported",
-				Message:  fmt.Sprintf("OpenProject relation %s is already linked to dependency %s", candidate.SourceID, existing.ID),
+				Code:     source + "_dependency_source_already_imported",
+				Message:  fmt.Sprintf("%s %s is already linked to dependency %s", importDependencyObjectLabel(candidate), candidate.SourceID, existing.ID),
 				Severity: "warning",
 				Target:   Target{Kind: "dependency", ID: existing.ID},
 			})
@@ -1467,6 +1484,10 @@ func dependencyFromOpenProjectCandidate(candidate OpenProjectDependencyCandidate
 	if candidate.DependencyType == "finish_to_start" {
 		requiredState = "accepted"
 	}
+	notes := fmt.Sprintf("Imported from %s %s %s.", importDependencySource(candidate), candidate.RelationType, candidate.SourceID)
+	if importDependencySource(candidate) == "openproject" {
+		notes = fmt.Sprintf("Imported from OpenProject %s relation %s.", candidate.RelationType, candidate.SourceID)
+	}
 	return domain.Dependency{
 		ID:             candidate.DependencyID,
 		Type:           candidate.DependencyType,
@@ -1476,14 +1497,14 @@ func dependencyFromOpenProjectCandidate(candidate OpenProjectDependencyCandidate
 		Status:         "open",
 		Criticality:    "required",
 		SourceRefs:     []domain.SourceRef{openProjectDependencySourceRef(candidate)},
-		Notes:          fmt.Sprintf("Imported from OpenProject %s relation %s.", candidate.RelationType, candidate.SourceID),
+		Notes:          notes,
 	}
 }
 
 func openProjectDependencySourceRef(candidate OpenProjectDependencyCandidate) domain.SourceRef {
 	return domain.SourceRef{
-		Source:     "openproject",
-		ObjectType: "relation",
+		Source:     importDependencySource(candidate),
+		ObjectType: importDependencyObjectType(candidate),
 		ObjectID:   candidate.SourceID,
 		URL:        candidate.SourceURL,
 	}
@@ -1504,34 +1525,37 @@ func newDependencyAcceptSeen() dependencyAcceptSeen {
 }
 
 func (s dependencyAcceptSeen) add(candidate OpenProjectDependencyCandidate, dependency domain.Dependency, op string, warnings *[]Diagnostic) bool {
+	source := importDependencySource(candidate)
+	display := importDependencyObjectLabel(candidate)
+	target := Target{Kind: source + "_" + importDependencyObjectType(candidate), ID: candidate.SourceID}
 	if op == "create_dependency" {
 		if prev, ok := s.ids[dependency.ID]; ok {
 			*warnings = append(*warnings, Diagnostic{
-				Code:     "openproject_dependency_duplicate_candidate",
-				Message:  fmt.Sprintf("OpenProject relation %s duplicates dependency candidate id already produced by relation %s", candidate.SourceID, prev),
+				Code:     source + "_dependency_duplicate_candidate",
+				Message:  fmt.Sprintf("%s %s duplicates dependency candidate id already produced by %s", display, candidate.SourceID, prev),
 				Severity: "warning",
 				Target:   Target{Kind: "dependency", ID: dependency.ID},
 			})
 			return false
 		}
 	}
-	sourceKey := "openproject:relation:" + candidate.SourceID
+	sourceKey := importDependencySource(candidate) + ":" + importDependencyObjectType(candidate) + ":" + candidate.SourceID
 	if prev, ok := s.sources[sourceKey]; ok {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_dependency_duplicate_candidate",
-			Message:  fmt.Sprintf("OpenProject relation %s duplicates source relation already produced by relation %s", candidate.SourceID, prev),
+			Code:     source + "_dependency_duplicate_candidate",
+			Message:  fmt.Sprintf("%s %s duplicates a source already produced by %s", display, candidate.SourceID, prev),
 			Severity: "warning",
-			Target:   Target{Kind: "openproject_relation", ID: candidate.SourceID},
+			Target:   target,
 		})
 		return false
 	}
 	tripleKey := dependency.Type + ":" + dependency.PredecessorRef.Kind + ":" + dependency.PredecessorRef.ID + ":" + dependency.SuccessorRef.Kind + ":" + dependency.SuccessorRef.ID
 	if prev, ok := s.triples[tripleKey]; ok {
 		*warnings = append(*warnings, Diagnostic{
-			Code:     "openproject_dependency_duplicate_candidate",
-			Message:  fmt.Sprintf("OpenProject relation %s duplicates predecessor/successor/type triple already produced by relation %s", candidate.SourceID, prev),
+			Code:     source + "_dependency_duplicate_candidate",
+			Message:  fmt.Sprintf("%s %s duplicates predecessor/successor/type triple already produced by %s", display, candidate.SourceID, prev),
 			Severity: "warning",
-			Target:   Target{Kind: "openproject_relation", ID: candidate.SourceID},
+			Target:   target,
 		})
 		return false
 	}
@@ -1700,6 +1724,135 @@ func findDependencyByTriple(dependencies []domain.Dependency, dependencyType str
 
 func canonicalTaskIDForOpenProject(sourceID string) string {
 	return "task.op." + strings.ToLower(strings.TrimSpace(sourceID))
+}
+
+func importSnapshotSource(mapped OpenProjectMappedSnapshot) string {
+	if strings.TrimSpace(mapped.Source) == "" {
+		return "openproject"
+	}
+	return strings.TrimSpace(mapped.Source)
+}
+
+func importTaskSource(candidate OpenProjectTaskCandidate) string {
+	if strings.TrimSpace(candidate.Source) == "" {
+		return "openproject"
+	}
+	return strings.TrimSpace(candidate.Source)
+}
+
+func importTaskObjectType(candidate OpenProjectTaskCandidate) string {
+	if strings.TrimSpace(candidate.ObjectType) == "" {
+		return "work_package"
+	}
+	return strings.TrimSpace(candidate.ObjectType)
+}
+
+func importResourceSource(candidate OpenProjectResourceCandidate) string {
+	if strings.TrimSpace(candidate.Source) == "" {
+		return "openproject"
+	}
+	return strings.TrimSpace(candidate.Source)
+}
+
+func importResourceObjectType(candidate OpenProjectResourceCandidate) string {
+	if strings.TrimSpace(candidate.ObjectType) == "" {
+		return "user"
+	}
+	return strings.TrimSpace(candidate.ObjectType)
+}
+
+func importDependencySource(candidate OpenProjectDependencyCandidate) string {
+	if strings.TrimSpace(candidate.Source) == "" {
+		return "openproject"
+	}
+	return strings.TrimSpace(candidate.Source)
+}
+
+func importDependencyObjectType(candidate OpenProjectDependencyCandidate) string {
+	if strings.TrimSpace(candidate.ObjectType) == "" {
+		return "relation"
+	}
+	return strings.TrimSpace(candidate.ObjectType)
+}
+
+func importDemandSource(candidate OpenProjectResourceDemandCandidate) string {
+	if strings.TrimSpace(candidate.TrackerSource) == "" {
+		return "openproject"
+	}
+	return strings.TrimSpace(candidate.TrackerSource)
+}
+
+func importTaskObjectLabel(candidate OpenProjectTaskCandidate) string {
+	return importSourceDisplay(importTaskSource(candidate)) + " " + strings.ReplaceAll(importTaskObjectType(candidate), "_", " ")
+}
+
+func importTaskTarget(candidate OpenProjectTaskCandidate) Target {
+	return Target{Kind: importTaskSource(candidate) + "_" + importTaskObjectType(candidate), ID: candidate.SourceID}
+}
+
+func importTaskDiagnostic(candidate OpenProjectTaskCandidate, suffix, message string) Diagnostic {
+	return Diagnostic{Code: importTaskSource(candidate) + "_" + suffix, Message: message, Severity: "warning", Target: importTaskTarget(candidate)}
+}
+
+func importDependencyObjectLabel(candidate OpenProjectDependencyCandidate) string {
+	return importSourceDisplay(importDependencySource(candidate)) + " " + strings.ReplaceAll(importDependencyObjectType(candidate), "_", " ")
+}
+
+func importSourceDisplay(source string) string {
+	switch source {
+	case "openproject":
+		return "OpenProject"
+	case "github":
+		return "GitHub"
+	default:
+		return source
+	}
+}
+
+func canonicalTaskIDForImportCandidate(candidate OpenProjectTaskCandidate) string {
+	if importTaskSource(candidate) == "openproject" {
+		return canonicalTaskIDForOpenProject(candidate.SourceID)
+	}
+	return "task." + importTaskSource(candidate) + "." + importIDSlug(candidate.SourceID)
+}
+
+func canonicalResourceIDForImportCandidate(candidate OpenProjectResourceCandidate) string {
+	if importResourceSource(candidate) == "openproject" {
+		return canonicalResourceIDForOpenProject(candidate.DisplayName, candidate.SourceID)
+	}
+	slug := importIDSlug(candidate.DisplayName)
+	if slug == "" {
+		slug = importIDSlug(candidate.SourceID)
+	}
+	return "resource." + importResourceSource(candidate) + "." + slug
+}
+
+func importIDSlug(value string) string {
+	value = strings.ToLower(strings.TrimSpace(value))
+	var b strings.Builder
+	lastDot := false
+	for _, r := range value {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-' {
+			b.WriteRune(r)
+			lastDot = false
+			continue
+		}
+		if b.Len() > 0 && !lastDot {
+			b.WriteByte('.')
+			lastDot = true
+		}
+	}
+	return strings.Trim(b.String(), ".")
+}
+
+func initialImportTrackingStatus(candidate OpenProjectTaskCandidate) string {
+	if importTaskSource(candidate) == "openproject" {
+		return "ready"
+	}
+	if strings.TrimSpace(candidate.MappedStatus) != "" {
+		return candidate.MappedStatus
+	}
+	return "ready"
 }
 
 func canonicalResourceIDForOpenProject(displayName string, sourceID string) string {

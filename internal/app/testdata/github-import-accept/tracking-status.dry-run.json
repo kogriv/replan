@@ -1,0 +1,71 @@
+{
+  "error": "",
+  "result": {
+    "applied": false,
+    "dry_run": true,
+    "snapshot_id": "source_snapshot.github.20261029T110000",
+    "mapped_path": "imports/github/20261029T110000/mapped.json",
+    "planned_writes": [
+      {
+        "path": "canonical/tasks.yaml",
+        "action": "preview_update",
+        "format": "yaml",
+        "content": ""
+      }
+    ],
+    "changes": [
+      {
+        "op": "update_task_tracking_status",
+        "target_kind": "task",
+        "target_id": "task.op.1234",
+        "source_id": "example-org/planning-demo#101",
+        "path": "canonical/tasks.yaml",
+        "description": "Update task task.op.1234 tracking_status from ready to in_progress."
+      },
+      {
+        "op": "update_task_tracking_status",
+        "target_kind": "task",
+        "target_id": "task.offline.repair-pump",
+        "source_id": "example-org/planning-demo#102",
+        "path": "canonical/tasks.yaml",
+        "description": "Update task task.offline.repair-pump tracking_status from in_progress to accepted."
+      }
+    ],
+    "audit_record_preview": {
+      "id": "audit.20261029T120000000000000Z.import-accept-tracking-status",
+      "occurred_at": "2026-10-29T12:00:00Z",
+      "actor_ref": {
+        "kind": "actor",
+        "id": "actor.human.operator"
+      },
+      "operation": "import_accept",
+      "target_ref": {
+        "kind": "source_snapshot",
+        "id": "source_snapshot.github.20261029T110000"
+      },
+      "result": "dry_run",
+      "reason": "GitHub golden run."
+    },
+    "warnings": [
+      {
+        "code": "github_tracking_status_task_unmatched",
+        "message": "GitHub issue example-org/planning-demo#103 is not matched to an existing canonical task",
+        "severity": "warning",
+        "target": {
+          "kind": "github_issue",
+          "id": "example-org/planning-demo#103"
+        }
+      },
+      {
+        "code": "github_tracking_status_task_unmatched",
+        "message": "GitHub issue example-org/planning-demo#105 is not matched to an existing canonical task",
+        "severity": "warning",
+        "target": {
+          "kind": "github_issue",
+          "id": "example-org/planning-demo#105"
+        }
+      }
+    ],
+    "errors": []
+  }
+}

@@ -754,7 +754,14 @@ func (s Store) applyScenarioDependencyChanges(changes []app.ScenarioApplyChange)
 }
 
 func (s Store) WriteOpenProjectImportSnapshot(snapshot app.OpenProjectImportSnapshotWrite) ([]string, error) {
-	base := filepath.ToSlash(filepath.Join("imports", "openproject", snapshot.SnapshotKey))
+	return s.WriteImportSnapshot("openproject", snapshot)
+}
+
+func (s Store) WriteImportSnapshot(source string, snapshot app.OpenProjectImportSnapshotWrite) ([]string, error) {
+	if source != "openproject" && source != "github" {
+		return nil, fmt.Errorf("unsupported import snapshot source %q", source)
+	}
+	base := filepath.ToSlash(filepath.Join("imports", source, snapshot.SnapshotKey))
 	files := []struct {
 		rel  string
 		data []byte
@@ -774,15 +781,20 @@ func (s Store) WriteOpenProjectImportSnapshot(snapshot app.OpenProjectImportSnap
 }
 
 func (s Store) ReadImportMappedSnapshot(snapshotID string) ([]byte, string, error) {
-	const prefix = "source_snapshot.openproject."
+	const prefix = "source_snapshot."
 	if !strings.HasPrefix(snapshotID, prefix) {
 		return nil, "", fmt.Errorf("source snapshot %q: %w", snapshotID, os.ErrNotExist)
 	}
-	key := strings.TrimPrefix(snapshotID, prefix)
+	remainder := strings.TrimPrefix(snapshotID, prefix)
+	parts := strings.SplitN(remainder, ".", 2)
+	if len(parts) != 2 || (parts[0] != "openproject" && parts[0] != "github") {
+		return nil, "", fmt.Errorf("source snapshot %q: %w", snapshotID, os.ErrNotExist)
+	}
+	source, key := parts[0], parts[1]
 	if key == "" || strings.ContainsAny(key, `/\.`) {
 		return nil, "", fmt.Errorf("invalid snapshot key %q", key)
 	}
-	rel := filepath.ToSlash(filepath.Join("imports", "openproject", key, "mapped.json"))
+	rel := filepath.ToSlash(filepath.Join("imports", source, key, "mapped.json"))
 	data, err := s.fs.read(rel)
 	if err != nil {
 		return nil, rel, err

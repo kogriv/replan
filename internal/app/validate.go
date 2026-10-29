@@ -718,11 +718,30 @@ func validateSourceProfiles(result *ValidateResult, profiles []domain.SourceProf
 			addError(result, "missing_source_profile_source", "source profile source is required", "source_profile", targetID)
 			continue
 		}
-		if profile.Source != "openproject" {
+		if profile.Source != "openproject" && profile.Source != "github" {
 			addError(result, "unsupported_source_profile_source", fmt.Sprintf("unsupported source profile source %q", profile.Source), "source_profile", targetID)
 			continue
 		}
-		validateOpenProjectSourceProfile(result, profile, targetID)
+		if profile.Source == "openproject" {
+			validateOpenProjectSourceProfile(result, profile, targetID)
+		} else {
+			validateGitHubSourceProfile(result, profile, targetID)
+		}
+	}
+}
+
+func validateGitHubSourceProfile(result *ValidateResult, profile domain.SourceProfile, targetID string) {
+	parts := strings.Split(profile.Repository, "/")
+	if len(parts) != 2 || strings.TrimSpace(parts[0]) == "" || strings.TrimSpace(parts[1]) == "" {
+		addError(result, "invalid_github_repository", "GitHub source profile repository must use owner/repository", "source_profile", targetID)
+	}
+	if len(profile.StatusMap) == 0 {
+		addError(result, "missing_github_status_map", "GitHub source profile status_map is required", "source_profile", targetID)
+	}
+	for key, status := range profile.StatusMap {
+		if strings.TrimSpace(key) == "" || !domain.ValidTrackingStatus(status) {
+			addError(result, "invalid_github_status_map", fmt.Sprintf("GitHub status map entry %q has invalid tracking status %q", key, status), "source_profile", targetID)
+		}
 	}
 }
 

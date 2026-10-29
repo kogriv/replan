@@ -2127,6 +2127,8 @@ func runImport(args []string, stdout, stderr *os.File) int {
 		return exitInvalidUsage
 	}
 	switch args[0] {
+	case "github":
+		return runImportGitHub(args[1:], stdout, stderr)
 	case "openproject":
 		return runImportOpenProject(args[1:], stdout, stderr)
 	case "accept":
@@ -2139,6 +2141,44 @@ func runImport(args []string, stdout, stderr *os.File) int {
 		printUsage(stderr)
 		return exitInvalidUsage
 	}
+}
+
+func runImportGitHub(args []string, stdout, stderr *os.File) int {
+	fs := newCLIFlagSet("import github")
+	projectPath, format := addProjectFormatFlags(fs, "json")
+	fromFile := fs.String("from-file", "", "versioned GitHub Issues import JSON document")
+	profile := fs.String("profile", "", "GitHub source profile id from .replan/project.yaml")
+	since := fs.String("since", "", "import issues updated since YYYY-MM-DD or RFC3339")
+	includeClosed := fs.Bool("include-closed", false, "include closed issues")
+	includeRelations := fs.Bool("include-relations", false, "include blocked-by links as dependency candidates")
+	resourceLinksSidecar := fs.String("resource-links-sidecar", "", "GitHub resource-link sidecar path")
+	resourceDemandsSidecar := fs.String("resource-demands-sidecar", "", "GitHub resource-demand sidecar path")
+	dryRun := fs.Bool("dry-run", false, "preview the import without writing files")
+	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+		return code
+	}
+	if !*dryRun {
+		if code, done := refuseBindingsLayerWrite("import github", *projectPath, *format, stdout, stderr); done {
+			return code
+		}
+	}
+	result, err := app.NewGitHubImportService(newStore(*projectPath)).Import(context.Background(), app.GitHubImportRequest{
+		FromFile: *fromFile, DryRun: *dryRun, Profile: *profile, Since: *since,
+		IncludeClosed: *includeClosed, IncludeRelations: *includeRelations,
+		ResourceLinksSidecar: *resourceLinksSidecar, ResourceDemandsSidecar: *resourceDemandsSidecar,
+	})
+	env := envelope{OK: err == nil && len(result.Errors) == 0, Command: "import github", ProjectPath: *projectPath, Result: result, Warnings: result.Warnings, Errors: result.Errors}
+	if *format == "markdown" || *format == "text" {
+		if printErr := writeGitHubImportMarkdown(stdout, result); printErr != nil {
+			fmt.Fprintf(stderr, "failed to write output: %v\n", printErr)
+			return exitGeneralError
+		}
+		if err != nil {
+			return validationFailureExit(result.Errors)
+		}
+		return exitSuccess
+	}
+	return printScenarioEnvelope(stdout, stderr, *format, env, err)
 }
 
 func runImportOpenProject(args []string, stdout, stderr *os.File) int {
@@ -2299,12 +2339,12 @@ func runImportAccept(args []string, stdout, stderr *os.File) int {
 	fs := newCLIFlagSet("import accept")
 	projectPath, format := addProjectFormatFlags(fs, "json")
 	writeFlags := addCanonicalWriteFlags(fs)
-	acceptTimeEntries := fs.Bool("accept-time-entries", false, "accept OpenProject time-entry candidates as actual consumption with evidence")
-	acceptResourceDemands := fs.Bool("accept-resource-demands", false, "accept OpenProject resource-demand candidates into canonical resource demands")
-	acceptResourceLinks := fs.Bool("accept-resource-links", false, "accept OpenProject resource-link candidates as canonical resource source refs")
-	acceptTrackingStatus := fs.Bool("accept-tracking-status", false, "accept mapped OpenProject statuses as canonical task tracking statuses")
-	acceptDates := fs.Bool("accept-dates", false, "accept OpenProject start and due dates as canonical task planned dates")
-	acceptDependencies := fs.Bool("accept-dependencies", false, "accept OpenProject dependency candidates into canonical dependencies")
+	acceptTimeEntries := fs.Bool("accept-time-entries", false, "accept tracker time-entry candidates as actual consumption with evidence (currently OpenProject snapshots only)")
+	acceptResourceDemands := fs.Bool("accept-resource-demands", false, "accept tracker resource-demand candidates into canonical resource demands")
+	acceptResourceLinks := fs.Bool("accept-resource-links", false, "accept tracker resource-link candidates as canonical resource source refs")
+	acceptTrackingStatus := fs.Bool("accept-tracking-status", false, "accept mapped tracker statuses as canonical task tracking statuses")
+	acceptDates := fs.Bool("accept-dates", false, "accept tracker start and due dates as canonical task planned dates")
+	acceptDependencies := fs.Bool("accept-dependencies", false, "accept tracker dependency candidates into canonical dependencies")
 	actorID := fs.String("actor", "", "actor id applying the import acceptance")
 	reason := fs.String("reason", "", "reason for accepting the import")
 	positionalSnapshotID, args := splitSinglePositional(args, fs)
@@ -4568,8 +4608,9 @@ func printUsage(out *os.File) {
 	fmt.Fprintln(out, "  replan task set-dates --project <path> --task <task-id> [--planned-start <YYYY-MM-DD>] [--planned-finish <YYYY-MM-DD>] --reason <text> --actor <id> --evidence <id> [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text] (push to OpenProject separately with scripts/push-openproject-date-drift.sh)")
 	fmt.Fprintln(out, "  replan task record-actual-window --project <path> --task <task-id> --actor <id> --evidence <id> [--reason <text>] [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text]")
 	fmt.Fprintln(out, "  replan task set-title --project <path> --task <task-id> --title <title> --reason <text> --actor <id> --evidence <id> [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text]")
+	fmt.Fprintln(out, "  replan import github --project <path> --from-file <path> [--profile <id>] [--since <date>] [--include-closed] [--include-relations] [--resource-links-sidecar <path>] [--resource-demands-sidecar <path>] [--dry-run] [--format json|markdown]")
 	fmt.Fprintln(out, "  replan import openproject --project <path> (--from-file <path>|--profile <id>|--base-url <url> --project-id <id> --token-env <env>) [--work-package <id>] [--since <date>] [--include-closed] [--include-relations] [--include-time-entries] [--resource-demands-sidecar <path>] [--resource-links-sidecar <path>] [--page-size <n>] [--request-timeout <seconds>] [--request-retries <n>] [--request-retry-delay <seconds>] [--host-header <host>] [--forwarded-proto <proto>] [--perimeter-key-env <env>] [--perimeter-header <name>] [--dry-run] [--format json|markdown]")
-	fmt.Fprintln(out, "  replan import accept <source-snapshot-id> --project <path> (--dry-run|--apply --actor <id> [--reason <text>]) [--accept-dates|--accept-dependencies|--accept-tracking-status|--accept-resource-links|--accept-resource-demands|--accept-time-entries] [--format json|markdown]")
+	fmt.Fprintln(out, "  replan import accept <source-snapshot-id> --project <path> (--dry-run|--apply --actor <id> [--reason <text>]) [--accept-dates|--accept-dependencies|--accept-tracking-status|--accept-resource-links|--accept-resource-demands|--accept-time-entries] [--format json|markdown] (tracker candidates; time entries currently require an OpenProject snapshot)")
 	fmt.Fprintln(out, "  replan export json --project <path> [--output <path>] [--manifest <path>] [--format json]")
 	fmt.Fprintln(out, "  replan export taskjuggler --project <path> [--scenario <id>] [--output <path>] [--manifest <path>] [--format text|json] [--unrepresented-assumptions warn|error]")
 	fmt.Fprintln(out, "  replan export csv --project <path> --report workload --week <YYYY-Www> [--scenario <id>] [--output <path>] [--manifest <path>]")
@@ -4879,6 +4920,79 @@ func writeOpenProjectImportMarkdown(stdout *os.File, result app.OpenProjectImpor
 		}
 		if candidate.EstimatedHours > 0 {
 			if _, err := fmt.Fprintf(stdout, " estimate `%.2f h`", candidate.EstimatedHours); err != nil {
+				return err
+			}
+		}
+		if _, err := fmt.Fprintln(stdout); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func writeGitHubImportMarkdown(stdout *os.File, result app.GitHubImportResult) error {
+	if _, err := fmt.Fprintln(stdout, "# GitHub Import"); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(stdout, "\n- Source: `%s`\n- From file: `%s`\n- Loaded issues: `%d`\n- Snapshot: `%s`\n", result.Source, result.FromFile, result.Snapshot.LoadedCount, result.Snapshot.ID); err != nil {
+		return err
+	}
+	if len(result.WrittenFiles) > 0 {
+		if _, err := fmt.Fprintln(stdout, "\n## Written Files"); err != nil {
+			return err
+		}
+		for _, path := range result.WrittenFiles {
+			if _, err := fmt.Fprintf(stdout, "- `%s`\n", path); err != nil {
+				return err
+			}
+		}
+	} else if len(result.PlannedWrites) > 0 {
+		if _, err := fmt.Fprintln(stdout, "\n## Planned Writes"); err != nil {
+			return err
+		}
+		for _, write := range result.PlannedWrites {
+			if _, err := fmt.Fprintf(stdout, "- `%s` %s %s\n", write.Path, write.Action, write.Format); err != nil {
+				return err
+			}
+		}
+	}
+	if len(result.Warnings) > 0 {
+		if _, err := fmt.Fprintln(stdout, "\n## Warnings"); err != nil {
+			return err
+		}
+		for _, diagnostic := range result.Warnings {
+			if _, err := fmt.Fprintf(stdout, "- `%s`: %s\n", diagnostic.Code, diagnostic.Message); err != nil {
+				return err
+			}
+		}
+	}
+	if len(result.Errors) > 0 {
+		if _, err := fmt.Fprintln(stdout, "\n## Errors"); err != nil {
+			return err
+		}
+		for _, diagnostic := range result.Errors {
+			if _, err := fmt.Fprintf(stdout, "- `%s`: %s\n", diagnostic.Code, diagnostic.Message); err != nil {
+				return err
+			}
+		}
+	}
+	if _, err := fmt.Fprintln(stdout, "\n## Task Candidates"); err != nil {
+		return err
+	}
+	if len(result.TaskCandidates) == 0 {
+		_, err := fmt.Fprintln(stdout, "- none")
+		return err
+	}
+	for _, candidate := range result.TaskCandidates {
+		target := "new task"
+		if candidate.MatchedTaskID != "" {
+			target = "`" + candidate.MatchedTaskID + "`"
+		}
+		if _, err := fmt.Fprintf(stdout, "- `%s` %s -> %s", candidate.SourceID, candidate.Title, target); err != nil {
+			return err
+		}
+		if candidate.MappedStatus != "" {
+			if _, err := fmt.Fprintf(stdout, " status `%s`", candidate.MappedStatus); err != nil {
 				return err
 			}
 		}

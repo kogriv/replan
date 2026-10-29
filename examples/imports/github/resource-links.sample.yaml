@@ -1,0 +1,9 @@
+github_resource_links:
+  - login: sample-planner
+    resource_ref:
+      kind: resource
+      id: resource.human.ivan
+  - login: sample-reviewer
+    resource_ref:
+      kind: resource
+      id: resource.human.petr

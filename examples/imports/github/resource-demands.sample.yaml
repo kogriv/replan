@@ -1,0 +1,13 @@
+github_resource_demands:
+  - issue: example-org/planning-demo#101
+    demands:
+      - id: resource_demand.github-101.estimate
+        resource_ref:
+          kind: resource
+          id: resource.human.ivan
+        resource_class: human
+        role: implementer
+        unit: hours
+        project_number_field: Estimate
+        criticality: required
+        status: active

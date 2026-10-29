@@ -1,0 +1,52 @@
+{
+  "error": "",
+  "result": {
+    "applied": false,
+    "dry_run": true,
+    "snapshot_id": "source_snapshot.github.20261029T110000",
+    "mapped_path": "imports/github/20261029T110000/mapped.json",
+    "planned_writes": [
+      {
+        "path": "canonical/resources.yaml",
+        "action": "preview_update",
+        "format": "yaml",
+        "content": ""
+      }
+    ],
+    "changes": [
+      {
+        "op": "add_resource_source_ref",
+        "target_kind": "resource",
+        "target_id": "resource.human.ivan",
+        "source_id": "sample-planner",
+        "path": "canonical/resources.yaml",
+        "description": "Attach GitHub user sample-planner source reference to resource resource.human.ivan."
+      },
+      {
+        "op": "add_resource_source_ref",
+        "target_kind": "resource",
+        "target_id": "resource.human.petr",
+        "source_id": "sample-reviewer",
+        "path": "canonical/resources.yaml",
+        "description": "Attach GitHub user sample-reviewer source reference to resource resource.human.petr."
+      }
+    ],
+    "audit_record_preview": {
+      "id": "audit.20261029T120000000000000Z.import-accept-resource-links",
+      "occurred_at": "2026-10-29T12:00:00Z",
+      "actor_ref": {
+        "kind": "actor",
+        "id": "actor.human.operator"
+      },
+      "operation": "import_accept",
+      "target_ref": {
+        "kind": "source_snapshot",
+        "id": "source_snapshot.github.20261029T110000"
+      },
+      "result": "dry_run",
+      "reason": "GitHub golden run."
+    },
+    "warnings": [],
+    "errors": []
+  }
+}

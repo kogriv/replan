@@ -97,10 +97,19 @@ type SourceProfileSummary struct {
 	TokenEnv             string            `json:"token_env,omitempty"`
 	CredentialProfileRef string            `json:"credential_profile_ref,omitempty"`
 	DefaultQuery         map[string]string `json:"default_query,omitempty"`
+	Repository           string            `json:"repository,omitempty"`
+	StatusMap            map[string]string `json:"status_map,omitempty"`
+	StartField           string            `json:"start_field,omitempty"`
+	FinishField          string            `json:"finish_field,omitempty"`
+	EstimateField        string            `json:"estimate_field,omitempty"`
 }
 
 type OpenProjectImportSnapshotWriter interface {
 	WriteOpenProjectImportSnapshot(snapshot OpenProjectImportSnapshotWrite) ([]string, error)
+}
+
+type ImportSnapshotWriter interface {
+	WriteImportSnapshot(source string, snapshot OpenProjectImportSnapshotWrite) ([]string, error)
 }
 
 type OpenProjectImportSnapshotWrite struct {
@@ -144,6 +153,7 @@ type OpenProjectImportManifestQuery struct {
 }
 
 type OpenProjectMappedSnapshot struct {
+	Source                   string                               `json:"source,omitempty"`
 	Snapshot                 OpenProjectSnapshotSummary           `json:"snapshot"`
 	Profile                  *SourceProfileSummary                `json:"profile,omitempty"`
 	TaskCandidates           []OpenProjectTaskCandidate           `json:"task_candidates"`
@@ -153,7 +163,15 @@ type OpenProjectMappedSnapshot struct {
 	TimeEntryCandidates      []OpenProjectTimeEntryCandidate      `json:"time_entry_candidates,omitempty"`
 }
 
+// ImportMappedSnapshot is the source-neutral snapshot contract consumed by
+// import accept. The alias preserves the existing OpenProject adapter API.
+type ImportMappedSnapshot = OpenProjectMappedSnapshot
+
 type OpenProjectTaskCandidate struct {
+	Source         string             `json:"source,omitempty"`
+	ObjectType     string             `json:"object_type,omitempty"`
+	NumericID      int64              `json:"numeric_id,omitempty"`
+	ParentRef      *domain.SourceRef  `json:"parent_ref,omitempty"`
 	SourceID       string             `json:"source_id"`
 	SourceURL      string             `json:"source_url,omitempty"`
 	Title          string             `json:"title"`
@@ -173,6 +191,8 @@ type OpenProjectTaskCandidate struct {
 }
 
 type OpenProjectResourceCandidate struct {
+	Source       string `json:"source,omitempty"`
+	ObjectType   string `json:"object_type,omitempty"`
 	SourceID     string `json:"source_id,omitempty"`
 	SourceHref   string `json:"source_href,omitempty"`
 	DisplayName  string `json:"display_name"`
@@ -199,6 +219,7 @@ type OpenProjectTimeEntryCandidate struct {
 }
 
 type OpenProjectResourceDemandCandidate struct {
+	TrackerSource string                `json:"tracker_source,omitempty"`
 	Source        string                `json:"source"`
 	SourceID      string                `json:"source_id"`
 	WorkPackageID string                `json:"work_package_id"`
@@ -210,6 +231,8 @@ type OpenProjectResourceDemandCandidate struct {
 }
 
 type OpenProjectDependencyCandidate struct {
+	Source            string       `json:"source,omitempty"`
+	ObjectType        string       `json:"object_type,omitempty"`
 	SourceID          string       `json:"source_id"`
 	SourceURL         string       `json:"source_url,omitempty"`
 	RelationType      string       `json:"relation_type"`
@@ -1286,6 +1309,11 @@ func sourceProfileSummary(profile domain.SourceProfile) *SourceProfileSummary {
 		TokenEnv:             profile.TokenEnv,
 		CredentialProfileRef: profile.CredentialProfileRef,
 		DefaultQuery:         defaultQuery,
+		Repository:           profile.Repository,
+		StatusMap:            profile.StatusMap,
+		StartField:           profile.StartField,
+		FinishField:          profile.FinishField,
+		EstimateField:        profile.EstimateField,
 	}
 }
 

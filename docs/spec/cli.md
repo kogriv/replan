@@ -1839,9 +1839,9 @@ Purpose:
 Import source data into `imports/`, map it to canonical candidates and optionally
 accept mapped canonical changes.
 
-The first implemented OpenProject slice is narrower: it reads a saved
-work-package JSON file, returns mapped candidates, and does not write `imports/`
-or canonical state.
+OpenProject and GitHub Issues file input are implemented. Both map source data
+to staged candidates and write snapshots only when `--dry-run` is absent;
+canonical state changes only through `import accept`.
 
 Subcommands:
 
@@ -1870,6 +1870,7 @@ replan import openproject --project examples/small-team --profile openproject.de
 replan import openproject --project examples/small-team --profile openproject.demo --since 2026-07-01 --resource-links-sidecar integrations/openproject/resource-links.yaml --dry-run --format json
 replan import openproject --project examples/small-team --profile openproject.demo --since 2026-07-01 --resource-demands-sidecar integrations/openproject/resource-demands.yaml --dry-run --format json
 replan import openproject --project examples/small-team --profile openproject.demo --work-package 1234 --dry-run --format json
+replan import github --project examples/small-team --profile github.demo --from-file examples/imports/github/issues.sample.json --include-closed --include-relations --resource-links-sidecar ../imports/github/resource-links.sample.yaml --resource-demands-sidecar ../imports/github/resource-demands.sample.yaml --dry-run --format json
 replan import accept source_snapshot.openproject.20260706T120000 --dry-run --format json
 replan import accept source_snapshot.openproject.20260706T120000 --accept-resource-links --dry-run --format json
 replan import accept source_snapshot.openproject.20260706T120000 --accept-resource-links --actor actor.human.operator --apply --format json
@@ -1884,17 +1885,38 @@ replan import accept source_snapshot.openproject.20260706T120000 --accept-dates 
 replan import accept source_snapshot.openproject.20260706T120000 --accept-dependencies --dry-run --format json
 replan import accept source_snapshot.openproject.20260706T120000 --accept-dependencies --actor actor.human.operator --apply --format json
 replan import accept source_snapshot.openproject.20260706T120000 --actor actor.human.operator --apply --format json
+replan import accept source_snapshot.github.20261029T110000 --accept-dependencies --dry-run --format json
 ```
 
 Implemented command flags:
 
 ```text
 replan import openproject --project -p --bindings --format --base-url --dry-run --forwarded-proto --from-file --host-header --include-closed --include-relations --include-time-entries --page-size --perimeter-header --perimeter-key-env --profile --project-id --request-retries --request-retry-delay --request-timeout --resource-demands-sidecar --resource-links-sidecar --since --token-env --work-package
+replan import github --project -p --bindings --format --dry-run --from-file --include-closed --include-relations --profile --resource-demands-sidecar --resource-links-sidecar --since
 replan import accept --project -p --bindings --format --accept-dates --accept-dependencies --accept-resource-demands --accept-resource-links --accept-time-entries --accept-tracking-status --actor --apply --dry-run --reason
 ```
 
 Rules:
 
+- GitHub import is file-only in this slice and requires a versioned
+  `replan.github-issues.v1` input document; it performs no network requests;
+- GitHub import filters pull requests, excludes closed issues unless
+  `--include-closed` is set, and applies `--since` to `updated_at`;
+- GitHub `blocked_by` entries become `finish_to_start` candidates only inside
+  the imported repository; cross-repository entries are warned and skipped;
+- GitHub sub-issue parents remain source facts in `mapped.json`; RePlan does
+  not assign hierarchy semantics to them;
+- the first GitHub assignee is matched only through the resource-links
+  sidecar; a missing explicit link is a warning;
+- GitHub dates and Project-number estimates are used only when the selected
+  profile names the fields. Estimates become demands only through a
+  resource-demand sidecar that supplies the resource and unit;
+- GitHub snapshots are stored under `imports/github/<snapshot-key>/` and all
+  task, resource-link, tracking-status, date, dependency and resource-demand
+  candidates use the shared `import accept` modes;
+- like the implemented OpenProject import, GitHub snapshot writing has no
+  `--apply` flag: `--dry-run` previews and omitting it writes the staged
+  snapshot. This write does not mutate canonical state;
 - OpenProject import supports both `--from-file --dry-run` and API-backed
   `--profile <id> --dry-run`;
 - OpenProject import may include time entries as read-only
@@ -1931,30 +1953,33 @@ Rules:
 - OpenProject import write mode does not mutate canonical planning state;
 - `replan import accept --dry-run` previews canonical changes from a stored
   mapped import;
-- `replan import accept --accept-resource-links --dry-run` previews
-  OpenProject user source refs that can be safely attached to canonical
-  resources from explicit resource-link matches;
+- `replan import accept --accept-resource-links --dry-run` previews tracker
+  user source refs that can be safely attached to canonical resources from
+  explicit resource-link matches;
 - `replan import accept --accept-resource-links --apply --actor <id>` appends
-  safe OpenProject user source refs to `canonical/resources.yaml` and audit;
+  safe tracker user source refs to `canonical/resources.yaml` and audit;
 - `--accept-resource-links` is a separate accept mode and does not also accept
   tasks, resource demands or time-entry actuals;
 - `replan import accept --accept-resource-demands --dry-run` previews
   canonical resource-demand records that can be safely created from the
-  OpenProject resource-demand sidecar;
+  imported tracker resource-demand sidecar;
 - `replan import accept --accept-resource-demands --apply --actor <id>` writes
-  only safely matched OpenProject sidecar resource demands and audit;
+  only safely matched tracker sidecar resource demands and audit;
 - `--accept-resource-demands` is a separate accept mode and does not also
   accept ordinary task/resource import changes or time-entry actuals;
 - resource-demand accept planned writes use `canonical/resource_demands.yaml`
   and audit writes use `audit/audit.<YYYY-MM>.jsonl`;
 - `replan import accept --accept-time-entries --dry-run` previews evidence and
-  actual-consumption records from imported OpenProject time-entry candidates;
+  actual-consumption records from imported tracker time-entry candidates;
 - `replan import accept --accept-time-entries --apply --actor <id>` writes only
-  safely matched OpenProject time-entry actuals with evidence and audit;
+  safely matched tracker time-entry actuals with evidence and audit;
+- time-entry candidates currently exist only in OpenProject snapshots. Asking
+  for `--accept-time-entries` on a GitHub snapshot fails explicitly with
+  `import_accept_time_entries_unsupported_source`;
 - `--accept-time-entries` is a separate accept mode and does not also accept
   ordinary task or resource import changes;
 - `replan import accept --accept-tracking-status --dry-run` previews task
-  tracking-status updates from mapped OpenProject statuses;
+  tracking-status updates from mapped tracker statuses;
 - `replan import accept --accept-tracking-status --apply --actor <id>` writes
   only mapped status changes for existing matched tasks and audit;
 - `--accept-tracking-status` is a separate accept mode and does not also accept
@@ -1962,7 +1987,7 @@ Rules:
   time-entry actuals;
 - `replan import accept --accept-dates --dry-run` previews each changed
   `planned_start` and `planned_finish` field with its task, old value and new
-  value for existing tasks matched by the stored OpenProject snapshot;
+  value for existing tasks matched by the stored tracker snapshot;
 - `replan import accept --accept-dates --apply --actor <id>` writes all safe
   date changes to `canonical/tasks.yaml` in one staged, validated write and
   appends one `import_accept` audit record for the snapshot;
@@ -1972,35 +1997,35 @@ Rules:
   task/source-ref changes, tracking statuses, dependencies, resource links,
   resource demands or time-entry actuals;
 - `replan import accept --accept-dependencies --dry-run` previews canonical
-  dependency changes from OpenProject relation candidates:
+  dependency changes from tracker relation candidates:
   `create_dependency` for new canonical dependencies and
   `update_dependency_source_refs` when an existing canonical dependency already
-  has the same predecessor/successor/type triple but lacks the OpenProject
-  relation source reference;
+  has the same predecessor/successor/type triple but lacks the tracker relation
+  source reference;
 - `replan import accept --accept-dependencies --apply --actor <id>` writes only
-  safe OpenProject relation-backed dependency changes to
+  safe tracker relation-backed dependency changes to
   `canonical/dependencies.yaml` and audit;
 - dependency accept must never create a duplicate canonical dependency record
   when a matching predecessor/successor/type triple already exists;
-- if the matching dependency already has the same OpenProject relation
+- if the matching dependency already has the same tracker relation
   `source_ref`, dependency accept is a no-op with an already-imported warning;
 - `--accept-dependencies` is a separate accept mode and does not also accept
   ordinary task/source-ref changes, resource links, resource demands,
   time-entry actuals or tracking statuses;
 - `replan import accept --apply --actor <id>` writes only safe accepted import
-  changes: create unmatched tasks, add missing OpenProject task source
+  changes: create unmatched tasks, add missing tracker task source
   references, append audit and validate after write;
 - when `project.openproject_ids` is `private_bindings`, dry-run and apply both
   refuse the whole accept operation with `openproject_ids_private` and exit `8`
   if any change would persist a work-package, user, relation or time-entry id;
   date, tracking-status and resource-demand acceptance remains available;
 - resource-demand acceptance requires an already matched or already accepted
-  RePlan task for the OpenProject work package, and an existing canonical
-  RePlan resource or resource pool;
+  RePlan task for the tracker object, and an existing canonical RePlan
+  resource or resource pool;
 - time-entry actual acceptance requires an already matched RePlan task, matched
   RePlan resource and matching hour-based resource demand;
 - dependency acceptance requires existing canonical predecessor and successor
-  tasks, supported dependency type, no duplicate OpenProject relation source ref
+  tasks, supported dependency type, no duplicate tracker relation source ref
   and no duplicate predecessor/successor/type triple;
 - recommended OpenProject pilot sequence:
   ordinary `import accept --apply`, then
@@ -2057,6 +2082,26 @@ OpenProject flags:
 `--token-env` should name an environment variable, not pass the token value.
 `--profile` should refer to `project.source_profiles[].id` in
 `.replan/project.yaml`.
+
+GitHub file-input flags:
+
+```text
+--project / -p
+--format
+--profile
+--from-file
+--since
+--include-closed
+--include-relations
+--resource-links-sidecar
+--resource-demands-sidecar
+--dry-run
+```
+
+The selected GitHub source profile declares `repository`, `status_map`, and
+optional `start_field`, `finish_field`, and `estimate_field`. The canonical
+completed status is `accepted`, so a GitHub `closed:completed` profile entry
+maps to `accepted` (the adapter design's informal `done`).
 
 Request settings:
 

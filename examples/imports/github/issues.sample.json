@@ -1,0 +1,83 @@
+{
+  "format": "replan.github-issues.v1",
+  "repository": {
+    "owner": "example-org",
+    "name": "planning-demo",
+    "html_url": "https://github.com/example-org/planning-demo"
+  },
+  "issues": [
+    {
+      "id": 1000101,
+      "number": 101,
+      "title": "Implement validation command",
+      "state": "open",
+      "state_reason": "reopened",
+      "html_url": "https://github.com/example-org/planning-demo/issues/101",
+      "updated_at": "2026-10-28T10:00:00Z",
+      "labels": [{"name": "in progress"}, {"name": "cli"}],
+      "assignees": [{"login": "sample-planner", "html_url": "https://github.com/sample-planner"}]
+    },
+    {
+      "id": 1000102,
+      "number": 102,
+      "title": "Replace greenhouse pump",
+      "state": "closed",
+      "state_reason": "completed",
+      "html_url": "https://github.com/example-org/planning-demo/issues/102",
+      "updated_at": "2026-10-27T09:00:00Z",
+      "labels": [{"name": "maintenance"}],
+      "assignees": [{"login": "sample-reviewer", "html_url": "https://github.com/sample-reviewer"}]
+    },
+    {
+      "id": 1000103,
+      "number": 103,
+      "title": "Document the import walkthrough",
+      "state": "open",
+      "html_url": "https://github.com/example-org/planning-demo/issues/103",
+      "updated_at": "2026-10-29T08:30:00Z",
+      "labels": [{"name": "documentation"}],
+      "assignees": [],
+      "parent": {
+        "repository": "example-org/planning-demo",
+        "number": 101,
+        "id": 1000101,
+        "html_url": "https://github.com/example-org/planning-demo/issues/101"
+      }
+    },
+    {
+      "id": 1000104,
+      "number": 104,
+      "title": "Update generated output",
+      "state": "open",
+      "html_url": "https://github.com/example-org/planning-demo/pull/104",
+      "updated_at": "2026-10-29T09:00:00Z",
+      "labels": [],
+      "assignees": [],
+      "pull_request": {"url": "https://github.com/example-org/planning-demo/pulls/104"}
+    },
+    {
+      "id": 1000105,
+      "number": 105,
+      "title": "Old duplicate request",
+      "state": "closed",
+      "state_reason": "not_planned",
+      "html_url": "https://github.com/example-org/planning-demo/issues/105",
+      "updated_at": "2026-10-20T12:00:00Z",
+      "labels": [{"name": "duplicate"}],
+      "assignees": []
+    }
+  ],
+  "blocked_by": [
+    {
+      "issue_number": 101,
+      "issues": [
+        {"repository": "example-org/planning-demo", "number": 102, "id": 1000102, "html_url": "https://github.com/example-org/planning-demo/issues/102"},
+        {"repository": "example-org/external-demo", "number": 7, "id": 2000007, "html_url": "https://github.com/example-org/external-demo/issues/7"}
+      ]
+    }
+  ],
+  "project_items": [
+    {"issue_number": 101, "fields": {"Start": "2026-10-29", "Finish": "2026-11-03", "Estimate": 13}},
+    {"issue_number": 102, "fields": {"Start": "2026-10-20", "Finish": "2026-10-27", "Estimate": 4}}
+  ]
+}

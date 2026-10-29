@@ -283,6 +283,26 @@ func TestDocumentedImplementedFlagsExist(t *testing.T) {
 	}
 }
 
+func TestImportAcceptHelpIsTrackerNeutral(t *testing.T) {
+	stdout, stderr := tempOutputFiles(t)
+	defer stdout.Close()
+	defer stderr.Close()
+	if code := run([]string{"import", "accept", "--help"}, stdout, stderr); code != exitSuccess {
+		t.Fatalf("import accept --help exit = %d, stderr = %s", code, readFileString(t, stderr.Name()))
+	}
+	help := readFileString(t, stdout.Name())
+	for _, phrase := range []string{"tracker start and due dates", "mapped tracker statuses", "tracker dependency candidates", "tracker resource-demand candidates", "tracker resource-link candidates", "tracker time-entry candidates"} {
+		if !strings.Contains(help, phrase) {
+			t.Errorf("import accept --help does not contain %q: %s", phrase, help)
+		}
+	}
+	for _, phrase := range []string{"OpenProject start and due dates", "mapped OpenProject statuses", "OpenProject dependency candidates", "OpenProject resource-demand candidates", "OpenProject resource-link candidates"} {
+		if strings.Contains(help, phrase) {
+			t.Errorf("import accept --help still contains source-specific phrase %q: %s", phrase, help)
+		}
+	}
+}
+
 func TestReportEstimatesJSONMarkdownAndRefusalExits(t *testing.T) {
 	projectPath := "../../examples/replan-self"
 	baselineID := "baseline.2026-10-15.tooling-consolidation"

@@ -12,6 +12,18 @@ project:
       token_env: OPENPROJECT_TOKEN
       default_query:
         include_closed: "false"
+    - id: github.demo
+      source: github
+      repository: example-org/planning-demo
+      status_map:
+        open: not_started
+        "open:label:in progress": in_progress
+        "closed:completed": accepted
+        "closed:not_planned": cancelled
+        "closed:duplicate": cancelled
+      start_field: Start
+      finish_field: Finish
+      estimate_field: Estimate
   policy_ref:
     kind: policy
     id: policy.local-trusted

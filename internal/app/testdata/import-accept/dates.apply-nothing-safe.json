@@ -26,7 +26,7 @@
     "warnings": [
       {
         "code": "openproject_dates_missing",
-        "message": "OpenProject work package 1234 has no start or due date",
+        "message": "OpenProject work package 1234 has no start or finish date",
         "severity": "warning",
         "target": {
           "kind": "openproject_work_package",

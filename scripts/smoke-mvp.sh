@@ -25,6 +25,9 @@ replan_help "$0" "$@"
 replan_require_no_args_text "smoke-mvp.sh" "$@"
 PROJECT_PATH="${REPLAN_PROJECT:-$ROOT_DIR/examples/small-team}"
 OPENPROJECT_SAMPLE="${REPLAN_OPENPROJECT_SAMPLE:-$ROOT_DIR/examples/imports/openproject/work-packages.sample.json}"
+GITHUB_SAMPLE="$ROOT_DIR/examples/imports/github/issues.sample.json"
+GITHUB_RESOURCE_LINKS="$ROOT_DIR/examples/imports/github/resource-links.sample.yaml"
+GITHUB_RESOURCE_DEMANDS="$ROOT_DIR/examples/imports/github/resource-demands.sample.yaml"
 OPENPROJECT_SELF_SAMPLE="$ROOT_DIR/examples/imports/openproject/replan-self.work-packages.sample.json"
 OPENPROJECT_SELF_RESOURCE_DEMANDS_SIDECAR="$ROOT_DIR/examples/openproject/sidecars/resource-demands.replan-self.yaml"
 OPENPROJECT_SELF_BINDINGS="$ROOT_DIR/examples/openproject/private-bindings.replan-self.example.yaml"
@@ -887,6 +890,46 @@ run_json_ok import-accept-tracking-status-dry-run "$BIN" import accept \
   --dry-run \
   --format json \
   "source_snapshot.openproject.$snapshot_id"
+
+run_json_ok github-import-dry-run "$BIN" import github \
+  --project "$PROJECT_PATH" \
+  --from-file "$GITHUB_SAMPLE" \
+  --profile github.demo \
+  --include-closed \
+  --include-relations \
+  --resource-links-sidecar "$GITHUB_RESOURCE_LINKS" \
+  --resource-demands-sidecar "$GITHUB_RESOURCE_DEMANDS" \
+  --dry-run \
+  --format json
+
+github_project="$TMP_DIR/github-import-project"
+copy_project "$github_project"
+run_json_ok github-import-write "$BIN" import github \
+  --project "$github_project" \
+  --from-file "$GITHUB_SAMPLE" \
+  --profile github.demo \
+  --include-closed \
+  --include-relations \
+  --resource-links-sidecar "$GITHUB_RESOURCE_LINKS" \
+  --resource-demands-sidecar "$GITHUB_RESOURCE_DEMANDS" \
+  --format json
+github_snapshot_dir="$(find "$github_project/imports/github" -mindepth 1 -maxdepth 1 -type d | sort | tail -n 1)"
+github_snapshot_id="source_snapshot.github.$(basename "$github_snapshot_dir")"
+for github_accept_mode in tasks resource-links tracking-status dates dependencies resource-demands; do
+  github_accept_flag=""
+  if [ "$github_accept_mode" != tasks ]; then
+    github_accept_flag="--accept-$github_accept_mode"
+  fi
+  # shellcheck disable=SC2086 # empty for the default task accept mode, one fixed flag otherwise.
+  run_json_ok "github-import-accept-$github_accept_mode" "$BIN" import accept \
+    --project "$github_project" \
+    $github_accept_flag \
+    --actor "$ACTOR" \
+    --apply \
+    --format json \
+    "$github_snapshot_id"
+done
+run_json_ok github-import-project-validate "$BIN" validate "$github_project" --format json
 
 # The agent kit: the archive an outside agent works from, built, unpacked
 # outside the repository and used with no Go toolchain.

@@ -160,6 +160,9 @@ Implemented command families as of 2026-10-28:
 - `task add`, `task set-dates`, `task record-actual-window`, `task set-title`;
 - `import openproject` from a file, a source profile or the API, with
   relations, time entries and resource sidecars;
+- `import github` from a versioned exported file, with label status mapping,
+  same-repository blocked-by relations, optional Project fields and resource
+  sidecars;
 - `import accept`, dry-run or `--apply` with an actor, per accept mode;
 - `export json`, `export taskjuggler`, `export csv --report workload`, each
   with an optional `--manifest`;

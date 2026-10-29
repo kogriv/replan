@@ -2,10 +2,16 @@
 
 Date: 2026-10-28
 
-Status: proposed; waits for the operator's choice of tracker and approval
-(`task.self.design-second-tracker-adapter`). Implementation is
-`task.self.import-second-tracker-from-file` and then
+Status: file input implemented on 2026-10-29
+(`task.self.import-second-tracker-from-file`); live input remains
 `task.self.import-second-tracker-live`.
+
+The implemented command follows the existing OpenProject snapshot gate:
+`--dry-run` previews and omitting it writes the staged snapshot. It therefore
+does not add the `--apply` flag shown in the proposed command shape below.
+Canonical changes still require `import accept --apply`. RePlan's canonical
+completed tracking status is `accepted`; the table's informal `done` maps to
+that existing status.
 
 ## Purpose
 

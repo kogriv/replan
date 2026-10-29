@@ -1,0 +1,44 @@
+{
+  "error": "",
+  "result": {
+    "applied": false,
+    "dry_run": true,
+    "snapshot_id": "source_snapshot.github.20261029T110000",
+    "mapped_path": "imports/github/20261029T110000/mapped.json",
+    "planned_writes": [
+      {
+        "path": "canonical/resource_demands.yaml",
+        "action": "preview_update",
+        "format": "yaml",
+        "content": ""
+      }
+    ],
+    "changes": [
+      {
+        "op": "create_resource_demand",
+        "target_kind": "resource_demand",
+        "target_id": "resource_demand.github-101.estimate",
+        "source_id": "example-org/planning-demo#101:resource_demand.github-101.estimate",
+        "path": "canonical/resource_demands.yaml",
+        "description": "Create resource demand resource_demand.github-101.estimate from GitHub sidecar demand example-org/planning-demo#101:resource_demand.github-101.estimate."
+      }
+    ],
+    "audit_record_preview": {
+      "id": "audit.20261029T120000000000000Z.import-accept-resource-demands",
+      "occurred_at": "2026-10-29T12:00:00Z",
+      "actor_ref": {
+        "kind": "actor",
+        "id": "actor.human.operator"
+      },
+      "operation": "import_accept",
+      "target_ref": {
+        "kind": "source_snapshot",
+        "id": "source_snapshot.github.20261029T110000"
+      },
+      "result": "dry_run",
+      "reason": "GitHub golden run."
+    },
+    "warnings": [],
+    "errors": []
+  }
+}

@@ -265,6 +265,33 @@
       }
     },
     {
+      "code": "missing_github_status_map",
+      "message": "GitHub source profile status_map is required",
+      "severity": "error",
+      "target": {
+        "kind": "source_profile",
+        "id": "github.missing-map"
+      }
+    },
+    {
+      "code": "invalid_github_repository",
+      "message": "GitHub source profile repository must use owner/repository",
+      "severity": "error",
+      "target": {
+        "kind": "source_profile",
+        "id": "github.invalid"
+      }
+    },
+    {
+      "code": "invalid_github_status_map",
+      "message": "GitHub status map entry \"open\" has invalid tracking status \"unknown\"",
+      "severity": "error",
+      "target": {
+        "kind": "source_profile",
+        "id": "github.invalid"
+      }
+    },
+    {
       "code": "missing_actor_kind",
       "message": "actor kind is required",
       "severity": "error",

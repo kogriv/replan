@@ -20,6 +20,11 @@ type SourceProfile struct {
 	TokenEnv             string            `json:"token_env,omitempty" yaml:"token_env,omitempty"`
 	CredentialProfileRef string            `json:"credential_profile_ref,omitempty" yaml:"credential_profile_ref,omitempty"`
 	DefaultQuery         map[string]string `json:"default_query,omitempty" yaml:"default_query,omitempty"`
+	Repository           string            `json:"repository,omitempty" yaml:"repository,omitempty"`
+	StatusMap            map[string]string `json:"status_map,omitempty" yaml:"status_map,omitempty"`
+	StartField           string            `json:"start_field,omitempty" yaml:"start_field,omitempty"`
+	FinishField          string            `json:"finish_field,omitempty" yaml:"finish_field,omitempty"`
+	EstimateField        string            `json:"estimate_field,omitempty" yaml:"estimate_field,omitempty"`
 }
 
 type Project struct {

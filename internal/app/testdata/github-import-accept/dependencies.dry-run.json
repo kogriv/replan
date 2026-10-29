@@ -1,0 +1,44 @@
+{
+  "error": "",
+  "result": {
+    "applied": false,
+    "dry_run": true,
+    "snapshot_id": "source_snapshot.github.20261029T110000",
+    "mapped_path": "imports/github/20261029T110000/mapped.json",
+    "planned_writes": [
+      {
+        "path": "canonical/dependencies.yaml",
+        "action": "preview_update",
+        "format": "yaml",
+        "content": ""
+      }
+    ],
+    "changes": [
+      {
+        "op": "update_dependency_source_refs",
+        "target_kind": "dependency",
+        "target_id": "dependency.repair-pump-before-validation",
+        "source_id": "example-org/planning-demo#101:blocked_by:example-org/planning-demo#102",
+        "path": "canonical/dependencies.yaml",
+        "description": "Attach GitHub blocked by example-org/planning-demo#101:blocked_by:example-org/planning-demo#102 source reference to dependency dependency.repair-pump-before-validation."
+      }
+    ],
+    "audit_record_preview": {
+      "id": "audit.20261029T120000000000000Z.import-accept-dependencies",
+      "occurred_at": "2026-10-29T12:00:00Z",
+      "actor_ref": {
+        "kind": "actor",
+        "id": "actor.human.operator"
+      },
+      "operation": "import_accept",
+      "target_ref": {
+        "kind": "source_snapshot",
+        "id": "source_snapshot.github.20261029T110000"
+      },
+      "result": "dry_run",
+      "reason": "GitHub golden run."
+    },
+    "warnings": [],
+    "errors": []
+  }
+}

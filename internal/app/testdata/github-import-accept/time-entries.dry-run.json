@@ -1,0 +1,36 @@
+{
+  "error": "validation failed",
+  "result": {
+    "applied": false,
+    "dry_run": true,
+    "snapshot_id": "source_snapshot.github.20261029T110000",
+    "mapped_path": "imports/github/20261029T110000/mapped.json",
+    "planned_writes": [],
+    "changes": [],
+    "audit_record_preview": {
+      "id": "",
+      "occurred_at": "",
+      "actor_ref": {
+        "kind": "",
+        "id": ""
+      },
+      "operation": "",
+      "target_ref": {
+        "kind": "",
+        "id": ""
+      }
+    },
+    "warnings": [],
+    "errors": [
+      {
+        "code": "import_accept_time_entries_unsupported_source",
+        "message": "tracker time-entry candidates are not supported for github snapshots; only OpenProject snapshots currently produce time entries",
+        "severity": "error",
+        "target": {
+          "kind": "source_snapshot",
+          "id": "source_snapshot.github.20261029T110000"
+        }
+      }
+    ]
+  }
+}
