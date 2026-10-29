@@ -1610,3 +1610,15 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-public-repository
+  - id: evidence.self.publish-public-repository
+    type: command_result
+    source: local
+    url: https://github.com/kogriv/replan
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T14:51:26+07:00"
+    summary: 'Published on 2026-10-29 by the agent on the operators explicit instruction: cut-public-tree dry run and apply (584 files, tree 7156e732, one commit 266331d "Initial public release" by kogriv), the previous GitHub and GitLab repositories renamed to a private history name and kept private, new public empty repositories created under the replan name, the commit pushed to both, private vulnerability reporting enabled on GitHub. This checkout switched in place (old history kept in history-main and the history remote; private/ and .env.local untouched), the Codex clone switched too. Checks: public tree equals the checkout, README links resolve, local gate green (agent kit live checks 66), first public GitHub Actions run success in 2m33s.'
+    targets:
+      - kind: task
+        id: task.self.publish-public-repository

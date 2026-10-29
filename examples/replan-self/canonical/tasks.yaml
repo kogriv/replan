@@ -4665,7 +4665,7 @@ tasks:
       title: Publish the public repository
       description: 'Agreed with the operator on 2026-10-28. Follow docs/dev/public-repository-cut.md: rerun the sanitized cut on the publication day, rename the current repository to its history name, create the public repository under the same owner with one first commit, switch this checkout in place, enable private vulnerability reporting and check the README links on GitHub. Publishing and creating repositories is the operator''s step; the agent prepares the cut and checks it.'
       type: release
-      tracking_status: in_progress
+      tracking_status: review_ready
       planned_start: "2026-11-04"
       planned_finish: "2026-11-04"
       assignee_hint:

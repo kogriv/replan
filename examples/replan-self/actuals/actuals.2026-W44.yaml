@@ -1448,3 +1448,24 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.keep-openproject-successors-manually-scheduled
+    - id: actual.self-publish-public-repository.ai-agent-executor.20261029T1451380700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.publish-public-repository
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.publish-public-repository.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.6
+      unit: agent_hours
+      occurred_at: "2026-10-29T14:51:38+07:00"
+      status_date: "2026-10-29"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.publish-public-repository
