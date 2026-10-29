@@ -1490,3 +1490,24 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.accept-publish-public-repository
+    - id: actual.self-publish-first-release.ai-agent-executor.20261029T1522500700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.publish-first-release
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.publish-first-release.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.5
+      unit: agent_hours
+      occurred_at: "2026-10-29T15:22:50+07:00"
+      status_date: "2026-10-29"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.publish-first-release

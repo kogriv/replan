@@ -1647,3 +1647,28 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-first-release
+  - id: evidence.self.find-go-install-build-info-dev
+    type: observation
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T15:21:58+07:00"
+    summary: 'After publishing v0.1.0 on 2026-10-29: go install github.com/kogriv/replan/cmd/replan@v0.1.0 and @latest through proxy.golang.org in a clean environment installed v0.1.0, and replan --version printed "replan v0.1.0 (dev, dev, go1.24.1 linux/amd64)"; the JSON reported commit dev and build_date dev. The release archive binary printed the commit and date correctly.'
+    targets:
+      - kind: task
+        id: task.self.report-unknown-build-info-plainly
+      - kind: task
+        id: task.self.publish-first-release
+  - id: evidence.self.publish-first-release
+    type: command_result
+    source: local
+    url: https://github.com/kogriv/replan/releases/tag/v0.1.0
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T15:22:50+07:00"
+    summary: 'Release v0.1.0 published on 2026-10-29 by the agent on the operators instruction: release commit 3fbf000 (CI success), annotated tag v0.1.0 pushed to GitHub and GitLab, six archives built with scripts/build-release.sh (linux, darwin, windows; amd64, arm64), SHA256SUMS all OK, a second build byte-identical, file types match each target, the linux/amd64 binary reports v0.1.0 and commit 3fbf000 and validates the examples, GitHub release with the archives, SHA256SUMS and alpha notes is the latest release, downloaded assets equal the built ones, go install @v0.1.0 and @latest through proxy.golang.org install v0.1.0 (build details shown as dev, planned as task.self.report-unknown-build-info-plainly).'
+    targets:
+      - kind: task
+        id: task.self.publish-first-release

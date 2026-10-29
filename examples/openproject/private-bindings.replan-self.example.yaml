@@ -239,6 +239,12 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2256"
         url: https://op.example.internal/work_packages/2256
+    - replan_task_id: task.self.report-unknown-build-info-plainly
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2267"
+        url: https://op.example.internal/work_packages/2267
     - replan_task_id: task.self.design-estimate-calibration
       source_ref:
         source: openproject

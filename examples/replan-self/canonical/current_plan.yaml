@@ -328,6 +328,8 @@ current_plan:
     - kind: task
       id: task.self.publish-first-release
     - kind: task
+      id: task.self.report-unknown-build-info-plainly
+    - kind: task
       id: task.self.design-estimate-calibration
     - kind: task
       id: task.self.implement-estimate-calibration
