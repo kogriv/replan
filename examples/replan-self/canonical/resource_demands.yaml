@@ -9107,8 +9107,22 @@ resource_demands:
       resource_class: ai_agent
       role: implementation_agent
       unit: agent_hours
-      planned_amount: 1
-      remaining_amount: 1
+      planned_amount: 0.4
+      remaining_amount: 0.4
+      criticality: required
+      status: active
+    - id: resource_demand.report-unknown-build-info-plainly.codex
+      task_ref:
+        kind: task
+        id: task.self.report-unknown-build-info-plainly
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 0.6
+      remaining_amount: 0.6
       criticality: required
       status: active
     - id: resource_demand.report-unknown-build-info-plainly.maintainer
