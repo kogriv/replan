@@ -1755,3 +1755,15 @@ evidence:
     targets:
       - kind: task
         id: task.self.implement-estimate-calibration
+  - id: evidence.self.start-import-second-tracker-from-file
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T16:52:15+07:00"
+    summary: Operator approved the second tracker design (GitHub Issues, label-based in-progress status) and instructed on 2026-10-29 to continue by itself. Codex writes the change, the executor briefs, reviews and gates it. The original estimate is in baseline.2026-10-28.roadmap-plan.
+    targets:
+      - kind: task
+        id: task.self.import-second-tracker-from-file
