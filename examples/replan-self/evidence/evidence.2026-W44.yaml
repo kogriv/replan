@@ -1840,3 +1840,17 @@ evidence:
     targets:
       - kind: task
         id: task.self.implement-local-web-view
+  - id: evidence.self.approve-calibration-agents
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T19:23:21+07:00"
+    summary: Operator approved on 2026-10-29 writing calibration.2026-10-29.agents (executor and Codex agent_hours from baseline.2026-10-15.tooling-consolidation, the six tasks of 15-16 October excluded as actuals_judged) and creating its scenario without applying it, to compare with the actuals of the remaining roadmap tasks.
+    targets:
+      - kind: task
+        id: task.self.implement-estimate-calibration
+      - kind: task
+        id: task.self.import-second-tracker-live

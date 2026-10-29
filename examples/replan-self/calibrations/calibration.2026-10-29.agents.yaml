@@ -1,0 +1,78 @@
+calibration:
+    id: calibration.2026-10-29.agents
+    name: Agent estimates after the tooling consolidation
+    approved_by:
+        kind: actor
+        id: actor.human.maintainer
+    approved_at: "2026-10-29T19:23:27+07:00"
+    source_baselines:
+        - id: baseline.2026-10-15.tooling-consolidation
+          seal_sha256: cc264af2d4cffa7bdbdba4f6fc2722cc189fc122196a171ca03d4b9389e7dc67
+    scope:
+        resources:
+            - resource.ai.agent.executor
+            - resource.ai.codex.local
+        unit: agent_hours
+    sample:
+        tasks:
+            - task.self.accept-openproject-dates-through-import-accept
+            - task.self.add-agent-surface-map-and-date-direction-rule
+            - task.self.add-contributing-and-security-policy
+            - task.self.add-help-to-every-script
+            - task.self.add-replan-evidence-add
+            - task.self.add-replan-task-add
+            - task.self.check-agent-kit-with-env-file-only
+            - task.self.clean-up-openproject-env-vars
+            - task.self.clear-remaining-lint-baseline
+            - task.self.cut-public-repository-from-sanitized-tree
+            - task.self.derive-self-plan-counts-from-fixture
+            - task.self.edit-work-package-subject-and-description-in-toolkit
+            - task.self.fix-openproject-relations-and-bootstrap-pagination
+            - task.self.guard-import-accept-against-real-ids
+            - task.self.index-openproject-design-docs
+            - task.self.keep-existing-bindings-on-bootstrap
+            - task.self.move-pilot-narrative-to-private-storage
+            - task.self.one-apply-gate-rule-for-cli-and-helpers
+            - task.self.pass-named-arguments-to-python-helpers
+            - task.self.preview-moved-task-dates-in-scenarios
+            - task.self.read-private-openproject-bindings-in-go
+            - task.self.refresh-agent-kit-after-tooling-consolidation
+            - task.self.report-applied-actions-on-helper-failure
+            - task.self.report-missing-project-root-as-not-found
+            - task.self.report-openproject-rescheduling-after-relation-create
+            - task.self.retry-only-idempotent-openproject-requests
+            - task.self.share-openproject-bindings-module
+            - task.self.share-openproject-http-client-and-settings
+            - task.self.ship-overlay-publish-in-agent-kit
+            - task.self.single-openproject-status-map
+            - task.self.sync-cli-spec-and-getting-started
+            - task.self.track-the-task-acceptance-chain
+        excluded:
+            - task: task.self.count-concurrent-slots-in-schedule-drift-like-workload
+              reason: actuals_judged
+            - task: task.self.derive-helper-exit-codes-from-ok
+              reason: actuals_judged
+            - task: task.self.drop-dogfood-defaults-from-kit-scripts
+              reason: actuals_judged
+            - task: task.self.fail-apply-without-openproject-token
+              reason: actuals_judged
+            - task: task.self.load-dotenv-in-every-kit-script
+              reason: actuals_judged
+            - task: task.self.unify-helper-json-envelope
+              reason: actuals_judged
+    result:
+        factor: 0.21
+        total_ratio: 0.199748
+        p25: 0.1445
+        p75: 0.261667
+        count: 32
+        size_bands:
+            - up_to: 2
+              count: 6
+              median: 0.3925
+            - up_to: 4
+              count: 18
+              median: 0.20375
+            - count: 8
+              median: 0.137333
+    seal_sha256: aedc7efac0f4cd15a904d6ab9643e026c7917029835f46f75de01fc253f273b2
