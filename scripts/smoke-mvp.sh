@@ -56,7 +56,7 @@ grep 'openproject plugin scaffold ok' "$TMP_DIR/openproject-plugin-scaffold.txt"
 assert_contains() {
   file="$1"
   pattern="$2"
-  if ! grep "$pattern" "$file" >/dev/null; then
+  if ! grep -- "$pattern" "$file" >/dev/null; then
     echo "missing pattern '$pattern' in $file" >&2
     sed -n '1,160p' "$file" >&2
     exit 1
@@ -632,12 +632,26 @@ assert_contains "$TMP_DIR/self-openproject-accept-resource-demands-dry-run.json"
 self_dashboard_project="$TMP_DIR/self-dashboard-project"
 cp -a "$SELF_PROJECT" "$self_dashboard_project"
 make_self_tracking_suggest_stale "$self_dashboard_project"
+dashboard_proposal_id="proposal.dependency.dependency.project-scope-before-milestone-3.mark-dependency-resolved"
+mkdir -p "$self_dashboard_project/proposals/open"
+mv "$self_dashboard_project/proposals/accepted/$dashboard_proposal_id.yaml" \
+  "$self_dashboard_project/proposals/open/$dashboard_proposal_id.yaml"
+perl -0pi -e 's/status: accepted/status: open/' \
+  "$self_dashboard_project/proposals/open/$dashboard_proposal_id.yaml"
 run_json_ok self-dashboard "$BIN" report dashboard --project "$self_dashboard_project" --week 2026-W31 --output reports/latest --format html
 test -s "$self_dashboard_project/reports/latest/index.html"
 test -s "$self_dashboard_project/reports/latest/gantt.html"
+test -s "$self_dashboard_project/reports/latest/workload.html"
+test -s "$self_dashboard_project/reports/latest/scenarios.html"
+test -s "$self_dashboard_project/reports/latest/proposals.html"
+test -s "$self_dashboard_project/reports/latest/estimates.html"
 test -s "$self_dashboard_project/reports/latest/raw/overview.json"
 test -s "$self_dashboard_project/reports/latest/raw/gantt.json"
 test -s "$self_dashboard_project/reports/latest/raw/openproject_overlay.json"
+test -s "$self_dashboard_project/reports/latest/raw/workload.json"
+test -s "$self_dashboard_project/reports/latest/raw/scenarios.json"
+test -s "$self_dashboard_project/reports/latest/raw/proposals.json"
+test -s "$self_dashboard_project/reports/latest/raw/estimates.json"
 test -s "$self_dashboard_project/reports/latest/raw/manifest.json"
 assert_contains "$self_dashboard_project/reports/latest/index.html" 'RePlan self-dogfood'
 assert_contains "$self_dashboard_project/reports/latest/index.html" 'Tracking Proposal Loop'
@@ -666,6 +680,22 @@ assert_contains "$self_dashboard_project/reports/latest/raw/openproject_overlay.
 assert_contains "$self_dashboard_project/reports/latest/raw/openproject_overlay.json" '"resource_demand.openproject-overlay-json-contract.codex"'
 assert_contains "$self_dashboard_project/reports/latest/raw/openproject_overlay.json" '"replan_task_id": "task.self.improve-live-openproject-plugin-resource-view"'
 assert_contains "$self_dashboard_project/reports/latest/raw/openproject_overlay.json" '"replan_task_id": "task.self.design-openproject-work-package-replan-panel"'
+assert_contains "$self_dashboard_project/reports/latest/workload.html" 'resource.human.maintainer'
+assert_contains "$self_dashboard_project/reports/latest/workload.html" 'table-scroll'
+assert_contains "$self_dashboard_project/reports/latest/workload.html" '2026-W40'
+assert_contains "$self_dashboard_project/reports/latest/raw/workload.json" '"resource_id": "resource.human.maintainer"'
+assert_contains "$self_dashboard_project/reports/latest/scenarios.html" 'scenario.project-scope-deployed-early-20261012'
+assert_contains "$self_dashboard_project/reports/latest/scenarios.html" 'scenario-archived'
+assert_contains "$self_dashboard_project/reports/latest/scenarios.html" '--project &lt;project&gt;'
+assert_contains "$self_dashboard_project/reports/latest/raw/scenarios.json" '"id": "scenario.project-scope-deployed-early-20261012"'
+assert_contains "$self_dashboard_project/reports/latest/proposals.html" "$dashboard_proposal_id"
+assert_contains "$self_dashboard_project/reports/latest/proposals.html" '--project &lt;project&gt;'
+assert_contains "$self_dashboard_project/reports/latest/raw/proposals.json" "\"id\": \"$dashboard_proposal_id\""
+assert_contains "$self_dashboard_project/reports/latest/estimates.html" 'baseline.2026-10-15.tooling-consolidation'
+assert_contains "$self_dashboard_project/reports/latest/estimates.html" 'added after baseline'
+assert_contains "$self_dashboard_project/reports/latest/estimates.html" 'Recognized resource splits'
+assert_contains "$self_dashboard_project/reports/latest/raw/estimates.json" '"id": "baseline.2026-10-15.tooling-consolidation"'
+assert_contains "$self_dashboard_project/reports/latest/raw/estimates.json" '"split_groups"'
 assert_contains "$self_dashboard_project/reports/latest/gantt.html" 'Resource Load'
 assert_contains "$self_dashboard_project/reports/latest/gantt.html" 'gantt-resource-row'
 assert_contains "$self_dashboard_project/reports/latest/gantt.html" '100% capacity waterline'
@@ -674,6 +704,8 @@ assert_contains "$self_dashboard_project/reports/latest/raw/manifest.json" '"gan
 assert_contains "$self_dashboard_project/reports/latest/raw/manifest.json" '"raw/gantt.json"'
 assert_contains "$self_dashboard_project/reports/latest/raw/manifest.json" '"raw/openproject_overlay.json"'
 assert_contains "$self_dashboard_project/reports/latest/raw/manifest.json" '"index.html"'
+assert_contains "$self_dashboard_project/reports/latest/raw/manifest.json" '"workload.html"'
+assert_contains "$self_dashboard_project/reports/latest/raw/manifest.json" '"raw/estimates.json"'
 
 run_json_ok report-json "$BIN" report weekly --project "$PROJECT_PATH" --week "$WEEK" --format json
 "$BIN" report weekly --project "$PROJECT_PATH" --week "$WEEK" --format markdown >"$TMP_DIR/report.md"

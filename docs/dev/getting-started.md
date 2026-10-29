@@ -81,6 +81,17 @@ go run ./cmd/replan report estimates --project examples/replan-self --baseline b
 go run ./cmd/replan estimate calibrate --project examples/estimate-calibration --baseline baseline.fixture.original --resource resource.ai.executor --resource resource.ai.codex --unit agent_hours --tag calibration --exclude task.cal.09=actuals_judged --id calibration.fixture.agents --name "Fixture agent calibration" --approved-by actor.human.operator --dry-run --format markdown
 ```
 
+`report dashboard --output` writes the static overview and Gantt plus the
+read-only workload, scenario, proposal and estimate pages. Their raw JSON
+contracts are written beside the existing raw artifacts:
+
+```text
+index.html  gantt.html  workload.html  scenarios.html  proposals.html  estimates.html
+raw/overview.json  raw/gantt.json  raw/openproject_overlay.json
+raw/workload.json  raw/scenarios.json  raw/proposals.json  raw/estimates.json
+raw/manifest.json
+```
+
 Inspect scenarios:
 
 ```bash

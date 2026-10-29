@@ -87,6 +87,210 @@ type DashboardOverview struct {
 	Evidence           []EvidenceRow               `json:"evidence"`
 	Scenarios          []DashboardScenarioRow      `json:"scenarios"`
 	NextActions        []DashboardNextAction       `json:"next_actions"`
+	WorkloadPage       DashboardWorkloadPage       `json:"-"`
+	ScenariosPage      DashboardScenariosPage      `json:"-"`
+	ProposalsPage      DashboardProposalsPage      `json:"-"`
+	EstimatesPage      DashboardEstimatesPage      `json:"-"`
+}
+
+// DashboardPageMetadata is repeated in every page-specific raw artifact so
+// each file remains useful when copied away from the rest of the dashboard.
+type DashboardPageMetadata struct {
+	SchemaVersion      int           `json:"schema_version"`
+	GeneratedAt        string        `json:"generated_at"`
+	ProjectID          string        `json:"project_id"`
+	ProjectName        string        `json:"project_name"`
+	StatusDate         string        `json:"status_date,omitempty"`
+	SourceSnapshotRefs []string      `json:"source_snapshot_refs"`
+	Warnings           []ReportIssue `json:"warnings"`
+}
+
+type DashboardWorkloadPage struct {
+	DashboardPageMetadata
+	Data DashboardWorkloadData `json:"data"`
+}
+
+type DashboardWorkloadData struct {
+	ScenarioID   string                      `json:"scenario_id,omitempty"`
+	WindowStart  string                      `json:"window_start"`
+	WindowFinish string                      `json:"window_finish"`
+	Weeks        []string                    `json:"weeks"`
+	Resources    []DashboardWorkloadResource `json:"resources"`
+}
+
+type DashboardWorkloadResource struct {
+	ResourceID    string                  `json:"resource_id"`
+	ResourceName  string                  `json:"resource_name,omitempty"`
+	ResourceClass string                  `json:"resource_class,omitempty"`
+	Unit          string                  `json:"unit"`
+	Weeks         []DashboardWorkloadCell `json:"weeks"`
+}
+
+type DashboardWorkloadCell struct {
+	Week        string                    `json:"week"`
+	Capacity    float64                   `json:"capacity"`
+	Planned     float64                   `json:"planned"`
+	Reserved    float64                   `json:"reserved"`
+	Actual      float64                   `json:"actual"`
+	Remaining   float64                   `json:"remaining"`
+	Overload    float64                   `json:"overload"`
+	Shortage    float64                   `json:"shortage"`
+	Utilization *float64                  `json:"utilization"`
+	Demands     []DashboardWorkloadDemand `json:"demands"`
+}
+
+type DashboardWorkloadDemand struct {
+	ResourceDemandID string  `json:"resource_demand_id"`
+	TaskID           string  `json:"task_id,omitempty"`
+	TaskTitle        string  `json:"task_title,omitempty"`
+	Status           string  `json:"status,omitempty"`
+	Concurrent       bool    `json:"concurrent,omitempty"`
+	Share            float64 `json:"share"`
+	Planned          float64 `json:"planned"`
+	Reserved         float64 `json:"reserved"`
+	Remaining        float64 `json:"remaining"`
+}
+
+type DashboardScenariosPage struct {
+	DashboardPageMetadata
+	Data DashboardScenariosData `json:"data"`
+}
+
+type DashboardScenariosData struct {
+	Scenarios []DashboardScenarioDetail `json:"scenarios"`
+}
+
+type DashboardScenarioDetail struct {
+	ID                string                    `json:"id"`
+	Name              string                    `json:"name"`
+	Status            string                    `json:"status"`
+	CreatedAt         string                    `json:"created_at,omitempty"`
+	CreatedBy         string                    `json:"created_by,omitempty"`
+	CalibrationRef    string                    `json:"calibration_ref,omitempty"`
+	Changes           []DashboardScenarioChange `json:"changes"`
+	AffectedResources []string                  `json:"affected_resources"`
+	AffectedTasks     []string                  `json:"affected_tasks"`
+	WorkloadBefore    []ResourceRow             `json:"workload_before"`
+	WorkloadAfter     []ResourceRow             `json:"workload_after"`
+	Warnings          []ReportIssue             `json:"warnings"`
+	Errors            []ReportIssue             `json:"errors"`
+	ApplyCommand      string                    `json:"apply_command"`
+}
+
+type DashboardScenarioChange struct {
+	Op    string `json:"op"`
+	Path  string `json:"path"`
+	Value any    `json:"value,omitempty"`
+}
+
+type DashboardProposalsPage struct {
+	DashboardPageMetadata
+	Data DashboardProposalsData `json:"data"`
+}
+
+type DashboardProposalsData struct {
+	Proposals []DashboardProposalDetail `json:"proposals"`
+}
+
+type DashboardProposalDetail struct {
+	ID                   string                      `json:"id"`
+	Type                 string                      `json:"type"`
+	Status               string                      `json:"status"`
+	CreatedAt            string                      `json:"created_at,omitempty"`
+	CreatedBy            string                      `json:"created_by,omitempty"`
+	TargetKind           string                      `json:"target_kind,omitempty"`
+	TargetID             string                      `json:"target_id,omitempty"`
+	Rationale            string                      `json:"rationale,omitempty"`
+	RequiresConfirmation bool                        `json:"requires_confirmation"`
+	Impact               DashboardProposalImpact     `json:"impact"`
+	Evidence             []DashboardProposalEvidence `json:"evidence"`
+	AcceptCommand        string                      `json:"accept_command"`
+	RejectCommand        string                      `json:"reject_command"`
+}
+
+type DashboardProposalImpact struct {
+	Op    string `json:"op,omitempty"`
+	Path  string `json:"path,omitempty"`
+	Value any    `json:"value,omitempty"`
+}
+
+type DashboardProposalEvidence struct {
+	ID         string `json:"id"`
+	Type       string `json:"type"`
+	Subtype    string `json:"subtype,omitempty"`
+	Summary    string `json:"summary,omitempty"`
+	ObservedAt string `json:"observed_at,omitempty"`
+}
+
+type DashboardEstimatesPage struct {
+	DashboardPageMetadata
+	Data DashboardEstimatesData `json:"data"`
+}
+
+type DashboardEstimatesData struct {
+	Baselines []DashboardEstimateBaseline `json:"baselines"`
+}
+
+type DashboardEstimateBaseline struct {
+	ID           string                         `json:"id"`
+	Name         string                         `json:"name,omitempty"`
+	StatusDate   string                         `json:"status_date,omitempty"`
+	SealStatus   string                         `json:"seal_status"`
+	Resources    []DashboardEstimateResource    `json:"resources"`
+	SplitGroups  []DashboardEstimateSplitGroup  `json:"split_groups"`
+	Tasks        []DashboardEstimateTask        `json:"tasks"`
+	Calibrations []DashboardEstimateCalibration `json:"calibrations"`
+	Warnings     []ReportIssue                  `json:"warnings"`
+	Errors       []ReportIssue                  `json:"errors"`
+}
+
+type DashboardEstimateResource struct {
+	ResourceID         string   `json:"resource_id"`
+	ResourceName       string   `json:"resource_name,omitempty"`
+	Unit               string   `json:"unit"`
+	ActualsRecorded    bool     `json:"actuals_recorded"`
+	BaselineAmount     float64  `json:"baseline_amount"`
+	ActualAmount       float64  `json:"actual_amount"`
+	Ratio              *float64 `json:"actual_baseline_ratio"`
+	AddedAfterBaseline bool     `json:"added_after_baseline,omitempty"`
+}
+
+type DashboardEstimateSplitGroup struct {
+	OriginalResourceID   string   `json:"original_resource_id"`
+	OriginalResourceName string   `json:"original_resource_name,omitempty"`
+	SplitResourceIDs     []string `json:"split_resource_ids"`
+	Unit                 string   `json:"unit"`
+	ActualsRecorded      bool     `json:"actuals_recorded"`
+	BaselineAmount       float64  `json:"baseline_amount"`
+	CurrentPlannedAmount float64  `json:"current_planned_amount"`
+	ActualAmount         float64  `json:"actual_amount"`
+	Ratio                *float64 `json:"actual_baseline_ratio"`
+}
+
+type DashboardEstimateTask struct {
+	TaskID         string                   `json:"task_id"`
+	Title          string                   `json:"title,omitempty"`
+	TrackingStatus string                   `json:"tracking_status,omitempty"`
+	Open           bool                     `json:"open"`
+	Totals         []DashboardEstimateTotal `json:"totals"`
+}
+
+type DashboardEstimateTotal struct {
+	Unit           string   `json:"unit"`
+	BaselineAmount float64  `json:"baseline_amount"`
+	ActualAmount   float64  `json:"actual_amount"`
+	VarianceAmount float64  `json:"variance_amount"`
+	Ratio          *float64 `json:"actual_baseline_ratio"`
+}
+
+type DashboardEstimateCalibration struct {
+	ID         string   `json:"id"`
+	Name       string   `json:"name"`
+	Resources  []string `json:"resources"`
+	Unit       string   `json:"unit"`
+	Factor     float64  `json:"factor"`
+	TotalRatio float64  `json:"total_ratio"`
+	Count      int      `json:"count"`
 }
 
 type DashboardHealthSummary struct {

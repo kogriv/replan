@@ -1065,8 +1065,10 @@ Implemented dashboard report slice:
 
 - `replan report dashboard` supports JSON and static HTML;
 - with `--output reports/latest`, it writes `index.html`, `gantt.html`,
-  `raw/overview.json`, `raw/gantt.json`, `raw/openproject_overlay.json` and
-  `raw/manifest.json`;
+  `workload.html`, `scenarios.html`, `proposals.html`, `estimates.html`,
+  `raw/overview.json`, `raw/gantt.json`, `raw/openproject_overlay.json`,
+  `raw/workload.json`, `raw/scenarios.json`, `raw/proposals.json`,
+  `raw/estimates.json` and `raw/manifest.json`;
 - dashboard generation is local, read-only and does not mutate canonical
   planning state;
 - raw JSON artifacts are first-class outputs for AI CLI agents and diagnostics;
@@ -1075,6 +1077,8 @@ Implemented dashboard report slice:
   schedule;
 - the first dashboard slice is intentionally a generated static artifact set,
   not a daemon, server API or mutating web UI.
+- workload, scenario, proposal and estimate pages are read-only. Their shown
+  commands are copyable text; browser pages do not execute them or write state.
 
 Implemented project-state report slice:
 

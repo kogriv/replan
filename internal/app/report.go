@@ -158,6 +158,7 @@ func (s ReportService) Weekly(ctx context.Context, req WeeklyReportRequest) (rep
 
 func (s ReportService) Dashboard(ctx context.Context, req DashboardReportRequest) (reports.DashboardOverview, error) {
 	ws, loadDiags := s.loader.Load(ctx)
+	canonicalWS := ws
 	generatedAt := req.GeneratedAt
 	if generatedAt.IsZero() {
 		generatedAt = time.Now()
@@ -252,6 +253,7 @@ func (s ReportService) Dashboard(ctx context.Context, req DashboardReportRequest
 	overview.Health.WarningCount = len(overview.Warnings)
 	overview.Health.ErrorCount = len(overview.Errors)
 	overview.NextActions = dashboardNextActions(ws, overview)
+	overview.WorkloadPage, overview.ScenariosPage, overview.ProposalsPage, overview.EstimatesPage = s.dashboardPages(ctx, canonicalWS, overview)
 	// The overlay comes last: it carries the final warnings and the person
 	// actions to the OpenProject plugin.
 	overview.OpenProjectOverlay = dashboardOpenProjectOverlay(ws, overview)

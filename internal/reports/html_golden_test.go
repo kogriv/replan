@@ -2,6 +2,7 @@ package reports_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,6 +11,35 @@ import (
 
 	"github.com/kogriv/replan/internal/reports"
 )
+
+func TestDashboardRawJSONContracts(t *testing.T) {
+	fixture := htmlGoldenFixture()
+	for name, page := range map[string]any{
+		"workload":  fixture.WorkloadPage,
+		"scenarios": fixture.ScenariosPage,
+		"proposals": fixture.ProposalsPage,
+		"estimates": fixture.EstimatesPage,
+	} {
+		t.Run(name, func(t *testing.T) {
+			data, err := json.Marshal(page)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var contract map[string]any
+			if err := json.Unmarshal(data, &contract); err != nil {
+				t.Fatal(err)
+			}
+			if name == "workload" && !bytes.Contains(data, []byte(`"utilization":1.1667`)) {
+				t.Errorf("raw workload lost source precision: %s", data)
+			}
+			for _, field := range []string{"schema_version", "generated_at", "project_id", "project_name", "status_date", "source_snapshot_refs", "warnings", "data"} {
+				if _, ok := contract[field]; !ok {
+					t.Errorf("contract missing %q: %s", field, data)
+				}
+			}
+		})
+	}
+}
 
 // htmlGoldenFixture merges the dashboard and Gantt fixtures and adds what
 // neither reaches: every tracking status, a task without a work-package URL,
@@ -90,8 +120,14 @@ func htmlGoldenFixture() reports.DashboardOverview {
 		{Code: "review_tracking", Label: "Review actuals.", Target: "task.1", Command: "replan actual list --project . --task task.1 --format json", Actor: reports.NextActionActorAgent},
 		{Code: "inspect_project", Label: "Nothing waits."},
 	}
+	overview.WorkloadPage = reports.DashboardWorkloadPage{DashboardPageMetadata: reports.DashboardPageMetadata{SchemaVersion: 1, GeneratedAt: overview.GeneratedAt, ProjectID: overview.ProjectID, ProjectName: overview.ProjectName, StatusDate: overview.StatusDate, SourceSnapshotRefs: []string{}, Warnings: []reports.ReportIssue{}}, Data: reports.DashboardWorkloadData{WindowStart: "2026-W30", WindowFinish: "2026-W30", Weeks: []string{"2026-W30"}, Resources: []reports.DashboardWorkloadResource{{ResourceID: "resource.human.ivan", ResourceName: nasty, ResourceClass: "human", Unit: "hours", Weeks: []reports.DashboardWorkloadCell{{Week: "2026-W30", Capacity: 20.1234, Reserved: 24.5678, Remaining: 26.3456, Overload: 4.4444, Utilization: floatPointer(1.1667), Demands: []reports.DashboardWorkloadDemand{{ResourceDemandID: "demand.1", TaskID: "task.1", TaskTitle: nasty, Remaining: 26.3456}}}}}}}}
+	overview.ScenariosPage = reports.DashboardScenariosPage{DashboardPageMetadata: overview.WorkloadPage.DashboardPageMetadata, Data: reports.DashboardScenariosData{Scenarios: []reports.DashboardScenarioDetail{{ID: "scenario.1", Name: nasty, Status: "draft", CalibrationRef: "calibration.1", Changes: []reports.DashboardScenarioChange{{Op: "replace", Path: "/tasks/task.1/planned_finish", Value: nasty}}, AffectedResources: []string{"resource.human.ivan"}, AffectedTasks: []string{"task.1"}, WorkloadBefore: []reports.ResourceRow{{ResourceID: "resource.human.ivan", Unit: "hours", Capacity: 20, Remaining: 18}}, WorkloadAfter: []reports.ResourceRow{{ResourceID: "resource.human.ivan", Unit: "hours", Capacity: 20, Remaining: 26, Overload: 6}}, Warnings: []reports.ReportIssue{}, Errors: []reports.ReportIssue{}, ApplyCommand: "replan scenario apply --project <project> --dry-run --format json scenario.1"}, {ID: "scenario.archived", Name: "Archived scenario", Status: "applied", Changes: []reports.DashboardScenarioChange{}, WorkloadBefore: []reports.ResourceRow{}, WorkloadAfter: []reports.ResourceRow{}, Warnings: []reports.ReportIssue{}, Errors: []reports.ReportIssue{}, ApplyCommand: "replan scenario apply --project <project> --dry-run --format json scenario.archived"}}}}
+	overview.ProposalsPage = reports.DashboardProposalsPage{DashboardPageMetadata: overview.WorkloadPage.DashboardPageMetadata, Data: reports.DashboardProposalsData{Proposals: []reports.DashboardProposalDetail{{ID: "proposal.1", Type: "tracking", Status: "open", CreatedBy: "actor.agent", TargetID: "task.1", Rationale: nasty, Impact: reports.DashboardProposalImpact{Op: "replace", Path: "/remaining_amount", Value: 2}, Evidence: []reports.DashboardProposalEvidence{{ID: "evidence.1", Type: "pull_request", Summary: nasty}}, AcceptCommand: "replan proposal accept --project <project> --actor <actor-id> --reason \"<reason>\" --apply --format json proposal.1", RejectCommand: "replan proposal reject --project <project> --actor <actor-id> --reason \"<reason>\" --apply --format json proposal.1"}}}}
+	overview.EstimatesPage = reports.DashboardEstimatesPage{DashboardPageMetadata: overview.WorkloadPage.DashboardPageMetadata, Data: reports.DashboardEstimatesData{Baselines: []reports.DashboardEstimateBaseline{{ID: "baseline.1", Name: nasty, SealStatus: "verified", Resources: []reports.DashboardEstimateResource{{ResourceID: "resource.ai.agent", ResourceName: nasty, Unit: "agent_hours", ActualsRecorded: true, BaselineAmount: 10, ActualAmount: 4.567, Ratio: floatPointer(0.4567)}, {ResourceID: "resource.ai.codex.local", Unit: "agent_hours", ActualsRecorded: true, ActualAmount: 7.23, AddedAfterBaseline: true}}, SplitGroups: []reports.DashboardEstimateSplitGroup{{OriginalResourceID: "resource.ai.agent", SplitResourceIDs: []string{"resource.ai.codex.local"}, Unit: "agent_hours", ActualsRecorded: true, BaselineAmount: 10, CurrentPlannedAmount: 12, ActualAmount: 7.23, Ratio: floatPointer(0.723)}}, Tasks: []reports.DashboardEstimateTask{}, Calibrations: []reports.DashboardEstimateCalibration{{ID: "calibration.1", Name: nasty, Resources: []string{"resource.ai.agent"}, Unit: "agent_hours", Factor: 0.4, TotalRatio: 0.4, Count: 8}}, Warnings: []reports.ReportIssue{}, Errors: []reports.ReportIssue{}}}}}
 	return overview
 }
+
+func floatPointer(value float64) *float64 { return &value }
 
 // htmlEmptyFixture is a project with nothing to show: every optional section
 // must stay out of the page.
@@ -104,6 +140,18 @@ func htmlEmptyFixture() reports.DashboardOverview {
 func TestDashboardHTMLGolden(t *testing.T) {
 	dashboard := func(b *bytes.Buffer, o reports.DashboardOverview) error { return reports.WriteDashboardHTML(b, o) }
 	gantt := func(b *bytes.Buffer, o reports.DashboardOverview) error { return reports.WriteDashboardGanttHTML(b, o) }
+	workload := func(b *bytes.Buffer, o reports.DashboardOverview) error {
+		return reports.WriteDashboardWorkloadHTML(b, o.WorkloadPage)
+	}
+	scenarios := func(b *bytes.Buffer, o reports.DashboardOverview) error {
+		return reports.WriteDashboardScenariosHTML(b, o.ScenariosPage)
+	}
+	proposals := func(b *bytes.Buffer, o reports.DashboardOverview) error {
+		return reports.WriteDashboardProposalsHTML(b, o.ProposalsPage)
+	}
+	estimates := func(b *bytes.Buffer, o reports.DashboardOverview) error {
+		return reports.WriteDashboardEstimatesHTML(b, o.EstimatesPage)
+	}
 	for _, page := range []struct {
 		file     string
 		overview reports.DashboardOverview
@@ -111,8 +159,16 @@ func TestDashboardHTMLGolden(t *testing.T) {
 	}{
 		{"dashboard.golden.html", htmlGoldenFixture(), dashboard},
 		{"gantt.golden.html", htmlGoldenFixture(), gantt},
+		{"workload.golden.html", htmlGoldenFixture(), workload},
+		{"scenarios.golden.html", htmlGoldenFixture(), scenarios},
+		{"proposals.golden.html", htmlGoldenFixture(), proposals},
+		{"estimates.golden.html", htmlGoldenFixture(), estimates},
 		{"dashboard_empty.golden.html", htmlEmptyFixture(), dashboard},
 		{"gantt_empty.golden.html", htmlEmptyFixture(), gantt},
+		{"workload_empty.golden.html", htmlEmptyFixture(), workload},
+		{"scenarios_empty.golden.html", htmlEmptyFixture(), scenarios},
+		{"proposals_empty.golden.html", htmlEmptyFixture(), proposals},
+		{"estimates_empty.golden.html", htmlEmptyFixture(), estimates},
 	} {
 		var out bytes.Buffer
 		if err := page.write(&out, page.overview); err != nil {
@@ -120,6 +176,9 @@ func TestDashboardHTMLGolden(t *testing.T) {
 		}
 		if strings.Contains(out.String(), "<b>") || strings.Contains(out.String(), "Test <project>") {
 			t.Fatalf("%s: unescaped fixture text in output", page.file)
+		}
+		if page.file == "workload.golden.html" && (strings.Contains(out.String(), "20.1234") || !strings.Contains(out.String(), "20.12")) {
+			t.Fatalf("%s: workload display numbers are not rounded to two decimals", page.file)
 		}
 		path := filepath.Join("testdata", page.file)
 		if *updateGolden {

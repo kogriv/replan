@@ -212,6 +212,22 @@ func TestDashboardOpenProjectOverlaySelfFixture(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Dashboard returned error: %v", err)
 	}
+	if overview.WorkloadPage.Data.WindowStart != "2026-W40" || overview.WorkloadPage.Data.WindowFinish < "2026-W52" {
+		t.Fatalf("workload window = %s..%s, want 2026-W40 through at least 2026-W52", overview.WorkloadPage.Data.WindowStart, overview.WorkloadPage.Data.WindowFinish)
+	}
+	if len(overview.WorkloadPage.Data.Weeks) == 0 || overview.WorkloadPage.Data.Weeks[0] >= overview.WorkloadPage.Data.WindowStart {
+		t.Fatalf("raw workload weeks do not retain pre-window plan history: %#v", overview.WorkloadPage.Data.Weeks)
+	}
+	if len(overview.ScenariosPage.Data.Scenarios) == 0 || overview.ScenariosPage.Data.Scenarios[0].Status != "draft" {
+		t.Fatalf("open scenario is not first: %#v", overview.ScenariosPage.Data.Scenarios)
+	}
+	hasSplitGroup := false
+	for _, baseline := range overview.EstimatesPage.Data.Baselines {
+		hasSplitGroup = hasSplitGroup || len(baseline.SplitGroups) > 0
+	}
+	if !hasSplitGroup {
+		t.Fatalf("estimate page has no recognized split groups: %#v", overview.EstimatesPage.Data.Baselines)
+	}
 	overlay := overview.OpenProjectOverlay
 	if overlay.SchemaVersion != 2 {
 		t.Fatalf("unexpected overlay schema version: %d", overlay.SchemaVersion)

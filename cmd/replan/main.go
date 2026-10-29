@@ -4081,45 +4081,89 @@ func writeDashboardArtifacts(projectPath, outputDir string, overview reports.Das
 	if !filepath.IsAbs(baseDir) {
 		baseDir = filepath.Join(projectPath, filepath.FromSlash(outputDir))
 	}
+	publicationOverview, err := dashboardPublicationOverview(overview)
+	if err != nil {
+		return dashboardReportWriteResult{}, err
+	}
 	artifacts := map[string][]byte{}
 	var htmlOut strings.Builder
-	if err := reports.WriteDashboardHTML(&htmlOut, overview); err != nil {
+	if err := reports.WriteDashboardHTML(&htmlOut, publicationOverview); err != nil {
 		return dashboardReportWriteResult{}, err
 	}
 	artifacts["index.html"] = []byte(htmlOut.String())
 	var ganttOut strings.Builder
-	if err := reports.WriteDashboardGanttHTML(&ganttOut, overview); err != nil {
+	if err := reports.WriteDashboardGanttHTML(&ganttOut, publicationOverview); err != nil {
 		return dashboardReportWriteResult{}, err
 	}
 	artifacts["gantt.html"] = []byte(ganttOut.String())
+	pageWriters := []struct {
+		path  string
+		write func(*strings.Builder) error
+	}{
+		{path: "workload.html", write: func(out *strings.Builder) error {
+			return reports.WriteDashboardWorkloadHTML(out, publicationOverview.WorkloadPage)
+		}},
+		{path: "scenarios.html", write: func(out *strings.Builder) error {
+			return reports.WriteDashboardScenariosHTML(out, publicationOverview.ScenariosPage)
+		}},
+		{path: "proposals.html", write: func(out *strings.Builder) error {
+			return reports.WriteDashboardProposalsHTML(out, publicationOverview.ProposalsPage)
+		}},
+		{path: "estimates.html", write: func(out *strings.Builder) error {
+			return reports.WriteDashboardEstimatesHTML(out, publicationOverview.EstimatesPage)
+		}},
+	}
+	for _, page := range pageWriters {
+		var out strings.Builder
+		if err := page.write(&out); err != nil {
+			return dashboardReportWriteResult{}, err
+		}
+		artifacts[page.path] = []byte(out.String())
+	}
 
-	overviewBytes, err := jsonBytes(overview)
+	overviewBytes, err := jsonBytes(publicationOverview)
 	if err != nil {
 		return dashboardReportWriteResult{}, err
 	}
 	artifacts[filepath.ToSlash(filepath.Join("raw", "overview.json"))] = overviewBytes
-	ganttBytes, err := jsonBytes(overview.Gantt)
+	ganttBytes, err := jsonBytes(publicationOverview.Gantt)
 	if err != nil {
 		return dashboardReportWriteResult{}, err
 	}
 	artifacts[filepath.ToSlash(filepath.Join("raw", "gantt.json"))] = ganttBytes
-	openProjectOverlayBytes, err := jsonBytes(overview.OpenProjectOverlay)
+	openProjectOverlayBytes, err := jsonBytes(publicationOverview.OpenProjectOverlay)
 	if err != nil {
 		return dashboardReportWriteResult{}, err
 	}
 	artifacts[filepath.ToSlash(filepath.Join("raw", "openproject_overlay.json"))] = openProjectOverlayBytes
+	pageJSON := []struct {
+		path  string
+		value any
+	}{
+		{path: "workload.json", value: publicationOverview.WorkloadPage},
+		{path: "scenarios.json", value: publicationOverview.ScenariosPage},
+		{path: "proposals.json", value: publicationOverview.ProposalsPage},
+		{path: "estimates.json", value: publicationOverview.EstimatesPage},
+	}
+	for _, page := range pageJSON {
+		content, marshalErr := jsonBytes(page.value)
+		if marshalErr != nil {
+			return dashboardReportWriteResult{}, marshalErr
+		}
+		artifacts[filepath.ToSlash(filepath.Join("raw", page.path))] = content
+	}
 
 	manifest := reports.DashboardManifest{
 		SchemaVersion: 1,
-		GeneratedAt:   overview.GeneratedAt,
+		GeneratedAt:   publicationOverview.GeneratedAt,
 		Command:       "replan report dashboard",
-		ProjectPath:   overview.ProjectPath,
-		ProjectID:     overview.ProjectID,
-		StatusDate:    overview.StatusDate,
-		ScenarioID:    overview.ScenarioID,
+		ProjectPath:   publicationOverview.ProjectPath,
+		ProjectID:     publicationOverview.ProjectID,
+		StatusDate:    publicationOverview.StatusDate,
+		ScenarioID:    publicationOverview.ScenarioID,
 		Artifacts:     []reports.DashboardManifestArtifact{},
-		WarningsCount: len(overview.Warnings),
-		ErrorsCount:   len(overview.Errors),
+		WarningsCount: len(publicationOverview.Warnings),
+		ErrorsCount:   len(publicationOverview.Errors),
 	}
 	artifactPaths := []string{}
 	for rel, content := range artifacts {
@@ -4152,6 +4196,34 @@ func writeDashboardArtifacts(projectPath, outputDir string, overview reports.Das
 		Artifacts:    artifactPaths,
 		ManifestPath: manifestRel,
 	}, nil
+}
+
+func dashboardPublicationOverview(overview reports.DashboardOverview) (reports.DashboardOverview, error) {
+	if overview.ProjectPath == "" {
+		return overview, nil
+	}
+	content, err := json.Marshal(overview)
+	if err != nil {
+		return reports.DashboardOverview{}, err
+	}
+	encodedPath, err := json.Marshal(overview.ProjectPath)
+	if err != nil {
+		return reports.DashboardOverview{}, err
+	}
+	encodedPlaceholder, err := json.Marshal("<project>")
+	if err != nil {
+		return reports.DashboardOverview{}, err
+	}
+	content = bytes.ReplaceAll(content, encodedPath[1:len(encodedPath)-1], encodedPlaceholder[1:len(encodedPlaceholder)-1])
+	var publicationOverview reports.DashboardOverview
+	if err := json.Unmarshal(content, &publicationOverview); err != nil {
+		return reports.DashboardOverview{}, err
+	}
+	publicationOverview.WorkloadPage = overview.WorkloadPage
+	publicationOverview.ScenariosPage = overview.ScenariosPage
+	publicationOverview.ProposalsPage = overview.ProposalsPage
+	publicationOverview.EstimatesPage = overview.EstimatesPage
+	return publicationOverview, nil
 }
 
 func runWorkload(args []string, stdout, stderr *os.File) int {

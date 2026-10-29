@@ -2,8 +2,8 @@
 
 Date: 2026-10-28
 
-Status: proposed; waits for the operator's approval
-(`task.self.design-local-web-view`). Implementation is
+Status: implemented on 2026-10-29 after the operator's approval
+(`task.self.design-local-web-view`). Implementation is tracked by
 `task.self.implement-local-web-view`, rescoped by this decision.
 
 ## Question

@@ -1865,6 +1865,11 @@ func TestWriteDashboardArtifacts(t *testing.T) {
 			Capacity:   24,
 		}},
 	}
+	metadata := reports.DashboardPageMetadata{SchemaVersion: 1, GeneratedAt: overview.GeneratedAt, ProjectID: overview.ProjectID, ProjectName: overview.ProjectName, StatusDate: overview.StatusDate, SourceSnapshotRefs: []string{}, Warnings: []reports.ReportIssue{}}
+	overview.WorkloadPage = reports.DashboardWorkloadPage{DashboardPageMetadata: metadata, Data: reports.DashboardWorkloadData{Weeks: []string{"2026-W30"}, Resources: []reports.DashboardWorkloadResource{{ResourceID: "resource.human.ivan", Unit: "hours", Weeks: []reports.DashboardWorkloadCell{{Week: "2026-W30", Capacity: 24, Demands: []reports.DashboardWorkloadDemand{}}}}}}}
+	overview.ScenariosPage = reports.DashboardScenariosPage{DashboardPageMetadata: metadata, Data: reports.DashboardScenariosData{Scenarios: []reports.DashboardScenarioDetail{{ID: "scenario.test", Changes: []reports.DashboardScenarioChange{}, WorkloadBefore: []reports.ResourceRow{}, WorkloadAfter: []reports.ResourceRow{}, Warnings: []reports.ReportIssue{}, Errors: []reports.ReportIssue{}}}}}
+	overview.ProposalsPage = reports.DashboardProposalsPage{DashboardPageMetadata: metadata, Data: reports.DashboardProposalsData{Proposals: []reports.DashboardProposalDetail{{ID: "proposal.test", Evidence: []reports.DashboardProposalEvidence{}}}}}
+	overview.EstimatesPage = reports.DashboardEstimatesPage{DashboardPageMetadata: metadata, Data: reports.DashboardEstimatesData{Baselines: []reports.DashboardEstimateBaseline{{ID: "baseline.test", Resources: []reports.DashboardEstimateResource{}, Tasks: []reports.DashboardEstimateTask{}, Calibrations: []reports.DashboardEstimateCalibration{}, Warnings: []reports.ReportIssue{}, Errors: []reports.ReportIssue{}}}}}
 
 	result, err := writeDashboardArtifacts(projectDir, "reports/latest", overview)
 
@@ -1876,11 +1881,20 @@ func TestWriteDashboardArtifacts(t *testing.T) {
 	}
 	assertFileContains(t, filepath.Join(projectDir, "reports/latest/index.html"), "RePlan Dashboard: Test project")
 	assertFileContains(t, filepath.Join(projectDir, "reports/latest/gantt.html"), "RePlan Gantt: Test project")
+	assertFileContains(t, filepath.Join(projectDir, "reports/latest/workload.html"), "resource.human.ivan")
+	assertFileContains(t, filepath.Join(projectDir, "reports/latest/scenarios.html"), "scenario.test")
+	assertFileContains(t, filepath.Join(projectDir, "reports/latest/proposals.html"), "proposal.test")
+	assertFileContains(t, filepath.Join(projectDir, "reports/latest/estimates.html"), "baseline.test")
 	assertFileContains(t, filepath.Join(projectDir, "reports/latest/raw/overview.json"), `"schema_version": 1`)
 	assertFileContains(t, filepath.Join(projectDir, "reports/latest/raw/gantt.json"), `"task_count": 1`)
+	assertFileContains(t, filepath.Join(projectDir, "reports/latest/raw/workload.json"), `"resource_id": "resource.human.ivan"`)
+	assertFileContains(t, filepath.Join(projectDir, "reports/latest/raw/scenarios.json"), `"id": "scenario.test"`)
+	assertFileContains(t, filepath.Join(projectDir, "reports/latest/raw/proposals.json"), `"id": "proposal.test"`)
+	assertFileContains(t, filepath.Join(projectDir, "reports/latest/raw/estimates.json"), `"id": "baseline.test"`)
 	assertFileContains(t, filepath.Join(projectDir, "reports/latest/raw/manifest.json"), `"gantt.html"`)
 	assertFileContains(t, filepath.Join(projectDir, "reports/latest/raw/manifest.json"), `"raw/gantt.json"`)
 	assertFileContains(t, filepath.Join(projectDir, "reports/latest/raw/manifest.json"), `"index.html"`)
+	assertFileContains(t, filepath.Join(projectDir, "reports/latest/raw/manifest.json"), `"raw/estimates.json"`)
 }
 
 func TestScenarioReportWritesAreRefusedInsideProject(t *testing.T) {
@@ -1946,6 +1960,20 @@ func TestScenarioDashboardWritesOutsideProject(t *testing.T) {
 	assertFileContains(t, filepath.Join(outputDir, "index.html"), "What-if: scenario scenario.task-op-1234-reassign-petr applied in memory; this is not the plan.")
 	assertFileContains(t, filepath.Join(outputDir, "raw", "manifest.json"), `"scenario_id": "scenario.task-op-1234-reassign-petr"`)
 	assertFileContains(t, filepath.Join(outputDir, "raw", "openproject_overlay.json"), `"scenario_id": "scenario.task-op-1234-reassign-petr"`)
+	walkErr := fs.WalkDir(os.DirFS(outputDir), ".", func(path string, entry fs.DirEntry, err error) error {
+		if err != nil || entry.IsDir() {
+			return err
+		}
+		content := readFileString(t, filepath.Join(outputDir, filepath.FromSlash(path)))
+		if strings.Contains(content, projectDir) {
+			t.Errorf("%s leaks absolute project path %q", path, projectDir)
+		}
+		return nil
+	})
+	if walkErr != nil {
+		t.Fatal(walkErr)
+	}
+	assertFileContains(t, filepath.Join(outputDir, "raw", "manifest.json"), `"project_path": "\u003cproject\u003e"`)
 }
 
 func TestRunTaskJugglerRunArtifactsWritesRunArtifacts(t *testing.T) {

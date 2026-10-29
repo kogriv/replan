@@ -1,9 +1,13 @@
 package reports
 
 import (
+	"encoding/json"
 	"fmt"
 	"html"
 	"io"
+	"math"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -48,6 +52,7 @@ const reportHTMLStyle = `<style>
 * { box-sizing: border-box; }
 body {
   margin: 0;
+  overflow-x: hidden;
   background: var(--bg);
   color: var(--fg);
   font: 14px/1.45 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -88,6 +93,10 @@ table {
   background: var(--panel);
   border: 1px solid var(--line);
 }
+caption { padding: 8px 10px; text-align: left; white-space: normal; }
+.table-scroll { max-width: 100%; overflow-x: auto; }
+.table-scroll table { min-width: max-content; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 th, td {
   padding: 9px 10px;
   border-bottom: 1px solid var(--line);
@@ -97,9 +106,27 @@ th, td {
 th { color: var(--muted); font-size: 12px; font-weight: 600; }
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 tr.overloaded td { background: #fff6e5; }
+.load-zero { background: #eef1ee; }
+.load-low { background: #cce8d6; }
+.load-medium { background: #f8d58d; }
+.load-over { background: #f5b8b2; }
+.heat-legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 8px 0 12px; }
+.heat-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.heat-swatch { width: 16px; height: 16px; border: 1px solid var(--line); }
+details { margin-top: 6px; }
+summary { cursor: pointer; }
+pre.command { overflow-x: auto; padding: 9px 10px; border: 1px solid var(--line); background: var(--bg); white-space: pre-wrap; }
 :root[data-theme="dark"] tr.overloaded td { background: #342717; }
+:root[data-theme="dark"] .load-zero { background: #242924; }
+:root[data-theme="dark"] .load-low { background: #28513a; }
+:root[data-theme="dark"] .load-medium { background: #684d1d; }
+:root[data-theme="dark"] .load-over { background: #6a302b; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) tr.overloaded td { background: #342717; }
+  :root:not([data-theme="light"]) .load-zero { background: #242924; }
+  :root:not([data-theme="light"]) .load-low { background: #28513a; }
+  :root:not([data-theme="light"]) .load-medium { background: #684d1d; }
+  :root:not([data-theme="light"]) .load-over { background: #6a302b; }
 }
 .theme-switcher {
   display: inline-flex;
@@ -484,7 +511,7 @@ func WriteDashboardHTML(w io.Writer, overview DashboardOverview) error {
 	if err := writeScenarioNoticeHTML(w, overview.ScenarioID); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprint(w, "<div class=\"meta view-links\">Views: <a href=\"index.html\">overview</a> <a href=\"gantt.html\">gantt</a></div>\n"); err != nil {
+	if _, err := fmt.Fprint(w, dashboardViewLinksHTML()); err != nil {
 		return err
 	}
 	if _, err := fmt.Fprint(w, "<div class=\"meta\">Raw artifacts: <a href=\"raw/overview.json\">overview.json</a> · <a href=\"raw/gantt.json\">gantt.json</a> · <a href=\"raw/openproject_overlay.json\">openproject_overlay.json</a> · <a href=\"raw/manifest.json\">manifest.json</a></div>\n</div>\n", themeSwitcherHTML(), "</div>\n</header>\n"); err != nil {
@@ -563,7 +590,7 @@ func WriteDashboardGanttHTML(w io.Writer, overview DashboardOverview) error {
 	if err := writeScenarioNoticeHTML(w, overview.ScenarioID); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprint(w, "<div class=\"meta view-links\">Views: <a href=\"index.html\">overview</a> <a href=\"gantt.html\">gantt</a></div>\n<div class=\"meta\">Raw artifacts: <a href=\"raw/gantt.json\">gantt.json</a> · <a href=\"raw/overview.json\">overview.json</a> · <a href=\"raw/openproject_overlay.json\">openproject_overlay.json</a></div>\n</div>\n", themeSwitcherHTML(), "</div>\n</header>\n"); err != nil {
+	if _, err := fmt.Fprint(w, dashboardViewLinksHTML(), "<div class=\"meta\">Raw artifacts: <a href=\"raw/gantt.json\">gantt.json</a> · <a href=\"raw/overview.json\">overview.json</a> · <a href=\"raw/openproject_overlay.json\">openproject_overlay.json</a></div>\n</div>\n", themeSwitcherHTML(), "</div>\n</header>\n"); err != nil {
 		return err
 	}
 	if err := writeDashboardGanttSummaryHTML(w, gantt); err != nil {
@@ -582,6 +609,436 @@ func WriteDashboardGanttHTML(w io.Writer, overview DashboardOverview) error {
 		return err
 	}
 	_, err := fmt.Fprint(w, "</main>\n</body>\n</html>\n")
+	return err
+}
+
+func dashboardViewLinksHTML() string {
+	return "<div class=\"meta view-links\">Views: <a href=\"index.html\">overview</a> <a href=\"gantt.html\">gantt</a> <a href=\"workload.html\">workload</a> <a href=\"scenarios.html\">scenarios</a> <a href=\"proposals.html\">proposals</a> <a href=\"estimates.html\">estimates</a></div>\n"
+}
+
+func writeDashboardPageStart(w io.Writer, title, heading, projectID, statusDate, generatedAt, rawFile string) error {
+	if _, err := fmt.Fprint(w, "<!doctype html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n"); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(w, "<title>%s</title>\n", html.EscapeString(title)); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprint(w, reportHTMLStyle, "</head>\n<body>\n<main>\n<header>\n<div class=\"topbar\"><div>"); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(w, "<h1>%s</h1>\n<div class=\"meta\">Project: <span class=\"code\">%s</span>", html.EscapeString(heading), html.EscapeString(projectID)); err != nil {
+		return err
+	}
+	if statusDate != "" {
+		if _, err := fmt.Fprintf(w, " · Status date: <span class=\"code\">%s</span>", html.EscapeString(statusDate)); err != nil {
+			return err
+		}
+	}
+	if _, err := fmt.Fprint(w, "</div>\n", dashboardViewLinksHTML()); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintf(w, "<div class=\"meta\">Raw artifact: <a href=\"raw/%s\">%s</a> · Generated: <span class=\"code\">%s</span></div>\n</div>\n%s</div>\n</header>\n", html.EscapeString(rawFile), html.EscapeString(rawFile), html.EscapeString(generatedAt), themeSwitcherHTML()); err != nil {
+		return err
+	}
+	return nil
+}
+
+func writeDashboardPageEnd(w io.Writer) error {
+	_, err := fmt.Fprint(w, "</main>\n</body>\n</html>\n")
+	return err
+}
+
+func WriteDashboardWorkloadHTML(w io.Writer, page DashboardWorkloadPage) error {
+	if err := writeDashboardPageStart(w, "RePlan Workload: "+page.ProjectName, "RePlan Workload: "+page.ProjectName, page.ProjectID, page.StatusDate, page.GeneratedAt, "workload.json"); err != nil {
+		return err
+	}
+	if len(page.Data.Resources) == 0 {
+		if _, err := fmt.Fprint(w, "<section><h2>Weekly workload</h2><p class=\"muted\">No workload rows.</p></section>\n"); err != nil {
+			return err
+		}
+		return writeDashboardPageEnd(w)
+	}
+	visibleWeeks := dashboardWorkloadVisibleWeeks(page.Data)
+	if _, err := fmt.Fprintf(w, "<section><h2>Weekly workload</h2>\n<p>Window: <span class=\"code\">%s</span> to <span class=\"code\">%s</span>. Load uses reserved amount when present, otherwise remaining amount. Utilization is load divided by capacity.</p>\n<div class=\"heat-legend\" aria-label=\"Utilization legend\"><span><i class=\"heat-swatch load-zero\"></i>0%%</span><span><i class=\"heat-swatch load-low\"></i>up to 50%%</span><span><i class=\"heat-swatch load-medium\"></i>up to 100%%</span><span><i class=\"heat-swatch load-over\"></i>over 100%%</span></div>\n<div class=\"table-scroll\">\n", html.EscapeString(page.Data.WindowStart), html.EscapeString(page.Data.WindowFinish)); err != nil {
+		return err
+	}
+	if err := writeDashboardWorkloadHeader(w, visibleWeeks); err != nil {
+		return err
+	}
+	for _, resource := range page.Data.Resources {
+		if err := writeDashboardWorkloadRow(w, resource, visibleWeeks); err != nil {
+			return err
+		}
+	}
+	if _, err := fmt.Fprint(w, "</tbody></table>\n</div>\n</section>\n"); err != nil {
+		return err
+	}
+	return writeDashboardPageEnd(w)
+}
+
+func writeDashboardWorkloadHeader(w io.Writer, weeks []string) error {
+	if _, err := fmt.Fprint(w, "<table>\n<caption class=\"sr-only\">Weekly workload heatmap</caption>\n<thead><tr><th scope=\"col\">Resource</th><th scope=\"col\">Class / unit</th>"); err != nil {
+		return err
+	}
+	for _, week := range weeks {
+		if _, err := fmt.Fprintf(w, "<th scope=\"col\">%s</th>", html.EscapeString(week)); err != nil {
+			return err
+		}
+	}
+	_, err := fmt.Fprint(w, "</tr></thead>\n<tbody>\n")
+	return err
+}
+
+func writeDashboardWorkloadRow(w io.Writer, resource DashboardWorkloadResource, weeks []string) error {
+	name := resource.ResourceName
+	if name == "" {
+		name = resource.ResourceID
+	}
+	if _, err := fmt.Fprintf(w, "<tr><th scope=\"row\"><span class=\"code\">%s</span><br>%s</th><td>%s<br><span class=\"code\">%s</span></td>", html.EscapeString(resource.ResourceID), html.EscapeString(name), html.EscapeString(resource.ResourceClass), html.EscapeString(resource.Unit)); err != nil {
+		return err
+	}
+	byWeek := map[string]DashboardWorkloadCell{}
+	for _, cell := range resource.Weeks {
+		byWeek[cell.Week] = cell
+	}
+	for _, week := range weeks {
+		cell := byWeek[week]
+		if err := writeDashboardWorkloadCell(w, cell); err != nil {
+			return err
+		}
+	}
+	_, err := fmt.Fprint(w, "</tr>\n")
+	return err
+}
+
+func writeDashboardWorkloadCell(w io.Writer, cell DashboardWorkloadCell) error {
+	class := workloadCellClass(cell.Utilization, cell.Shortage)
+	load := workloadCellLoad(cell)
+	if _, err := fmt.Fprintf(w, "<td class=\"%s\"><strong>%s / %s</strong>", class, formatPageNumber(load), formatPageNumber(cell.Capacity)); err != nil {
+		return err
+	}
+	if math.Abs(cell.Remaining-load) > 0.000001 {
+		if _, err := fmt.Fprintf(w, "<br><span class=\"muted\">remaining %s</span>", formatPageNumber(cell.Remaining)); err != nil {
+			return err
+		}
+	}
+	if cell.Overload > 0 {
+		if _, err := fmt.Fprintf(w, "<br><span class=\"muted\">overload %s</span>", formatPageNumber(cell.Overload)); err != nil {
+			return err
+		}
+	}
+	if cell.Shortage > 0 {
+		if _, err := fmt.Fprintf(w, "<br><span class=\"muted\">shortage %s</span>", formatPageNumber(cell.Shortage)); err != nil {
+			return err
+		}
+	}
+	if (cell.Overload > 0 || cell.Shortage > 0) && len(cell.Demands) > 0 {
+		if _, err := fmt.Fprintf(w, "<details><summary>Demands (%d)</summary><ul>", len(cell.Demands)); err != nil {
+			return err
+		}
+		for _, demand := range cell.Demands {
+			if _, err := fmt.Fprintf(w, "<li><span class=\"code\">%s</span> — %s (%s), remaining %s</li>", html.EscapeString(demand.ResourceDemandID), html.EscapeString(demand.TaskTitle), html.EscapeString(demand.TaskID), formatPageNumber(demand.Remaining)); err != nil {
+				return err
+			}
+		}
+		if _, err := fmt.Fprint(w, "</ul></details>"); err != nil {
+			return err
+		}
+	}
+	_, err := fmt.Fprint(w, "</td>")
+	return err
+}
+
+func workloadCellLoad(cell DashboardWorkloadCell) float64 {
+	if cell.Reserved != 0 {
+		return cell.Reserved
+	}
+	return cell.Remaining
+}
+
+func workloadCellClass(utilization *float64, shortage float64) string {
+	if shortage > 0 || (utilization != nil && *utilization > 1) {
+		return "load-over"
+	}
+	if utilization == nil || *utilization == 0 {
+		return "load-zero"
+	}
+	if *utilization <= 0.5 {
+		return "load-low"
+	}
+	return "load-medium"
+}
+
+func dashboardWorkloadVisibleWeeks(data DashboardWorkloadData) []string {
+	weeks := []string{}
+	for _, week := range data.Weeks {
+		if week >= data.WindowStart && week <= data.WindowFinish {
+			weeks = append(weeks, week)
+		}
+	}
+	return weeks
+}
+
+// formatChangeValue shows a scenario or proposal value as typed: strings and
+// numbers plainly, structured values as JSON rather than Go's map syntax.
+func formatChangeValue(value any) string {
+	switch typed := value.(type) {
+	case nil:
+		return ""
+	case string:
+		return typed
+	case bool, int, int64, float64:
+		return fmt.Sprint(typed)
+	}
+	encoded, err := json.Marshal(value)
+	if err != nil {
+		return fmt.Sprint(value)
+	}
+	return string(encoded)
+}
+
+func formatPageNumber(value float64) string {
+	return strconv.FormatFloat(math.Round(value*100)/100, 'f', -1, 64)
+}
+
+func WriteDashboardScenariosHTML(w io.Writer, page DashboardScenariosPage) error {
+	if err := writeDashboardPageStart(w, "RePlan Scenarios: "+page.ProjectName, "RePlan Scenarios: "+page.ProjectName, page.ProjectID, page.StatusDate, page.GeneratedAt, "scenarios.json"); err != nil {
+		return err
+	}
+	if len(page.Data.Scenarios) == 0 {
+		if _, err := fmt.Fprint(w, "<section><h2>Scenarios</h2><p class=\"muted\">No scenarios.</p></section>\n"); err != nil {
+			return err
+		}
+		return writeDashboardPageEnd(w)
+	}
+	for _, scenario := range page.Data.Scenarios {
+		if err := writeDashboardScenarioHTML(w, scenario, scenario.Status == "applied" || scenario.Status == "rejected"); err != nil {
+			return err
+		}
+	}
+	return writeDashboardPageEnd(w)
+}
+
+func writeDashboardScenarioHTML(w io.Writer, scenario DashboardScenarioDetail, archived bool) error {
+	if archived {
+		if _, err := fmt.Fprintf(w, "<details class=\"scenario-archived\"><summary><strong>%s</strong> · <span class=\"code\">%s</span> · %s</summary><div>", html.EscapeString(scenario.Name), html.EscapeString(scenario.ID), html.EscapeString(scenario.Status)); err != nil {
+			return err
+		}
+	} else if _, err := fmt.Fprintf(w, "<section><h2>%s</h2><p><span class=\"code\">%s</span> · %s", html.EscapeString(scenario.Name), html.EscapeString(scenario.ID), html.EscapeString(scenario.Status)); err != nil {
+		return err
+	}
+	if !archived && scenario.CalibrationRef != "" {
+		if _, err := fmt.Fprintf(w, " · calibration <span class=\"code\">%s</span>", html.EscapeString(scenario.CalibrationRef)); err != nil {
+			return err
+		}
+	}
+	if archived && scenario.CalibrationRef != "" {
+		if _, err := fmt.Fprintf(w, "<p>Calibration: <span class=\"code\">%s</span></p>", html.EscapeString(scenario.CalibrationRef)); err != nil {
+			return err
+		}
+	} else if !archived {
+		if _, err := fmt.Fprint(w, "</p>"); err != nil {
+			return err
+		}
+	}
+	if _, err := fmt.Fprint(w, "<table><thead><tr><th scope=\"col\">Operation</th><th scope=\"col\">Path</th><th scope=\"col\">Value</th></tr></thead><tbody>"); err != nil {
+		return err
+	}
+	for _, change := range scenario.Changes {
+		if _, err := fmt.Fprintf(w, "<tr><td>%s</td><td class=\"code\">%s</td><td class=\"code\">%s</td></tr>", html.EscapeString(change.Op), html.EscapeString(change.Path), html.EscapeString(formatChangeValue(change.Value))); err != nil {
+			return err
+		}
+	}
+	if len(scenario.Changes) == 0 {
+		if _, err := fmt.Fprint(w, "<tr><td colspan=\"3\" class=\"muted\">No changes.</td></tr>"); err != nil {
+			return err
+		}
+	}
+	if _, err := fmt.Fprint(w, "</tbody></table><h3>Workload diff</h3><table><thead><tr><th scope=\"col\">Resource</th><th scope=\"col\">Unit</th><th scope=\"col\" class=\"num\">Capacity before</th><th scope=\"col\" class=\"num\">Capacity after</th><th scope=\"col\" class=\"num\">Overload before</th><th scope=\"col\" class=\"num\">Overload after</th></tr></thead><tbody>"); err != nil {
+		return err
+	}
+	if err := writeScenarioDiffRows(w, scenario); err != nil {
+		return err
+	}
+	closing := "</section>\n"
+	if archived {
+		closing = "</div></details>\n"
+	}
+	_, err := fmt.Fprintf(w, "</tbody></table><p>Preview application with this command (text only):</p><pre class=\"command code\">%s</pre>%s", html.EscapeString(scenario.ApplyCommand), closing)
+	return err
+}
+
+func writeScenarioDiffRows(w io.Writer, scenario DashboardScenarioDetail) error {
+	type pair struct{ before, after ResourceRow }
+	rows := map[string]pair{}
+	for _, row := range scenario.WorkloadBefore {
+		key := row.ResourceID + "\x00" + row.Unit
+		item := rows[key]
+		item.before = row
+		rows[key] = item
+	}
+	for _, row := range scenario.WorkloadAfter {
+		key := row.ResourceID + "\x00" + row.Unit
+		item := rows[key]
+		item.after = row
+		rows[key] = item
+	}
+	keys := make([]string, 0, len(rows))
+	for key := range rows {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	count := 0
+	for _, key := range keys {
+		item := rows[key]
+		if item.before.Capacity == item.after.Capacity && item.before.Remaining == item.after.Remaining && item.before.Overload == item.after.Overload {
+			continue
+		}
+		count++
+		row := item.before
+		if row.ResourceID == "" {
+			row = item.after
+		}
+		if _, err := fmt.Fprintf(w, "<tr><td class=\"code\">%s</td><td>%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td></tr>", html.EscapeString(row.ResourceID), html.EscapeString(row.Unit), formatAmount(item.before.Capacity), formatAmount(item.after.Capacity), formatAmount(item.before.Overload), formatAmount(item.after.Overload)); err != nil {
+			return err
+		}
+	}
+	if count == 0 {
+		_, err := fmt.Fprint(w, "<tr><td colspan=\"6\" class=\"muted\">No workload changes in the selected week.</td></tr>")
+		return err
+	}
+	return nil
+}
+
+func WriteDashboardProposalsHTML(w io.Writer, page DashboardProposalsPage) error {
+	if err := writeDashboardPageStart(w, "RePlan Proposals: "+page.ProjectName, "RePlan Proposals: "+page.ProjectName, page.ProjectID, page.StatusDate, page.GeneratedAt, "proposals.json"); err != nil {
+		return err
+	}
+	if len(page.Data.Proposals) == 0 {
+		if _, err := fmt.Fprint(w, "<section><h2>Open proposals</h2><p class=\"muted\">No open proposals.</p></section>\n"); err != nil {
+			return err
+		}
+		return writeDashboardPageEnd(w)
+	}
+	for _, proposal := range page.Data.Proposals {
+		if _, err := fmt.Fprintf(w, "<section><h2>%s</h2><p>%s · proposed by <span class=\"code\">%s</span> · target <span class=\"code\">%s</span></p><p>%s</p><table><thead><tr><th scope=\"col\">Operation</th><th scope=\"col\">Path</th><th scope=\"col\">Value</th></tr></thead><tbody><tr><td>%s</td><td class=\"code\">%s</td><td class=\"code\">%s</td></tr></tbody></table><h3>Evidence</h3>", html.EscapeString(proposal.ID), html.EscapeString(proposal.Type), html.EscapeString(proposal.CreatedBy), html.EscapeString(proposal.TargetID), html.EscapeString(proposal.Rationale), html.EscapeString(proposal.Impact.Op), html.EscapeString(proposal.Impact.Path), html.EscapeString(formatChangeValue(proposal.Impact.Value))); err != nil {
+			return err
+		}
+		if len(proposal.Evidence) == 0 {
+			if _, err := fmt.Fprint(w, "<p class=\"muted\">No related evidence.</p>"); err != nil {
+				return err
+			}
+		} else {
+			if _, err := fmt.Fprint(w, "<ul>"); err != nil {
+				return err
+			}
+			for _, evidence := range proposal.Evidence {
+				if _, err := fmt.Fprintf(w, "<li><span class=\"code\">%s</span> — %s</li>", html.EscapeString(evidence.ID), html.EscapeString(evidence.Summary)); err != nil {
+					return err
+				}
+			}
+			if _, err := fmt.Fprint(w, "</ul>"); err != nil {
+				return err
+			}
+		}
+		if _, err := fmt.Fprintf(w, "<p>Run a decision with one of these commands after replacing the placeholders (text only):</p><pre class=\"command code\">%s</pre><pre class=\"command code\">%s</pre></section>\n", html.EscapeString(proposal.AcceptCommand), html.EscapeString(proposal.RejectCommand)); err != nil {
+			return err
+		}
+	}
+	return writeDashboardPageEnd(w)
+}
+
+func WriteDashboardEstimatesHTML(w io.Writer, page DashboardEstimatesPage) error {
+	if err := writeDashboardPageStart(w, "RePlan Estimates: "+page.ProjectName, "RePlan Estimates: "+page.ProjectName, page.ProjectID, page.StatusDate, page.GeneratedAt, "estimates.json"); err != nil {
+		return err
+	}
+	if len(page.Data.Baselines) == 0 {
+		if _, err := fmt.Fprint(w, "<section><h2>Estimate accuracy</h2><p class=\"muted\">No sealed estimate baselines.</p></section>\n"); err != nil {
+			return err
+		}
+		return writeDashboardPageEnd(w)
+	}
+	for _, baseline := range page.Data.Baselines {
+		if _, err := fmt.Fprintf(w, "<section><h2>%s</h2><p><span class=\"code\">%s</span> · seal %s</p><table><thead><tr><th scope=\"col\">Resource</th><th scope=\"col\">Unit</th><th scope=\"col\" class=\"num\">Baseline</th><th scope=\"col\" class=\"num\">Actual</th><th scope=\"col\" class=\"num\">Actual / baseline</th></tr></thead><tbody>", html.EscapeString(baseline.Name), html.EscapeString(baseline.ID), html.EscapeString(baseline.SealStatus)); err != nil {
+			return err
+		}
+		for _, resource := range baseline.Resources {
+			ratio := estimateResourceRatioLabel(resource)
+			if _, err := fmt.Fprintf(w, "<tr><td><span class=\"code\">%s</span><br>%s</td><td>%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td></tr>", html.EscapeString(resource.ResourceID), html.EscapeString(resource.ResourceName), html.EscapeString(resource.Unit), formatAmount(resource.BaselineAmount), formatAmount(resource.ActualAmount), html.EscapeString(ratio)); err != nil {
+				return err
+			}
+		}
+		if len(baseline.Resources) == 0 {
+			if _, err := fmt.Fprint(w, "<tr><td colspan=\"5\" class=\"muted\">No resource accuracy rows.</td></tr>"); err != nil {
+				return err
+			}
+		}
+		if err := writeDashboardEstimateSplitGroups(w, baseline.SplitGroups); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprint(w, "<h3>Calibrations using this baseline</h3>"); err != nil {
+			return err
+		}
+		if len(baseline.Calibrations) == 0 {
+			if _, err := fmt.Fprint(w, "<p class=\"muted\">No calibrations use this baseline.</p>"); err != nil {
+				return err
+			}
+		} else {
+			if _, err := fmt.Fprint(w, "<table><thead><tr><th scope=\"col\">Calibration</th><th scope=\"col\">Scope</th><th scope=\"col\" class=\"num\">Samples</th><th scope=\"col\" class=\"num\">Factor</th></tr></thead><tbody>"); err != nil {
+				return err
+			}
+			for _, calibration := range baseline.Calibrations {
+				if _, err := fmt.Fprintf(w, "<tr><td><span class=\"code\">%s</span><br>%s</td><td>%s · %s</td><td class=\"num\">%d</td><td class=\"num\">%s</td></tr>", html.EscapeString(calibration.ID), html.EscapeString(calibration.Name), html.EscapeString(strings.Join(calibration.Resources, ", ")), html.EscapeString(calibration.Unit), calibration.Count, formatAmount(calibration.Factor)); err != nil {
+					return err
+				}
+			}
+			if _, err := fmt.Fprint(w, "</tbody></table>"); err != nil {
+				return err
+			}
+		}
+		if _, err := fmt.Fprint(w, "</section>\n"); err != nil {
+			return err
+		}
+	}
+	return writeDashboardPageEnd(w)
+}
+
+func estimateResourceRatioLabel(resource DashboardEstimateResource) string {
+	if resource.Ratio != nil {
+		return formatPageNumber(*resource.Ratio)
+	}
+	if resource.AddedAfterBaseline {
+		return "added after baseline"
+	}
+	if !resource.ActualsRecorded {
+		return "no actuals"
+	}
+	return "not comparable"
+}
+
+func writeDashboardEstimateSplitGroups(w io.Writer, groups []DashboardEstimateSplitGroup) error {
+	if _, err := fmt.Fprint(w, "</tbody></table><h3>Recognized resource splits</h3>"); err != nil {
+		return err
+	}
+	if len(groups) == 0 {
+		_, err := fmt.Fprint(w, "<p class=\"muted\">No recognized resource splits.</p>")
+		return err
+	}
+	if _, err := fmt.Fprint(w, "<table><thead><tr><th scope=\"col\">Original resource</th><th scope=\"col\">Split-out resources</th><th scope=\"col\">Unit</th><th scope=\"col\" class=\"num\">Baseline</th><th scope=\"col\" class=\"num\">Current planned</th><th scope=\"col\" class=\"num\">Actual</th><th scope=\"col\" class=\"num\">Actual / baseline</th></tr></thead><tbody>"); err != nil {
+		return err
+	}
+	for _, group := range groups {
+		ratio := "no actuals"
+		if group.Ratio != nil {
+			ratio = formatPageNumber(*group.Ratio)
+		} else if group.ActualsRecorded {
+			ratio = "not comparable"
+		}
+		if _, err := fmt.Fprintf(w, "<tr><td><span class=\"code\">%s</span><br>%s</td><td class=\"code\">%s</td><td>%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td></tr>", html.EscapeString(group.OriginalResourceID), html.EscapeString(group.OriginalResourceName), html.EscapeString(strings.Join(group.SplitResourceIDs, ", ")), html.EscapeString(group.Unit), formatAmount(group.BaselineAmount), formatAmount(group.CurrentPlannedAmount), formatAmount(group.ActualAmount), html.EscapeString(ratio)); err != nil {
+			return err
+		}
+	}
+	_, err := fmt.Fprint(w, "</tbody></table>")
 	return err
 }
 

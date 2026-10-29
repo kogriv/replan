@@ -101,6 +101,7 @@ reports/
     index.html
     gantt.html
     workload.html
+    estimates.html
     tasks.html
     dependencies.html
     warnings.html
@@ -114,6 +115,7 @@ reports/
       openproject_overlay.json
       weekly.json
       workload.json
+      estimates.json
       tasks.json
       dependencies.json
       warnings.json
@@ -302,6 +304,13 @@ It must handle human and non-human resources:
 - release windows;
 - equipment or other schedulable resources.
 
+Implemented: the page is a resource-by-week heatmap built from the canonical
+workload service with demand details on overloaded or capacity-missing cells.
+It writes the same page model to `raw/workload.json`. The raw contract retains
+the full plan week range; HTML defaults to four weeks before the status-date
+week through the later of the final planned-load week or eight weeks after the
+status-date week, inside a horizontally scrolling table.
+
 ### `tasks.html`
 
 Task state and planning completeness view.
@@ -376,6 +385,12 @@ Required sections:
 The dashboard must not accept or reject proposals. It only links to CLI commands
 or raw proposal artifacts.
 
+Implemented: open proposals show their canonical suggested change as impact,
+related evidence, and text-only accept and reject commands with explicit apply
+gates and actor/reason placeholders. Generated commands use `<project>` and do
+not expose the generator's local absolute path. The raw contract is
+`raw/proposals.json`.
+
 ### `evidence.html`
 
 Execution evidence view.
@@ -427,6 +442,31 @@ Required sections:
 
 The first dashboard does not apply scenarios.
 
+Implemented: each scenario includes its canonical changes, calibration
+reference when present, affected resources and tasks, its current-plan workload
+diff for the selected dashboard week, and a text-only dry-run apply command.
+Open scenarios are expanded first and newest first; applied and rejected
+scenarios follow as collapsed details. Commands use `<project>`. The raw
+contract is `raw/scenarios.json`.
+
+### `estimates.html`
+
+Estimate calibration view.
+
+Required sections:
+
+- every sealed baseline that carries an estimate snapshot;
+- per-resource baseline amount, actual amount and actual-to-baseline ratio;
+- explicit `no actuals` state;
+- calibrations whose source baselines include the baseline;
+- empty state when no sealed estimate baseline exists.
+
+Implemented: values come from the same estimate report service as `replan
+report estimates`; the page does not recalculate accuracy. Recognized resource
+splits use that report's `split_groups`, while zero-baseline resources with
+actuals are labeled as added after the baseline. The raw contract is
+`raw/estimates.json`.
+
 ## Raw JSON contracts
 
 The raw JSON artifacts are as important as the HTML.
@@ -451,6 +491,11 @@ source_snapshot_refs: list
 warnings: list
 data: object
 ```
+
+Static artifacts are publication-safe: `project_path` and project arguments in
+displayed commands use the literal `<project>` placeholder. The local absolute
+path used while generating the dashboard must not appear in any HTML or raw
+JSON artifact.
 
 `manifest.json` should include:
 
@@ -599,6 +644,17 @@ Implemented first slice:
 - focused Gantt output shows the RePlan timeline and source links without live
   OpenProject access or write-back;
 - focused tests cover dashboard HTML rendering and artifact writing.
+
+Implemented completed static page slice:
+
+- output also includes `workload.html`, `scenarios.html`, `proposals.html` and
+  `estimates.html`;
+- page-specific agent contracts are written as `raw/workload.json`,
+  `raw/scenarios.json`, `raw/proposals.json` and `raw/estimates.json`;
+- all pages share the same local navigation, embedded styling and theme
+  controls, and make no external requests;
+- HTML goldens cover populated and empty states, raw contract tests pin the
+  common metadata envelope, and the smoke checks known self-dogfood ids.
 
 ## Non-goals for first implementation
 
