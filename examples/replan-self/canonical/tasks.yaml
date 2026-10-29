@@ -4901,7 +4901,7 @@ tasks:
       title: Add the workload, scenario, proposal and estimate pages to the static dashboard
       description: 'Implement the approved local web view decision (task.self.design-local-web-view): add workload.html, scenarios.html, proposals.html and estimates.html to the static dashboard, read-only and working from disk, with HTML goldens like the existing pages, the raw JSON each page reads, and the smoke generating them from a temporary copy of examples/replan-self. No served application and no OpenProject plugin page in this task.'
       type: implementation
-      tracking_status: not_started
+      tracking_status: in_progress
       planned_start: "2026-11-16"
       planned_finish: "2026-11-16"
       assignee_hint:
@@ -4910,6 +4910,8 @@ tasks:
       resource_demands:
         - kind: resource_demand
           id: resource_demand.implement-local-web-view.agent
+        - kind: resource_demand
+          id: resource_demand.implement-local-web-view.codex
         - kind: resource_demand
           id: resource_demand.implement-local-web-view.maintainer
         - kind: resource_demand
