@@ -2010,3 +2010,27 @@ evidence:
     targets:
       - kind: task
         id: task.self.refresh-second-project-agent-kit-v0-2-0
+  - id: evidence.self.delete-second-project-kit-20261027
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T22:31:50+07:00"
+    summary: Operator decided on 2026-10-29 to delete the 27 October kit from the tools wiki page of the second project. The archive and its checksum were deleted with openproject-wiki.sh attachment delete after a dry run named exactly those two files; the 28 October kit, the v0.2.0 kit and the 14 October plan snapshot remain. The page row now names only the 28 October kit as replaced and records the deletion.
+    targets:
+      - kind: task
+        id: task.self.refresh-second-project-agent-kit-v0-2-0
+  - id: evidence.self.accept-refresh-second-project-agent-kit-v0-2-0
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-29T22:31:50+07:00"
+    confidence: observed
+    summary: Operator accepted the second project's agent kit v0.2.0 and the wiki page.
+    targets:
+      - kind: task
+        id: task.self.refresh-second-project-agent-kit-v0-2-0

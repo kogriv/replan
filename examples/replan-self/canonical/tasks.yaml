@@ -5105,7 +5105,7 @@ tasks:
       title: Refresh the second project's agent kit to v0.2.0
       description: 'Agreed with the operator on 2026-10-29: refresh the second project''s agent kit to release v0.2.0, as task.self.refresh-second-project-agent-kit did for the 28 October kit. Build the kit for that project with build-agent-kit.sh, check it offline and on a throwaway OpenProject, scan it for private details, upload the archive and its checksum to the tools wiki page with a dry run first, verify the download against the checksum, and update the page text: the new kit rows and what changed since the 28 October kit (the version command, relation apply restoring manual scheduling, the drift check''s new warning codes, the GitHub import, estimate calibration and the dashboard pages). Deleting older kit attachments is the operator''s decision.'
       type: operations
-      tracking_status: review_ready
+      tracking_status: accepted
       planned_start: "2026-10-29"
       planned_finish: "2026-10-29"
       assignee_hint:

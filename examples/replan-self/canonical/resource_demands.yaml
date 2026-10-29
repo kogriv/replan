@@ -9362,7 +9362,7 @@ resource_demands:
       planned_amount: 0.5
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.refresh-second-project-agent-kit-v0-2-0.maintainer
       task_ref:
         kind: task
@@ -9374,9 +9374,9 @@ resource_demands:
       role: maintainer
       unit: hours
       planned_amount: 0.25
-      remaining_amount: 0.25
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.refresh-second-project-agent-kit-v0-2-0.local-dev
       task_ref:
         kind: task
@@ -9388,9 +9388,9 @@ resource_demands:
       role: development_environment
       unit: concurrent_slots
       planned_amount: 1
-      remaining_amount: 1
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.refresh-second-project-agent-kit-v0-2-0.ci
       task_ref:
         kind: task
@@ -9402,6 +9402,6 @@ resource_demands:
       role: ci_runtime
       unit: ci_minutes
       planned_amount: 10
-      remaining_amount: 10
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
