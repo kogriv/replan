@@ -4756,7 +4756,7 @@ tasks:
       title: Implement estimate calibration
       description: 'Implement the approved estimate calibration design (task.self.design-estimate-calibration) with tests on a fixture, documentation in cli and report-behavior, and a first run on examples/replan-self whose calibration scenario the operator reviews. Minimum sample 8 tasks, the six judged tasks of 15-16 October excluded, one quarter-unit rounding rule.'
       type: implementation
-      tracking_status: not_started
+      tracking_status: in_progress
       planned_start: "2026-11-09"
       planned_finish: "2026-11-09"
       assignee_hint:
@@ -4765,6 +4765,8 @@ tasks:
       resource_demands:
         - kind: resource_demand
           id: resource_demand.implement-estimate-calibration.agent
+        - kind: resource_demand
+          id: resource_demand.implement-estimate-calibration.codex
         - kind: resource_demand
           id: resource_demand.implement-estimate-calibration.maintainer
         - kind: resource_demand

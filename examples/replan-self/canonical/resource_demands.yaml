@@ -8561,8 +8561,22 @@ resource_demands:
       resource_class: ai_agent
       role: implementation_agent
       unit: agent_hours
-      planned_amount: 5
-      remaining_amount: 5
+      planned_amount: 1.5
+      remaining_amount: 1.5
+      criticality: required
+      status: active
+    - id: resource_demand.implement-estimate-calibration.codex
+      task_ref:
+        kind: task
+        id: task.self.implement-estimate-calibration
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 3.5
+      remaining_amount: 3.5
       criticality: required
       status: active
     - id: resource_demand.implement-estimate-calibration.maintainer
