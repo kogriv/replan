@@ -1511,3 +1511,24 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.publish-first-release
+    - id: actual.self-publish-first-release.ci-github-actions.20261029T1536070700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.publish-first-release
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.publish-first-release.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-29T15:36:07+07:00"
+      status_date: "2026-10-29"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-publish-first-release

@@ -4699,9 +4699,9 @@ tasks:
       title: Publish the first tagged release
       description: 'Agreed with the operator on 2026-10-28. Tag v0.1.0 on the public repository, build the archives with scripts/build-release.sh, check the checksums and that each binary reports the tag in replan version, and publish a GitHub release with the archives and short notes that say the project is alpha. Creating the tag and the release is the operator''s step.'
       type: release
-      tracking_status: review_ready
-      planned_start: "2026-11-05"
-      planned_finish: "2026-11-05"
+      tracking_status: accepted
+      planned_start: "2026-10-29"
+      planned_finish: "2026-10-29"
       assignee_hint:
         kind: resource
         id: resource.human.maintainer
