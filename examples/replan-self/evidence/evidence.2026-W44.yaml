@@ -1913,3 +1913,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.name-import-candidates-source-neutrally
+  - id: evidence.self.name-import-candidates-source-neutrally
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T21:30:50+07:00"
+    summary: 'Commit 3827f0d: Import* candidate types, neutral predecessor_source_id, successor_source_id and source_object_id fields, OpenProject-named fields kept as deprecated aliases in OpenProject output only. Compared with the previous binary: of 238 CLI outputs only the self OpenProject import dry run changed, and only by the new fields; live OpenProject helper results identical. The gate''s throwaway runtime found the new module missing from the agent kit; the executor added it and a kit check that every repository helper a kit module imports is in the kit (49 checks), with a test. Gate green, agent kit live checks 66. Codex 20:35-20:44.'
+    targets:
+      - kind: task
+        id: task.self.name-import-candidates-source-neutrally
