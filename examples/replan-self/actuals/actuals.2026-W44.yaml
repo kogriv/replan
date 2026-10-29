@@ -1574,3 +1574,24 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.report-unknown-build-info-plainly
+    - id: actual.self-report-unknown-build-info-plainly.ci-github-actions.20261029T1620130700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.report-unknown-build-info-plainly
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.report-unknown-build-info-plainly.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-29T16:20:13+07:00"
+      status_date: "2026-10-29"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-report-unknown-build-info-plainly

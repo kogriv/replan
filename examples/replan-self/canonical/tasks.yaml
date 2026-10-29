@@ -5015,9 +5015,9 @@ tasks:
       title: Report unknown build details plainly in replan version
       description: 'Found on 2026-10-29 after publishing v0.1.0: a binary installed with go install github.com/kogriv/replan/cmd/replan@v0.1.0 (or @latest) through the public module proxy prints replan v0.1.0 (dev, dev, go1.24.1 linux/amd64), and replan version --format json reports commit dev and build_date dev, because module downloads carry no VCS stamp. The release archives are not affected. Wanted: when the version is a module version but the commit or the build date is unknown, the text line leaves the unknown parts out (for example replan v0.1.0 (go1.24.1 linux/amd64)) and the JSON says unknown in a documented way instead of dev, with dev kept for a plain local build without a version; tests with a debug.BuildInfo for that case; docs/dev/release-process.md and docs/spec/cli.md say what a go install build reports.'
       type: implementation
-      tracking_status: review_ready
-      planned_start: "2026-10-30"
-      planned_finish: "2026-10-30"
+      tracking_status: accepted
+      planned_start: "2026-10-29"
+      planned_finish: "2026-10-29"
       assignee_hint:
         kind: resource
         id: resource.human.maintainer

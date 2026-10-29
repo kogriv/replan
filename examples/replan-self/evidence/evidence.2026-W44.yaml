@@ -1731,3 +1731,16 @@ evidence:
     targets:
       - kind: task
         id: task.self.implement-estimate-calibration
+  - id: evidence.self.accept-report-unknown-build-info-plainly
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-29T16:20:13+07:00"
+    confidence: observed
+    summary: Operator accepted reporting unknown build details plainly in replan version.
+    targets:
+      - kind: task
+        id: task.self.report-unknown-build-info-plainly
