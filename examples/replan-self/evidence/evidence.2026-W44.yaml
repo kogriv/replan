@@ -1936,3 +1936,15 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-2-0
+  - id: evidence.self.publish-release-v0-2-0
+    type: command_result
+    source: local
+    url: https://github.com/kogriv/replan/releases/tag/v0.2.0
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T21:43:19+07:00"
+    summary: 'Release v0.2.0 published on 2026-10-29 by the agent on the operators instruction: release commit ea817ec (CI success), annotated tag v0.2.0 on GitHub and GitLab, six archives built with scripts/build-release.sh, SHA256SUMS all OK, a second build byte-identical, file types match each target, the linux/amd64 binary reports v0.2.0 and commit ea817ec, validates the examples and reads the recorded calibration, GitHub release with archives, SHA256SUMS and alpha notes is the latest release, downloaded assets equal the built ones, go install @v0.2.0 through proxy.golang.org prints "replan v0.2.0 (go1.24.1 linux/amd64)".'
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-2-0

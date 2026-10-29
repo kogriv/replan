@@ -5079,7 +5079,7 @@ tasks:
       title: Publish release v0.2.0
       description: 'Agreed with the operator on 2026-10-29: after the source-neutral import candidates, publish v0.2.0 with estimate calibration, the GitHub Issues import from a file and over the API, the workload, scenario, proposal and estimate dashboard pages, the OpenProject successor scheduling fix and the replan version fix. Follow docs/dev/release-process.md: release commit with CI green, annotated tag on GitHub and GitLab, archives with scripts/build-release.sh, checksums, a reproducibility rebuild, binary version check, GitHub release with notes saying the project is alpha, and go install through the module proxy.'
       type: release
-      tracking_status: in_progress
+      tracking_status: review_ready
       planned_start: "2026-10-29"
       planned_finish: "2026-10-29"
       assignee_hint:
