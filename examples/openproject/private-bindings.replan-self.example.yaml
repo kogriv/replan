@@ -281,6 +281,12 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2268"
         url: https://op.example.internal/work_packages/2268
+    - replan_task_id: task.self.publish-release-v0-2-0
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2269"
+        url: https://op.example.internal/work_packages/2269
     - replan_task_id: task.self.design-local-web-view
       source_ref:
         source: openproject

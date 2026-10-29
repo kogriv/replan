@@ -1924,3 +1924,15 @@ evidence:
     targets:
       - kind: task
         id: task.self.name-import-candidates-source-neutrally
+  - id: evidence.self.start-publish-release-v0-2-0
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T21:33:41+07:00"
+    summary: 'Operator agreed on 2026-10-29 to the recommended order: the source-neutral import candidates first, then release v0.2.0, done by the agent as for v0.1.0.'
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-2-0

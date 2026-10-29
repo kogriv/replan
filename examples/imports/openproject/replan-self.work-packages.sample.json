@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 168,
-  "count": 168,
+  "total": 169,
+  "count": 169,
   "_embedded": {
     "elements": [
       {
@@ -4866,6 +4866,35 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2268"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2269,
+        "subject": "Publish release v0.2.0",
+        "description": {
+          "raw": "Agreed with the operator on 2026-10-29: after the source-neutral import candidates, publish v0.2.0 with estimate calibration, the GitHub Issues import from a file and over the API, the workload, scenario, proposal and estimate dashboard pages, the OpenProject successor scheduling fix and the replan version fix. Follow docs/dev/release-process.md: release commit with CI green, annotated tag on GitHub and GitLab, archives with scripts/build-release.sh, checksums, a reproducibility rebuild, binary version check, GitHub release with notes saying the project is alpha, and go install through the module proxy."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-29",
+        "dueDate": "2026-10-29",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2269"
           },
           "status": {
             "title": "New"
