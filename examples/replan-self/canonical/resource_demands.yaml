@@ -8564,7 +8564,7 @@ resource_demands:
       planned_amount: 1.5
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.implement-estimate-calibration.codex
       task_ref:
         kind: task
@@ -8578,7 +8578,7 @@ resource_demands:
       planned_amount: 3.5
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.implement-estimate-calibration.maintainer
       task_ref:
         kind: task
@@ -8590,9 +8590,9 @@ resource_demands:
       role: maintainer
       unit: hours
       planned_amount: 0.5
-      remaining_amount: 0.5
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.implement-estimate-calibration.local-dev
       task_ref:
         kind: task
@@ -8604,9 +8604,9 @@ resource_demands:
       role: development_environment
       unit: concurrent_slots
       planned_amount: 1
-      remaining_amount: 1
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.implement-estimate-calibration.ci
       task_ref:
         kind: task
@@ -8618,9 +8618,9 @@ resource_demands:
       role: ci_runtime
       unit: ci_minutes
       planned_amount: 10
-      remaining_amount: 10
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.design-second-tracker-adapter.agent
       task_ref:
         kind: task
@@ -8690,7 +8690,7 @@ resource_demands:
       planned_amount: 2
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.import-second-tracker-from-file.codex
       task_ref:
         kind: task
@@ -8704,7 +8704,7 @@ resource_demands:
       planned_amount: 4
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.import-second-tracker-from-file.maintainer
       task_ref:
         kind: task
@@ -8716,9 +8716,9 @@ resource_demands:
       role: maintainer
       unit: hours
       planned_amount: 0.5
-      remaining_amount: 0.5
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.import-second-tracker-from-file.local-dev
       task_ref:
         kind: task
@@ -8730,9 +8730,9 @@ resource_demands:
       role: development_environment
       unit: concurrent_slots
       planned_amount: 1
-      remaining_amount: 1
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.import-second-tracker-from-file.ci
       task_ref:
         kind: task
@@ -8744,9 +8744,9 @@ resource_demands:
       role: ci_runtime
       unit: ci_minutes
       planned_amount: 10
-      remaining_amount: 10
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.import-second-tracker-live.agent
       task_ref:
         kind: task
@@ -8872,7 +8872,7 @@ resource_demands:
       planned_amount: 2
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.implement-local-web-view.codex
       task_ref:
         kind: task
@@ -8886,7 +8886,7 @@ resource_demands:
       planned_amount: 4
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.implement-local-web-view.maintainer
       task_ref:
         kind: task
@@ -8898,9 +8898,9 @@ resource_demands:
       role: maintainer
       unit: hours
       planned_amount: 0.5
-      remaining_amount: 0.5
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.implement-local-web-view.local-dev
       task_ref:
         kind: task
@@ -8912,9 +8912,9 @@ resource_demands:
       role: development_environment
       unit: concurrent_slots
       planned_amount: 1
-      remaining_amount: 1
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.implement-local-web-view.ci
       task_ref:
         kind: task
@@ -8926,9 +8926,9 @@ resource_demands:
       role: ci_runtime
       unit: ci_minutes
       planned_amount: 10
-      remaining_amount: 10
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.keep-non-working-day-dates-in-openproject.agent
       task_ref:
         kind: task

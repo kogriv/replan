@@ -4571,8 +4571,8 @@
         },
         "estimatedTime": "PT0.5H",
         "spentTime": "PT0H",
-        "startDate": "2026-11-09",
-        "dueDate": "2026-11-09",
+        "startDate": "2026-10-29",
+        "dueDate": "2026-10-29",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2258"
@@ -4629,8 +4629,8 @@
         },
         "estimatedTime": "PT0.5H",
         "spentTime": "PT0H",
-        "startDate": "2026-11-11",
-        "dueDate": "2026-11-11",
+        "startDate": "2026-10-29",
+        "dueDate": "2026-10-29",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2260"
@@ -4716,8 +4716,8 @@
         },
         "estimatedTime": "PT0.5H",
         "spentTime": "PT0H",
-        "startDate": "2026-11-16",
-        "dueDate": "2026-11-16",
+        "startDate": "2026-10-29",
+        "dueDate": "2026-10-29",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2263"

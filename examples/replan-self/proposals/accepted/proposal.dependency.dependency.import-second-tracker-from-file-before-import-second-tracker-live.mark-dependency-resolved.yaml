@@ -1,0 +1,17 @@
+proposal:
+    id: proposal.dependency.dependency.import-second-tracker-from-file-before-import-second-tracker-live.mark-dependency-resolved
+    type: mark_dependency_resolved
+    status: accepted
+    created_at: "2026-10-29T19:18:45+07:00"
+    created_by:
+        kind: actor
+        id: actor.ai.agent.executor
+    target_ref:
+        kind: dependency
+        id: dependency.import-second-tracker-from-file-before-import-second-tracker-live
+    suggested_change:
+        op: set
+        path: dependencies.dependency.import-second-tracker-from-file-before-import-second-tracker-live.status
+        value: resolved
+    rationale: Dependency dependency.import-second-tracker-from-file-before-import-second-tracker-live (required) can be marked resolved because predecessor task.self.import-second-tracker-from-file is in the required state.
+    requires_confirmation: true

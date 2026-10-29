@@ -1645,7 +1645,7 @@ dependencies:
         kind: task
         id: task.self.import-second-tracker-live
       required_state: accepted
-      status: open
+      status: resolved
       criticality: required
     - id: dependency.design-local-web-view-before-implement-local-web-view
       type: finish_to_start

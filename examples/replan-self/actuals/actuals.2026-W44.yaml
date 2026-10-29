@@ -1721,3 +1721,66 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.implement-local-web-view
+    - id: actual.self-implement-estimate-calibration.ci-github-actions.20261029T1917380700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-estimate-calibration
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.implement-estimate-calibration.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-29T19:17:38+07:00"
+      status_date: "2026-10-29"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-implement-estimate-calibration
+    - id: actual.self-import-second-tracker-from-file.ci-github-actions.20261029T1918180700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.import-second-tracker-from-file
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.import-second-tracker-from-file.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-29T19:18:18+07:00"
+      status_date: "2026-10-29"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-import-second-tracker-from-file
+    - id: actual.self-implement-local-web-view.ci-github-actions.20261029T1918580700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-local-web-view
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.implement-local-web-view.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-29T19:18:58+07:00"
+      status_date: "2026-10-29"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-implement-local-web-view

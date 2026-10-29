@@ -1801,3 +1801,42 @@ evidence:
     targets:
       - kind: task
         id: task.self.implement-local-web-view
+  - id: evidence.self.accept-implement-estimate-calibration
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-29T19:17:38+07:00"
+    confidence: observed
+    summary: Operator accepted estimate calibration.
+    targets:
+      - kind: task
+        id: task.self.implement-estimate-calibration
+  - id: evidence.self.accept-import-second-tracker-from-file
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-29T19:18:18+07:00"
+    confidence: observed
+    summary: Operator accepted importing GitHub Issues from an exported file.
+    targets:
+      - kind: task
+        id: task.self.import-second-tracker-from-file
+  - id: evidence.self.accept-implement-local-web-view
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-29T19:18:58+07:00"
+    confidence: observed
+    summary: Operator accepted the workload, scenario, proposal and estimate dashboard pages.
+    targets:
+      - kind: task
+        id: task.self.implement-local-web-view
