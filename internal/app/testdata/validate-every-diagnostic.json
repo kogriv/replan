@@ -283,6 +283,15 @@
       }
     },
     {
+      "code": "invalid_github_token_env",
+      "message": "GitHub source profile token_env must be an environment variable name, not a token value",
+      "severity": "error",
+      "target": {
+        "kind": "source_profile",
+        "id": "github.invalid"
+      }
+    },
+    {
       "code": "invalid_github_status_map",
       "message": "GitHub status map entry \"open\" has invalid tracking status \"unknown\"",
       "severity": "error",

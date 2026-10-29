@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
@@ -22,15 +24,24 @@ type GitHubImportService struct {
 }
 
 type GitHubImportRequest struct {
-	FromFile               string
-	DryRun                 bool
-	Profile                string
-	Since                  string
-	IncludeClosed          bool
-	IncludeRelations       bool
-	ResourceLinksSidecar   string
-	ResourceDemandsSidecar string
-	Now                    time.Time
+	FromFile                 string
+	DryRun                   bool
+	Profile                  string
+	Repository               string
+	BaseURL                  string
+	TokenEnv                 string
+	TokenEnvSet              bool
+	LiveFlagsSet             bool
+	UserAgent                string
+	Since                    string
+	IncludeClosed            bool
+	IncludeRelations         bool
+	ResourceLinksSidecar     string
+	ResourceDemandsSidecar   string
+	RequestTimeoutSeconds    float64
+	RequestRetries           int
+	RequestRetryDelaySeconds float64
+	Now                      time.Time
 }
 
 type GitHubImportResult struct {
@@ -46,6 +57,7 @@ type GitHubImportResult struct {
 	DependencyCandidates     []OpenProjectDependencyCandidate     `json:"dependency_candidates,omitempty"`
 	PlannedWrites            []PlannedWrite                       `json:"planned_writes"`
 	WrittenFiles             []string                             `json:"written_files,omitempty"`
+	RateLimitRemaining       *int                                 `json:"rate_limit_remaining,omitempty"`
 	Warnings                 []Diagnostic                         `json:"warnings"`
 	Errors                   []Diagnostic                         `json:"errors"`
 }
@@ -172,9 +184,6 @@ func (s GitHubImportService) Import(ctx context.Context, req GitHubImportRequest
 		PlannedWrites: []PlannedWrite{}, WrittenFiles: []string{}, Warnings: []Diagnostic{}, Errors: []Diagnostic{},
 	}
 	appendLoadDiagnostics(&result.Warnings, &result.Errors, loadDiags)
-	if strings.TrimSpace(req.FromFile) == "" {
-		result.Errors = append(result.Errors, Diagnostic{Code: "github_from_file_required", Message: "GitHub import currently requires --from-file; live input is a separate task", Severity: "error"})
-	}
 	profile, profileSummary, profileDiagnostic := resolveGitHubProfile(ws.Project.SourceProfiles, req.Profile)
 	result.Profile = profileSummary
 	if profileDiagnostic != nil {
@@ -183,15 +192,22 @@ func (s GitHubImportService) Import(ctx context.Context, req GitHubImportRequest
 	if len(result.Errors) > 0 {
 		return result, ErrValidationFailed
 	}
-	doc, raw, err := readGitHubImportDocument(req.FromFile)
-	if err != nil {
-		result.Errors = append(result.Errors, Diagnostic{Code: "github_file_read_error", Message: fmt.Sprintf("failed to read GitHub import file: %v", err), Severity: "error", Target: Target{Kind: "file", ID: req.FromFile}})
+	doc, raw, sourceMode, rateRemaining, loadWarning, loadDiagnostic := loadGitHubImportDocument(ctx, req, profile)
+	if loadWarning != nil {
+		result.Warnings = append(result.Warnings, *loadWarning)
+	}
+	result.RateLimitRemaining = rateRemaining
+	if loadDiagnostic != nil {
+		result.Errors = append(result.Errors, *loadDiagnostic)
 		return result, ErrValidationFailed
 	}
 	repository := doc.Repository.Owner + "/" + doc.Repository.Name
 	if profile.Repository != "" && !strings.EqualFold(profile.Repository, repository) {
 		result.Errors = append(result.Errors, Diagnostic{Code: "github_repository_mismatch", Message: fmt.Sprintf("input repository %s does not match source profile repository %s", repository, profile.Repository), Severity: "error"})
 		return result, ErrValidationFailed
+	}
+	if sourceMode == "api" && (profile.StartField != "" || profile.FinishField != "" || profile.EstimateField != "") {
+		result.Warnings = append(result.Warnings, Diagnostic{Code: "github_project_fields_live_unsupported", Message: "GitHub Projects fields named by the profile are not read by live input; issue data and relations were imported without Project fields", Severity: "warning", Target: Target{Kind: "source_profile", ID: profile.ID}})
 	}
 	links, err := readGitHubYAML[githubResourceLinksSidecar](s.loader.ProjectPath(), req.ResourceLinksSidecar, "integrations/github/resource-links.yaml")
 	if err != nil {
@@ -203,6 +219,40 @@ func (s GitHubImportService) Import(ctx context.Context, req GitHubImportRequest
 		result.Errors = append(result.Errors, Diagnostic{Code: "github_resource_demand_sidecar_read_error", Message: err.Error(), Severity: "error"})
 		return result, ErrValidationFailed
 	}
+	if diag := buildGitHubCandidates(ws, doc, req, profile, repository, links, demands, &result); diag != nil {
+		result.Errors = append(result.Errors, *diag)
+		return result, ErrValidationFailed
+	}
+	importedAt := req.Now
+	if importedAt.IsZero() {
+		importedAt = time.Now()
+	}
+	key := importedAt.Format("20060102T150405")
+	result.Snapshot = OpenProjectSnapshotSummary{ID: "source_snapshot.github." + key, Key: key, CollectionType: "GitHubIssues", DeclaredTotal: len(doc.Issues), DeclaredCount: len(doc.Issues), LoadedCount: len(result.TaskCandidates), SourceMode: sourceMode}
+	write, err := buildGitHubSnapshotWrite(result, req, profile, repository, raw, importedAt)
+	if err != nil {
+		result.Errors = append(result.Errors, Diagnostic{Code: "github_snapshot_render_error", Message: err.Error(), Severity: "error"})
+		return result, ErrValidationFailed
+	}
+	result.PlannedWrites = githubSnapshotPlannedWrites(key)
+	if req.DryRun {
+		return result, nil
+	}
+	writer, ok := s.loader.(ImportSnapshotWriter)
+	if !ok {
+		result.Errors = append(result.Errors, Diagnostic{Code: "snapshot_writer_unavailable", Message: "project store does not support import snapshot writes", Severity: "error"})
+		return result, ErrValidationFailed
+	}
+	result.WrittenFiles, err = writer.WriteImportSnapshot("github", write)
+	if err != nil {
+		result.Errors = append(result.Errors, Diagnostic{Code: "github_snapshot_write_error", Message: err.Error(), Severity: "error"})
+		return result, err
+	}
+	result.Applied = true
+	return result, nil
+}
+
+func buildGitHubCandidates(ws domain.Workspace, doc GitHubImportDocument, req GitHubImportRequest, profile domain.SourceProfile, repository string, links *githubResourceLinksSidecar, demands *githubResourceDemandsSidecar, result *GitHubImportResult) *Diagnostic {
 	linkIndex := map[string]domain.Ref{}
 	if links != nil {
 		for _, link := range links.Links {
@@ -215,8 +265,7 @@ func (s GitHubImportService) Import(ctx context.Context, req GitHubImportRequest
 	}
 	since, sinceErr := parseGitHubSince(req.Since)
 	if sinceErr != nil {
-		result.Errors = append(result.Errors, Diagnostic{Code: "github_since_invalid", Message: sinceErr.Error(), Severity: "error"})
-		return result, ErrValidationFailed
+		return &Diagnostic{Code: "github_since_invalid", Message: sinceErr.Error(), Severity: "error"}
 	}
 	issueIndex := map[int]OpenProjectTaskCandidate{}
 	for _, issue := range doc.Issues {
@@ -256,33 +305,7 @@ func (s GitHubImportService) Import(ctx context.Context, req GitHubImportRequest
 	sort.Slice(result.ResourceCandidates, func(i, j int) bool {
 		return result.ResourceCandidates[i].SourceID < result.ResourceCandidates[j].SourceID
 	})
-	importedAt := req.Now
-	if importedAt.IsZero() {
-		importedAt = time.Now()
-	}
-	key := importedAt.Format("20060102T150405")
-	result.Snapshot = OpenProjectSnapshotSummary{ID: "source_snapshot.github." + key, Key: key, CollectionType: "GitHubIssues", DeclaredTotal: len(doc.Issues), DeclaredCount: len(doc.Issues), LoadedCount: len(result.TaskCandidates), SourceMode: "file"}
-	write, err := buildGitHubSnapshotWrite(result, req, profile, repository, raw, importedAt)
-	if err != nil {
-		result.Errors = append(result.Errors, Diagnostic{Code: "github_snapshot_render_error", Message: err.Error(), Severity: "error"})
-		return result, ErrValidationFailed
-	}
-	result.PlannedWrites = githubSnapshotPlannedWrites(key)
-	if req.DryRun {
-		return result, nil
-	}
-	writer, ok := s.loader.(ImportSnapshotWriter)
-	if !ok {
-		result.Errors = append(result.Errors, Diagnostic{Code: "snapshot_writer_unavailable", Message: "project store does not support import snapshot writes", Severity: "error"})
-		return result, ErrValidationFailed
-	}
-	result.WrittenFiles, err = writer.WriteImportSnapshot("github", write)
-	if err != nil {
-		result.Errors = append(result.Errors, Diagnostic{Code: "github_snapshot_write_error", Message: err.Error(), Severity: "error"})
-		return result, err
-	}
-	result.Applied = true
-	return result, nil
+	return nil
 }
 
 func resolveGitHubProfile(profiles []domain.SourceProfile, id string) (domain.SourceProfile, *SourceProfileSummary, *Diagnostic) {
@@ -294,6 +317,309 @@ func resolveGitHubProfile(profiles []domain.SourceProfile, id string) (domain.So
 		return domain.SourceProfile{}, nil, &Diagnostic{Code: "source_profile_not_found", Message: fmt.Sprintf("GitHub source profile %q was not found", id), Severity: "error", Target: Target{Kind: "source_profile", ID: id}}
 	}
 	return profile, sourceProfileSummary(profile), nil
+}
+
+type githubRepositoryResponse struct {
+	Name    string `json:"name"`
+	HTMLURL string `json:"html_url"`
+	Owner   struct {
+		Login string `json:"login"`
+	} `json:"owner"`
+}
+
+type githubLiveRequest struct {
+	baseURL          string
+	repository       string
+	token            string
+	userAgent        string
+	since            time.Time
+	includeClosed    bool
+	includeRelations bool
+}
+
+func loadGitHubImportDocument(ctx context.Context, req GitHubImportRequest, profile domain.SourceProfile) (GitHubImportDocument, []byte, string, *int, *Diagnostic, *Diagnostic) {
+	if strings.TrimSpace(req.FromFile) != "" {
+		if req.Repository != "" || req.BaseURL != "" || req.TokenEnvSet || req.LiveFlagsSet {
+			return GitHubImportDocument{}, nil, "file", nil, nil, &Diagnostic{Code: "github_input_flags_conflict", Message: "--from-file cannot be combined with live input flags", Severity: "error"}
+		}
+		doc, raw, err := readGitHubImportDocument(req.FromFile)
+		if err != nil {
+			return doc, nil, "file", nil, nil, &Diagnostic{Code: "github_file_read_error", Message: fmt.Sprintf("failed to read GitHub import file: %v", err), Severity: "error", Target: Target{Kind: "file", ID: req.FromFile}}
+		}
+		return doc, raw, "file", nil, nil, nil
+	}
+	if req.Profile != "" && req.Repository != "" {
+		return GitHubImportDocument{}, nil, "api", nil, nil, &Diagnostic{Code: "github_selection_conflict", Message: "live GitHub import accepts either --profile or --repository, not both", Severity: "error"}
+	}
+	repository := strings.TrimSpace(firstNonEmpty(req.Repository, profile.Repository))
+	if !validGitHubRepository(repository) {
+		return GitHubImportDocument{}, nil, "api", nil, nil, &Diagnostic{Code: "github_repository_required", Message: "live GitHub import requires --profile with repository or --repository owner/repo", Severity: "error"}
+	}
+	tokenEnv := profile.TokenEnv
+	if req.TokenEnvSet {
+		tokenEnv = req.TokenEnv
+	} else if tokenEnv == "" {
+		tokenEnv = "GITHUB_TOKEN"
+	}
+	token := ""
+	if tokenEnv != "" {
+		token = os.Getenv(tokenEnv)
+	}
+	var warning *Diagnostic
+	if token == "" {
+		message := "GitHub token is not set; using the unauthenticated public API with a low rate limit"
+		if tokenEnv != "" {
+			message = fmt.Sprintf("environment variable %s is not set; using the unauthenticated public API with a low rate limit", tokenEnv)
+		}
+		warning = &Diagnostic{Code: "github_token_missing", Message: message, Severity: "warning"}
+	}
+	since, err := parseGitHubSince(req.Since)
+	if err != nil {
+		return GitHubImportDocument{}, nil, "api", nil, warning, &Diagnostic{Code: "github_since_invalid", Message: err.Error(), Severity: "error"}
+	}
+	live := githubLiveRequest{
+		baseURL: firstNonEmpty(req.BaseURL, profile.BaseURL, "https://api.github.com"), repository: repository,
+		token: token, userAgent: firstNonEmpty(req.UserAgent, "replan/dev"), since: since,
+		includeClosed: req.IncludeClosed, includeRelations: req.IncludeRelations,
+	}
+	client := newRetryHTTPClient(
+		time.Duration(req.RequestTimeoutSeconds*float64(time.Second)), req.RequestRetries,
+		time.Duration(req.RequestRetryDelaySeconds*float64(time.Second)),
+		map[int]bool{http.StatusRequestTimeout: true, http.StatusInternalServerError: true, http.StatusBadGateway: true, http.StatusServiceUnavailable: true, http.StatusGatewayTimeout: true},
+	)
+	doc, remaining, diag := fetchGitHubImportDocument(ctx, client, live)
+	if diag != nil {
+		return doc, nil, "api", remaining, warning, diag
+	}
+	raw, err := json.MarshalIndent(doc, "", "  ")
+	if err != nil {
+		return doc, nil, "api", remaining, warning, &Diagnostic{Code: "github_snapshot_render_error", Message: fmt.Sprintf("failed to render GitHub raw snapshot: %v", err), Severity: "error"}
+	}
+	return doc, append(raw, '\n'), "api", remaining, warning, nil
+}
+
+func validGitHubRepository(repository string) bool {
+	parts := strings.Split(repository, "/")
+	return len(parts) == 2 && strings.TrimSpace(parts[0]) != "" && strings.TrimSpace(parts[1]) != ""
+}
+
+func fetchGitHubImportDocument(ctx context.Context, client *http.Client, req githubLiveRequest) (GitHubImportDocument, *int, *Diagnostic) {
+	if client == nil {
+		client = http.DefaultClient
+	}
+	doc := GitHubImportDocument{Format: GitHubImportFormatV1, Issues: []GitHubIssue{}, BlockedBy: []GitHubBlockedBy{}, ProjectItems: []GitHubProjectItem{}}
+	var remaining *int
+	repositoryURL, err := githubAPIURL(req.baseURL, "repos/"+req.repository, nil)
+	if err != nil {
+		return doc, remaining, &Diagnostic{Code: "source_unavailable", Message: fmt.Sprintf("failed to build GitHub repository URL: %v", err), Severity: "error"}
+	}
+	var repository githubRepositoryResponse
+	if diag := fetchGitHubJSON(ctx, client, req, repositoryURL, &repository, &remaining); diag != nil {
+		return doc, remaining, diag
+	}
+	doc.Repository = GitHubRepository{Owner: repository.Owner.Login, Name: repository.Name, HTMLURL: repository.HTMLURL}
+	query := url.Values{"state": []string{"open"}, "per_page": []string{"100"}}
+	if req.includeClosed {
+		query.Set("state", "all")
+	}
+	if !req.since.IsZero() {
+		query.Set("since", req.since.Format(time.RFC3339))
+	}
+	nextURL, err := githubAPIURL(req.baseURL, "repos/"+req.repository+"/issues", query)
+	if err != nil {
+		return doc, remaining, &Diagnostic{Code: "source_unavailable", Message: fmt.Sprintf("failed to build GitHub issues URL: %v", err), Severity: "error"}
+	}
+	for nextURL != "" {
+		var page []GitHubIssue
+		var next string
+		if diag := fetchGitHubJSONPage(ctx, client, req, nextURL, &page, &remaining, &next); diag != nil {
+			return doc, remaining, diag
+		}
+		doc.Issues = append(doc.Issues, page...)
+		nextURL = next
+	}
+	if req.includeRelations {
+		if diag := fetchGitHubRelations(ctx, client, req, &doc, &remaining); diag != nil {
+			return doc, remaining, diag
+		}
+	}
+	return doc, remaining, nil
+}
+
+func fetchGitHubRelations(ctx context.Context, client *http.Client, req githubLiveRequest, doc *GitHubImportDocument, remaining **int) *Diagnostic {
+	issueByNumber := map[int]*GitHubIssue{}
+	for index := range doc.Issues {
+		issueByNumber[doc.Issues[index].Number] = &doc.Issues[index]
+	}
+	for _, issue := range doc.Issues {
+		if len(issue.PullRequest) > 0 && string(issue.PullRequest) != "null" {
+			continue
+		}
+		if issue.State == "closed" && !req.includeClosed {
+			continue
+		}
+		basePath := "repos/" + req.repository + "/issues/" + strconv.Itoa(issue.Number)
+		blockedURL, err := githubAPIURL(req.baseURL, basePath+"/dependencies/blocked_by", url.Values{"per_page": []string{"100"}})
+		if err != nil {
+			return &Diagnostic{Code: "source_unavailable", Message: fmt.Sprintf("failed to build GitHub relations URL: %v", err), Severity: "error"}
+		}
+		blocked, diag := fetchGitHubIssueRefs(ctx, client, req, blockedURL, remaining)
+		if diag != nil {
+			return diag
+		}
+		if len(blocked) > 0 {
+			doc.BlockedBy = append(doc.BlockedBy, GitHubBlockedBy{IssueNumber: issue.Number, Issues: blocked})
+		}
+		subIssuesURL, err := githubAPIURL(req.baseURL, basePath+"/sub_issues", url.Values{"per_page": []string{"100"}})
+		if err != nil {
+			return &Diagnostic{Code: "source_unavailable", Message: fmt.Sprintf("failed to build GitHub sub-issues URL: %v", err), Severity: "error"}
+		}
+		subIssues, diag := fetchGitHubIssueRefs(ctx, client, req, subIssuesURL, remaining)
+		if diag != nil {
+			return diag
+		}
+		for _, child := range subIssues {
+			if listed := issueByNumber[child.Number]; listed != nil {
+				listed.Parent = &GitHubIssueRef{Repository: req.repository, Number: issue.Number, ID: issue.ID, HTMLURL: issue.HTMLURL}
+			}
+		}
+	}
+	return nil
+}
+
+func fetchGitHubIssueRefs(ctx context.Context, client *http.Client, req githubLiveRequest, firstURL string, remaining **int) ([]GitHubIssueRef, *Diagnostic) {
+	var refs []GitHubIssueRef
+	nextURL := firstURL
+	for nextURL != "" {
+		var page []GitHubIssue
+		var next string
+		if diag := fetchGitHubJSONPage(ctx, client, req, nextURL, &page, remaining, &next); diag != nil {
+			return nil, diag
+		}
+		for _, issue := range page {
+			repository := githubRepositoryFromHTMLURL(issue.HTMLURL)
+			refs = append(refs, GitHubIssueRef{Repository: repository, Number: issue.Number, ID: issue.ID, HTMLURL: issue.HTMLURL})
+		}
+		nextURL = next
+	}
+	return refs, nil
+}
+
+func githubRepositoryFromHTMLURL(value string) string {
+	parsed, err := url.Parse(value)
+	if err != nil {
+		return ""
+	}
+	parts := strings.Split(strings.Trim(parsed.Path, "/"), "/")
+	if len(parts) >= 2 {
+		return parts[0] + "/" + parts[1]
+	}
+	return ""
+}
+
+func githubAPIURL(baseURL, path string, query url.Values) (string, error) {
+	parsed, err := url.Parse(strings.TrimRight(baseURL, "/") + "/")
+	if err != nil {
+		return "", err
+	}
+	parsed.Path = strings.TrimRight(parsed.Path, "/") + "/" + strings.TrimLeft(path, "/")
+	parsed.RawQuery = query.Encode()
+	return parsed.String(), nil
+}
+
+func fetchGitHubJSONPage(ctx context.Context, client *http.Client, req githubLiveRequest, pageURL string, target any, remaining **int, next *string) *Diagnostic {
+	resp, diag := doGitHubGET(ctx, client, req, pageURL, remaining)
+	if diag != nil {
+		return diag
+	}
+	defer resp.Body.Close()
+	if err := json.NewDecoder(resp.Body).Decode(target); err != nil {
+		return &Diagnostic{Code: "source_unavailable", Message: fmt.Sprintf("failed to parse GitHub API response: %v", err), Severity: "error"}
+	}
+	*next = githubNextLink(resp.Header.Get("Link"))
+	return nil
+}
+
+func fetchGitHubJSON(ctx context.Context, client *http.Client, req githubLiveRequest, requestURL string, target any, remaining **int) *Diagnostic {
+	resp, diag := doGitHubGET(ctx, client, req, requestURL, remaining)
+	if diag != nil {
+		return diag
+	}
+	defer resp.Body.Close()
+	if err := json.NewDecoder(resp.Body).Decode(target); err != nil {
+		return &Diagnostic{Code: "source_unavailable", Message: fmt.Sprintf("failed to parse GitHub API response: %v", err), Severity: "error"}
+	}
+	return nil
+}
+
+func doGitHubGET(ctx context.Context, client *http.Client, req githubLiveRequest, requestURL string, remaining **int) (*http.Response, *Diagnostic) {
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)
+	if err != nil {
+		return nil, &Diagnostic{Code: "source_unavailable", Message: fmt.Sprintf("failed to build GitHub API request: %v", err), Severity: "error"}
+	}
+	httpReq.Header.Set("Accept", "application/vnd.github+json")
+	httpReq.Header.Set("X-GitHub-Api-Version", "2022-11-28")
+	httpReq.Header.Set("User-Agent", req.userAgent)
+	if req.token != "" {
+		httpReq.Header.Set("Authorization", "Bearer "+req.token)
+	}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, &Diagnostic{Code: "source_unavailable", Message: fmt.Sprintf("GitHub API request failed: %v", err), Severity: "error"}
+	}
+	if value, parseErr := strconv.Atoi(resp.Header.Get("X-RateLimit-Remaining")); parseErr == nil {
+		*remaining = &value
+	}
+	if diag := githubHTTPStatusDiagnostic(resp); diag != nil {
+		_ = resp.Body.Close()
+		return nil, diag
+	}
+	return resp, nil
+}
+
+func githubHTTPStatusDiagnostic(resp *http.Response) *Diagnostic {
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		return nil
+	}
+	if (resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusTooManyRequests) && (resp.Header.Get("X-RateLimit-Remaining") == "0" || resp.Header.Get("Retry-After") != "") {
+		return &Diagnostic{Code: "source_rate_limited", Message: "GitHub API rate limit reached; reset " + githubRateLimitReset(resp.Header), Severity: "error"}
+	}
+	switch resp.StatusCode {
+	case http.StatusUnauthorized:
+		return &Diagnostic{Code: "source_unauthorized", Message: "GitHub API returned HTTP 401", Severity: "error"}
+	case http.StatusNotFound:
+		return &Diagnostic{Code: "source_not_found", Message: "GitHub repository was not found or is not accessible", Severity: "error"}
+	default:
+		return &Diagnostic{Code: "source_unavailable", Message: fmt.Sprintf("GitHub API returned HTTP %d", resp.StatusCode), Severity: "error"}
+	}
+}
+
+func githubRateLimitReset(header http.Header) string {
+	if value := header.Get("X-RateLimit-Reset"); value != "" {
+		if seconds, err := strconv.ParseInt(value, 10, 64); err == nil {
+			return time.Unix(seconds, 0).UTC().Format(time.RFC3339)
+		}
+	}
+	if value := header.Get("Retry-After"); value != "" {
+		if seconds, err := strconv.Atoi(value); err == nil {
+			return fmt.Sprintf("after %d seconds", seconds)
+		}
+		if parsed, err := http.ParseTime(value); err == nil {
+			return parsed.UTC().Format(time.RFC3339)
+		}
+	}
+	return "time is unknown"
+}
+
+func githubNextLink(value string) string {
+	for _, part := range strings.Split(value, ",") {
+		sections := strings.Split(part, ";")
+		if len(sections) < 2 || !strings.Contains(sections[1], `rel="next"`) {
+			continue
+		}
+		return strings.Trim(strings.TrimSpace(sections[0]), "<>")
+	}
+	return ""
 }
 
 func readGitHubImportDocument(path string) (GitHubImportDocument, []byte, error) {
@@ -547,7 +873,7 @@ func buildGitHubSnapshotWrite(result GitHubImportResult, req GitHubImportRequest
 		return OpenProjectImportSnapshotWrite{}, err
 	}
 	mappedJSON = append(mappedJSON, '\n')
-	manifest := gitHubImportManifest{SourceSnapshot: gitHubImportManifestBody{ID: result.Snapshot.ID, Source: "github", SourceMode: "file", ImportedAt: importedAt.Format(time.RFC3339), ProfileID: profile.ID, Repository: repository, Since: req.Since, IncludeClosed: req.IncludeClosed, IncludeRelations: req.IncludeRelations, RawLocation: base + "raw.json", MappedLocation: base + "mapped.json", AdapterVersion: "replan-github-adapter-v0", ObjectCount: len(result.TaskCandidates), WarningCount: len(result.Warnings)}}
+	manifest := gitHubImportManifest{SourceSnapshot: gitHubImportManifestBody{ID: result.Snapshot.ID, Source: "github", SourceMode: result.Snapshot.SourceMode, ImportedAt: importedAt.Format(time.RFC3339), ProfileID: profile.ID, Repository: repository, Since: req.Since, IncludeClosed: req.IncludeClosed, IncludeRelations: req.IncludeRelations, RawLocation: base + "raw.json", MappedLocation: base + "mapped.json", AdapterVersion: "replan-github-adapter-v0", ObjectCount: len(result.TaskCandidates), WarningCount: len(result.Warnings)}}
 	manifestYAML, err := yaml.Marshal(manifest)
 	if err != nil {
 		return OpenProjectImportSnapshotWrite{}, err

@@ -39,7 +39,7 @@ class ScriptHelpTest(unittest.TestCase):
                     self.assertRegex(line, setting_line)
 
     def test_every_script_answers_help_without_settings(self):
-        self.assertEqual(len(SCRIPTS), 35)
+        self.assertEqual(len(SCRIPTS), 36)
         for script in SCRIPTS:
             with self.subTest(script=os.path.basename(script)):
                 proc = subprocess.run(

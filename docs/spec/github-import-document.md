@@ -2,11 +2,24 @@
 
 Date: 2026-10-29
 
-Status: file input implemented.
+Status: file and live REST input implemented.
 
 `replan import github --from-file` reads one network-neutral JSON document.
-The later live reader must produce this same document before mapping; the
-mapper itself performs no network requests.
+Live input builds and stores this same document before mapping; the mapper
+itself performs no network requests. Therefore a live snapshot's `raw.json`
+can be passed back to `--from-file` and produces the same candidates.
+
+Live input reads repository facts and paginated issues from the GitHub REST
+API. With `--include-relations`, it also reads each selected issue's
+`dependencies/blocked_by` and `sub_issues` endpoints. Pull requests returned by
+the issues endpoint are retained only long enough for the shared mapper to
+filter them. Sub-issues already present in the selected issue list receive a
+normalized `parent` reference.
+
+GitHub Projects fields are not read by live input. When a selected profile
+names `start_field`, `finish_field`, or `estimate_field`, the command reports
+`github_project_fields_live_unsupported`; Project-backed values can still be
+supplied in a replay or exported file document.
 
 ## Version 1
 

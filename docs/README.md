@@ -35,7 +35,7 @@ Project-level entry points:
   `replan` command-line interface, global flags, output envelope, exit codes,
   command families, mutation rules and AI CLI safety.
 - [`spec/github-import-document.md`](spec/github-import-document.md) —
-  versioned, network-neutral GitHub Issues file-input and sidecar contract.
+  versioned, network-neutral GitHub Issues file/live-input and sidecar contract.
 - [`spec/implementation-sequence.md`](spec/implementation-sequence.md) —
   approved implementation specification for the ordered path from Go skeleton and
   fixtures to validation, workload reports, scenarios, proposals, audit,
@@ -186,7 +186,7 @@ Project-level entry points:
   tagging, deterministic local release builds, verification and GitHub release
   publication.
 - [`dev/second-tracker-adapter-design.md`](dev/second-tracker-adapter-design.md)
-  — approved GitHub Issues adapter design and file-input implementation status.
+  — approved GitHub Issues adapter design and file/live-input implementation status.
 - [`dev/local-web-view-design.md`](dev/local-web-view-design.md) — proposed
   decision to complete the static dashboard pages instead of building a
   served web view.

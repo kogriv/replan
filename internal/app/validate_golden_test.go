@@ -29,7 +29,7 @@ func everyDiagnosticWorkspace() domain.Workspace {
 				{ID: "jira"},
 				{ID: "jira.other", Source: "jira"},
 				{ID: "github.missing-map", Source: "github", Repository: "owner/repo"},
-				{ID: "github.invalid", Source: "github", Repository: "bad", StatusMap: map[string]string{"open": "unknown"}},
+				{ID: "github.invalid", Source: "github", Repository: "bad", TokenEnv: "bad-token", StatusMap: map[string]string{"open": "unknown"}},
 			},
 		},
 		Actors: []domain.Actor{

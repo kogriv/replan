@@ -2145,27 +2145,74 @@ func runImport(args []string, stdout, stderr *os.File) int {
 
 func runImportGitHub(args []string, stdout, stderr *os.File) int {
 	fs := newCLIFlagSet("import github")
+	defaultRequestTimeout, defaultRequestTimeoutErr := defaultOpenProjectRequestTimeoutSeconds()
+	defaultRequestRetries, defaultRequestRetriesErr := defaultOpenProjectRequestRetries()
+	defaultRequestRetryDelay, defaultRequestRetryDelayErr := defaultOpenProjectRequestRetryDelaySeconds()
 	projectPath, format := addProjectFormatFlags(fs, "json")
 	fromFile := fs.String("from-file", "", "versioned GitHub Issues import JSON document")
 	profile := fs.String("profile", "", "GitHub source profile id from .replan/project.yaml")
+	repository := fs.String("repository", "", "GitHub repository in owner/repo form")
+	baseURL := fs.String("base-url", "", "GitHub API base URL (default https://api.github.com)")
+	tokenEnv := fs.String("token-env", "", "environment variable containing a GitHub token (default GITHUB_TOKEN; empty disables token lookup)")
 	since := fs.String("since", "", "import issues updated since YYYY-MM-DD or RFC3339")
 	includeClosed := fs.Bool("include-closed", false, "include closed issues")
 	includeRelations := fs.Bool("include-relations", false, "include blocked-by links as dependency candidates")
 	resourceLinksSidecar := fs.String("resource-links-sidecar", "", "GitHub resource-link sidecar path")
 	resourceDemandsSidecar := fs.String("resource-demands-sidecar", "", "GitHub resource-demand sidecar path")
+	requestTimeout := fs.Float64("request-timeout", defaultRequestTimeout, "GitHub API request timeout in seconds; default can be set with REPLAN_OPENPROJECT_TIMEOUT_SECONDS")
+	requestRetries := fs.Int("request-retries", defaultRequestRetries, "GitHub API transient GET retry count; default can be set with REPLAN_OPENPROJECT_RETRIES")
+	requestRetryDelay := fs.Float64("request-retry-delay", defaultRequestRetryDelay, "GitHub API retry delay in seconds; default can be set with REPLAN_OPENPROJECT_RETRY_DELAY_SECONDS")
 	dryRun := fs.Bool("dry-run", false, "preview the import without writing files")
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
 	}
+	if defaultRequestTimeoutErr != nil {
+		fmt.Fprintf(stderr, "%v\n", defaultRequestTimeoutErr)
+		return exitInvalidUsage
+	}
+	if defaultRequestRetriesErr != nil {
+		fmt.Fprintf(stderr, "%v\n", defaultRequestRetriesErr)
+		return exitInvalidUsage
+	}
+	if defaultRequestRetryDelayErr != nil {
+		fmt.Fprintf(stderr, "%v\n", defaultRequestRetryDelayErr)
+		return exitInvalidUsage
+	}
+	if *requestTimeout <= 0 {
+		fmt.Fprintln(stderr, "--request-timeout must be positive")
+		return exitInvalidUsage
+	}
+	if *requestRetries < 0 {
+		fmt.Fprintln(stderr, "--request-retries must be non-negative")
+		return exitInvalidUsage
+	}
+	if *requestRetryDelay <= 0 {
+		fmt.Fprintln(stderr, "--request-retry-delay must be positive")
+		return exitInvalidUsage
+	}
+	tokenEnvSet := false
+	liveFlagsSet := false
+	fs.Visit(func(flag *flag.Flag) {
+		if flag.Name == "token-env" {
+			tokenEnvSet = true
+		}
+		switch flag.Name {
+		case "repository", "base-url", "token-env", "request-timeout", "request-retries", "request-retry-delay":
+			liveFlagsSet = true
+		}
+	})
 	if !*dryRun {
 		if code, done := refuseBindingsLayerWrite("import github", *projectPath, *format, stdout, stderr); done {
 			return code
 		}
 	}
 	result, err := app.NewGitHubImportService(newStore(*projectPath)).Import(context.Background(), app.GitHubImportRequest{
-		FromFile: *fromFile, DryRun: *dryRun, Profile: *profile, Since: *since,
+		FromFile: *fromFile, DryRun: *dryRun, Profile: *profile, Repository: *repository, BaseURL: *baseURL,
+		TokenEnv: *tokenEnv, TokenEnvSet: tokenEnvSet, LiveFlagsSet: liveFlagsSet,
+		UserAgent: "replan/" + buildinfo.Current().Version, Since: *since,
 		IncludeClosed: *includeClosed, IncludeRelations: *includeRelations,
 		ResourceLinksSidecar: *resourceLinksSidecar, ResourceDemandsSidecar: *resourceDemandsSidecar,
+		RequestTimeoutSeconds: *requestTimeout, RequestRetries: *requestRetries, RequestRetryDelaySeconds: *requestRetryDelay,
 	})
 	env := envelope{OK: err == nil && len(result.Errors) == 0, Command: "import github", ProjectPath: *projectPath, Result: result, Warnings: result.Warnings, Errors: result.Errors}
 	if *format == "markdown" || *format == "text" {
@@ -2174,6 +2221,9 @@ func runImportGitHub(args []string, stdout, stderr *os.File) int {
 			return exitGeneralError
 		}
 		if err != nil {
+			if diagnosticsContainExternal(result.Errors) {
+				return exitExternalSource
+			}
 			return validationFailureExit(result.Errors)
 		}
 		return exitSuccess
@@ -3458,7 +3508,11 @@ func diagnosticsContainExternal(diags []app.Diagnostic) bool {
 			"openproject_permission_denied",
 			"openproject_rate_limited",
 			"openproject_malformed_response",
-			"openproject_project_not_found":
+			"openproject_project_not_found",
+			"source_unavailable",
+			"source_unauthorized",
+			"source_not_found",
+			"source_rate_limited":
 			return true
 		}
 	}
@@ -4680,7 +4734,7 @@ func printUsage(out *os.File) {
 	fmt.Fprintln(out, "  replan task set-dates --project <path> --task <task-id> [--planned-start <YYYY-MM-DD>] [--planned-finish <YYYY-MM-DD>] --reason <text> --actor <id> --evidence <id> [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text] (push to OpenProject separately with scripts/push-openproject-date-drift.sh)")
 	fmt.Fprintln(out, "  replan task record-actual-window --project <path> --task <task-id> --actor <id> --evidence <id> [--reason <text>] [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text]")
 	fmt.Fprintln(out, "  replan task set-title --project <path> --task <task-id> --title <title> --reason <text> --actor <id> --evidence <id> [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text]")
-	fmt.Fprintln(out, "  replan import github --project <path> --from-file <path> [--profile <id>] [--since <date>] [--include-closed] [--include-relations] [--resource-links-sidecar <path>] [--resource-demands-sidecar <path>] [--dry-run] [--format json|markdown]")
+	fmt.Fprintln(out, "  replan import github --project <path> (--from-file <path>|--profile <id>|--repository <owner/repo>) [--token-env <env>] [--base-url <url>] [--since <date>] [--include-closed] [--include-relations] [--resource-links-sidecar <path>] [--resource-demands-sidecar <path>] [--request-timeout <seconds>] [--request-retries <n>] [--request-retry-delay <seconds>] [--dry-run] [--format json|markdown]")
 	fmt.Fprintln(out, "  replan import openproject --project <path> (--from-file <path>|--profile <id>|--base-url <url> --project-id <id> --token-env <env>) [--work-package <id>] [--since <date>] [--include-closed] [--include-relations] [--include-time-entries] [--resource-demands-sidecar <path>] [--resource-links-sidecar <path>] [--page-size <n>] [--request-timeout <seconds>] [--request-retries <n>] [--request-retry-delay <seconds>] [--host-header <host>] [--forwarded-proto <proto>] [--perimeter-key-env <env>] [--perimeter-header <name>] [--dry-run] [--format json|markdown]")
 	fmt.Fprintln(out, "  replan import accept <source-snapshot-id> --project <path> (--dry-run|--apply --actor <id> [--reason <text>]) [--accept-dates|--accept-dependencies|--accept-tracking-status|--accept-resource-links|--accept-resource-demands|--accept-time-entries] [--format json|markdown] (tracker candidates; time entries currently require an OpenProject snapshot)")
 	fmt.Fprintln(out, "  replan export json --project <path> [--output <path>] [--manifest <path>] [--format json]")

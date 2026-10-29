@@ -171,9 +171,9 @@ Implemented command families as of 2026-10-28:
 - `task add`, `task set-dates`, `task record-actual-window`, `task set-title`;
 - `import openproject` from a file, a source profile or the API, with
   relations, time entries and resource sidecars;
-- `import github` from a versioned exported file, with label status mapping,
-  same-repository blocked-by relations, optional Project fields and resource
-  sidecars;
+- `import github` from a versioned exported file or the GitHub REST API, with
+  label status mapping, same-repository blocked-by relations, sub-issue parent
+  facts, optional file-supplied Project fields and resource sidecars;
 - `import accept`, dry-run or `--apply` with an actor, per accept mode;
 - `export json`, `export taskjuggler`, `export csv --report workload`, each
   with an optional `--manifest`;
@@ -234,7 +234,7 @@ CLI: global placement of its per-command flags, `--agent`, `--yes`,
 `--verbose`, `--quiet`, `--debug`, an actor fallback from `REPLAN_ACTOR`,
 parent-directory project discovery, extra workload filters (GAP-011), extra
 `report` subcommands, `scenario create|patch|calculate|propose-apply`,
-`proposal create|supersede`, `audit show`, `import github|gitlab|csv` and a
+`proposal create|supersede`, `audit show`, `import gitlab|csv` and a
 first-class `writeback` command. The smoke and OpenProject sidecar-pipeline
 scripts do read `REPLAN_ACTOR` and pass it to the CLI as `--actor`.
 
@@ -329,6 +329,24 @@ only when its configured token is present:
 ./scripts/validate-openproject.sh
 OPENPROJECT_TOKEN=... ./scripts/validate-openproject.sh
 ```
+
+### Import GitHub Issues
+
+File and live input share the same versioned GitHub import document and
+mapper. A live snapshot's `raw.json` can therefore be replayed with
+`--from-file`:
+
+```bash
+go run ./cmd/replan import github --project examples/small-team --profile github.demo --from-file examples/imports/github/issues.sample.json --include-closed --include-relations --dry-run --format json
+GITHUB_TOKEN=... go run ./cmd/replan import github --project examples/small-team --profile github.demo --include-closed --include-relations --dry-run --format json
+go run ./cmd/replan import github --project examples/small-team --repository example-org/planning-demo --token-env '' --dry-run --format json
+```
+
+The empty token environment name deliberately uses unauthenticated public API
+access; it never falls back to another variable. Omit `--dry-run` to stage a
+snapshot, then use the shared accept commands below. The manual disposable-
+repository check is `scripts/check-github-import-live.sh`; it requires
+`REPLAN_GITHUB_REPOSITORY` and is not part of the smoke suite.
 
 ### Accept an import
 

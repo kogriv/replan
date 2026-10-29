@@ -2,9 +2,9 @@
 
 Date: 2026-10-28
 
-Status: file input implemented on 2026-10-29
-(`task.self.import-second-tracker-from-file`); live input remains
-`task.self.import-second-tracker-live`.
+Status: file input and live REST input implemented on 2026-10-29
+(`task.self.import-second-tracker-from-file` and
+`task.self.import-second-tracker-live`).
 
 The implemented command follows the existing OpenProject snapshot gate:
 `--dry-run` previews and omitting it writes the staged snapshot. It therefore
@@ -86,11 +86,15 @@ same path from there on. A sanitized sample goes to
 - token from an environment variable named in the source profile; a
   fine-grained token with read access to Issues (and Projects, when fields
   are used) is enough;
-- REST pagination with `per_page=100`, `If-None-Match` for repeated runs,
-  and the primary and secondary rate limits honoured: on 403 or 429 with a
-  reset header, wait or stop with `source_rate_limited`;
+- REST pagination with `per_page=100`; the primary and secondary rate limits
+  are honoured by stopping on 403 or 429 with reset information and reporting
+  `source_rate_limited` rather than sleeping for a long interval;
 - the same timeout and retry settings as the OpenProject client, reads only;
 - `--since` maps to the issues list's `since` parameter.
+
+ETag reuse is not implemented in this slice. The request count and replayable
+raw snapshot were prioritized; a later conditional-request change needs its
+own cache location and invalidation contract.
 
 ## Staged import and accept
 

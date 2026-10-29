@@ -738,6 +738,9 @@ func validateGitHubSourceProfile(result *ValidateResult, profile domain.SourcePr
 	if len(profile.StatusMap) == 0 {
 		addError(result, "missing_github_status_map", "GitHub source profile status_map is required", "source_profile", targetID)
 	}
+	if profile.TokenEnv != "" && !validEnvName(profile.TokenEnv) {
+		addError(result, "invalid_github_token_env", "GitHub source profile token_env must be an environment variable name, not a token value", "source_profile", targetID)
+	}
 	for key, status := range profile.StatusMap {
 		if strings.TrimSpace(key) == "" || !domain.ValidTrackingStatus(status) {
 			addError(result, "invalid_github_status_map", fmt.Sprintf("GitHub status map entry %q has invalid tracking status %q", key, status), "source_profile", targetID)

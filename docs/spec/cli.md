@@ -1843,7 +1843,7 @@ Purpose:
 Import source data into `imports/`, map it to canonical candidates and optionally
 accept mapped canonical changes.
 
-OpenProject and GitHub Issues file input are implemented. Both map source data
+OpenProject and GitHub Issues file and live API input are implemented. Both map source data
 to staged candidates and write snapshots only when `--dry-run` is absent;
 canonical state changes only through `import accept`.
 
@@ -1875,6 +1875,8 @@ replan import openproject --project examples/small-team --profile openproject.de
 replan import openproject --project examples/small-team --profile openproject.demo --since 2026-07-01 --resource-demands-sidecar integrations/openproject/resource-demands.yaml --dry-run --format json
 replan import openproject --project examples/small-team --profile openproject.demo --work-package 1234 --dry-run --format json
 replan import github --project examples/small-team --profile github.demo --from-file examples/imports/github/issues.sample.json --include-closed --include-relations --resource-links-sidecar ../imports/github/resource-links.sample.yaml --resource-demands-sidecar ../imports/github/resource-demands.sample.yaml --dry-run --format json
+replan import github --project examples/small-team --profile github.demo --include-closed --include-relations --dry-run --format json
+replan import github --project examples/small-team --repository example-org/planning-demo --token-env GITHUB_TOKEN --dry-run --format json
 replan import accept source_snapshot.openproject.20260706T120000 --dry-run --format json
 replan import accept source_snapshot.openproject.20260706T120000 --accept-resource-links --dry-run --format json
 replan import accept source_snapshot.openproject.20260706T120000 --accept-resource-links --actor actor.human.operator --apply --format json
@@ -1896,14 +1898,16 @@ Implemented command flags:
 
 ```text
 replan import openproject --project -p --bindings --format --base-url --dry-run --forwarded-proto --from-file --host-header --include-closed --include-relations --include-time-entries --page-size --perimeter-header --perimeter-key-env --profile --project-id --request-retries --request-retry-delay --request-timeout --resource-demands-sidecar --resource-links-sidecar --since --token-env --work-package
-replan import github --project -p --bindings --format --dry-run --from-file --include-closed --include-relations --profile --resource-demands-sidecar --resource-links-sidecar --since
+replan import github --project -p --bindings --format --base-url --dry-run --from-file --include-closed --include-relations --profile --repository --request-retries --request-retry-delay --request-timeout --resource-demands-sidecar --resource-links-sidecar --since --token-env
 replan import accept --project -p --bindings --format --accept-dates --accept-dependencies --accept-resource-demands --accept-resource-links --accept-time-entries --accept-tracking-status --actor --apply --dry-run --reason
 ```
 
 Rules:
 
-- GitHub import is file-only in this slice and requires a versioned
-  `replan.github-issues.v1` input document; it performs no network requests;
+- GitHub file import reads a versioned `replan.github-issues.v1` input
+  document. Live import selects a repository through a GitHub source profile
+  or `--repository`, reads only the REST API, and writes that same document as
+  `raw.json` so it can be replayed with `--from-file`;
 - GitHub import filters pull requests, excludes closed issues unless
   `--include-closed` is set, and applies `--since` to `updated_at`;
 - GitHub `blocked_by` entries become `finish_to_start` candidates only inside
@@ -2087,25 +2091,44 @@ OpenProject flags:
 `--profile` should refer to `project.source_profiles[].id` in
 `.replan/project.yaml`.
 
-GitHub file-input flags:
+GitHub import flags:
 
 ```text
 --project / -p
 --format
 --profile
 --from-file
+--repository
+--token-env
+--base-url
 --since
 --include-closed
 --include-relations
 --resource-links-sidecar
 --resource-demands-sidecar
+--request-timeout
+--request-retries
+--request-retry-delay
 --dry-run
 ```
 
-The selected GitHub source profile declares `repository`, `status_map`, and
-optional `start_field`, `finish_field`, and `estimate_field`. The canonical
-completed status is `accepted`, so a GitHub `closed:completed` profile entry
-maps to `accepted` (the adapter design's informal `done`).
+Live GitHub input requires either `--profile <id>` or `--repository
+<owner/repo>`. The selected source profile declares `repository`, `token_env`
+(normally `GITHUB_TOKEN`), `status_map`, and optional `start_field`,
+`finish_field`, and `estimate_field`. Without an explicit or profile token
+environment name, live input looks only at `GITHUB_TOKEN`; an explicitly empty
+`--token-env` disables token lookup. A missing token is allowed for a public
+repository and produces `github_token_missing`. `--base-url` defaults to
+`https://api.github.com` and supports GitHub Enterprise and local test servers.
+`--from-file` excludes live-only flags but may still use `--profile` for status
+and Project-field mapping.
+
+The canonical completed status is `accepted`, so a GitHub
+`closed:completed` profile entry maps to `accepted` (the adapter design's
+informal `done`). Live input does not read GitHub Projects: a profile that
+names Project fields produces `github_project_fields_live_unsupported` and
+those values remain absent. The stored `raw.json` can be replayed through file
+input.
 
 Request settings:
 
@@ -2122,7 +2145,18 @@ API-backed command shape:
 ```bash
 replan import openproject --project examples/small-team --base-url https://pm.example.test --project-id demo --token-env OPENPROJECT_TOKEN --since 2026-07-01 --include-closed --include-time-entries --dry-run --format json
 replan import openproject --project examples/small-team --base-url http://127.0.0.1:8080 --project-id demo --token-env OPENPROJECT_TOKEN --host-header pm.example.test --forwarded-proto https --dry-run --format json
+replan import github --project examples/small-team --profile github.demo --include-closed --include-relations --dry-run --format json
+replan import github --project examples/small-team --repository example-org/planning-demo --token-env GITHUB_TOKEN --dry-run --format json
 ```
+
+GitHub live requests send the versioned GitHub JSON accept header, API version
+`2022-11-28`, and a RePlan-version user agent. Authorization is sent only when
+the selected environment variable is non-empty. A 401 is
+`source_unauthorized`, a 404 is `source_not_found`, network and other source
+failures are `source_unavailable`, and a 403 or 429 with exhausted-rate or
+retry headers is `source_rate_limited`. Rate-limit errors report the reset
+time and do not cause a long sleep. Successful results report the last
+`X-RateLimit-Remaining` value.
 
 Tunnel and reverse-proxy flags:
 

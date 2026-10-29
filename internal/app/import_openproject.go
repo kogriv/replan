@@ -12,7 +12,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 	"unicode"
 
@@ -650,38 +649,12 @@ func (s OpenProjectImportService) loadOpenProjectCollection(ctx context.Context,
 }
 
 func openProjectHTTPClient(req OpenProjectImportRequest) *http.Client {
-	if req.RequestRetries <= 0 {
-		if req.RequestTimeoutSeconds <= 0 {
-			return http.DefaultClient
-		}
-		return &http.Client{Timeout: time.Duration(req.RequestTimeoutSeconds * float64(time.Second))}
-	}
-	return &http.Client{Transport: openProjectRetryTransport{
-		base:       http.DefaultTransport,
-		retries:    req.RequestRetries,
-		retryDelay: time.Duration(req.RequestRetryDelaySeconds * float64(time.Second)),
-		timeout:    time.Duration(req.RequestTimeoutSeconds * float64(time.Second)),
-	}}
-}
-
-type openProjectCancelBody struct {
-	io.ReadCloser
-	cancel context.CancelFunc
-	once   sync.Once
-}
-
-func (b *openProjectCancelBody) Read(p []byte) (int, error) {
-	n, err := b.ReadCloser.Read(p)
-	if err != nil {
-		b.once.Do(b.cancel)
-	}
-	return n, err
-}
-
-func (b *openProjectCancelBody) Close() error {
-	err := b.ReadCloser.Close()
-	b.once.Do(b.cancel)
-	return err
+	return newRetryHTTPClient(
+		time.Duration(req.RequestTimeoutSeconds*float64(time.Second)),
+		req.RequestRetries,
+		time.Duration(req.RequestRetryDelaySeconds*float64(time.Second)),
+		openProjectTransientHTTPStatuses,
+	)
 }
 
 var openProjectTransientHTTPStatuses = map[int]bool{
@@ -691,53 +664,6 @@ var openProjectTransientHTTPStatuses = map[int]bool{
 	http.StatusBadGateway:          true,
 	http.StatusServiceUnavailable:  true,
 	http.StatusGatewayTimeout:      true,
-}
-
-type openProjectRetryTransport struct {
-	base       http.RoundTripper
-	retries    int
-	retryDelay time.Duration
-	timeout    time.Duration
-}
-
-func (t openProjectRetryTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	attempts := 1
-	if req.Method == http.MethodGet {
-		attempts += t.retries
-	}
-	for attempt := 0; ; attempt++ {
-		attemptReq := req.Clone(req.Context())
-		cancel := func() {}
-		if t.timeout > 0 {
-			attemptCtx, attemptCancel := context.WithTimeout(req.Context(), t.timeout)
-			attemptReq = req.Clone(attemptCtx)
-			cancel = attemptCancel
-		}
-		resp, err := t.base.RoundTrip(attemptReq)
-		if err != nil {
-			cancel()
-		} else if resp != nil {
-			resp.Body = &openProjectCancelBody{ReadCloser: resp.Body, cancel: cancel}
-		}
-		transientStatus := resp != nil && openProjectTransientHTTPStatuses[resp.StatusCode]
-		if attempt+1 >= attempts || (err == nil && !transientStatus) {
-			return resp, err
-		}
-		if resp != nil {
-			_, _ = io.Copy(io.Discard, resp.Body)
-			_ = resp.Body.Close()
-		}
-		if t.retryDelay <= 0 {
-			continue
-		}
-		timer := time.NewTimer(t.retryDelay)
-		select {
-		case <-req.Context().Done():
-			timer.Stop()
-			return nil, req.Context().Err()
-		case <-timer.C:
-		}
-	}
 }
 
 func openProjectAPIRequestFromImportRequest(req OpenProjectImportRequest, profile domain.SourceProfile) (openProjectAPIRequest, string, *Diagnostic) {
