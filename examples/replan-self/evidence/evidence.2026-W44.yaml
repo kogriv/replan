@@ -1987,3 +1987,15 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-2-0
+  - id: evidence.self.start-refresh-second-project-agent-kit-v0-2-0
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T22:05:18+07:00"
+    summary: 'Operator asked on 2026-10-29 to start with the second project: refresh its agent kit to v0.2.0. Whether to delete older kit attachments stays the operators decision; that projects session could not be asked whether it moved to the 28 October kit.'
+    targets:
+      - kind: task
+        id: task.self.refresh-second-project-agent-kit-v0-2-0
