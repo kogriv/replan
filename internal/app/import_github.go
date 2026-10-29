@@ -45,21 +45,21 @@ type GitHubImportRequest struct {
 }
 
 type GitHubImportResult struct {
-	Applied                  bool                                 `json:"applied"`
-	DryRun                   bool                                 `json:"dry_run"`
-	Source                   string                               `json:"source"`
-	FromFile                 string                               `json:"from_file,omitempty"`
-	Profile                  *SourceProfileSummary                `json:"profile,omitempty"`
-	Snapshot                 OpenProjectSnapshotSummary           `json:"snapshot"`
-	TaskCandidates           []OpenProjectTaskCandidate           `json:"task_candidates"`
-	ResourceCandidates       []OpenProjectResourceCandidate       `json:"resource_candidates"`
-	ResourceDemandCandidates []OpenProjectResourceDemandCandidate `json:"resource_demand_candidates,omitempty"`
-	DependencyCandidates     []OpenProjectDependencyCandidate     `json:"dependency_candidates,omitempty"`
-	PlannedWrites            []PlannedWrite                       `json:"planned_writes"`
-	WrittenFiles             []string                             `json:"written_files,omitempty"`
-	RateLimitRemaining       *int                                 `json:"rate_limit_remaining,omitempty"`
-	Warnings                 []Diagnostic                         `json:"warnings"`
-	Errors                   []Diagnostic                         `json:"errors"`
+	Applied                  bool                            `json:"applied"`
+	DryRun                   bool                            `json:"dry_run"`
+	Source                   string                          `json:"source"`
+	FromFile                 string                          `json:"from_file,omitempty"`
+	Profile                  *SourceProfileSummary           `json:"profile,omitempty"`
+	Snapshot                 OpenProjectSnapshotSummary      `json:"snapshot"`
+	TaskCandidates           []ImportTaskCandidate           `json:"task_candidates"`
+	ResourceCandidates       []ImportResourceCandidate       `json:"resource_candidates"`
+	ResourceDemandCandidates []ImportResourceDemandCandidate `json:"resource_demand_candidates,omitempty"`
+	DependencyCandidates     []ImportDependencyCandidate     `json:"dependency_candidates,omitempty"`
+	PlannedWrites            []PlannedWrite                  `json:"planned_writes"`
+	WrittenFiles             []string                        `json:"written_files,omitempty"`
+	RateLimitRemaining       *int                            `json:"rate_limit_remaining,omitempty"`
+	Warnings                 []Diagnostic                    `json:"warnings"`
+	Errors                   []Diagnostic                    `json:"errors"`
 }
 
 // GitHubImportDocument is the network-neutral document consumed by both the
@@ -179,8 +179,8 @@ func (s GitHubImportService) Import(ctx context.Context, req GitHubImportRequest
 	ws, loadDiags := s.loader.Load(ctx)
 	result := GitHubImportResult{
 		DryRun: req.DryRun, Source: "github", FromFile: req.FromFile,
-		TaskCandidates: []OpenProjectTaskCandidate{}, ResourceCandidates: []OpenProjectResourceCandidate{},
-		ResourceDemandCandidates: []OpenProjectResourceDemandCandidate{}, DependencyCandidates: []OpenProjectDependencyCandidate{},
+		TaskCandidates: []ImportTaskCandidate{}, ResourceCandidates: []ImportResourceCandidate{},
+		ResourceDemandCandidates: []ImportResourceDemandCandidate{}, DependencyCandidates: []ImportDependencyCandidate{},
 		PlannedWrites: []PlannedWrite{}, WrittenFiles: []string{}, Warnings: []Diagnostic{}, Errors: []Diagnostic{},
 	}
 	appendLoadDiagnostics(&result.Warnings, &result.Errors, loadDiags)
@@ -267,7 +267,7 @@ func buildGitHubCandidates(ws domain.Workspace, doc GitHubImportDocument, req Gi
 	if sinceErr != nil {
 		return &Diagnostic{Code: "github_since_invalid", Message: sinceErr.Error(), Severity: "error"}
 	}
-	issueIndex := map[int]OpenProjectTaskCandidate{}
+	issueIndex := map[int]ImportTaskCandidate{}
 	for _, issue := range doc.Issues {
 		if len(issue.PullRequest) > 0 && string(issue.PullRequest) != "null" {
 			continue
@@ -283,7 +283,7 @@ func buildGitHubCandidates(ws domain.Workspace, doc GitHubImportDocument, req Gi
 		issueIndex[issue.Number] = candidate
 		if len(issue.Assignees) > 0 {
 			assignee := issue.Assignees[0]
-			resource := OpenProjectResourceCandidate{Source: "github", ObjectType: "user", SourceID: assignee.Login, SourceHref: assignee.HTMLURL, DisplayName: assignee.Login}
+			resource := ImportResourceCandidate{Source: "github", ObjectType: "user", SourceID: assignee.Login, SourceHref: assignee.HTMLURL, DisplayName: assignee.Login}
 			if ref, ok := linkIndex[strings.ToLower(assignee.Login)]; ok {
 				resource.MatchedRefID, resource.MatchReason = ref.ID, "resource_link"
 			} else {
@@ -662,7 +662,7 @@ func readGitHubYAML[T any](projectPath, requestedPath, defaultPath string) (*T, 
 	return &value, nil
 }
 
-func mapGitHubIssue(ws domain.Workspace, repository string, issue GitHubIssue, profile domain.SourceProfile, fields map[string]any, warnings *[]Diagnostic) OpenProjectTaskCandidate {
+func mapGitHubIssue(ws domain.Workspace, repository string, issue GitHubIssue, profile domain.SourceProfile, fields map[string]any, warnings *[]Diagnostic) ImportTaskCandidate {
 	sourceID := repository + "#" + strconv.Itoa(issue.Number)
 	statusMap := githubStatusMap(profile)
 	statusKey := githubStatusKey(issue, statusMap)
@@ -670,7 +670,7 @@ func mapGitHubIssue(ws domain.Workspace, repository string, issue GitHubIssue, p
 	if mapped == "" {
 		*warnings = append(*warnings, Diagnostic{Code: "unmapped_github_status", Message: fmt.Sprintf("GitHub status %q for issue %s is not mapped", statusKey, sourceID), Severity: "warning", Target: Target{Kind: "github_issue", ID: sourceID}})
 	}
-	candidate := OpenProjectTaskCandidate{Source: "github", ObjectType: "issue", NumericID: issue.ID, SourceID: sourceID, SourceURL: issue.HTMLURL, Title: issue.Title, SourceStatus: statusKey, MappedStatus: mapped, SourceRefs: []domain.SourceRef{{Source: "github", ObjectType: "issue", ObjectID: sourceID, URL: issue.HTMLURL}}}
+	candidate := ImportTaskCandidate{Source: "github", ObjectType: "issue", NumericID: issue.ID, SourceID: sourceID, SourceURL: issue.HTMLURL, Title: issue.Title, SourceStatus: statusKey, MappedStatus: mapped, SourceRefs: []domain.SourceRef{{Source: "github", ObjectType: "issue", ObjectID: sourceID, URL: issue.HTMLURL}}}
 	if issue.Parent != nil {
 		parentRepo := issue.Parent.Repository
 		if parentRepo == "" {
@@ -782,7 +782,7 @@ func githubNumberField(fields map[string]any, name string) (float64, bool) {
 	}
 }
 
-func containsGitHubResourceCandidate(candidates []OpenProjectResourceCandidate, sourceID string) bool {
+func containsGitHubResourceCandidate(candidates []ImportResourceCandidate, sourceID string) bool {
 	for _, candidate := range candidates {
 		if strings.EqualFold(candidate.SourceID, sourceID) {
 			return true
@@ -791,13 +791,13 @@ func containsGitHubResourceCandidate(candidates []OpenProjectResourceCandidate, 
 	return false
 }
 
-func mapGitHubResourceDemands(ws domain.Workspace, issues map[int]OpenProjectTaskCandidate, fields map[int]map[string]any, profile domain.SourceProfile, entries []githubResourceDemandEntry, warnings *[]Diagnostic) []OpenProjectResourceDemandCandidate {
-	byID := map[string]OpenProjectTaskCandidate{}
+func mapGitHubResourceDemands(ws domain.Workspace, issues map[int]ImportTaskCandidate, fields map[int]map[string]any, profile domain.SourceProfile, entries []githubResourceDemandEntry, warnings *[]Diagnostic) []ImportResourceDemandCandidate {
+	byID := map[string]ImportTaskCandidate{}
 	byNumber := map[string]int{}
 	for number, candidate := range issues {
 		byID[candidate.SourceID], byNumber[candidate.SourceID] = candidate, number
 	}
-	var result []OpenProjectResourceDemandCandidate
+	var result []ImportResourceDemandCandidate
 	for _, entry := range entries {
 		candidate, ok := byID[entry.Issue]
 		if !ok {
@@ -827,14 +827,14 @@ func mapGitHubResourceDemands(ws domain.Workspace, issues map[int]OpenProjectTas
 			if candidate.MatchedTaskID == "" {
 				accept = "task_unmatched"
 			}
-			result = append(result, OpenProjectResourceDemandCandidate{TrackerSource: "github", Source: "github_sidecar", SourceID: entry.Issue + ":" + item.ID, WorkPackageID: entry.Issue, MatchedTaskID: candidate.MatchedTaskID, WouldCreate: accept == "safe_to_accept", AcceptStatus: accept, Canonical: canonical, Diagnostics: []Diagnostic{}})
+			result = append(result, ImportResourceDemandCandidate{TrackerSource: "github", Source: "github_sidecar", SourceID: entry.Issue + ":" + item.ID, SourceObjectID: entry.Issue, MatchedTaskID: candidate.MatchedTaskID, WouldCreate: accept == "safe_to_accept", AcceptStatus: accept, Canonical: canonical, Diagnostics: []Diagnostic{}})
 		}
 	}
 	return result
 }
 
-func mapGitHubBlockedBy(ws domain.Workspace, repository string, issues map[int]OpenProjectTaskCandidate, relations []GitHubBlockedBy, warnings *[]Diagnostic) []OpenProjectDependencyCandidate {
-	var result []OpenProjectDependencyCandidate
+func mapGitHubBlockedBy(ws domain.Workspace, repository string, issues map[int]ImportTaskCandidate, relations []GitHubBlockedBy, warnings *[]Diagnostic) []ImportDependencyCandidate {
+	var result []ImportDependencyCandidate
 	for _, relation := range relations {
 		successor, ok := issues[relation.IssueNumber]
 		if !ok {
@@ -858,7 +858,7 @@ func mapGitHubBlockedBy(ws domain.Workspace, repository string, issues map[int]O
 			if predecessor.MatchedTaskID == "" || successor.MatchedTaskID == "" {
 				accept = "task_unmatched"
 			}
-			result = append(result, OpenProjectDependencyCandidate{Source: "github", ObjectType: "blocked_by", SourceID: sourceID, SourceURL: successor.SourceURL, RelationType: "blocked_by", FromWorkPackageID: predecessor.SourceID, ToWorkPackageID: successor.SourceID, PredecessorTaskID: predecessor.MatchedTaskID, SuccessorTaskID: successor.MatchedTaskID, DependencyID: "dependency.github.blocked-by." + importIDSlug(predecessor.SourceID) + "." + importIDSlug(successor.SourceID), DependencyType: "finish_to_start", WouldCreate: accept == "safe_to_accept", AcceptStatus: accept, Diagnostics: []Diagnostic{}})
+			result = append(result, ImportDependencyCandidate{Source: "github", ObjectType: "blocked_by", SourceID: sourceID, SourceURL: successor.SourceURL, RelationType: "blocked_by", PredecessorSourceID: predecessor.SourceID, SuccessorSourceID: successor.SourceID, PredecessorTaskID: predecessor.MatchedTaskID, SuccessorTaskID: successor.MatchedTaskID, DependencyID: "dependency.github.blocked-by." + importIDSlug(predecessor.SourceID) + "." + importIDSlug(successor.SourceID), DependencyType: "finish_to_start", WouldCreate: accept == "safe_to_accept", AcceptStatus: accept, Diagnostics: []Diagnostic{}})
 		}
 	}
 	_ = ws
@@ -867,7 +867,7 @@ func mapGitHubBlockedBy(ws domain.Workspace, repository string, issues map[int]O
 
 func buildGitHubSnapshotWrite(result GitHubImportResult, req GitHubImportRequest, profile domain.SourceProfile, repository string, raw []byte, importedAt time.Time) (OpenProjectImportSnapshotWrite, error) {
 	base := "imports/github/" + result.Snapshot.Key + "/"
-	mapped := OpenProjectMappedSnapshot{Source: "github", Snapshot: result.Snapshot, Profile: result.Profile, TaskCandidates: result.TaskCandidates, ResourceCandidates: result.ResourceCandidates, ResourceDemandCandidates: result.ResourceDemandCandidates, DependencyCandidates: result.DependencyCandidates, TimeEntryCandidates: []OpenProjectTimeEntryCandidate{}}
+	mapped := ImportMappedSnapshot{Source: "github", Snapshot: result.Snapshot, Profile: result.Profile, TaskCandidates: result.TaskCandidates, ResourceCandidates: result.ResourceCandidates, ResourceDemandCandidates: result.ResourceDemandCandidates, DependencyCandidates: result.DependencyCandidates, TimeEntryCandidates: []OpenProjectTimeEntryCandidate{}}
 	mappedJSON, err := json.MarshalIndent(mapped, "", "  ")
 	if err != nil {
 		return OpenProjectImportSnapshotWrite{}, err

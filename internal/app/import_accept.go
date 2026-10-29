@@ -252,6 +252,7 @@ func (s ImportAcceptService) Accept(ctx context.Context, req ImportAcceptRequest
 		})
 		return result, ErrValidationFailed
 	}
+	mapped.normalizeCandidateSourceIDs()
 	if mapped.Snapshot.ID != "" && mapped.Snapshot.ID != req.SnapshotID {
 		result.Warnings = append(result.Warnings, Diagnostic{
 			Code:     "snapshot_id_mismatch",
@@ -309,7 +310,7 @@ var openProjectIDFreeChangeOps = map[string]bool{
 // privateOpenProjectIDDiagnostics rejects only changes whose corresponding
 // writer persists an OpenProject object id. Dates, tracking statuses and
 // resource demands contain no such id and therefore produce no diagnostics.
-func privateOpenProjectIDDiagnostics(ws domain.Workspace, mapped OpenProjectMappedSnapshot, changes []ImportAcceptChange) []Diagnostic {
+func privateOpenProjectIDDiagnostics(ws domain.Workspace, mapped ImportMappedSnapshot, changes []ImportAcceptChange) []Diagnostic {
 	type refusedKind struct {
 		kind string
 		ids  map[string]bool
@@ -383,14 +384,14 @@ func privateOpenProjectIDDiagnostics(ws domain.Workspace, mapped OpenProjectMapp
 // around them is applyMode.
 type importAcceptMode struct {
 	// preview lists the changes a dry run reports.
-	preview func(ws domain.Workspace, mapped OpenProjectMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptChange
+	preview func(ws domain.Workspace, mapped ImportMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptChange
 	// applied picks the reported changes an apply writes.
 	applied func(changes []ImportAcceptChange) []ImportAcceptChange
 	// action is the planned write action of an apply.
 	action string
 	// prepare builds the changes an apply writes and returns how many there
 	// are and the write; write reports false when the store cannot do it.
-	prepare func(ws domain.Workspace, mapped OpenProjectMappedSnapshot, actorID string) (int, importAcceptWrite)
+	prepare func(ws domain.Workspace, mapped ImportMappedSnapshot, actorID string) (int, importAcceptWrite)
 	// nothingCode and nothingMessage warn when an apply has nothing safe to
 	// write.
 	nothingCode, nothingMessage string
@@ -422,12 +423,12 @@ func selectImportAcceptMode(req ImportAcceptRequest) importAcceptMode {
 }
 
 var importAcceptTaskMode = importAcceptMode{
-	preview: func(ws domain.Workspace, mapped OpenProjectMappedSnapshot, _ *[]Diagnostic) []ImportAcceptChange {
+	preview: func(ws domain.Workspace, mapped ImportMappedSnapshot, _ *[]Diagnostic) []ImportAcceptChange {
 		return buildImportAcceptChanges(ws, mapped)
 	},
 	applied: filterAppliedImportAcceptChanges,
 	action:  "update",
-	prepare: func(ws domain.Workspace, mapped OpenProjectMappedSnapshot, _ string) (int, importAcceptWrite) {
+	prepare: func(ws domain.Workspace, mapped ImportMappedSnapshot, _ string) (int, importAcceptWrite) {
 		changes := buildSafeImportAcceptTaskChanges(ws, mapped)
 		return len(changes), func(target any, audit domain.AuditRecord) ([]string, bool, error) {
 			writer, ok := target.(ImportAcceptWriter)
@@ -448,7 +449,7 @@ var importAcceptTimeEntryMode = importAcceptMode{
 	preview: buildImportAcceptTimeEntryChanges,
 	applied: filterActualImportAcceptChanges,
 	action:  "append",
-	prepare: func(ws domain.Workspace, mapped OpenProjectMappedSnapshot, actorID string) (int, importAcceptWrite) {
+	prepare: func(ws domain.Workspace, mapped ImportMappedSnapshot, actorID string) (int, importAcceptWrite) {
 		var warnings []Diagnostic
 		changes := buildSafeImportAcceptActualChanges(ws, mapped, actorID, &warnings)
 		return len(changes), func(target any, audit domain.AuditRecord) ([]string, bool, error) {
@@ -470,7 +471,7 @@ var importAcceptResourceDemandMode = importAcceptMode{
 	preview: buildImportAcceptResourceDemandChanges,
 	applied: filterResourceDemandImportAcceptChanges,
 	action:  "append",
-	prepare: func(ws domain.Workspace, mapped OpenProjectMappedSnapshot, _ string) (int, importAcceptWrite) {
+	prepare: func(ws domain.Workspace, mapped ImportMappedSnapshot, _ string) (int, importAcceptWrite) {
 		var warnings []Diagnostic
 		changes := buildSafeImportAcceptResourceDemandChanges(ws, mapped, &warnings)
 		return len(changes), func(target any, audit domain.AuditRecord) ([]string, bool, error) {
@@ -492,7 +493,7 @@ var importAcceptResourceLinkMode = importAcceptMode{
 	preview: buildImportAcceptResourceLinkChanges,
 	applied: filterResourceLinkImportAcceptChanges,
 	action:  "append",
-	prepare: func(ws domain.Workspace, mapped OpenProjectMappedSnapshot, _ string) (int, importAcceptWrite) {
+	prepare: func(ws domain.Workspace, mapped ImportMappedSnapshot, _ string) (int, importAcceptWrite) {
 		var warnings []Diagnostic
 		changes := buildSafeImportAcceptResourceLinkChanges(ws, mapped, &warnings)
 		return len(changes), func(target any, audit domain.AuditRecord) ([]string, bool, error) {
@@ -514,7 +515,7 @@ var importAcceptTrackingStatusMode = importAcceptMode{
 	preview: buildImportAcceptTrackingStatusChanges,
 	applied: filterTrackingStatusImportAcceptChanges,
 	action:  "update",
-	prepare: func(ws domain.Workspace, mapped OpenProjectMappedSnapshot, _ string) (int, importAcceptWrite) {
+	prepare: func(ws domain.Workspace, mapped ImportMappedSnapshot, _ string) (int, importAcceptWrite) {
 		var warnings []Diagnostic
 		changes := buildSafeImportAcceptTrackingStatusChanges(ws, mapped, &warnings)
 		return len(changes), func(target any, audit domain.AuditRecord) ([]string, bool, error) {
@@ -536,7 +537,7 @@ var importAcceptDateMode = importAcceptMode{
 	preview: buildImportAcceptDateChanges,
 	applied: filterDateImportAcceptChanges,
 	action:  "update",
-	prepare: func(ws domain.Workspace, mapped OpenProjectMappedSnapshot, _ string) (int, importAcceptWrite) {
+	prepare: func(ws domain.Workspace, mapped ImportMappedSnapshot, _ string) (int, importAcceptWrite) {
 		var warnings []Diagnostic
 		changes := buildSafeImportAcceptDateChanges(ws, mapped, &warnings)
 		return len(changes), func(target any, audit domain.AuditRecord) ([]string, bool, error) {
@@ -558,7 +559,7 @@ var importAcceptDependencyMode = importAcceptMode{
 	preview: buildImportAcceptDependencyChanges,
 	applied: filterDependencyImportAcceptChanges,
 	action:  "update",
-	prepare: func(ws domain.Workspace, mapped OpenProjectMappedSnapshot, _ string) (int, importAcceptWrite) {
+	prepare: func(ws domain.Workspace, mapped ImportMappedSnapshot, _ string) (int, importAcceptWrite) {
 		var warnings []Diagnostic
 		changes := buildSafeImportAcceptDependencyChanges(ws, mapped, &warnings)
 		return len(changes), func(target any, audit domain.AuditRecord) ([]string, bool, error) {
@@ -578,7 +579,7 @@ var importAcceptDependencyMode = importAcceptMode{
 
 // applyMode writes the safe changes of a mode through a staged write session
 // and validates the result.
-func (s ImportAcceptService) applyMode(ctx context.Context, req ImportAcceptRequest, mode importAcceptMode, ws domain.Workspace, mapped OpenProjectMappedSnapshot, result *ImportAcceptResult) error {
+func (s ImportAcceptService) applyMode(ctx context.Context, req ImportAcceptRequest, mode importAcceptMode, ws domain.Workspace, mapped ImportMappedSnapshot, result *ImportAcceptResult) error {
 	count, write := mode.prepare(ws, mapped, req.ActorID)
 	result.AppliedChanges = mode.applied(result.Changes)
 	result.PlannedWrites = importAcceptPlannedWrites(result.AppliedChanges)
@@ -626,7 +627,7 @@ func (s ImportAcceptService) applyMode(ctx context.Context, req ImportAcceptRequ
 	return nil
 }
 
-func buildImportAcceptChanges(ws domain.Workspace, mapped OpenProjectMappedSnapshot) []ImportAcceptChange {
+func buildImportAcceptChanges(ws domain.Workspace, mapped ImportMappedSnapshot) []ImportAcceptChange {
 	var changes []ImportAcceptChange
 	for _, candidate := range mapped.TaskCandidates {
 		if candidate.MatchedTaskID == "" || candidate.WouldCreate {
@@ -682,7 +683,7 @@ func buildImportAcceptChanges(ws domain.Workspace, mapped OpenProjectMappedSnaps
 	return changes
 }
 
-func buildImportAcceptTimeEntryChanges(ws domain.Workspace, mapped OpenProjectMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptChange {
+func buildImportAcceptTimeEntryChanges(ws domain.Workspace, mapped ImportMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptChange {
 	var changes []ImportAcceptChange
 	for _, entry := range mapped.TimeEntryCandidates {
 		match, ok := matchOpenProjectTimeEntry(ws, mapped, entry, warnings)
@@ -711,10 +712,10 @@ func buildImportAcceptTimeEntryChanges(ws domain.Workspace, mapped OpenProjectMa
 	return changes
 }
 
-func buildImportAcceptResourceDemandChanges(ws domain.Workspace, mapped OpenProjectMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptChange {
+func buildImportAcceptResourceDemandChanges(ws domain.Workspace, mapped ImportMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptChange {
 	var changes []ImportAcceptChange
 	for _, candidate := range mapped.ResourceDemandCandidates {
-		if !safeOpenProjectResourceDemandCandidate(ws, candidate, warnings) {
+		if !safeImportResourceDemandCandidate(ws, candidate, warnings) {
 			continue
 		}
 		changes = append(changes, ImportAcceptChange{
@@ -729,7 +730,7 @@ func buildImportAcceptResourceDemandChanges(ws domain.Workspace, mapped OpenProj
 	return changes
 }
 
-func buildImportAcceptResourceLinkChanges(ws domain.Workspace, mapped OpenProjectMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptChange {
+func buildImportAcceptResourceLinkChanges(ws domain.Workspace, mapped ImportMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptChange {
 	var changes []ImportAcceptChange
 	for _, candidate := range mapped.ResourceCandidates {
 		if !safeOpenProjectResourceLinkCandidate(ws, candidate, warnings) {
@@ -747,7 +748,7 @@ func buildImportAcceptResourceLinkChanges(ws domain.Workspace, mapped OpenProjec
 	return changes
 }
 
-func buildImportAcceptTrackingStatusChanges(ws domain.Workspace, mapped OpenProjectMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptChange {
+func buildImportAcceptTrackingStatusChanges(ws domain.Workspace, mapped ImportMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptChange {
 	var changes []ImportAcceptChange
 	for _, candidate := range mapped.TaskCandidates {
 		task, ok := safeOpenProjectTrackingStatusCandidate(ws, candidate, warnings)
@@ -766,7 +767,7 @@ func buildImportAcceptTrackingStatusChanges(ws domain.Workspace, mapped OpenProj
 	return changes
 }
 
-func buildImportAcceptDateChanges(ws domain.Workspace, mapped OpenProjectMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptChange {
+func buildImportAcceptDateChanges(ws domain.Workspace, mapped ImportMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptChange {
 	var changes []ImportAcceptChange
 	for _, candidate := range mapped.TaskCandidates {
 		task, start, finish, ok := safeOpenProjectDateCandidate(ws, candidate, warnings)
@@ -795,11 +796,11 @@ func buildImportAcceptDateChanges(ws domain.Workspace, mapped OpenProjectMappedS
 
 func stringPointer(value string) *string { return &value }
 
-func buildImportAcceptDependencyChanges(ws domain.Workspace, mapped OpenProjectMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptChange {
+func buildImportAcceptDependencyChanges(ws domain.Workspace, mapped ImportMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptChange {
 	var changes []ImportAcceptChange
 	seen := newDependencyAcceptSeen()
 	for _, candidate := range mapped.DependencyCandidates {
-		dependency, op, ok := safeOpenProjectDependencyCandidate(ws, candidate, warnings)
+		dependency, op, ok := safeImportDependencyCandidate(ws, candidate, warnings)
 		if !ok {
 			continue
 		}
@@ -822,7 +823,7 @@ func buildImportAcceptDependencyChanges(ws domain.Workspace, mapped OpenProjectM
 	return changes
 }
 
-func buildSafeImportAcceptTaskChanges(ws domain.Workspace, mapped OpenProjectMappedSnapshot) []ImportAcceptTaskChange {
+func buildSafeImportAcceptTaskChanges(ws domain.Workspace, mapped ImportMappedSnapshot) []ImportAcceptTaskChange {
 	var changes []ImportAcceptTaskChange
 	for _, candidate := range mapped.TaskCandidates {
 		sourceRef := domain.SourceRef{
@@ -866,10 +867,10 @@ func buildSafeImportAcceptTaskChanges(ws domain.Workspace, mapped OpenProjectMap
 	return changes
 }
 
-func buildSafeImportAcceptResourceDemandChanges(ws domain.Workspace, mapped OpenProjectMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptResourceDemandChange {
+func buildSafeImportAcceptResourceDemandChanges(ws domain.Workspace, mapped ImportMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptResourceDemandChange {
 	var changes []ImportAcceptResourceDemandChange
 	for _, candidate := range mapped.ResourceDemandCandidates {
-		if !safeOpenProjectResourceDemandCandidate(ws, candidate, warnings) {
+		if !safeImportResourceDemandCandidate(ws, candidate, warnings) {
 			continue
 		}
 		changes = append(changes, ImportAcceptResourceDemandChange{
@@ -880,7 +881,7 @@ func buildSafeImportAcceptResourceDemandChanges(ws domain.Workspace, mapped Open
 	return changes
 }
 
-func buildSafeImportAcceptResourceLinkChanges(ws domain.Workspace, mapped OpenProjectMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptResourceLinkChange {
+func buildSafeImportAcceptResourceLinkChanges(ws domain.Workspace, mapped ImportMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptResourceLinkChange {
 	var changes []ImportAcceptResourceLinkChange
 	for _, candidate := range mapped.ResourceCandidates {
 		if !safeOpenProjectResourceLinkCandidate(ws, candidate, warnings) {
@@ -899,7 +900,7 @@ func buildSafeImportAcceptResourceLinkChanges(ws domain.Workspace, mapped OpenPr
 	return changes
 }
 
-func buildSafeImportAcceptTrackingStatusChanges(ws domain.Workspace, mapped OpenProjectMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptTrackingStatusChange {
+func buildSafeImportAcceptTrackingStatusChanges(ws domain.Workspace, mapped ImportMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptTrackingStatusChange {
 	var changes []ImportAcceptTrackingStatusChange
 	for _, candidate := range mapped.TaskCandidates {
 		if _, ok := safeOpenProjectTrackingStatusCandidate(ws, candidate, warnings); !ok {
@@ -913,7 +914,7 @@ func buildSafeImportAcceptTrackingStatusChanges(ws domain.Workspace, mapped Open
 	return changes
 }
 
-func buildSafeImportAcceptDateChanges(ws domain.Workspace, mapped OpenProjectMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptDateChange {
+func buildSafeImportAcceptDateChanges(ws domain.Workspace, mapped ImportMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptDateChange {
 	var changes []ImportAcceptDateChange
 	for _, candidate := range mapped.TaskCandidates {
 		task, start, finish, ok := safeOpenProjectDateCandidate(ws, candidate, warnings)
@@ -925,11 +926,11 @@ func buildSafeImportAcceptDateChanges(ws domain.Workspace, mapped OpenProjectMap
 	return changes
 }
 
-func buildSafeImportAcceptDependencyChanges(ws domain.Workspace, mapped OpenProjectMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptDependencyChange {
+func buildSafeImportAcceptDependencyChanges(ws domain.Workspace, mapped ImportMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptDependencyChange {
 	var changes []ImportAcceptDependencyChange
 	seen := newDependencyAcceptSeen()
 	for _, candidate := range mapped.DependencyCandidates {
-		dependency, op, ok := safeOpenProjectDependencyCandidate(ws, candidate, warnings)
+		dependency, op, ok := safeImportDependencyCandidate(ws, candidate, warnings)
 		if !ok {
 			continue
 		}
@@ -946,7 +947,7 @@ func buildSafeImportAcceptDependencyChanges(ws domain.Workspace, mapped OpenProj
 	return changes
 }
 
-func buildSafeImportAcceptActualChanges(ws domain.Workspace, mapped OpenProjectMappedSnapshot, actorID string, warnings *[]Diagnostic) []ImportAcceptActualChange {
+func buildSafeImportAcceptActualChanges(ws domain.Workspace, mapped ImportMappedSnapshot, actorID string, warnings *[]Diagnostic) []ImportAcceptActualChange {
 	var changes []ImportAcceptActualChange
 	for _, entry := range mapped.TimeEntryCandidates {
 		match, ok := matchOpenProjectTimeEntry(ws, mapped, entry, warnings)
@@ -1111,7 +1112,7 @@ func importAcceptAuditMode(req ImportAcceptRequest) string {
 	return "tasks"
 }
 
-func safeOpenProjectDateCandidate(ws domain.Workspace, candidate OpenProjectTaskCandidate, warnings *[]Diagnostic) (domain.Task, string, string, bool) {
+func safeOpenProjectDateCandidate(ws domain.Workspace, candidate ImportTaskCandidate, warnings *[]Diagnostic) (domain.Task, string, string, bool) {
 	if strings.TrimSpace(candidate.SourceID) == "" {
 		return domain.Task{}, "", "", false
 	}
@@ -1209,7 +1210,7 @@ func findResourceByID(resources []domain.Resource, id string) (domain.Resource, 
 	return domain.Resource{}, false
 }
 
-func safeOpenProjectTrackingStatusCandidate(ws domain.Workspace, candidate OpenProjectTaskCandidate, warnings *[]Diagnostic) (domain.Task, bool) {
+func safeOpenProjectTrackingStatusCandidate(ws domain.Workspace, candidate ImportTaskCandidate, warnings *[]Diagnostic) (domain.Task, bool) {
 	if strings.TrimSpace(candidate.SourceID) == "" {
 		return domain.Task{}, false
 	}
@@ -1253,7 +1254,7 @@ func safeOpenProjectTrackingStatusCandidate(ws domain.Workspace, candidate OpenP
 	return task, true
 }
 
-func safeOpenProjectResourceLinkCandidate(ws domain.Workspace, candidate OpenProjectResourceCandidate, warnings *[]Diagnostic) bool {
+func safeOpenProjectResourceLinkCandidate(ws domain.Workspace, candidate ImportResourceCandidate, warnings *[]Diagnostic) bool {
 	source := importResourceSource(candidate)
 	display := importSourceDisplay(source)
 	target := Target{Kind: source + "_" + importResourceObjectType(candidate), ID: candidate.SourceID}
@@ -1306,7 +1307,7 @@ func safeOpenProjectResourceLinkCandidate(ws domain.Workspace, candidate OpenPro
 	return true
 }
 
-func safeOpenProjectResourceDemandCandidate(ws domain.Workspace, candidate OpenProjectResourceDemandCandidate, warnings *[]Diagnostic) bool {
+func safeImportResourceDemandCandidate(ws domain.Workspace, candidate ImportResourceDemandCandidate, warnings *[]Diagnostic) bool {
 	source := importDemandSource(candidate)
 	display := importSourceDisplay(source)
 	if candidate.AcceptStatus != "safe_to_accept" {
@@ -1377,7 +1378,7 @@ func safeOpenProjectResourceDemandCandidate(ws domain.Workspace, candidate OpenP
 	return true
 }
 
-func safeOpenProjectDependencyCandidate(ws domain.Workspace, candidate OpenProjectDependencyCandidate, warnings *[]Diagnostic) (domain.Dependency, string, bool) {
+func safeImportDependencyCandidate(ws domain.Workspace, candidate ImportDependencyCandidate, warnings *[]Diagnostic) (domain.Dependency, string, bool) {
 	source := importDependencySource(candidate)
 	display := importSourceDisplay(source)
 	target := Target{Kind: source + "_" + importDependencyObjectType(candidate), ID: candidate.SourceID}
@@ -1479,7 +1480,7 @@ func safeOpenProjectDependencyCandidate(ws domain.Workspace, candidate OpenProje
 	return dependency, "create_dependency", true
 }
 
-func dependencyFromOpenProjectCandidate(candidate OpenProjectDependencyCandidate) domain.Dependency {
+func dependencyFromOpenProjectCandidate(candidate ImportDependencyCandidate) domain.Dependency {
 	requiredState := ""
 	if candidate.DependencyType == "finish_to_start" {
 		requiredState = "accepted"
@@ -1501,7 +1502,7 @@ func dependencyFromOpenProjectCandidate(candidate OpenProjectDependencyCandidate
 	}
 }
 
-func openProjectDependencySourceRef(candidate OpenProjectDependencyCandidate) domain.SourceRef {
+func openProjectDependencySourceRef(candidate ImportDependencyCandidate) domain.SourceRef {
 	return domain.SourceRef{
 		Source:     importDependencySource(candidate),
 		ObjectType: importDependencyObjectType(candidate),
@@ -1524,7 +1525,7 @@ func newDependencyAcceptSeen() dependencyAcceptSeen {
 	}
 }
 
-func (s dependencyAcceptSeen) add(candidate OpenProjectDependencyCandidate, dependency domain.Dependency, op string, warnings *[]Diagnostic) bool {
+func (s dependencyAcceptSeen) add(candidate ImportDependencyCandidate, dependency domain.Dependency, op string, warnings *[]Diagnostic) bool {
 	source := importDependencySource(candidate)
 	display := importDependencyObjectLabel(candidate)
 	target := Target{Kind: source + "_" + importDependencyObjectType(candidate), ID: candidate.SourceID}
@@ -1567,7 +1568,7 @@ func (s dependencyAcceptSeen) add(candidate OpenProjectDependencyCandidate, depe
 	return true
 }
 
-func matchOpenProjectTimeEntry(ws domain.Workspace, mapped OpenProjectMappedSnapshot, entry OpenProjectTimeEntryCandidate, warnings *[]Diagnostic) (openProjectTimeEntryMatch, bool) {
+func matchOpenProjectTimeEntry(ws domain.Workspace, mapped ImportMappedSnapshot, entry OpenProjectTimeEntryCandidate, warnings *[]Diagnostic) (openProjectTimeEntryMatch, bool) {
 	if entry.SourceID == "" {
 		return openProjectTimeEntryMatch{}, false
 	}
@@ -1622,7 +1623,7 @@ func matchOpenProjectTimeEntry(ws domain.Workspace, mapped OpenProjectMappedSnap
 	return openProjectTimeEntryMatch{TaskID: taskID, ResourceID: resourceID, DemandID: demandID}, true
 }
 
-func matchTaskForOpenProjectTimeEntry(ws domain.Workspace, mapped OpenProjectMappedSnapshot, entry OpenProjectTimeEntryCandidate) string {
+func matchTaskForOpenProjectTimeEntry(ws domain.Workspace, mapped ImportMappedSnapshot, entry OpenProjectTimeEntryCandidate) string {
 	for _, task := range ws.Tasks {
 		if taskHasSourceRef(task, "openproject", "work_package", entry.WorkPackageID) {
 			return task.ID
@@ -1726,75 +1727,75 @@ func canonicalTaskIDForOpenProject(sourceID string) string {
 	return "task.op." + strings.ToLower(strings.TrimSpace(sourceID))
 }
 
-func importSnapshotSource(mapped OpenProjectMappedSnapshot) string {
+func importSnapshotSource(mapped ImportMappedSnapshot) string {
 	if strings.TrimSpace(mapped.Source) == "" {
 		return "openproject"
 	}
 	return strings.TrimSpace(mapped.Source)
 }
 
-func importTaskSource(candidate OpenProjectTaskCandidate) string {
+func importTaskSource(candidate ImportTaskCandidate) string {
 	if strings.TrimSpace(candidate.Source) == "" {
 		return "openproject"
 	}
 	return strings.TrimSpace(candidate.Source)
 }
 
-func importTaskObjectType(candidate OpenProjectTaskCandidate) string {
+func importTaskObjectType(candidate ImportTaskCandidate) string {
 	if strings.TrimSpace(candidate.ObjectType) == "" {
 		return "work_package"
 	}
 	return strings.TrimSpace(candidate.ObjectType)
 }
 
-func importResourceSource(candidate OpenProjectResourceCandidate) string {
+func importResourceSource(candidate ImportResourceCandidate) string {
 	if strings.TrimSpace(candidate.Source) == "" {
 		return "openproject"
 	}
 	return strings.TrimSpace(candidate.Source)
 }
 
-func importResourceObjectType(candidate OpenProjectResourceCandidate) string {
+func importResourceObjectType(candidate ImportResourceCandidate) string {
 	if strings.TrimSpace(candidate.ObjectType) == "" {
 		return "user"
 	}
 	return strings.TrimSpace(candidate.ObjectType)
 }
 
-func importDependencySource(candidate OpenProjectDependencyCandidate) string {
+func importDependencySource(candidate ImportDependencyCandidate) string {
 	if strings.TrimSpace(candidate.Source) == "" {
 		return "openproject"
 	}
 	return strings.TrimSpace(candidate.Source)
 }
 
-func importDependencyObjectType(candidate OpenProjectDependencyCandidate) string {
+func importDependencyObjectType(candidate ImportDependencyCandidate) string {
 	if strings.TrimSpace(candidate.ObjectType) == "" {
 		return "relation"
 	}
 	return strings.TrimSpace(candidate.ObjectType)
 }
 
-func importDemandSource(candidate OpenProjectResourceDemandCandidate) string {
+func importDemandSource(candidate ImportResourceDemandCandidate) string {
 	if strings.TrimSpace(candidate.TrackerSource) == "" {
 		return "openproject"
 	}
 	return strings.TrimSpace(candidate.TrackerSource)
 }
 
-func importTaskObjectLabel(candidate OpenProjectTaskCandidate) string {
+func importTaskObjectLabel(candidate ImportTaskCandidate) string {
 	return importSourceDisplay(importTaskSource(candidate)) + " " + strings.ReplaceAll(importTaskObjectType(candidate), "_", " ")
 }
 
-func importTaskTarget(candidate OpenProjectTaskCandidate) Target {
+func importTaskTarget(candidate ImportTaskCandidate) Target {
 	return Target{Kind: importTaskSource(candidate) + "_" + importTaskObjectType(candidate), ID: candidate.SourceID}
 }
 
-func importTaskDiagnostic(candidate OpenProjectTaskCandidate, suffix, message string) Diagnostic {
+func importTaskDiagnostic(candidate ImportTaskCandidate, suffix, message string) Diagnostic {
 	return Diagnostic{Code: importTaskSource(candidate) + "_" + suffix, Message: message, Severity: "warning", Target: importTaskTarget(candidate)}
 }
 
-func importDependencyObjectLabel(candidate OpenProjectDependencyCandidate) string {
+func importDependencyObjectLabel(candidate ImportDependencyCandidate) string {
 	return importSourceDisplay(importDependencySource(candidate)) + " " + strings.ReplaceAll(importDependencyObjectType(candidate), "_", " ")
 }
 
@@ -1809,14 +1810,14 @@ func importSourceDisplay(source string) string {
 	}
 }
 
-func canonicalTaskIDForImportCandidate(candidate OpenProjectTaskCandidate) string {
+func canonicalTaskIDForImportCandidate(candidate ImportTaskCandidate) string {
 	if importTaskSource(candidate) == "openproject" {
 		return canonicalTaskIDForOpenProject(candidate.SourceID)
 	}
 	return "task." + importTaskSource(candidate) + "." + importIDSlug(candidate.SourceID)
 }
 
-func canonicalResourceIDForImportCandidate(candidate OpenProjectResourceCandidate) string {
+func canonicalResourceIDForImportCandidate(candidate ImportResourceCandidate) string {
 	if importResourceSource(candidate) == "openproject" {
 		return canonicalResourceIDForOpenProject(candidate.DisplayName, candidate.SourceID)
 	}
@@ -1845,7 +1846,7 @@ func importIDSlug(value string) string {
 	return strings.Trim(b.String(), ".")
 }
 
-func initialImportTrackingStatus(candidate OpenProjectTaskCandidate) string {
+func initialImportTrackingStatus(candidate ImportTaskCandidate) string {
 	if importTaskSource(candidate) == "openproject" {
 		return "ready"
 	}

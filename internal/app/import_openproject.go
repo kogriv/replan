@@ -52,22 +52,22 @@ type OpenProjectImportRequest struct {
 }
 
 type OpenProjectImportResult struct {
-	Applied                  bool                                 `json:"applied"`
-	DryRun                   bool                                 `json:"dry_run"`
-	Source                   string                               `json:"source"`
-	FromFile                 string                               `json:"from_file,omitempty"`
-	Profile                  *SourceProfileSummary                `json:"profile,omitempty"`
-	Snapshot                 OpenProjectSnapshotSummary           `json:"snapshot"`
-	TaskCandidates           []OpenProjectTaskCandidate           `json:"task_candidates"`
-	ResourceCandidates       []OpenProjectResourceCandidate       `json:"resource_candidates"`
-	ResourceDemandCandidates []OpenProjectResourceDemandCandidate `json:"resource_demand_candidates,omitempty"`
-	DependencyCandidates     []OpenProjectDependencyCandidate     `json:"dependency_candidates,omitempty"`
-	TimeEntryCandidates      []OpenProjectTimeEntryCandidate      `json:"time_entry_candidates,omitempty"`
-	PlannedWrites            []PlannedWrite                       `json:"planned_writes"`
-	WrittenFiles             []string                             `json:"written_files,omitempty"`
-	Warnings                 []Diagnostic                         `json:"warnings"`
-	Errors                   []Diagnostic                         `json:"errors"`
-	OpenProjectRequest       OpenProjectRequestMetadata           `json:"openproject_request"`
+	Applied                  bool                            `json:"applied"`
+	DryRun                   bool                            `json:"dry_run"`
+	Source                   string                          `json:"source"`
+	FromFile                 string                          `json:"from_file,omitempty"`
+	Profile                  *SourceProfileSummary           `json:"profile,omitempty"`
+	Snapshot                 OpenProjectSnapshotSummary      `json:"snapshot"`
+	TaskCandidates           []ImportTaskCandidate           `json:"task_candidates"`
+	ResourceCandidates       []ImportResourceCandidate       `json:"resource_candidates"`
+	ResourceDemandCandidates []ImportResourceDemandCandidate `json:"resource_demand_candidates,omitempty"`
+	DependencyCandidates     []ImportDependencyCandidate     `json:"dependency_candidates,omitempty"`
+	TimeEntryCandidates      []OpenProjectTimeEntryCandidate `json:"time_entry_candidates,omitempty"`
+	PlannedWrites            []PlannedWrite                  `json:"planned_writes"`
+	WrittenFiles             []string                        `json:"written_files,omitempty"`
+	Warnings                 []Diagnostic                    `json:"warnings"`
+	Errors                   []Diagnostic                    `json:"errors"`
+	OpenProjectRequest       OpenProjectRequestMetadata      `json:"openproject_request"`
 }
 
 type OpenProjectRequestMetadata struct {
@@ -151,22 +151,22 @@ type OpenProjectImportManifestQuery struct {
 	ResourceDemandsSidecar string `json:"resource_demands_sidecar,omitempty" yaml:"resource_demands_sidecar,omitempty"`
 }
 
-type OpenProjectMappedSnapshot struct {
-	Source                   string                               `json:"source,omitempty"`
-	Snapshot                 OpenProjectSnapshotSummary           `json:"snapshot"`
-	Profile                  *SourceProfileSummary                `json:"profile,omitempty"`
-	TaskCandidates           []OpenProjectTaskCandidate           `json:"task_candidates"`
-	ResourceCandidates       []OpenProjectResourceCandidate       `json:"resource_candidates"`
-	ResourceDemandCandidates []OpenProjectResourceDemandCandidate `json:"resource_demand_candidates,omitempty"`
-	DependencyCandidates     []OpenProjectDependencyCandidate     `json:"dependency_candidates,omitempty"`
-	TimeEntryCandidates      []OpenProjectTimeEntryCandidate      `json:"time_entry_candidates,omitempty"`
+type ImportMappedSnapshot struct {
+	Source                   string                          `json:"source,omitempty"`
+	Snapshot                 OpenProjectSnapshotSummary      `json:"snapshot"`
+	Profile                  *SourceProfileSummary           `json:"profile,omitempty"`
+	TaskCandidates           []ImportTaskCandidate           `json:"task_candidates"`
+	ResourceCandidates       []ImportResourceCandidate       `json:"resource_candidates"`
+	ResourceDemandCandidates []ImportResourceDemandCandidate `json:"resource_demand_candidates,omitempty"`
+	DependencyCandidates     []ImportDependencyCandidate     `json:"dependency_candidates,omitempty"`
+	TimeEntryCandidates      []OpenProjectTimeEntryCandidate `json:"time_entry_candidates,omitempty"`
 }
 
-// ImportMappedSnapshot is the source-neutral snapshot contract consumed by
-// import accept. The alias preserves the existing OpenProject adapter API.
-type ImportMappedSnapshot = OpenProjectMappedSnapshot
+// OpenProjectMappedSnapshot is kept as a compatibility alias for adapter and
+// test code that predates the shared import snapshot contract.
+type OpenProjectMappedSnapshot = ImportMappedSnapshot
 
-type OpenProjectTaskCandidate struct {
+type ImportTaskCandidate struct {
 	Source         string             `json:"source,omitempty"`
 	ObjectType     string             `json:"object_type,omitempty"`
 	NumericID      int64              `json:"numeric_id,omitempty"`
@@ -189,7 +189,10 @@ type OpenProjectTaskCandidate struct {
 	SourceRefs     []domain.SourceRef `json:"source_refs"`
 }
 
-type OpenProjectResourceCandidate struct {
+// OpenProjectTaskCandidate is kept as a compatibility alias.
+type OpenProjectTaskCandidate = ImportTaskCandidate
+
+type ImportResourceCandidate struct {
 	Source       string `json:"source,omitempty"`
 	ObjectType   string `json:"object_type,omitempty"`
 	SourceID     string `json:"source_id,omitempty"`
@@ -217,33 +220,73 @@ type OpenProjectTimeEntryCandidate struct {
 	SourceRefs         []domain.SourceRef `json:"source_refs"`
 }
 
-type OpenProjectResourceDemandCandidate struct {
-	TrackerSource string                `json:"tracker_source,omitempty"`
-	Source        string                `json:"source"`
-	SourceID      string                `json:"source_id"`
-	WorkPackageID string                `json:"work_package_id"`
-	MatchedTaskID string                `json:"matched_task_id,omitempty"`
-	WouldCreate   bool                  `json:"would_create"`
-	AcceptStatus  string                `json:"accept_status"`
-	Canonical     domain.ResourceDemand `json:"canonical"`
-	Diagnostics   []Diagnostic          `json:"diagnostics,omitempty"`
+// OpenProjectResourceCandidate is kept as a compatibility alias.
+type OpenProjectResourceCandidate = ImportResourceCandidate
+
+type ImportResourceDemandCandidate struct {
+	TrackerSource  string                `json:"tracker_source,omitempty"`
+	Source         string                `json:"source"`
+	SourceID       string                `json:"source_id"`
+	SourceObjectID string                `json:"source_object_id"`
+	WorkPackageID  string                `json:"work_package_id,omitempty"`
+	MatchedTaskID  string                `json:"matched_task_id,omitempty"`
+	WouldCreate    bool                  `json:"would_create"`
+	AcceptStatus   string                `json:"accept_status"`
+	Canonical      domain.ResourceDemand `json:"canonical"`
+	Diagnostics    []Diagnostic          `json:"diagnostics,omitempty"`
 }
 
-type OpenProjectDependencyCandidate struct {
-	Source            string       `json:"source,omitempty"`
-	ObjectType        string       `json:"object_type,omitempty"`
-	SourceID          string       `json:"source_id"`
-	SourceURL         string       `json:"source_url,omitempty"`
-	RelationType      string       `json:"relation_type"`
-	FromWorkPackageID string       `json:"from_work_package_id"`
-	ToWorkPackageID   string       `json:"to_work_package_id"`
-	PredecessorTaskID string       `json:"predecessor_task_id,omitempty"`
-	SuccessorTaskID   string       `json:"successor_task_id,omitempty"`
-	DependencyID      string       `json:"dependency_id"`
-	DependencyType    string       `json:"dependency_type"`
-	WouldCreate       bool         `json:"would_create"`
-	AcceptStatus      string       `json:"accept_status"`
-	Diagnostics       []Diagnostic `json:"diagnostics,omitempty"`
+// OpenProjectResourceDemandCandidate is kept as a compatibility alias.
+type OpenProjectResourceDemandCandidate = ImportResourceDemandCandidate
+
+type ImportDependencyCandidate struct {
+	Source              string       `json:"source,omitempty"`
+	ObjectType          string       `json:"object_type,omitempty"`
+	SourceID            string       `json:"source_id"`
+	SourceURL           string       `json:"source_url,omitempty"`
+	RelationType        string       `json:"relation_type"`
+	PredecessorSourceID string       `json:"predecessor_source_id"`
+	SuccessorSourceID   string       `json:"successor_source_id"`
+	FromWorkPackageID   string       `json:"from_work_package_id,omitempty"`
+	ToWorkPackageID     string       `json:"to_work_package_id,omitempty"`
+	PredecessorTaskID   string       `json:"predecessor_task_id,omitempty"`
+	SuccessorTaskID     string       `json:"successor_task_id,omitempty"`
+	DependencyID        string       `json:"dependency_id"`
+	DependencyType      string       `json:"dependency_type"`
+	WouldCreate         bool         `json:"would_create"`
+	AcceptStatus        string       `json:"accept_status"`
+	Diagnostics         []Diagnostic `json:"diagnostics,omitempty"`
+}
+
+// OpenProjectDependencyCandidate is kept as a compatibility alias.
+type OpenProjectDependencyCandidate = ImportDependencyCandidate
+
+func (snapshot *ImportMappedSnapshot) normalizeCandidateSourceIDs() {
+	for i := range snapshot.ResourceDemandCandidates {
+		candidate := &snapshot.ResourceDemandCandidates[i]
+		if candidate.SourceObjectID == "" {
+			candidate.SourceObjectID = candidate.WorkPackageID
+		}
+	}
+	for i := range snapshot.DependencyCandidates {
+		candidate := &snapshot.DependencyCandidates[i]
+		if candidate.PredecessorSourceID != "" && candidate.SuccessorSourceID != "" {
+			continue
+		}
+		predecessor, successor := candidate.FromWorkPackageID, candidate.ToWorkPackageID
+		if importDependencySource(*candidate) == "openproject" {
+			switch candidate.RelationType {
+			case "follows", "blocked":
+				predecessor, successor = candidate.ToWorkPackageID, candidate.FromWorkPackageID
+			}
+		}
+		if candidate.PredecessorSourceID == "" {
+			candidate.PredecessorSourceID = predecessor
+		}
+		if candidate.SuccessorSourceID == "" {
+			candidate.SuccessorSourceID = successor
+		}
+	}
 }
 
 type openProjectResourceDemandSidecar struct {
@@ -1359,16 +1402,18 @@ func mapOpenProjectDependencyCandidate(ws domain.Workspace, taskCandidates []Ope
 	toID := lastPathSegment(relation.Links.To.Href)
 	predecessorWP, successorWP, dependencyType, ok := mapOpenProjectRelationType(relation.Type, fromID, toID)
 	candidate := OpenProjectDependencyCandidate{
-		SourceID:          sourceID,
-		SourceURL:         relation.Links.Self.Href,
-		RelationType:      relation.Type,
-		FromWorkPackageID: fromID,
-		ToWorkPackageID:   toID,
-		DependencyID:      "dependency.openproject.relation." + sourceID,
-		DependencyType:    dependencyType,
-		WouldCreate:       true,
-		AcceptStatus:      "safe_to_accept",
-		Diagnostics:       []Diagnostic{},
+		SourceID:            sourceID,
+		SourceURL:           relation.Links.Self.Href,
+		RelationType:        relation.Type,
+		PredecessorSourceID: predecessorWP,
+		SuccessorSourceID:   successorWP,
+		FromWorkPackageID:   fromID,
+		ToWorkPackageID:     toID,
+		DependencyID:        "dependency.openproject.relation." + sourceID,
+		DependencyType:      dependencyType,
+		WouldCreate:         true,
+		AcceptStatus:        "safe_to_accept",
+		Diagnostics:         []Diagnostic{},
 	}
 	if !ok {
 		candidate.AcceptStatus = "unsupported_relation_type"
@@ -1464,13 +1509,14 @@ func mapOpenProjectResourceDemandSidecar(ws domain.Workspace, taskCandidates []O
 
 func mapOpenProjectSidecarDemand(ws domain.Workspace, demand openProjectSidecarDemand, workPackageID, taskID, sidecarPath string, seenIDs, seenTuples map[string]bool, warnings *[]Diagnostic, errors *[]Diagnostic) OpenProjectResourceDemandCandidate {
 	candidate := OpenProjectResourceDemandCandidate{
-		Source:        "openproject_sidecar",
-		SourceID:      strings.TrimSpace(demand.ID),
-		WorkPackageID: workPackageID,
-		MatchedTaskID: taskID,
-		WouldCreate:   true,
-		AcceptStatus:  "safe_to_accept",
-		Diagnostics:   []Diagnostic{},
+		Source:         "openproject_sidecar",
+		SourceID:       strings.TrimSpace(demand.ID),
+		SourceObjectID: workPackageID,
+		WorkPackageID:  workPackageID,
+		MatchedTaskID:  taskID,
+		WouldCreate:    true,
+		AcceptStatus:   "safe_to_accept",
+		Diagnostics:    []Diagnostic{},
 	}
 	if candidate.SourceID == "" {
 		candidate.SourceID = "resource_demand.op-" + strings.ToLower(strings.TrimSpace(workPackageID)) + ".missing-id"

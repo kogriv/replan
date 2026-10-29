@@ -66,6 +66,7 @@ envelope.sh
 envelope_check.py
 explain_resource_overload.py
 helper_envelope.py
+import_candidates.py
 load-dotenv.sh
 settings.list
 openproject_http.py

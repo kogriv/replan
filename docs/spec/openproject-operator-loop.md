@@ -588,6 +588,12 @@ The helper returns a stable JSON envelope with:
 - helper contract metadata for dry-run and apply behavior;
 - suggested operator decision and next actions.
 
+Relation direction rows prefer candidate `predecessor_source_id` and
+`successor_source_id`; they fall back to deprecated `from_work_package_id`
+and `to_work_package_id` for old OpenProject snapshots. Resource-demand
+candidates similarly use `source_object_id`, with deprecated
+`work_package_id` retained in OpenProject output for existing readers.
+
 `operator_report_status` has three meanings:
 
 | Status | Meaning | Normal next step |

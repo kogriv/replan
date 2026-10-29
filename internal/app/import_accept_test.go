@@ -804,6 +804,51 @@ func TestImportAcceptDependenciesDryRun(t *testing.T) {
 	}
 }
 
+func TestImportAcceptOldOpenProjectCandidateFields(t *testing.T) {
+	tests := []struct {
+		name      string
+		snapshot  func(string) string
+		configure func(*app.ImportAcceptRequest)
+		wantOp    string
+		wantID    string
+	}{
+		{
+			name: "dependency",
+			snapshot: func(dir string) string {
+				return writeOpenProjectMappedSnapshotForDependency(t, dir, "safe_to_accept", true, "task.op.1234", "task.offline.repair-pump", "88")
+			},
+			configure: func(req *app.ImportAcceptRequest) { req.AcceptDependencies = true },
+			wantOp:    "create_dependency",
+			wantID:    "dependency.openproject.relation.88",
+		},
+		{
+			name: "resource demand",
+			snapshot: func(dir string) string {
+				return writeOpenProjectMappedSnapshotForResourceDemand(t, dir, "safe_to_accept", "task.op.1234", "resource.human.ivan")
+			},
+			configure: func(req *app.ImportAcceptRequest) { req.AcceptResourceDemands = true },
+			wantOp:    "create_resource_demand",
+			wantID:    "resource_demand.op-1234.ivan.sidecar",
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			projectDir := copyProjectFixture(t)
+			snapshotID := tc.snapshot(projectDir)
+			stripSourceNeutralCandidateFields(t, projectDir, snapshotID)
+			req := app.ImportAcceptRequest{SnapshotID: snapshotID, DryRun: true}
+			tc.configure(&req)
+			result, err := app.NewImportAcceptService(filestore.New(projectDir)).Accept(context.Background(), req)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !hasImportChange(result.Changes, tc.wantOp, tc.wantID) {
+				t.Fatalf("old-format snapshot was not accepted: %#v", result)
+			}
+		})
+	}
+}
+
 func TestImportAcceptApplyDependenciesWritesDependencyAndAudit(t *testing.T) {
 	projectDir := copyProjectFixture(t)
 	store := filestore.New(projectDir)
@@ -1430,6 +1475,36 @@ func writeOpenProjectMappedSnapshotForDependency(t *testing.T, projectDir string
 		t.Fatalf("write mapped snapshot: %v", err)
 	}
 	return snapshotID
+}
+
+func stripSourceNeutralCandidateFields(t *testing.T, projectDir, snapshotID string) {
+	t.Helper()
+	key := strings.TrimPrefix(snapshotID, "source_snapshot.openproject.")
+	path := filepath.Join(projectDir, "imports/openproject", key, "mapped.json")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var mapped map[string]any
+	if err := json.Unmarshal(data, &mapped); err != nil {
+		t.Fatal(err)
+	}
+	for _, group := range []string{"dependency_candidates", "resource_demand_candidates"} {
+		values, _ := mapped[group].([]any)
+		for _, value := range values {
+			candidate := value.(map[string]any)
+			delete(candidate, "predecessor_source_id")
+			delete(candidate, "successor_source_id")
+			delete(candidate, "source_object_id")
+		}
+	}
+	data, err = json.MarshalIndent(mapped, "", "  ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, data, 0o644); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func rewriteMappedSnapshotResourceLinkMatchReason(t *testing.T, projectDir string, key string, matchReason string) {

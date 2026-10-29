@@ -5,6 +5,7 @@ import sys
 
 import yaml
 import helper_envelope
+import import_candidates
 import openproject_bindings
 from openproject_http import Settings
 
@@ -192,6 +193,7 @@ for dep in deps:
         })
         continue
     live_relation_id = as_text(candidate.get("source_id"))
+    predecessor_source_id, successor_source_id = import_candidates.dependency_source_ids(candidate)
     row = {
         "dependency_id": dep_id,
         "dependency_type": key[0],
@@ -201,6 +203,8 @@ for dep in deps:
         "direction": {
             "predecessor_task_id": key[1],
             "successor_task_id": key[2],
+            "predecessor_source_id": predecessor_source_id,
+            "successor_source_id": successor_source_id,
             "openproject_from_work_package_id": as_text(candidate.get("from_work_package_id")),
             "openproject_to_work_package_id": as_text(candidate.get("to_work_package_id")),
         },

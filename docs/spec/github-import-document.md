@@ -50,6 +50,12 @@ as a source fact only.
 blocking reference has `repository` (`owner/repo`), `number`, optional numeric
 `id`, and optional `html_url`. Only same-repository references are mapped.
 
+Mapped dependency candidates use `predecessor_source_id` and
+`successor_source_id`; mapped resource-demand candidates use
+`source_object_id`. GitHub candidate output does not use the deprecated
+OpenProject `from_work_package_id`, `to_work_package_id`, or
+`work_package_id` aliases.
+
 `project_items` contains `issue_number` and a `fields` object. String fields
 named by the source profile may supply start and finish dates in `YYYY-MM-DD`.
 A numeric field named by the profile may supply a demand amount when the

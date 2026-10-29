@@ -441,8 +441,8 @@ func TestOpenProjectImportMapsResourceDemandSidecarCandidates(t *testing.T) {
 	if candidate.Source != "openproject_sidecar" {
 		t.Fatalf("Source = %q", candidate.Source)
 	}
-	if candidate.WorkPackageID != "1234" {
-		t.Fatalf("WorkPackageID = %q, want 1234", candidate.WorkPackageID)
+	if candidate.SourceObjectID != "1234" || candidate.WorkPackageID != "1234" {
+		t.Fatalf("source object aliases = %q / %q, want 1234", candidate.SourceObjectID, candidate.WorkPackageID)
 	}
 	if candidate.MatchedTaskID != "task.op.1234" {
 		t.Fatalf("MatchedTaskID = %q, want task.op.1234", candidate.MatchedTaskID)
@@ -543,6 +543,9 @@ func TestOpenProjectImportWritesResourceDemandCandidatesToMappedSnapshot(t *test
 	}
 	if !containsString(string(mapped), `"resource_demand.op-1234.ivan.implementation"`) {
 		t.Fatalf("mapped does not contain sidecar demand id:\n%s", mapped)
+	}
+	if !containsString(string(mapped), `"source_object_id": "1234"`) || !containsString(string(mapped), `"work_package_id": "1234"`) {
+		t.Fatalf("mapped does not contain both resource-demand source ids:\n%s", mapped)
 	}
 }
 
@@ -1235,6 +1238,18 @@ func TestOpenProjectImportIncludesDependencyCandidates(t *testing.T) {
 	}
 	if candidate.PredecessorTaskID != "task.op.1234" || candidate.SuccessorTaskID != "task.op.1235" {
 		t.Fatalf("unexpected dependency direction: %#v", candidate)
+	}
+	if candidate.PredecessorSourceID != "1234" || candidate.SuccessorSourceID != "1235" || candidate.FromWorkPackageID != "1235" || candidate.ToWorkPackageID != "1234" {
+		t.Fatalf("unexpected source dependency direction: %#v", candidate)
+	}
+	encoded, err := json.Marshal(candidate)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, field := range []string{`"predecessor_source_id":"1234"`, `"successor_source_id":"1235"`, `"from_work_package_id":"1235"`, `"to_work_package_id":"1234"`} {
+		if !strings.Contains(string(encoded), field) {
+			t.Fatalf("OpenProject candidate missing %s: %s", field, encoded)
+		}
 	}
 	if candidate.AcceptStatus != "safe_to_accept" || !candidate.WouldCreate {
 		t.Fatalf("unexpected accept fields: %#v", candidate)

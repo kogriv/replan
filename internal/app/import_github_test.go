@@ -45,6 +45,22 @@ func TestGitHubImportMapsApprovedRows(t *testing.T) {
 	if len(result.DependencyCandidates) != 1 || result.DependencyCandidates[0].DependencyType != "finish_to_start" {
 		t.Fatalf("dependencies = %#v", result.DependencyCandidates)
 	}
+	encoded, err := json.Marshal(struct {
+		Dependencies []app.ImportDependencyCandidate     `json:"dependencies"`
+		Demands      []app.ImportResourceDemandCandidate `json:"demands"`
+	}{result.DependencyCandidates, result.ResourceDemandCandidates})
+	if err != nil {
+		t.Fatal(err)
+	}
+	encodedText := string(encoded)
+	if !strings.Contains(encodedText, `"predecessor_source_id":"example-org/planning-demo#102"`) ||
+		!strings.Contains(encodedText, `"successor_source_id":"example-org/planning-demo#101"`) ||
+		!strings.Contains(encodedText, `"source_object_id":"example-org/planning-demo#101"`) {
+		t.Fatalf("GitHub candidates missing source-neutral ids: %s", encoded)
+	}
+	if strings.Contains(encodedText, "work_package_id") {
+		t.Fatalf("GitHub candidates contain OpenProject aliases: %s", encoded)
+	}
 	if !diagnosticsHaveCode(result.Warnings, "github_cross_repository_blocked_by_skipped") {
 		t.Fatalf("warnings = %#v", result.Warnings)
 	}

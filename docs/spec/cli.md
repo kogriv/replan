@@ -1912,6 +1912,12 @@ Rules:
   `--include-closed` is set, and applies `--since` to `updated_at`;
 - GitHub `blocked_by` entries become `finish_to_start` candidates only inside
   the imported repository; cross-repository entries are warned and skipped;
+- dependency candidates identify their source objects with
+  `predecessor_source_id` and `successor_source_id`, and resource-demand
+  candidates use `source_object_id`;
+- OpenProject output also writes deprecated `from_work_package_id`,
+  `to_work_package_id`, and `work_package_id` aliases with the same source
+  objects for existing readers. GitHub output does not write those aliases;
 - GitHub sub-issue parents remain source facts in `mapped.json`; RePlan does
   not assign hierarchy semantics to them;
 - the first GitHub assignee is matched only through the resource-links
@@ -1953,6 +1959,9 @@ Rules:
   proposing actual consumption remains a separate explicit workflow;
 - imported dependency candidates are read-only until accepted through the
   separate explicit `--accept-dependencies` workflow;
+- `import accept` reads the source-neutral candidate fields first and falls
+  back to the deprecated OpenProject aliases in snapshots written before
+  those fields existed;
 - without `--dry-run`, OpenProject import writes `manifest.yaml`, `raw.json`
   and `mapped.json` under `imports/openproject/<snapshot-key>/`;
 - when `project.openproject_ids` is `private_bindings`, live API import without

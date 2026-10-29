@@ -83,6 +83,10 @@ grep -rhoE 'python3 -m [a-z_]+' "$KIT/scripts" | awk '{print $3}' | sort -u > "$
 while IFS= read -r module; do
   [ -f "$KIT/scripts/lib/$module.py" ] || fail "scripts call python module $module, which the kit lacks"
 done < "$WORK_DIR/modules"
+# Every repository helper module a kit module imports is in the kit too.
+check
+missing_imports="$(PYTHONPATH="$ROOT_DIR/scripts/lib" python3 -m kit_module_imports "$KIT/scripts/lib" "$ROOT_DIR/scripts/lib")"
+[ -z "$missing_imports" ] || fail "kit modules import helpers the kit lacks: $missing_imports"
 check
 grep -rhoE 'scripts/[a-z-]+\.sh' "$KIT/scripts" "$KIT/README.md" | sort -u > "$WORK_DIR/helpers"
 while IFS= read -r helper; do
