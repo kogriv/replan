@@ -1708,3 +1708,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-first-release
+  - id: evidence.self.report-unknown-build-info-plainly
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-29T15:54:48+07:00"
+    summary: 'Commit 03df9df: replan version leaves an unknown commit or build date out of the compact line and reports unknown in JSON; dev stays the version of a build without one. Manual check: a build without VCS data prints "replan dev (go1.24.1 linux/amd64)", a release-flag build prints version, commit and date. Unit tests for the go install BuildInfo case. Gate green, agent kit live checks 66. Codex 15:26-15:37.'
+    targets:
+      - kind: task
+        id: task.self.report-unknown-build-info-plainly
