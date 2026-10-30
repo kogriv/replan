@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 192,
-  "count": 192,
+  "total": 193,
+  "count": 193,
   "_embedded": {
     "elements": [
       {
@@ -5565,6 +5565,35 @@
           },
           "status": {
             "title": "Developed"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2293,
+        "subject": "Accept imported dependencies together with their tasks",
+        "description": {
+          "raw": "Found on 2026-10-30 importing a real OpenProject project into a project made by replan init: import accept --accept-dependencies right after accepting the tasks applies nothing, because dependency candidates were matched against the plan when the snapshot was taken, before the tasks existed, and carry accept_status task_unmatched; a second import is needed. Let import accept match dependency candidates against the tasks it creates in the same run (or against the current plan at accept time), or say clearly that a fresh import is needed, and cover the first-import path in the quickstart's tracker pointer."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2293"
+          },
+          "status": {
+            "title": "New"
           },
           "assignee": {
             "href": "/api/v3/users/101",

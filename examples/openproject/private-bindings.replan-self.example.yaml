@@ -401,6 +401,12 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2287"
         url: https://op.example.internal/work_packages/2287
+    - replan_task_id: task.self.accept-dependencies-with-their-tasks
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2293"
+        url: https://op.example.internal/work_packages/2293
     - replan_task_id: task.self.fix-first-project-defects
       source_ref:
         source: openproject

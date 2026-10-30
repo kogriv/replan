@@ -5746,3 +5746,31 @@ tasks:
           object_type: work_package
           object_id: "2292"
           url: https://op.example.internal/work_packages/2292
+    - id: task.self.accept-dependencies-with-their-tasks
+      title: Accept imported dependencies together with their tasks
+      description: 'Found on 2026-10-30 importing a real OpenProject project into a project made by replan init: import accept --accept-dependencies right after accepting the tasks applies nothing, because dependency candidates were matched against the plan when the snapshot was taken, before the tasks existed, and carry accept_status task_unmatched; a second import is needed. Let import accept match dependency candidates against the tasks it creates in the same run (or against the current plan at accept time), or say clearly that a fresh import is needed, and cover the first-import path in the quickstart''s tracker pointer.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-10-30"
+      planned_finish: "2026-10-30"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.accept-dependencies-with-their-tasks.agent
+        - kind: resource_demand
+          id: resource_demand.accept-dependencies-with-their-tasks.maintainer
+        - kind: resource_demand
+          id: resource_demand.accept-dependencies-with-their-tasks.local-dev
+        - kind: resource_demand
+          id: resource_demand.accept-dependencies-with-their-tasks.ci
+      tags:
+        - openproject
+        - oss
+        - gap
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2293"
+          url: https://op.example.internal/work_packages/2293

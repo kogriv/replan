@@ -382,6 +382,8 @@ current_plan:
     - kind: task
       id: task.self.import-openproject-relates-relations
     - kind: task
+      id: task.self.accept-dependencies-with-their-tasks
+    - kind: task
       id: task.self.fix-first-project-defects
     - kind: task
       id: task.self.implement-replan-init-and-resource-commands
