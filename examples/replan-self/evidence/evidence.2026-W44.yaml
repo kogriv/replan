@@ -2618,3 +2618,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.import-openproject-relates-relations
+  - id: evidence.self.start-correct-mis-booked-actuals
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T19:18:28+07:00"
+    summary: 'Started next in the agreed order; three mis-booked actuals of 2026-10-30 wait for it. Design: replan actual correct appends a correction actual naming the original and its corrected amount; one function applies corrections for every consumer. Original estimate before the Codex split: 2 agent hours.'
+    targets:
+      - kind: task
+        id: task.self.correct-mis-booked-actuals
