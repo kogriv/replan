@@ -2393,3 +2393,45 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.document-local-trust-boundary
+    - id: actual.self-fix-first-project-defects.ai-codex-local.20261030T1508520700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.fix-first-project-defects
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.fix-first-project-defects.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.29
+      unit: agent_hours
+      occurred_at: "2026-10-30T15:08:52+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.fix-first-project-defects
+    - id: actual.self-fix-first-project-defects.ai-agent-executor.20261030T1508520700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.fix-first-project-defects
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.fix-first-project-defects.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.25
+      unit: agent_hours
+      occurred_at: "2026-10-30T15:08:52+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.fix-first-project-defects

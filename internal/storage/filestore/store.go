@@ -313,9 +313,18 @@ func (s Store) insertCurrentPlanTask(rel, taskID, afterTaskID string) error {
 		return fmt.Errorf("parse %s: %w", rel, err)
 	}
 	plan := mappingValue(&root, "current_plan")
+	if plan == nil || plan.Kind != yaml.MappingNode {
+		return fmt.Errorf("%s has no current_plan mapping", rel)
+	}
 	included := mappingValue(plan, "included_tasks")
-	if included == nil || included.Kind != yaml.SequenceNode || len(included.Content) == 0 {
-		return fmt.Errorf("%s has no non-empty current_plan.included_tasks sequence", rel)
+	if included != nil && included.Kind != yaml.SequenceNode {
+		return fmt.Errorf("%s current_plan.included_tasks is not a sequence", rel)
+	}
+	if afterTaskID != "" && (included == nil || len(included.Content) == 0) {
+		return fmt.Errorf("after task %s is not included in current plan", afterTaskID)
+	}
+	if included == nil || len(included.Content) == 0 {
+		return s.insertFirstCurrentPlanTask(rel, data, plan, included, taskID)
 	}
 	insertLine := len(splitLines(data))
 	if afterTaskID != "" {
@@ -354,6 +363,57 @@ func (s Store) insertCurrentPlanTask(rel, taskID, afterTaskID string) error {
 	if !ok {
 		return fmt.Errorf("render current-plan task reference %s", taskID)
 	}
+	lines = append(lines, make([]string, len(text))...)
+	copy(lines[insertLine+len(text):], lines[insertLine:])
+	copy(lines[insertLine:], text)
+	return s.fs.write(rel, []byte(strings.Join(lines, "")))
+}
+
+// insertFirstCurrentPlanTask turns either an omitted included_tasks key or an
+// empty sequence (including flow-style []) into the canonical block sequence
+// used for later task entries. Other current-plan bytes stay untouched.
+func (s Store) insertFirstCurrentPlanTask(rel string, data []byte, plan, included *yaml.Node, taskID string) error {
+	lines := splitLines(data)
+	keyIndent := 2
+	if len(plan.Content) > 0 && plan.Content[0].Column > 0 {
+		keyIndent = plan.Content[0].Column - 1
+	}
+	itemIndent := keyIndent + 2
+	entry := []string{
+		strings.Repeat(" ", itemIndent) + "- kind: task\n",
+		strings.Repeat(" ", itemIndent+2) + "id: " + taskID + "\n",
+	}
+	if included != nil {
+		keyLine := included.Line - 1
+		if keyLine < 0 || keyLine >= len(lines) {
+			return fmt.Errorf("locate current_plan.included_tasks in %s", rel)
+		}
+		keyNode := plan.Content[mappingIndex(plan, "included_tasks")]
+		keyPrefix := strings.Repeat(" ", keyNode.Column-1) + "included_tasks:"
+		lines[keyLine] = keyPrefix + "\n"
+		lines = append(lines, make([]string, len(entry))...)
+		copy(lines[keyLine+1+len(entry):], lines[keyLine+1:])
+		copy(lines[keyLine+1:], entry)
+		return s.fs.write(rel, []byte(strings.Join(lines, "")))
+	}
+
+	insertLine := len(lines)
+	for i := 0; i+1 < len(plan.Content); i += 2 {
+		value := plan.Content[i+1]
+		if i+2 < len(plan.Content) {
+			continue
+		}
+		insertLine = value.Line
+		for insertLine < len(lines) {
+			trimmed := strings.TrimSpace(lines[insertLine])
+			indent := len(lines[insertLine]) - len(strings.TrimLeft(lines[insertLine], " "))
+			if trimmed != "" && indent <= keyIndent {
+				break
+			}
+			insertLine++
+		}
+	}
+	text := append([]string{strings.Repeat(" ", keyIndent) + "included_tasks:\n"}, entry...)
 	lines = append(lines, make([]string, len(text))...)
 	copy(lines[insertLine+len(text):], lines[insertLine:])
 	copy(lines[insertLine:], text)

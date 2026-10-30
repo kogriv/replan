@@ -105,6 +105,8 @@ replan capacity set --project <path> --resource <resource-id> --unit <unit>
 - `replan workload`, `scenario list` and `scenario show` print their result
   in `markdown` and `text`, not only the status line.
 
+Fixed on 2026-10-30: all three defects above have regression coverage.
+
 These do not wait for the new commands.
 
 ### 4. A quickstart guide that is tested

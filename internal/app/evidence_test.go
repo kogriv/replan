@@ -83,6 +83,35 @@ func TestEvidenceAddCreatesNewWeekFile(t *testing.T) {
 	}
 }
 
+func TestEvidenceAddTargetsProjectAndValidates(t *testing.T) {
+	projectPath := copyAppProjectFixture(t)
+	req := evidenceRequest()
+	req.ID = "evidence.test.project-decision"
+	req.Targets = []domain.Ref{{Kind: "project", ID: "project.replan-mvp"}}
+	result, err := app.NewEvidenceService(filestore.New(projectPath)).Add(context.Background(), req)
+	if err != nil {
+		t.Fatalf("Add returned error: %v; diagnostics=%#v", err, result.Errors)
+	}
+	if !result.Applied || result.Validation == nil || !result.Validation.Valid {
+		t.Fatalf("project evidence was not applied and validated: %#v", result)
+	}
+
+	req.ID = "evidence.test.other-project"
+	req.Targets = []domain.Ref{{Kind: "project", ID: "project.other"}}
+	req.DryRun = true
+	refused, err := app.NewEvidenceService(filestore.New(projectPath)).Add(context.Background(), req)
+	if err == nil {
+		t.Fatal("evidence targeting another project was accepted")
+	}
+	found := false
+	for _, diagnostic := range refused.Errors {
+		found = found || diagnostic.Code == "evidence_target_not_found"
+	}
+	if !found {
+		t.Fatalf("errors = %#v, want evidence_target_not_found", refused.Errors)
+	}
+}
+
 func TestEvidenceAddDryRunWritesNothing(t *testing.T) {
 	projectPath := copyAppProjectFixture(t)
 	before, err := os.ReadFile(filepath.Join(projectPath, "evidence", "evidence.2026-W28.yaml"))

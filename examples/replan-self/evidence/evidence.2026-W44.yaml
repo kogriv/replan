@@ -2411,3 +2411,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.document-local-trust-boundary
+  - id: evidence.self.fix-first-project-defects
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T15:08:52+07:00"
+    summary: 'Codex round 1 (14:37-14:55): task add writes the first task into an empty or missing included_tasks in block style; evidence accepts project:<own project id> and refuses another id with evidence_target_not_found; workload, scenario list and scenario show render their result in markdown and text, JSON byte-identical to before. Rechecked on the walk-through project: evidence on the project, then the first task, validate ok, workload text and markdown tables show the 10-hour overload; scenario list and show render. Full local gate green, 78 live kit checks.'
+    targets:
+      - kind: task
+        id: task.self.fix-first-project-defects

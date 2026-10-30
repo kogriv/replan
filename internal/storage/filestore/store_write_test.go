@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/kogriv/replan/internal/app"
@@ -141,6 +142,42 @@ func TestStoreSetTaskTrackingStatus(t *testing.T) {
 		}
 	}
 	t.Fatal("task was not loaded")
+}
+
+func TestStoreAddFirstTaskToEmptyCurrentPlan(t *testing.T) {
+	tests := []struct {
+		name, plan string
+	}{
+		{name: "empty flow sequence", plan: "current_plan:\n  id: current\n  version: 1\n  included_tasks: []\n"},
+		{name: "missing key", plan: "current_plan:\n  id: current\n  version: 1\n"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			root := t.TempDir()
+			writeHandFile(t, root, tasksRel, "tasks: []\n")
+			writeHandFile(t, root, demandsRel, "resource_demands: []\n")
+			writeHandFile(t, root, "canonical/current_plan.yaml", tc.plan)
+			task := domain.Task{ID: "task.first", Title: "First task", TrackingStatus: "not_started"}
+			if _, err := New(root).AddTask(task, nil, ""); err != nil {
+				t.Fatalf("AddTask: %v", err)
+			}
+			got := readHandFile(t, root, "canonical/current_plan.yaml")
+			want := "current_plan:\n  id: current\n  version: 1\n  included_tasks:\n    - kind: task\n      id: task.first\n"
+			if got != want {
+				t.Fatalf("current plan bytes\n--- got\n%s--- want\n%s", got, want)
+			}
+		})
+	}
+}
+
+func TestStoreInsertFirstTaskAfterUnknownTaskStillFails(t *testing.T) {
+	root := t.TempDir()
+	const rel = "canonical/current_plan.yaml"
+	writeHandFile(t, root, rel, "current_plan:\n  id: current\n  version: 1\n  included_tasks: []\n")
+	err := New(root).insertCurrentPlanTask(rel, "task.first", "task.missing")
+	if err == nil || !strings.Contains(err.Error(), "after task task.missing is not included in current plan") {
+		t.Fatalf("error = %v", err)
+	}
 }
 
 func TestStoreLoadAllowsMissingDependenciesFile(t *testing.T) {

@@ -5214,7 +5214,7 @@ tasks:
       title: Fix the defects found on the way to a first project
       description: 'Found on 2026-10-30 while walking from an empty directory to a first workload report (docs/dev/first-project-onboarding-design.md, section 3): replan task add refuses the first task of an empty current plan; replan evidence add cannot target the project, so a decision made before any task has nowhere to point; replan workload, scenario list and scenario show print only a status line in markdown and text, the result is in JSON only. Fix all three with tests and update the getting-started inventory.'
       type: implementation
-      tracking_status: in_progress
+      tracking_status: review_ready
       planned_start: "2026-10-30"
       planned_finish: "2026-10-30"
       assignee_hint:

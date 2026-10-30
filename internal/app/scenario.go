@@ -2,8 +2,10 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -56,9 +58,17 @@ type ScenarioSummary struct {
 }
 
 type ScenarioShowResult struct {
-	Scenario domain.Scenario `json:"scenario"`
-	Warnings []Diagnostic    `json:"warnings"`
-	Errors   []Diagnostic    `json:"errors"`
+	Scenario       domain.Scenario         `json:"scenario"`
+	DisplayChanges []ScenarioDisplayChange `json:"-"`
+	Warnings       []Diagnostic            `json:"warnings"`
+	Errors         []Diagnostic            `json:"errors"`
+}
+
+type ScenarioDisplayChange struct {
+	Target string
+	Field  string
+	From   string
+	To     string
 }
 
 type ScenarioDiffResult struct {
@@ -151,7 +161,99 @@ func (s ScenarioService) Show(ctx context.Context, req ScenarioShowRequest) (Sce
 		return result, ErrValidationFailed
 	}
 	result.Scenario = scenario
+	result.DisplayChanges = scenarioDisplayChanges(ws, scenario)
 	return result, nil
+}
+
+func scenarioDisplayChanges(ws domain.Workspace, scenario domain.Scenario) []ScenarioDisplayChange {
+	changes := make([]ScenarioDisplayChange, 0, len(scenario.Changes))
+	for _, change := range scenario.Changes {
+		display := ScenarioDisplayChange{Target: change.Path, Field: change.Op, From: "-", To: scenarioDisplayValue(change.Value)}
+		for _, demand := range ws.ResourceDemands {
+			prefix := "resource_demands." + demand.ID + "."
+			if !strings.HasPrefix(change.Path, prefix) {
+				continue
+			}
+			display.Target, display.Field = demand.ID, strings.TrimPrefix(change.Path, prefix)
+			switch display.Field {
+			case "planned_amount":
+				display.From = scenarioDisplayValue(demand.PlannedAmount)
+			case "remaining_amount":
+				display.From = scenarioDisplayValue(demand.Remaining())
+			case "resource_ref":
+				display.From = scenarioDisplayValue(demand.ResourceRef)
+			}
+		}
+		for _, capacity := range ws.Capacities {
+			prefix := "capacities." + capacity.ID + "."
+			if strings.HasPrefix(change.Path, prefix) {
+				display.Target, display.Field = capacity.ID, strings.TrimPrefix(change.Path, prefix)
+				if display.Field == "amount" {
+					display.From = scenarioDisplayValue(capacity.Amount)
+				}
+			}
+		}
+		for _, task := range ws.Tasks {
+			prefix := "tasks." + task.ID + "."
+			if !strings.HasPrefix(change.Path, prefix) {
+				continue
+			}
+			display.Target, display.Field = task.ID, strings.TrimPrefix(change.Path, prefix)
+			switch display.Field {
+			case "planned_start":
+				display.From = scenarioDisplayValue(task.PlannedStart)
+			case "planned_finish":
+				display.From = scenarioDisplayValue(task.PlannedFinish)
+			}
+		}
+		for _, dependency := range ws.Dependencies {
+			prefix := "dependencies." + dependency.ID + "."
+			if strings.HasPrefix(change.Path, prefix) {
+				display.Target, display.Field = dependency.ID, strings.TrimPrefix(change.Path, prefix)
+				if display.Field == "status" {
+					display.From = scenarioDisplayValue(dependency.Status)
+				}
+			}
+		}
+		if change.Path == "availability.exceptions" {
+			display.Target, display.Field = scenarioAvailabilityTarget(change.Value), change.Path
+		}
+		changes = append(changes, display)
+	}
+	return changes
+}
+
+func scenarioAvailabilityTarget(value any) string {
+	if fields, ok := value.(map[string]any); ok {
+		if ref, ok := fields["resource_ref"].(map[string]any); ok {
+			if id, ok := ref["id"].(string); ok {
+				return id
+			}
+		}
+	}
+	return "current plan"
+}
+
+func scenarioDisplayValue(value any) string {
+	if value == nil || value == "" {
+		return "-"
+	}
+	if ref, ok := value.(domain.Ref); ok {
+		return ref.ID
+	}
+	switch value := value.(type) {
+	case string:
+		return value
+	case float64:
+		return strconv.FormatFloat(value, 'g', -1, 64)
+	case int:
+		return strconv.Itoa(value)
+	}
+	data, err := json.Marshal(value)
+	if err == nil {
+		return string(data)
+	}
+	return fmt.Sprint(value)
 }
 
 func (s ScenarioService) Diff(ctx context.Context, req ScenarioDiffRequest) (ScenarioDiffResult, error) {

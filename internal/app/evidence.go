@@ -183,7 +183,7 @@ func addEvidenceRequestError(errors *[]Diagnostic, code, message, kind, id strin
 
 func validEvidenceTargetKind(kind string) bool {
 	switch kind {
-	case "task", "resource", "resource_demand", "actual", "proposal", "dependency", "scenario", "capacity", "baseline", "audit_record":
+	case "project", "task", "resource", "resource_demand", "actual", "proposal", "dependency", "scenario", "capacity", "baseline", "audit_record":
 		return true
 	default:
 		return false
@@ -192,6 +192,8 @@ func validEvidenceTargetKind(kind string) bool {
 
 func evidenceTargetExists(ws domain.Workspace, ref domain.Ref) bool {
 	switch ref.Kind {
+	case "project":
+		return ws.Project.ID == ref.ID
 	case "task":
 		_, ok := findTask(ws.Tasks, ref.ID)
 		return ok

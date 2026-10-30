@@ -898,7 +898,10 @@ Demand breakdown:
   - For a concurrent demand, the entry has `concurrent: true` and the
     demand's own amounts, while the row holds the peak of the demands active
     on the same day.
-- Markdown and text output are unchanged.
+- Markdown and text output render the selected week (or `all weeks`) and one
+  row per resource with name, class, unit, capacity, planned, actual,
+  remaining and overload. With `--demands`, each resource row is followed by
+  its contributing demands. Warnings and errors follow the rows.
 - The schedule drift check and the overload explainer in `scripts/` read
   their weekly rows from this command instead of computing them (finding
   C-15 of the 2026-10-15 agent tooling review).
@@ -1287,6 +1290,11 @@ replan scenario show --project -p --bindings --format
 replan scenario diff --project -p --bindings --format --against --week
 replan scenario apply --project -p --bindings --format --actor --apply --dry-run --evidence --reason
 ```
+
+`scenario list --format markdown|text` renders id, name, status and change
+count. `scenario show --format markdown|text` renders id, name, status,
+description and every change as target, field, previous value and new value.
+The JSON envelope and result shapes are unchanged.
 
 Rules:
 
@@ -1760,9 +1768,11 @@ Rules:
 
 - `--id`, `--type`, `--actor`, `--observed-at`, `--summary` and at least one
   repeatable `--target KIND:ID` are required; ids are never generated;
-- target kinds are `task`, `resource`, `resource_demand`, `actual`, `proposal`,
-  `dependency`, `scenario`, `capacity`, `baseline` and `audit_record`; every
-  target id and the actor id must already exist in the project;
+- target kinds are `project`, `task`, `resource`, `resource_demand`, `actual`,
+  `proposal`, `dependency`, `scenario`, `capacity`, `baseline` and
+  `audit_record`; a `project` target must use the id from
+  `.replan/project.yaml`, and every other target id and the actor id must
+  already exist in the project;
 - `--observed-at` is RFC3339 with an offset and selects
   `evidence/evidence.<ISO week>.yaml`;
 - `replan validate` requires a non-empty evidence type but does not enumerate

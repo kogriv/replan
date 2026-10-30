@@ -15,6 +15,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"text/tabwriter"
 	"time"
 
 	"github.com/kogriv/replan/internal/app"
@@ -2690,7 +2691,7 @@ func runEvidenceAdd(args []string, stdout, stderr *os.File) int {
 	confidence := fs.String("confidence", "", "optional confidence (free text accepted by replan validate)")
 	summary := fs.String("summary", "", "required evidence summary")
 	var rawTargets repeatedStringFlag
-	fs.Var(&rawTargets, "target", "required repeatable KIND:ID target; kinds: task, resource, resource_demand, actual, proposal, dependency, scenario, capacity, baseline, audit_record")
+	fs.Var(&rawTargets, "target", "required repeatable KIND:ID target; kinds: project, task, resource, resource_demand, actual, proposal, dependency, scenario, capacity, baseline, audit_record")
 	writeFlags := addCanonicalWriteFlags(fs)
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
@@ -3472,7 +3473,28 @@ func printScenarioEnvelope(stdout, stderr *os.File, format string, env envelope,
 		}
 		return exitInvalidUsage
 	}
-	if printErr := printEnvelope(stdout, format, env); printErr != nil {
+	var printErr error
+	if env.OK && format != "json" {
+		switch result := env.Result.(type) {
+		case app.ScenarioListResult:
+			if format == "markdown" {
+				printErr = writeScenarioListMarkdown(stdout, result)
+			} else {
+				printErr = writeScenarioListText(stdout, result)
+			}
+		case app.ScenarioShowResult:
+			if format == "markdown" {
+				printErr = writeScenarioShowMarkdown(stdout, result)
+			} else {
+				printErr = writeScenarioShowText(stdout, result)
+			}
+		default:
+			printErr = printEnvelope(stdout, format, env)
+		}
+	} else {
+		printErr = printEnvelope(stdout, format, env)
+	}
+	if printErr != nil {
 		fmt.Fprintf(stderr, "failed to write output: %v\n", printErr)
 		return exitGeneralError
 	}
@@ -4363,7 +4385,16 @@ func runWorkload(args []string, stdout, stderr *os.File) int {
 		Warnings:    result.Warnings,
 		Errors:      result.Errors,
 	}
-	if printErr := printEnvelope(stdout, format, env); printErr != nil {
+	var printErr error
+	switch format {
+	case "markdown":
+		printErr = writeWorkloadMarkdown(stdout, result)
+	case "text":
+		printErr = writeWorkloadText(stdout, result)
+	default:
+		printErr = printEnvelope(stdout, format, env)
+	}
+	if printErr != nil {
 		fmt.Fprintf(stderr, "failed to write output: %v\n", printErr)
 		return exitGeneralError
 	}
@@ -4732,7 +4763,7 @@ func printUsage(out *os.File) {
 	fmt.Fprintln(out, "  replan report state --project <path> [--week <YYYY-Www>] [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan report dashboard --project <path> [--week <YYYY-Www>] [--output <dir>] [--format html|json]")
 	fmt.Fprintln(out, "  replan tracking suggest --project <path> [--week <YYYY-Www>] [--write-candidates --actor <id>] [--format json|markdown|text]")
-	fmt.Fprintln(out, "  replan scenario list|show|diff|apply --project <path> [--dry-run|--apply for apply] [--format json|markdown]")
+	fmt.Fprintln(out, "  replan scenario list|show|diff|apply --project <path> [--dry-run|--apply for apply] [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan proposal list|show|suggest-dependencies|accept|reject --project <path> [--dry-run|--apply for accept/reject] [--format json|markdown]")
 	fmt.Fprintln(out, "  replan dependency list --project <path> [--format json|markdown]")
 	fmt.Fprintln(out, "  replan baseline create --project <path> --id <id> --name <name> --approved-by <actor-id> [--status-date <YYYY-MM-DD>] [--assumption <text> ...] [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text]")
@@ -5299,6 +5330,171 @@ func writeScenarioDiffMarkdown(stdout *os.File, diff app.ScenarioDiffResult) err
 			if _, err := fmt.Fprintf(stdout, "- `%s`: %s\n", warning.Code, warning.Message); err != nil {
 				return err
 			}
+		}
+	}
+	return nil
+}
+
+func writeWorkloadMarkdown(stdout *os.File, result app.WorkloadResult) error {
+	var b strings.Builder
+	b.WriteString("# RePlan Workload\n\n")
+	week := result.Week
+	if week == "" {
+		week = "all weeks"
+	}
+	fmt.Fprintf(&b, "- Week: `%s`\n", week)
+	if result.ScenarioID != "" {
+		fmt.Fprintf(&b, "- Scenario: `%s`\n", result.ScenarioID)
+	}
+	b.WriteString("\n| Resource | Class | Unit | Capacity | Planned | Actual | Remaining | Overload |\n")
+	b.WriteString("|---|---|---:|---:|---:|---:|---:|---:|\n")
+	for _, row := range result.Resources {
+		name := row.ResourceName
+		if name == "" {
+			name = row.ResourceID
+		}
+		fmt.Fprintf(&b, "| `%s` | %s | %s | %g | %g | %g | %g | %g |\n",
+			markdownCell(name), markdownCell(row.ResourceClass), markdownCell(row.Unit), row.Capacity, row.Planned, row.Actual, row.Remaining, row.Overload)
+		for _, demand := range row.Demands {
+			label := "↳ " + demand.ResourceDemandID
+			if demand.TaskID != "" {
+				label += " (" + demand.TaskID + ")"
+			}
+			fmt.Fprintf(&b, "| `%s` | demand | %s | - | %g | - | %g | - |\n",
+				markdownCell(label), markdownCell(row.Unit), demand.Planned, demand.Remaining)
+		}
+	}
+	writeDiagnosticsMarkdown(&b, result.Warnings, result.Errors)
+	_, err := fmt.Fprint(stdout, b.String())
+	return err
+}
+
+func writeWorkloadText(stdout *os.File, result app.WorkloadResult) error {
+	week := result.Week
+	if week == "" {
+		week = "all weeks"
+	}
+	if _, err := fmt.Fprintf(stdout, "Workload: %s\n", week); err != nil {
+		return err
+	}
+	if result.ScenarioID != "" {
+		if _, err := fmt.Fprintf(stdout, "Scenario: %s\n", result.ScenarioID); err != nil {
+			return err
+		}
+	}
+	tw := tabwriter.NewWriter(stdout, 0, 4, 2, ' ', 0)
+	if _, err := fmt.Fprintln(tw, "RESOURCE\tCLASS\tUNIT\tCAPACITY\tPLANNED\tACTUAL\tREMAINING\tOVERLOAD"); err != nil {
+		return err
+	}
+	for _, row := range result.Resources {
+		name := row.ResourceName
+		if name == "" {
+			name = row.ResourceID
+		}
+		if _, err := fmt.Fprintf(tw, "%s\t%s\t%s\t%g\t%g\t%g\t%g\t%g\n", name, row.ResourceClass, row.Unit, row.Capacity, row.Planned, row.Actual, row.Remaining, row.Overload); err != nil {
+			return err
+		}
+		for _, demand := range row.Demands {
+			label := "  -> " + demand.ResourceDemandID
+			if demand.TaskID != "" {
+				label += " (" + demand.TaskID + ")"
+			}
+			if _, err := fmt.Fprintf(tw, "%s\tdemand\t%s\t-\t%g\t-\t%g\t-\n", label, row.Unit, demand.Planned, demand.Remaining); err != nil {
+				return err
+			}
+		}
+	}
+	if err := tw.Flush(); err != nil {
+		return err
+	}
+	return writeDiagnosticsText(stdout, result.Warnings, result.Errors)
+}
+
+func writeScenarioListMarkdown(stdout *os.File, result app.ScenarioListResult) error {
+	var b strings.Builder
+	b.WriteString("# RePlan Scenario List\n\n| ID | Name | Status | Changes |\n|---|---|---|---:|\n")
+	for _, scenario := range result.Scenarios {
+		fmt.Fprintf(&b, "| `%s` | %s | %s | %d |\n", markdownCell(scenario.ID), markdownCell(scenario.Name), markdownCell(scenario.Status), scenario.Changes)
+	}
+	writeDiagnosticsMarkdown(&b, result.Warnings, result.Errors)
+	_, err := fmt.Fprint(stdout, b.String())
+	return err
+}
+
+func writeScenarioListText(stdout *os.File, result app.ScenarioListResult) error {
+	tw := tabwriter.NewWriter(stdout, 0, 4, 2, ' ', 0)
+	if _, err := fmt.Fprintln(tw, "ID\tNAME\tSTATUS\tCHANGES"); err != nil {
+		return err
+	}
+	for _, scenario := range result.Scenarios {
+		if _, err := fmt.Fprintf(tw, "%s\t%s\t%s\t%d\n", scenario.ID, scenario.Name, scenario.Status, scenario.Changes); err != nil {
+			return err
+		}
+	}
+	if err := tw.Flush(); err != nil {
+		return err
+	}
+	return writeDiagnosticsText(stdout, result.Warnings, result.Errors)
+}
+
+func writeScenarioShowMarkdown(stdout *os.File, result app.ScenarioShowResult) error {
+	var b strings.Builder
+	scenario := result.Scenario
+	fmt.Fprintf(&b, "# RePlan Scenario: %s\n\n- ID: `%s`\n- Name: %s\n- Status: %s\n- Description: %s\n",
+		markdownCell(scenario.Name), markdownCell(scenario.ID), markdownCell(scenario.Name), markdownCell(scenario.Status), markdownCell(firstNonEmptyCLI(scenario.Description)))
+	b.WriteString("\n## Changes\n\n| Target | Field | From | To |\n|---|---|---|---|\n")
+	for _, change := range result.DisplayChanges {
+		fmt.Fprintf(&b, "| `%s` | %s | %s | %s |\n", markdownCell(change.Target), markdownCell(change.Field), markdownCell(change.From), markdownCell(change.To))
+	}
+	writeDiagnosticsMarkdown(&b, result.Warnings, result.Errors)
+	_, err := fmt.Fprint(stdout, b.String())
+	return err
+}
+
+func writeScenarioShowText(stdout *os.File, result app.ScenarioShowResult) error {
+	scenario := result.Scenario
+	if _, err := fmt.Fprintf(stdout, "ID: %s\nName: %s\nStatus: %s\nDescription: %s\n\n", scenario.ID, scenario.Name, scenario.Status, firstNonEmptyCLI(scenario.Description)); err != nil {
+		return err
+	}
+	tw := tabwriter.NewWriter(stdout, 0, 4, 2, ' ', 0)
+	if _, err := fmt.Fprintln(tw, "TARGET\tFIELD\tFROM\tTO"); err != nil {
+		return err
+	}
+	for _, change := range result.DisplayChanges {
+		if _, err := fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", change.Target, change.Field, change.From, change.To); err != nil {
+			return err
+		}
+	}
+	if err := tw.Flush(); err != nil {
+		return err
+	}
+	return writeDiagnosticsText(stdout, result.Warnings, result.Errors)
+}
+
+func writeDiagnosticsMarkdown(b *strings.Builder, warnings, errors []app.Diagnostic) {
+	if len(warnings) > 0 {
+		b.WriteString("\n## Warnings\n")
+		for _, diagnostic := range warnings {
+			fmt.Fprintf(b, "- `%s`: %s\n", diagnostic.Code, diagnostic.Message)
+		}
+	}
+	if len(errors) > 0 {
+		b.WriteString("\n## Errors\n")
+		for _, diagnostic := range errors {
+			fmt.Fprintf(b, "- `%s`: %s\n", diagnostic.Code, diagnostic.Message)
+		}
+	}
+}
+
+func writeDiagnosticsText(stdout *os.File, warnings, errors []app.Diagnostic) error {
+	for _, diagnostic := range warnings {
+		if _, err := fmt.Fprintf(stdout, "warning %s: %s\n", diagnostic.Code, diagnostic.Message); err != nil {
+			return err
+		}
+	}
+	for _, diagnostic := range errors {
+		if _, err := fmt.Fprintf(stdout, "error %s: %s\n", diagnostic.Code, diagnostic.Message); err != nil {
+			return err
 		}
 	}
 	return nil

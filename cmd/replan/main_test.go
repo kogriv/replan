@@ -1332,6 +1332,37 @@ func TestCLIJSONEnvelopeContract(t *testing.T) {
 	}
 }
 
+func TestWorkloadAndScenarioHumanReadableResults(t *testing.T) {
+	tests := []struct {
+		name   string
+		args   []string
+		format string
+		wants  []string
+	}{
+		{name: "workload markdown", args: []string{"workload", "--project", "../../examples/small-team", "--week", "2026-W28", "--demands"}, format: "markdown", wants: []string{"- Week: `2026-W28`", "| Resource | Class | Unit | Capacity", "Ivan", "resource_demand.task-op-1234.implementer"}},
+		{name: "workload text", args: []string{"workload", "--project", "../../examples/small-team", "--week", "2026-W28", "--demands"}, format: "text", wants: []string{"Workload: 2026-W28", "RESOURCE", "CAPACITY", "Ivan", "resource_demand.task-op-1234.implementer"}},
+		{name: "scenario list markdown", args: []string{"scenario", "list", "--project", "../../examples/small-team"}, format: "markdown", wants: []string{"| ID | Name | Status | Changes |", "scenario.ivan-capacity-6", "Ivan capacity is six hours", "draft"}},
+		{name: "scenario list text", args: []string{"scenario", "list", "--project", "../../examples/small-team"}, format: "text", wants: []string{"ID", "NAME", "STATUS", "CHANGES", "scenario.ivan-capacity-6"}},
+		{name: "scenario show markdown", args: []string{"scenario", "show", "scenario.ivan-capacity-6", "--project", "../../examples/small-team"}, format: "markdown", wants: []string{"- ID: `scenario.ivan-capacity-6`", "- Description: —", "| Target | Field | From | To |", "capacity.human-ivan.hours.weekly", "amount", "32", "6"}},
+		{name: "scenario show text", args: []string{"scenario", "show", "scenario.ivan-capacity-6", "--project", "../../examples/small-team"}, format: "text", wants: []string{"ID: scenario.ivan-capacity-6", "Description: —", "TARGET", "FIELD", "FROM", "TO", "capacity.human-ivan.hours.weekly", "32", "6"}},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			stdout, stderr := tempOutputFiles(t)
+			args := append(append([]string(nil), tc.args...), "--format", tc.format)
+			if code := run(args, stdout, stderr); code != exitSuccess {
+				t.Fatalf("exit = %d; stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+			}
+			output := readFileString(t, stdout.Name())
+			for _, want := range tc.wants {
+				if !strings.Contains(output, want) {
+					t.Errorf("output missing %q:\n%s", want, output)
+				}
+			}
+		})
+	}
+}
+
 func TestProposalSuggestDependenciesWriteCandidatesCLI(t *testing.T) {
 	projectDir := copyCmdProjectFixture(t)
 	stdout, stderr := tempOutputFiles(t)

@@ -67,7 +67,8 @@ Calculate the first workload report:
 
 ```bash
 go run ./cmd/replan workload --project examples/small-team --week 2026-W28 --format json
-go run ./cmd/replan workload --project examples/small-team --week 2026-W28 --scenario scenario.task-op-1234-reassign-petr --format json
+go run ./cmd/replan workload --project examples/small-team --week 2026-W28 --demands --format markdown
+go run ./cmd/replan workload --project examples/small-team --week 2026-W28 --scenario scenario.task-op-1234-reassign-petr --format text
 ```
 
 Generate the first weekly report:
@@ -95,10 +96,15 @@ raw/manifest.json
 Inspect scenarios:
 
 ```bash
-go run ./cmd/replan scenario list --project examples/small-team --format json
-go run ./cmd/replan scenario show scenario.ivan-unavailable-week-28 --project examples/small-team --format json
+go run ./cmd/replan scenario list --project examples/small-team --format markdown
+go run ./cmd/replan scenario show scenario.ivan-unavailable-week-28 --project examples/small-team --format text
 go run ./cmd/replan scenario diff scenario.ivan-unavailable-week-28 --project examples/small-team --week 2026-W28 --against current --format markdown
 ```
+
+Workload Markdown and text contain the resource rows and optional demand
+breakdown. Scenario list contains id, name, status and change count; scenario
+show contains the scenario metadata and each change's target, field, old value
+and new value. JSON keeps the machine-readable envelope used by integrations.
 
 Inspect proposals and audit:
 
@@ -131,6 +137,17 @@ go run ./cmd/replan actual add-consumption --project "$tmp_project" --task task.
 go run ./cmd/replan actual set-remaining --project "$tmp_project" --demand resource_demand.task-op-1234.implementer --amount 5 --unit hours --reason "Operator review after pull request" --evidence evidence.github.pr.45 --actor actor.human.operator --occurred-at 2026-07-06T16:30:00+07:00 --status-date 2026-07-06 --apply --format json
 go run ./cmd/replan actual close-demand --project "$tmp_project" --demand resource_demand.task-op-1234.implementer --status consumed --reason "Operator reviewed demand lifecycle" --evidence evidence.github.pr.45 --actor actor.human.operator --occurred-at 2026-07-06T16:45:00+07:00 --status-date 2026-07-06 --apply --format json
 go run ./cmd/replan actual add-status --project "$tmp_project" --task task.op.1234 --status review_ready --reason "Pull request is open and ready for review" --evidence evidence.github.pr.45 --actor actor.human.operator --occurred-at 2026-07-06T17:00:00+07:00 --status-date 2026-07-06 --apply --format json
+```
+
+Evidence recorded before a task exists can target the project itself. The id
+after `project:` must equal `.replan/project.yaml`'s project id:
+
+```bash
+go run ./cmd/replan evidence add --project examples/small-team \
+  --id evidence.first-plan --type planning_decision \
+  --actor actor.human.operator --observed-at 2026-07-08T10:00:00+07:00 \
+  --summary "Reviewed the first plan." \
+  --target project:project.replan-mvp --dry-run --format json
 ```
 
 ## Current implemented CLI commands

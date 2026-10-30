@@ -347,6 +347,7 @@ type SuggestedChange struct {
 type Scenario struct {
 	ID             string           `json:"id" yaml:"id"`
 	Name           string           `json:"name" yaml:"name"`
+	Description    string           `json:"description,omitempty" yaml:"description,omitempty"`
 	Status         string           `json:"status" yaml:"status"`
 	BaseRef        Ref              `json:"base_ref" yaml:"base_ref"`
 	CreatedAt      string           `json:"created_at,omitempty" yaml:"created_at,omitempty"`
