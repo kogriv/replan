@@ -2842,3 +2842,45 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.correct-mis-booked-actuals
+    - id: actual.self-require-human-approvers.ai-codex-local.20261030T2117470700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.require-human-approvers
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.require-human-approvers.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.45
+      unit: agent_hours
+      occurred_at: "2026-10-30T21:17:47+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.require-human-approvers
+    - id: actual.self-require-human-approvers.ai-agent-executor.20261030T2117470700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.require-human-approvers
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.require-human-approvers.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.28
+      unit: agent_hours
+      occurred_at: "2026-10-30T21:17:47+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.require-human-approvers

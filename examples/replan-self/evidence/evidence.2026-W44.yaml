@@ -2654,3 +2654,25 @@ evidence:
         id: task.self.require-human-approvers
       - kind: task
         id: task.self.accept-dependencies-with-their-tasks
+  - id: evidence.self.require-human-approvers
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T21:17:47+07:00"
+    summary: 'Codex round 1 (20:33:51-21:00:51): one shared check requires a human actor, under the default proposal_only policy, for proposal accept and reject, scenario apply, baseline create, estimate calibrate, import accept and accepted or cancelled status, with approver_not_human (exit 3) in dry runs too; default_mutation_mode direct opts out; validate rejects unknown modes. No fixture needed changes: the self and small-team plans already approve with human actors. Checked on a copy of small-team: an AI agent accepting a proposal or a task is refused (exit 3) in apply and dry run, the human operator passes, the agent can still set in_progress. Docs updated. Full local gate green, 79 live kit checks.'
+    targets:
+      - kind: task
+        id: task.self.require-human-approvers
+  - id: evidence.self.start-accept-dependencies-with-their-tasks
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T21:17:47+07:00"
+    summary: 'Started right after the human-approver check. Decision: import accept re-matches task_unmatched candidates against the plan at accept time, so tasks and then dependencies can be accepted from one snapshot. Original estimate before the Codex split: 1.5 agent hours.'
+    targets:
+      - kind: task
+        id: task.self.accept-dependencies-with-their-tasks
