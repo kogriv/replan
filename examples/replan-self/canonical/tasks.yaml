@@ -5784,7 +5784,7 @@ tasks:
       title: Publish release v0.3.0
       description: 'Agreed with the operator on 2026-10-30: publish release v0.3.0. Tag the reviewed main commit after its CI run passed, build the six archives locally with build-release.sh, verify them, push the tag so the Release build workflow rebuilds and attests them, compare its SHA256SUMS with the local build, create the GitHub release with the local archives and release notes, and check gh attestation verify and go install on the published release. First release whose provenance is attested by the tag push itself.'
       type: release
-      tracking_status: in_progress
+      tracking_status: review_ready
       planned_start: "2026-10-30"
       planned_finish: "2026-10-30"
       assignee_hint:
@@ -5811,7 +5811,7 @@ tasks:
       title: Refresh the second and third projects' agent kits to v0.3.0
       description: 'Agreed with the operator on 2026-10-30: after release v0.3.0, refresh the agent kits of the second project (archive and checksum on its tools wiki page, dry run first, page text updated with what changed) and of the third project (versioned directory on the server with the current link moved, settings kept, previous version kept for rollback), check each kit by dry runs only, and tell each project''s session what changed. Deleting older kit attachments stays the operator''s decision.'
       type: operations
-      tracking_status: not_started
+      tracking_status: review_ready
       planned_start: "2026-10-30"
       planned_finish: "2026-10-30"
       assignee_hint:
@@ -5834,3 +5834,31 @@ tasks:
           object_type: work_package
           object_id: "2295"
           url: https://op.example.internal/work_packages/2295
+    - id: task.self.kit-build-ignores-surrounding-git
+      title: Keep kit builds independent of a git directory around the build
+      description: 'Found on 2026-10-30 building the v0.3.0 kits: scripts/build-agent-kit.sh runs go build with VCS stamping, so a stray .git above a worktree under /tmp stops it with "error obtaining VCS status", and a clean worktree of the tag still stamps vcs.modified=true, which the version line shows as +dirty. The kit already passes the commit and date through ldflags; build it with -buildvcs=false as the release build does.'
+      type: implementation
+      tracking_status: review_ready
+      planned_start: "2026-10-30"
+      planned_finish: "2026-10-30"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.kit-build-ignores-surrounding-git.agent
+        - kind: resource_demand
+          id: resource_demand.kit-build-ignores-surrounding-git.maintainer
+        - kind: resource_demand
+          id: resource_demand.kit-build-ignores-surrounding-git.local-dev
+        - kind: resource_demand
+          id: resource_demand.kit-build-ignores-surrounding-git.ci
+      tags:
+        - agent-kit
+        - release
+        - gap
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2296"
+          url: https://op.example.internal/work_packages/2296

@@ -419,6 +419,12 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2295"
         url: https://op.example.internal/work_packages/2295
+    - replan_task_id: task.self.kit-build-ignores-surrounding-git
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2296"
+        url: https://op.example.internal/work_packages/2296
     - replan_task_id: task.self.fix-first-project-defects
       source_ref:
         source: openproject

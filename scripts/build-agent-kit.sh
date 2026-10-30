@@ -94,7 +94,9 @@ KIT="$WORK_DIR/$NAME"
 mkdir -p "$KIT/bin" "$KIT/scripts/lib" "$KIT/examples"
 
 LDFLAGS="-s -w -X github.com/kogriv/replan/internal/buildinfo.Version=$VERSION -X github.com/kogriv/replan/internal/buildinfo.Commit=$COMMIT -X github.com/kogriv/replan/internal/buildinfo.BuildDate=$BUILD_DATE"
-(cd "$ROOT_DIR" && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "$LDFLAGS" -o "$KIT/bin/replan" ./cmd/replan)
+# The commit and date come from ldflags; VCS stamping would fail under a stray
+# .git above TMPDIR and mark a clean worktree +dirty.
+(cd "$ROOT_DIR" && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -buildvcs=false -ldflags "$LDFLAGS" -o "$KIT/bin/replan" ./cmd/replan)
 
 for script in $SCRIPTS; do
   install -m 755 "$ROOT_DIR/scripts/$script" "$KIT/scripts/$script"

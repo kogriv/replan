@@ -2701,3 +2701,48 @@ evidence:
         id: task.self.publish-release-v0-3-0
       - kind: task
         id: task.self.refresh-agent-kits-v0-3-0
+  - id: evidence.self.publish-release-v0-3-0
+    type: command_result
+    source: ci
+    url: https://github.com/kogriv/replan/releases/tag/v0.3.0
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T23:10:48+07:00"
+    summary: 'Release v0.3.0 published from fe54275 after its CI run passed: six archives built locally with build-release.sh (the binary reports v0.3.0, fe54275, go1.24.1); the tag push ran the Release build workflow (run 41086373863), whose archives match the local SHA256SUMS byte for byte and which attested every archive and SHA256SUMS. The release carries the local archives and notes; downloaded archives match SHA256SUMS, gh attestation verify passes (signer release.yml at refs/tags/v0.3.0), go install of v0.3.0 through the proxy reports v0.3.0. ROADMAP moved onboarding and CI release builds to Works today before the tag.'
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-3-0
+  - id: evidence.self.start-kit-build-ignores-surrounding-git
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T23:18:53+07:00"
+    summary: Building the v0.3.0 kits from a worktree of the tag failed under /tmp with error obtaining VCS status and, elsewhere, stamped +dirty on a clean tree; GOFLAGS=-buildvcs=false produced clean kits.
+    targets:
+      - kind: task
+        id: task.self.kit-build-ignores-surrounding-git
+  - id: evidence.self.kit-build-ignores-surrounding-git
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T23:19:40+07:00"
+    summary: 'build-agent-kit.sh builds with -buildvcs=false: the commit and date already come from ldflags. Built from a dirty working tree with TMPDIR under /tmp, the kit reports a clean version line (no +dirty) and the offline kit check passes (50 checks).'
+    targets:
+      - kind: task
+        id: task.self.kit-build-ignores-surrounding-git
+  - id: evidence.self.refresh-agent-kits-v0-3-0
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T23:19:40+07:00"
+    summary: 'Both kits built from the v0.3.0 tag (reported version v0.3.0, fe54275, no +dirty; no private names, endpoints or bindings). Second project: archive and checksum uploaded to its tools wiki page after dry runs, the downloaded archive matches the checksum, the page text updated (v0.3.0 rows, older kits marked replaced, what changed including the human-approval rule and its opt-out, Python 3.10, the 30 October checks); its session was told. Third project: installed on the server in a versioned directory with current moved and the previous version kept; dry runs of list, status, relations and parent pass; its session was told. Older wiki attachments stay for the operator to decide.'
+    targets:
+      - kind: task
+        id: task.self.refresh-agent-kits-v0-3-0

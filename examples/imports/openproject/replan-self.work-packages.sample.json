@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 195,
-  "count": 195,
+  "total": 196,
+  "count": 196,
   "_embedded": {
     "elements": [
       {
@@ -5652,6 +5652,35 @@
           },
           "status": {
             "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2296,
+        "subject": "Keep kit builds independent of a git directory around the build",
+        "description": {
+          "raw": "Found on 2026-10-30 building the v0.3.0 kits: scripts/build-agent-kit.sh runs go build with VCS stamping, so a stray .git above a worktree under /tmp stops it with \"error obtaining VCS status\", and a clean worktree of the tag still stamps vcs.modified=true, which the version line shows as +dirty. The kit already passes the commit and date through ldflags; build it with -buildvcs=false as the release build does."
+        },
+        "status": {
+          "name": "Developed"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2296"
+          },
+          "status": {
+            "title": "Developed"
           },
           "assignee": {
             "href": "/api/v3/users/101",

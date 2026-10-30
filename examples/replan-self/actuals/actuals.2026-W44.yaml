@@ -2926,3 +2926,87 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.accept-dependencies-with-their-tasks
+    - id: actual.self-publish-release-v0-3-0.ai-agent-executor.20261030T2310480700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.publish-release-v0-3-0
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.publish-release-v0-3-0.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.3
+      unit: agent_hours
+      occurred_at: "2026-10-30T23:10:48+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.publish-release-v0-3-0
+    - id: actual.self-publish-release-v0-3-0.ci-github-actions.20261030T2310480700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.publish-release-v0-3-0
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.publish-release-v0-3-0.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-30T23:10:48+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.publish-release-v0-3-0
+    - id: actual.self-kit-build-ignores-surrounding-git.ai-agent-executor.20261030T2319400700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.kit-build-ignores-surrounding-git
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.kit-build-ignores-surrounding-git.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.01
+      unit: agent_hours
+      occurred_at: "2026-10-30T23:19:40+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.kit-build-ignores-surrounding-git
+    - id: actual.self-refresh-agent-kits-v0-3-0.ai-agent-executor.20261030T2319400700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.refresh-agent-kits-v0-3-0
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.refresh-agent-kits-v0-3-0.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.13
+      unit: agent_hours
+      occurred_at: "2026-10-30T23:19:40+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.refresh-agent-kits-v0-3-0

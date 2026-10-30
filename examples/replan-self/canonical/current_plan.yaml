@@ -388,6 +388,8 @@ current_plan:
     - kind: task
       id: task.self.refresh-agent-kits-v0-3-0
     - kind: task
+      id: task.self.kit-build-ignores-surrounding-git
+    - kind: task
       id: task.self.fix-first-project-defects
     - kind: task
       id: task.self.implement-replan-init-and-resource-commands
