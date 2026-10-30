@@ -5385,7 +5385,7 @@ tasks:
       title: Build releases in CI with provenance attestations
       description: 'Agreed with the operator on 2026-10-30 after an outside audit: release archives are built on the maintainer''s machine, and SHA256SUMS alone does not show where a binary came from. Build the archives from the tag in GitHub Actions with build_release, check they match a local build byte for byte, publish GitHub artifact attestations (build provenance) for the archives and SHA256SUMS, and document how to verify a download with gh attestation verify. Rehearse on a test tag before the next release.'
       type: release
-      tracking_status: not_started
+      tracking_status: in_progress
       planned_start: "2026-10-30"
       planned_finish: "2026-10-30"
       assignee_hint:

@@ -1,0 +1,75 @@
+name: Release build
+
+# Builds the release archives from a tag with scripts/build-release.sh, checks
+# them against the published release's SHA256SUMS when there is one, and, for
+# a pushed tag, records a build provenance attestation for every archive and
+# for SHA256SUMS (docs/dev/release-process.md). A manual run builds any tag
+# for comparison and attests nothing.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to rebuild and compare, for example v0.2.0
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build, compare and attest
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Checkout the tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          fetch-depth: 0
+
+      # The archives are byte-identical only with the Go release that built
+      # the published ones; keep this in step with docs/dev/release-process.md.
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.1"
+          cache: false
+
+      - name: Build the archives
+        run: REPLAN_RELEASE_DIR="$RUNNER_TEMP/release" scripts/build-release.sh | tee "$RUNNER_TEMP/build.json"
+
+      - name: Compare with the published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="$(git describe --tags --exact-match HEAD)"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern SHA256SUMS --dir "$RUNNER_TEMP/published"
+            diff "$RUNNER_TEMP/published/SHA256SUMS" "$RUNNER_TEMP/release/SHA256SUMS"
+            echo "the archives match the published release $tag byte for byte"
+          else
+            echo "release $tag is not published yet; compare its SHA256SUMS with this run's artifact"
+          fi
+          cat "$RUNNER_TEMP/release/SHA256SUMS"
+
+      - name: Attest build provenance
+        if: github.event_name == 'push'
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            ${{ runner.temp }}/release/replan_*
+            ${{ runner.temp }}/release/SHA256SUMS
+
+      - name: Keep the archives
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-archives
+          path: ${{ runner.temp }}/release/
+          retention-days: 30
