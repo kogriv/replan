@@ -2629,3 +2629,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.correct-mis-booked-actuals
+  - id: evidence.self.correct-mis-booked-actuals
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T19:49:53+07:00"
+    summary: 'Codex round 1 (19:18:46-19:31:31): replan actual correct appends a correction actual with corrects_ref and corrected_amount (--void for zero), actor, evidence, reason and an actual_correct audit record; refusals for unknown, non-correctable and unchanged actuals; one EffectiveActuals projection feeds workload, estimate accuracy, calibration, tracking, overlays and dashboards; validation rejects dangling corrections. On review: actual list kept the booked amount hidden behind the corrected one, now it shows both; the latest correction is chosen by instant, not by time text, with a test. Used at once on the self plan: the trust boundary task''s 0.33 corrected to 0.1 and the CLI split''s Codex 0.45 to 0.37; validate and audit verify pass. Full local gate green, 79 live kit checks.'
+    targets:
+      - kind: task
+        id: task.self.correct-mis-booked-actuals
