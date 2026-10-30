@@ -2561,3 +2561,45 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.decouple-smoke-from-live-self-plan
+    - id: actual.self-attest-release-builds.ai-agent-executor.20261030T1711380700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.attest-release-builds
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.attest-release-builds.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.24
+      unit: agent_hours
+      occurred_at: "2026-10-30T17:11:38+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.attest-release-builds
+    - id: actual.self-attest-release-builds.ci-github-actions.20261030T1711380700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.attest-release-builds
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.attest-release-builds.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 4
+      unit: ci_minutes
+      occurred_at: "2026-10-30T17:11:38+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.attest-release-builds

@@ -82,6 +82,34 @@ gh release create "$version" \
 Review the generated notes and all uploaded assets in GitHub before announcing
 the release.
 
+## The CI build and its provenance
+
+Pushing the tag also starts the `Release build` workflow
+(`.github/workflows/release.yml`). It builds the same six archives from the
+tag with `scripts/build-release.sh` on Go 1.24.1, the Go release that built
+the published archives (archives are byte-identical only with the same Go;
+change the workflow and this line together), and records a build provenance
+attestation for every archive and for `SHA256SUMS`. When the release already
+exists, the workflow compares its `SHA256SUMS` with the release's and fails on
+any difference; otherwise compare them yourself before creating the release:
+
+```sh
+gh run download --repo kogriv/replan --name release-archives --dir /tmp/ci-release <run id>
+diff /tmp/ci-release/SHA256SUMS "$REPLAN_RELEASE_DIR/SHA256SUMS"
+```
+
+Because the bytes are identical, the attestation made in CI covers the
+archives uploaded from the local build. Anyone can then check a download:
+
+```sh
+gh attestation verify "replan_${version}_linux_amd64.tar.gz" --repo kogriv/replan
+```
+
+A manual run of the workflow with a tag rebuilds that release and compares
+it; with `attest` set it attests a published release, only after its archives
+matched byte for byte. v0.2.0 was attested that way on 2026-10-30 (run
+41038369789); v0.1.0 has no attestation.
+
 ## Install with Go
 
 Once the repository is public and the tag has been pushed, users can install a

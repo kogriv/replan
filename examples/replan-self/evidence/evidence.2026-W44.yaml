@@ -2526,3 +2526,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.decouple-smoke-from-live-self-plan
+  - id: evidence.self.attest-release-builds
+    type: command_result
+    source: ci
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T17:11:38+07:00"
+    summary: 'The Release build workflow builds the archives from a tag with build-release.sh on Go 1.24.1, compares them with the published SHA256SUMS and attests build provenance for each archive and SHA256SUMS on a tag push, or on a manual run with attest after a byte-for-byte match. Rehearsal: run 41037812931 rebuilt v0.2.0 in CI and matched the published release byte for byte; run 41038369789 did the same and attested it. gh attestation verify passes for the downloaded v0.2.0 linux amd64 archive and SHA256SUMS (SLSA provenance v1, signer release.yml) and fails for a tampered file. Release process and README document building, comparing and verifying.'
+    targets:
+      - kind: task
+        id: task.self.attest-release-builds

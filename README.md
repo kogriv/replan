@@ -49,7 +49,10 @@ Nothing changes the project unless the command is given `--apply` (or
 
 Prebuilt archives for Linux, macOS and Windows (amd64 and arm64) are on the
 [releases page](https://github.com/kogriv/replan/releases), with a
-`SHA256SUMS` file. Or install the latest release with Go 1.24 or newer:
+`SHA256SUMS` file, and from v0.2.0 a build provenance attestation:
+`gh attestation verify <archive> --repo kogriv/replan` checks that the archive
+was built from this repository's tag by its release workflow. Or install the
+latest release with Go 1.24 or newer:
 
 ```bash
 go install github.com/kogriv/replan/cmd/replan@latest
