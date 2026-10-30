@@ -2225,3 +2225,45 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.serialize-concurrent-project-writes
+    - id: actual.self-openproject-toolkit-without-a-plan.ai-codex-local.20261030T1306430700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.openproject-toolkit-without-a-plan
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-toolkit-without-a-plan.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.27
+      unit: agent_hours
+      occurred_at: "2026-10-30T13:06:43+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.openproject-toolkit-without-a-plan
+    - id: actual.self-openproject-toolkit-without-a-plan.ai-agent-executor.20261030T1306430700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.openproject-toolkit-without-a-plan
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-toolkit-without-a-plan.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.45
+      unit: agent_hours
+      occurred_at: "2026-10-30T13:06:43+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.openproject-toolkit-without-a-plan

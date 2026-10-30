@@ -152,14 +152,14 @@ kit env REPLAN_PROJECT="$WORK_DIR/dated-team" scripts/check-resource-schedule-dr
 json_true "$WORK_DIR/schedule.json" "d['ok'] and not d['errors'] and any(r['week'] == '2026-W30' for r in d['weekly_rows'])" \
   || fail "schedule drift check did not read the workload from the kit binary"
 
-# Without settings a helper names what is missing instead of guessing a
-# project (exit 8); with a plan and a project but no token it is skipped with
-# a warning.
+# Without settings a helper names the OpenProject project id it always needs
+# (exit 8); work-package list deliberately does not require a RePlan plan.
+# With a plan and a project but no token it is skipped with a warning.
 check
 rc=0
 kit scripts/openproject-work-package-toolkit.sh work-package list > "$WORK_DIR/list.json" || rc=$?
 [ "$rc" = 8 ] || fail "toolkit without settings did not exit 8 but $rc"
-json_true "$WORK_DIR/list.json" "not d['ok'] and d['error_codes'] == ['missing_setting'] and set(d['missing_settings']) == {'REPLAN_PROJECT', 'REPLAN_OPENPROJECT_PROJECT_ID'}" \
+json_true "$WORK_DIR/list.json" "not d['ok'] and d['error_codes'] == ['missing_setting'] and d['missing_settings'] == ['REPLAN_OPENPROJECT_PROJECT_ID']" \
   || fail "toolkit without settings did not name the missing settings"
 check
 kit env REPLAN_PROJECT="$KIT/examples/small-team" REPLAN_OPENPROJECT_PROJECT_ID=sample \

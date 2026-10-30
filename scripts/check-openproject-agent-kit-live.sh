@@ -46,8 +46,8 @@ fail() {
 REPLAN_AGENT_KIT_KEEP="$WORK_DIR/kit" "$ROOT_DIR/scripts/check-agent-kit.sh" > /dev/null
 KIT="$WORK_DIR/kit"
 
-# A project and a member with the seeded "Member" role; the token goes
-# straight into the kit's settings file.
+# A project and a member with the seeded "Member" role; the token goes into a
+# protected file named by the kit's settings file.
 docker exec -e PROJECT="$PROJECT" "$WEB_CONTAINER" bundle exec rails runner '
   project = Project.create!(name: "Agent kit check", identifier: ENV.fetch("PROJECT"), workspace_type: "project",
                             enabled_module_names: %w[work_package_tracking wiki])
@@ -64,6 +64,8 @@ docker exec -e PROJECT="$PROJECT" "$WEB_CONTAINER" bundle exec rails runner '
 ' 2>/dev/null | grep '^FACTS ' > "$WORK_DIR/facts" || fail "runner did not set up the member"
 fact() { tr ' ' '\n' < "$WORK_DIR/facts" | sed -n "s/^$1=//p"; }
 [ "$(fact admin)" = "false" ] || fail "the check user is an administrator"
+printf '%s\n' "$(fact token)" > "$WORK_DIR/openproject-token"
+chmod 600 "$WORK_DIR/openproject-token"
 
 cp -R "$KIT/examples/small-team" "$WORK_DIR/plan"
 sed -e "s#^REPLAN_OPENPROJECT_BASE_URL=.*#REPLAN_OPENPROJECT_BASE_URL=$WEB_URL#" \
@@ -71,10 +73,11 @@ sed -e "s#^REPLAN_OPENPROJECT_BASE_URL=.*#REPLAN_OPENPROJECT_BASE_URL=$WEB_URL#"
     -e "s#^REPLAN_OPENPROJECT_PROJECT_NAME=.*#REPLAN_OPENPROJECT_PROJECT_NAME=Agent kit check#" \
     -e "s#^REPLAN_PROJECT=.*#REPLAN_PROJECT=$WORK_DIR/plan#" \
     -e "s#^REPLAN_OPENPROJECT_BINDINGS_PATH=.*#REPLAN_OPENPROJECT_BINDINGS_PATH=$WORK_DIR/bindings.yaml#" \
-    -e "s#^OPENPROJECT_TOKEN=.*#OPENPROJECT_TOKEN=$(fact token)#" \
+    -e "s#^OPENPROJECT_TOKEN=.*#OPENPROJECT_TOKEN=#" \
     "$KIT/env.local.example" > "$KIT/.env.local"
 # The throwaway instance answers on a local port under another host name.
-printf 'REPLAN_OPENPROJECT_HOST_HEADER=%s\nREPLAN_OPENPROJECT_FORWARDED_PROTO=http\n' "$HOST" >> "$KIT/.env.local"
+printf 'REPLAN_OPENPROJECT_TOKEN_FILE=%s\nREPLAN_OPENPROJECT_HOST_HEADER=%s\nREPLAN_OPENPROJECT_FORWARDED_PROTO=http\n' \
+  "$WORK_DIR/openproject-token" "$HOST" >> "$KIT/.env.local"
 
 mkdir "$WORK_DIR/nogo"
 printf '#!/bin/sh\necho "go must not be needed by the agent kit" >&2\nexit 97\n' > "$WORK_DIR/nogo/go"
@@ -277,6 +280,19 @@ checks=$((checks + 1))
 # What needs an administrator says so, and writes nothing.
 run 1 "$TOOLKIT" work-package replan-links
 expect "the missing link field is reported" "not d['ok'] and set(d['error_codes']) == {'replan_link_field_missing'}"
+
+# An OpenProject-only project uses the same toolkit and token file without a
+# RePlan plan or private bindings. It runs last: its work package would change
+# the counts the plan checks above expect. The settings file names only the
+# token file again, so the file is what the helpers read.
+sed -i "s#^OPENPROJECT_TOKEN=.*#OPENPROJECT_TOKEN=#" "$KIT/.env.local"
+run 1 env REPLAN_PROJECT= "$TOOLKIT" work-package create --subject "Agent kit no-plan work package"
+expect "a member creates a work package without a RePlan plan" "d['ok'] and d['plan'] == 'none' and 'private_binding_layer' not in d and d['counts']['applied_actions'] == 1"
+NO_PLAN_WORK_PACKAGE="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["created_work_package_id"])' "$WORK_DIR/out.json")"
+run 1 env REPLAN_PROJECT= "$TOOLKIT" work-package update-status --work-package "$NO_PLAN_WORK_PACKAGE" --status in_progress
+expect "a member updates status without a RePlan plan" "d['ok'] and d['plan'] == 'none' and d['counts']['applied_actions'] == 1"
+run 1 env REPLAN_PROJECT= "$TOOLKIT" comment add --work-package "$NO_PLAN_WORK_PACKAGE" --text "Checked without a RePlan plan."
+expect "a member comments without a RePlan plan" "d['ok'] and d['plan'] == 'none' and d['counts']['applied_actions'] == 1"
 
 checks=$((checks + 1))
 ! grep -rq "go must not be needed" "$WORK_DIR"/out.* || fail "a helper tried to build with go"

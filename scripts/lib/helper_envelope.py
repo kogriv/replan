@@ -305,9 +305,14 @@ def _value(text):
 
 def main(argv):
     if len(argv) == 2 and argv[1] == "resolve-openproject-settings":
-        from openproject_http import ConflictingSettingsError, Settings
+        from openproject_http import (
+            ConflictingSettingsError, MissingSettingError, Settings,
+        )
         try:
             settings = Settings.from_env()
+        except MissingSettingError as exc:
+            print(f"missing_setting:{exc.setting}")
+            return EXIT["usage"]
         except ConflictingSettingsError as exc:
             print(str(exc))
             return EXIT["usage"]

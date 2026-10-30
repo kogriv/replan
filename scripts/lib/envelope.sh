@@ -81,9 +81,19 @@ replan_resolve_openproject_settings() {
     PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" \
       python3 -m helper_envelope resolve-openproject-settings
   ) || {
+    case "$_replan_settings_output" in
+      missing_setting:*)
+        _replan_missing_setting=${_replan_settings_output#missing_setting:}
+        replan_fail_json "$_replan_settings_command" "$_replan_settings_mode" \
+          missing_setting "required setting could not be read: $_replan_missing_setting" 8 \
+          "missing_settings=[\"$_replan_missing_setting\"]"
+        ;;
+    esac
     replan_fail_json "$_replan_settings_command" "$_replan_settings_mode" conflicting_settings "$_replan_settings_output" 8
   }
   eval "$_replan_settings_output"
+  replan_resolve_openproject_secret_files \
+    "$_replan_settings_command" "$_replan_settings_mode"
 }
 
 # replan_token_missing COMMAND TOKEN_ENV [KEY=VALUE ...] answers a helper run

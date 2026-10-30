@@ -2279,3 +2279,25 @@ evidence:
         id: task.self.connect-third-project-to-openproject-tools
       - kind: task
         id: task.self.openproject-relations-and-parent-by-id
+  - id: evidence.self.openproject-toolkit-without-a-plan
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T13:06:43+07:00"
+    summary: 'Codex round 1 (12:29-12:45): without REPLAN_PROJECT the toolkit runs the list commands, work-package list and inspect, create without --task, update-status, update-dates, update-text and update-metadata by --work-package and comment add by --work-package, with "plan": "none" and no bindings; bind, --task forms, backlog reconcile, replan-links and relation list|delete still need a plan. REPLAN_OPENPROJECT_TOKEN_FILE and REPLAN_OPENPROJECT_PERIMETER_KEY_FILE are read in the shared settings code for every helper; an environment value wins; errors name only the setting. Codex could not pull the OpenProject image; on review the live kit check failed because the no-plan work package changed the plan counts, so the no-plan checks moved to the end and run with the token only in a file: 69 live kit checks pass. Full local gate green otherwise.'
+    targets:
+      - kind: task
+        id: task.self.openproject-toolkit-without-a-plan
+  - id: evidence.self.third-project-role-permissions
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T13:06:43+07:00"
+    summary: On the operators go-ahead of 2026-10-30, the third projects agent role, used only by that agent in that project, gained the OpenProject permissions to manage subtasks and work package relations through the Rails runner. The agent then set its epic as parent on two work packages with HTTP 200.
+    targets:
+      - kind: task
+        id: task.self.connect-third-project-to-openproject-tools

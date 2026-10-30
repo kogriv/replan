@@ -79,6 +79,15 @@ unchanged. Another header name goes in `REPLAN_OPENPROJECT_PERIMETER_HEADER`.
 The key is a secret like the token: it is never printed, and it must not be
 committed.
 
+The token and perimeter key may instead be read at run time from protected
+files. Set `REPLAN_OPENPROJECT_TOKEN_FILE` and/or
+`REPLAN_OPENPROJECT_PERIMETER_KEY_FILE` to their paths. Surrounding whitespace
+is removed from the file content. A direct token selected by
+`REPLAN_OPENPROJECT_TOKEN_ENV` (normally `OPENPROJECT_TOKEN`) or a direct
+`REPLAN_OPENPROJECT_PERIMETER_KEY` wins when both forms are set. An unreadable
+file is a `missing_setting` usage error that names the `_FILE` setting; secret
+values and file contents are never included in output.
+
 ## The rule every helper follows
 
 Nothing writes canonical state without `--apply` or `REPLAN_APPLY=1`.
@@ -413,6 +422,32 @@ scripts/openproject-work-package-toolkit.sh comment add --task <task id> --text 
 scripts/openproject-work-package-toolkit.sh status list
 scripts/openproject-work-package-toolkit.sh user list
 scripts/openproject-work-package-toolkit.sh relation list
+```
+
+### Use the toolkit without a plan
+
+For an OpenProject-only project, omit `REPLAN_PROJECT`. Keep
+`REPLAN_OPENPROJECT_PROJECT_ID` set. The toolkit then reports `"plan":
+"none"`, omits `private_binding_layer`, and does not read or write a bindings
+file.
+
+The catalog commands `status list`, `type list`, `user list` and `priority
+list` work in this mode, as do `work-package list`, `work-package inspect
+--work-package <id>`, `work-package create` without `--task`, every
+`work-package update-* --work-package <id>` command, and `comment add
+--work-package <id>`. Create still rejects an existing subject unless
+`--allow-duplicate` is supplied.
+
+Commands that select a RePlan task or otherwise need plan bindings still
+require `REPLAN_PROJECT`: `work-package bind`, all `--task` forms, `backlog
+reconcile`, `work-package replan-links`, and `relation list|delete`.
+
+Protected credential files work here too:
+
+```sh
+REPLAN_OPENPROJECT_TOKEN_FILE=/run/secrets/openproject-token \
+REPLAN_OPENPROJECT_PERIMETER_KEY_FILE=/run/secrets/openproject-perimeter-key \
+scripts/openproject-work-package-toolkit.sh work-package list
 ```
 
 `update-status --status` accepts either a RePlan tracking status

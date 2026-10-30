@@ -8,7 +8,7 @@ import time
 import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from openproject_http import OpenProjectClient, Settings
+from openproject_http import MissingSettingError, OpenProjectClient, Settings
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -315,7 +315,7 @@ class OpenProjectClientTest(unittest.TestCase):
             toolkit_client.request_json("GET", "/ignored")
         eager_modules = Settings.from_env("TOKEN", require_token=True, environ={"TOKEN": "x"})
         self.assertEqual(eager_modules.token, "x")
-        with self.assertRaises(KeyError):
+        with self.assertRaises(MissingSettingError):
             Settings.from_env("TOKEN", require_token=True, environ={})
         status_client = OpenProjectClient(
             self.base_url, self.settings(), default_expected=(200, 201, 204, 404)
@@ -326,6 +326,39 @@ class OpenProjectClientTest(unittest.TestCase):
 
 
 class SettingsTest(unittest.TestCase):
+    def test_secret_files_and_environment_precedence(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as temp_dir:
+            token_path = os.path.join(temp_dir, "token")
+            key_path = os.path.join(temp_dir, "perimeter")
+            with open(token_path, "w", encoding="utf-8") as stream:
+                stream.write("  token-from-file  \n")
+            with open(key_path, "w", encoding="utf-8") as stream:
+                stream.write("\tkey-from-file\n")
+            settings = Settings.from_env(environ={
+                "REPLAN_OPENPROJECT_TOKEN_FILE": token_path,
+                "REPLAN_OPENPROJECT_PERIMETER_KEY_FILE": key_path,
+            })
+            self.assertEqual(settings.token, "token-from-file")
+            self.assertEqual(settings.perimeter_key, "key-from-file")
+            settings = Settings.from_env(environ={
+                "OPENPROJECT_TOKEN": "token-from-env",
+                "REPLAN_OPENPROJECT_TOKEN_FILE": "/does/not/exist",
+                "REPLAN_OPENPROJECT_PERIMETER_KEY": "key-from-env",
+                "REPLAN_OPENPROJECT_PERIMETER_KEY_FILE": "/also/missing",
+            })
+            self.assertEqual(settings.token, "token-from-env")
+            self.assertEqual(settings.perimeter_key, "key-from-env")
+
+    def test_unreadable_secret_file_names_setting_not_path(self):
+        secret_path = "/private/path/that/must/not/be-reported"
+        with self.assertRaises(MissingSettingError) as raised:
+            Settings.from_env(environ={
+                "REPLAN_OPENPROJECT_TOKEN_FILE": secret_path,
+            })
+        self.assertEqual(raised.exception.setting, "REPLAN_OPENPROJECT_TOKEN_FILE")
+        self.assertNotIn(secret_path, str(raised.exception))
+
     def test_defaults_and_overrides(self):
         defaults = Settings.from_env("TOKEN", environ={})
         self.assertEqual(defaults.token, "")

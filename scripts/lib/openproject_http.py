@@ -12,6 +12,8 @@ import urllib.request
 TRANSIENT_HTTP_STATUSES = {408, 429, 500, 502, 503, 504}
 
 PERIMETER_KEY_ENV = "REPLAN_OPENPROJECT_PERIMETER_KEY"
+PERIMETER_KEY_FILE_ENV = "REPLAN_OPENPROJECT_PERIMETER_KEY_FILE"
+TOKEN_FILE_ENV = "REPLAN_OPENPROJECT_TOKEN_FILE"
 PERIMETER_HEADER_ENV = "REPLAN_OPENPROJECT_PERIMETER_HEADER"
 TIMEOUT_ENV = "REPLAN_OPENPROJECT_TIMEOUT_SECONDS"
 RETRIES_ENV = "REPLAN_OPENPROJECT_RETRIES"
@@ -21,6 +23,29 @@ DEFAULT_PERIMETER_HEADER = "X-Perimeter-Key"
 
 class ConflictingSettingsError(ValueError):
     """Two names for one setting were supplied with different values."""
+
+
+class MissingSettingError(ValueError):
+    """A setting named a secret file that could not be read."""
+
+    def __init__(self, setting):
+        self.setting = setting
+        super().__init__(f"required setting could not be read: {setting}")
+
+
+def _secret_setting(environ, value_name, file_name):
+    """Resolve a secret without ever including its value or file path in errors."""
+    value = environ.get(value_name, "")
+    if value:
+        return value
+    path = environ.get(file_name, "")
+    if not path:
+        return ""
+    try:
+        with open(path, encoding="utf-8") as stream:
+            return stream.read().strip()
+    except (OSError, UnicodeError) as exc:
+        raise MissingSettingError(file_name) from exc
 
 
 def _renamed_setting(environ, new_name, old_name):
@@ -84,7 +109,9 @@ class Settings:
     ):
         environ = os.environ if environ is None else environ
         token_env = token_env or environ.get("REPLAN_OPENPROJECT_TOKEN_ENV", "") or "OPENPROJECT_TOKEN"
-        token = environ[token_env] if require_token else environ.get(token_env, "")
+        token = _secret_setting(environ, token_env, TOKEN_FILE_ENV)
+        if require_token and not token:
+            raise MissingSettingError(token_env)
         project_id, id_warnings = _renamed_setting(
             environ,
             "REPLAN_OPENPROJECT_PROJECT_ID",
@@ -119,7 +146,9 @@ class Settings:
             apply=environ.get("REPLAN_APPLY", ""),
             keep_temp=environ.get("REPLAN_KEEP_TEMP", ""),
             project_path=environ.get("REPLAN_PROJECT", ""),
-            perimeter_key=environ.get(PERIMETER_KEY_ENV, ""),
+            perimeter_key=_secret_setting(
+                environ, PERIMETER_KEY_ENV, PERIMETER_KEY_FILE_ENV
+            ),
             perimeter_header=environ.get(PERIMETER_HEADER_ENV, "") or DEFAULT_PERIMETER_HEADER,
             timeout_seconds=_float_setting(environ, TIMEOUT_ENV, 60.0),
             retries=_int_setting(environ, RETRIES_ENV, 0),

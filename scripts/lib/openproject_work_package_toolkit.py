@@ -11,7 +11,7 @@ import tempfile
 import urllib.parse
 
 import yaml
-from openproject_http import OpenProjectClient, Settings
+from openproject_http import MissingSettingError, OpenProjectClient, Settings
 import helper_envelope
 import openproject_bindings
 import openproject_working_days
@@ -33,23 +33,41 @@ partial_apply = None
 temporary_replan_dir = ""
 
 
-def initialize_environment():
+def command_requires_plan(args):
+    if args.area in {"backlog", "relation"}:
+        return True
+    if args.area == "comment":
+        return bool(getattr(args, "task", "")) and not bool(
+            getattr(args, "work_package", "")
+        )
+    if args.area != "work-package":
+        return False
+    if args.wp_command in {"bind", "replan-links"}:
+        return True
+    return bool(getattr(args, "task", "")) and not bool(
+        getattr(args, "work_package", "")
+    )
+
+
+def initialize_environment(args):
     global settings, project_path, base_url, token_env, openproject_project_id
     global from_file, bindings_path, host_header, forwarded_proto, token, mode, client
     settings = Settings.from_env(root_dir=root_dir)
     project_path, base_url = settings.project_path, settings.base_url.rstrip("/")
     token_env, openproject_project_id = settings.token_env, settings.project_id
-    missing = [name for name, value in (
-        ("REPLAN_PROJECT", project_path),
-        ("REPLAN_OPENPROJECT_PROJECT_ID", openproject_project_id),
-    ) if not value]
+    missing = []
+    if command_requires_plan(args) and not project_path:
+        missing.append("REPLAN_PROJECT")
+    if not openproject_project_id:
+        missing.append("REPLAN_OPENPROJECT_PROJECT_ID")
     if missing:
         helper_envelope.fail(
             "openproject work-package toolkit", "invalid", "missing_setting",
             f"required setting not set: {' '.join(missing)}; set it in .env.local or the environment",
             helper_envelope.EXIT["usage"], extra={"missing_settings": missing},
         )
-    from_file, bindings_path = settings.from_file, settings.bindings_path
+    from_file = settings.from_file
+    bindings_path = settings.bindings_path if project_path else ""
     host_header, forwarded_proto, token = settings.host_header, settings.forwarded_proto, settings.token
     mode = "apply" if settings.apply == "1" else "dry_run"
     helper_envelope.guard("openproject work-package toolkit", mode)
@@ -72,9 +90,9 @@ def envelope(command, command_mode, *, ok=True, items=None, actions=None, counts
         "ok": bool(ok and not errors),
         "command": command,
         "mode": command_mode,
+        "plan": project_path or "none",
         "project_path": project_path,
         "target_openproject_project": {"identifier": openproject_project_id},
-        "private_binding_layer": binding_summary(),
         "openproject_request": settings.request_metadata(),
         "counts": counts or {},
         "items": items or [],
@@ -84,6 +102,8 @@ def envelope(command, command_mode, *, ok=True, items=None, actions=None, counts
         "warnings": warnings,
         "errors": errors,
     }
+    if project_path:
+        out["private_binding_layer"] = binding_summary()
     if extra:
         out.update(extra)
     return out
@@ -214,6 +234,8 @@ def load_bindings(with_state=False):
     return openproject_bindings.root(loaded)
 
 def binding_maps():
+    if not project_path:
+        return {}, {}, {}, {}
     document = openproject_bindings.load(bindings_path)
     task_wp_by_id, task_id_by_wp = openproject_bindings.task_maps(document)
     dep_relation_by_id, _ = openproject_bindings.dependency_maps(document)
@@ -231,6 +253,8 @@ def binding_document():
     return data
 
 def binding_summary():
+    if not project_path:
+        return {"loaded": False, "reason": "no_replan_plan"}
     document, state = openproject_bindings.load(bindings_path, with_state=True)
     task_wp_by_id, _ = openproject_bindings.task_maps(document)
     dep_relation_by_id, _ = openproject_bindings.dependency_maps(document)
@@ -276,9 +300,9 @@ def load_work_package_rows():
     return rows, source_mode
 
 def resolve_work_package_id(args):
-    _, task_wp_by_id, _, _ = binding_maps()
     if getattr(args, "work_package", ""):
         return as_text(args.work_package), ""
+    _, task_wp_by_id, _, _ = binding_maps()
     task_id = getattr(args, "task", "")
     if task_id:
         wp_id = task_wp_by_id.get(task_id, "")
@@ -1354,7 +1378,7 @@ def main():
     reconcile.add_argument("--allow-fixture-apply", action="store_true")
 
     args = parser.parse_args(argv)
-    initialize_environment()
+    initialize_environment(args)
     if args.area == "work-package":
         if args.wp_command == "list":
             command_wp_list(args)
@@ -1391,6 +1415,12 @@ def main():
 
 try:
     main()
+except MissingSettingError as exc:
+    helper_envelope.fail(
+        "openproject work-package toolkit", "invalid", "missing_setting",
+        str(exc), helper_envelope.EXIT["usage"],
+        extra={"missing_settings": [exc.setting]},
+    )
 except ValueError as exc:
     print_json(envelope("openproject work-package toolkit", mode, ok=False, errors=[diagnostic("invalid_arguments", str(exc))]), 8)
 except RuntimeError as exc:

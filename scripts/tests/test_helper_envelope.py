@@ -971,6 +971,8 @@ class WrapperFailurePathsTest(unittest.TestCase):
                 proc = self.run_wrapper(name, REPLAN_PROJECT="")
                 self.assert_failure(name, proc, "missing_setting", 8)
                 want = {"REPLAN_PROJECT", *needs.get(name, [])}
+                if name == "openproject-work-package-toolkit":
+                    want.remove("REPLAN_PROJECT")
                 if name in with_project_id:
                     want.add("REPLAN_OPENPROJECT_PROJECT_ID")
                 self.assertEqual(set(json.loads(proc.stdout)["missing_settings"]), want, name)

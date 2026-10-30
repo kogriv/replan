@@ -10,8 +10,10 @@
 #   REPLAN_OPENPROJECT_HOST_HEADER          default empty
 #   REPLAN_OPENPROJECT_FORWARDED_PROTO      default empty
 #   REPLAN_OPENPROJECT_TOKEN_ENV            default OPENPROJECT_TOKEN
+#   REPLAN_OPENPROJECT_TOKEN_FILE           default empty; used when the selected token environment value is empty
 #   OPENPROJECT_TOKEN                       default empty; selected by REPLAN_OPENPROJECT_TOKEN_ENV
 #   REPLAN_OPENPROJECT_PERIMETER_KEY        default empty
+#   REPLAN_OPENPROJECT_PERIMETER_KEY_FILE   default empty; used when REPLAN_OPENPROJECT_PERIMETER_KEY is empty
 #   REPLAN_OPENPROJECT_PERIMETER_HEADER     default X-Perimeter-Key
 #   REPLAN_OPENPROJECT_TIMEOUT_SECONDS      default 60
 #   REPLAN_OPENPROJECT_RETRIES              default 0

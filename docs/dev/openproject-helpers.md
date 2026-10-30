@@ -86,6 +86,16 @@ caller explicitly marks them idempotent.
 `replan import openproject` also accepts `--request-timeout`; the same timeout
 environment variable is used by live drift checks.
 
+## Credential files
+
+All OpenProject helpers accept `REPLAN_OPENPROJECT_TOKEN_FILE` and
+`REPLAN_OPENPROJECT_PERIMETER_KEY_FILE`. Each names a protected file whose
+trimmed content is the token or perimeter key. The selected token environment
+value (normally `OPENPROJECT_TOKEN`) and `REPLAN_OPENPROJECT_PERIMETER_KEY`
+take precedence over their files. An unreadable file is reported as a
+`missing_setting` usage error naming the `_FILE` setting, without printing the
+path's content or either secret.
+
 ## Bootstrap a project
 
 Prepare a dry-run plan for bootstrapping the current RePlan self-dogfood tasks
