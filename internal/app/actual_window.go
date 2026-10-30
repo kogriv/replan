@@ -55,7 +55,7 @@ func deriveTaskActualWindow(ws domain.Workspace, taskID string, demandIDs []stri
 		demands[id] = true
 	}
 	consumptionRecords := map[string]actualWindowRecord{}
-	for _, actual := range ws.Actuals {
+	for _, actual := range EffectiveActuals(ws.Actuals) {
 		if !estimateConsumptionTypes[actual.Type] || (actual.TaskRef.ID != taskID && !demands[actual.DemandRef.ID]) {
 			continue
 		}

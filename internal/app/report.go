@@ -288,7 +288,8 @@ func newDashboardTrackingIndex(ws domain.Workspace) dashboardTrackingIndex {
 	for _, demand := range ws.ResourceDemands {
 		index.demandsByTaskID[demand.TaskRef.ID] = append(index.demandsByTaskID[demand.TaskRef.ID], demand)
 	}
-	for _, actual := range ws.Actuals {
+	effectiveActuals := EffectiveActuals(ws.Actuals)
+	for _, actual := range effectiveActuals {
 		if actual.TaskRef.ID != "" {
 			index.actualsByTaskID[actual.TaskRef.ID] = append(index.actualsByTaskID[actual.TaskRef.ID], actual)
 		}
@@ -307,7 +308,7 @@ func newDashboardTrackingIndex(ws domain.Workspace) dashboardTrackingIndex {
 			index.evidenceByTaskID[target.ID][evidence.ID] = true
 		}
 	}
-	for _, actual := range ws.Actuals {
+	for _, actual := range effectiveActuals {
 		if actual.TaskRef.ID == "" {
 			continue
 		}

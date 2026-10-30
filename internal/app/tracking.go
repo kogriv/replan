@@ -83,6 +83,7 @@ func (s TrackingService) Suggest(ctx context.Context, req TrackingSuggestRequest
 		Errors:        []Diagnostic{},
 	}
 	appendLoadDiagnostics(&result.Warnings, &result.Errors, loadDiags)
+	ws.Actuals = EffectiveActuals(ws.Actuals)
 	state := trackingSuggestState{service: s, ctx: ctx, req: req, workspace: ws, result: &result}
 	if err := state.validate(); err != nil {
 		return result, err

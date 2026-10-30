@@ -190,7 +190,7 @@ func (index overlayIndex) indexFacts(ws domain.Workspace) {
 		index.evidence[taskID] = rows
 	}
 
-	for _, actual := range ws.Actuals {
+	for _, actual := range EffectiveActuals(ws.Actuals) {
 		taskID := firstNonEmpty(actual.TaskRef.ID, index.demandTaskIDs[actual.DemandRef.ID])
 		if taskID == "" || actual.Amount == 0 {
 			continue

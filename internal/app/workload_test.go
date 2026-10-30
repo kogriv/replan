@@ -37,6 +37,19 @@ func TestWorkloadSmallTeamFixture(t *testing.T) {
 	assertWorkload(t, result, "resource_pool.reviewers", "review_hours", 8, 2, 2, 0)
 }
 
+func TestWorkloadUsesCorrectedActualAmount(t *testing.T) {
+	corrected := 0.1
+	ws := domain.Workspace{Project: domain.Project{ID: "project.test"}, Resources: []domain.Resource{{ID: "resource.agent", Name: "Agent"}}, Actuals: []domain.Actual{
+		{ID: "actual.work", Type: "work_consumed", ResourceRef: domain.Ref{ID: "resource.agent"}, DemandRef: domain.Ref{ID: "demand.work"}, Amount: 0.33, Unit: "agent_hours", StatusDate: "2026-10-30"},
+		{ID: "actual.correction", Type: "correction", CorrectsRef: domain.Ref{Kind: "actual", ID: "actual.work"}, CorrectedAmount: &corrected, ResourceRef: domain.Ref{ID: "resource.agent"}, DemandRef: domain.Ref{ID: "demand.work"}, Unit: "agent_hours", OccurredAt: "2026-10-30T12:00:00Z"},
+	}}
+	result, err := app.NewWorkloadService(staticWorkspaceLoader{workspace: ws}).Calculate(context.Background(), app.WorkloadRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertWorkloadWithActual(t, result, "resource.agent", "agent_hours", 0, 0, corrected, 0, 0)
+}
+
 func TestWorkloadAppliesRemainingAmountScenario(t *testing.T) {
 	store := filestore.New("../../examples/small-team")
 	service := app.NewWorkloadService(store)

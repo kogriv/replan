@@ -64,6 +64,32 @@ type ActualAddConsumptionResult struct {
 	Errors             []Diagnostic       `json:"errors"`
 }
 
+type ActualCorrectRequest struct {
+	ActualID        string
+	CorrectedAmount *float64
+	Reason          string
+	EvidenceID      string
+	ActorID         string
+	OccurredAt      string
+	DryRun          bool
+	Now             time.Time
+}
+
+type ActualCorrectResult struct {
+	DryRun             bool               `json:"dry_run"`
+	Applied            bool               `json:"applied"`
+	Actual             domain.Actual      `json:"actual"`
+	ActualSummary      ActualSummary      `json:"actual_summary"`
+	PreviousAmount     float64            `json:"previous_amount"`
+	CorrectedAmount    float64            `json:"corrected_amount"`
+	PlannedWrites      []PlannedWrite     `json:"planned_writes"`
+	WrittenFiles       []string           `json:"written_files,omitempty"`
+	AuditRecordPreview domain.AuditRecord `json:"audit_record_preview"`
+	Validation         *ValidateResult    `json:"validation,omitempty"`
+	Warnings           []Diagnostic       `json:"warnings"`
+	Errors             []Diagnostic       `json:"errors"`
+}
+
 type ActualSetRemainingRequest struct {
 	DemandID   string
 	Amount     float64
@@ -169,6 +195,8 @@ type ActualSummary struct {
 	DemandID     string   `json:"demand_id,omitempty"`
 	ResourceID   string   `json:"resource_id,omitempty"`
 	Amount       float64  `json:"amount,omitempty"`
+	CorrectsID   string   `json:"corrects_id,omitempty"`
+	CorrectedTo  *float64 `json:"corrected_to,omitempty"`
 	Unit         string   `json:"unit,omitempty"`
 	OccurredAt   string   `json:"occurred_at,omitempty"`
 	StatusDate   string   `json:"status_date,omitempty"`
@@ -192,6 +220,7 @@ func (s ActualService) List(ctx context.Context, req ActualListRequest) (ActualL
 		return result, ErrValidationFailed
 	}
 
+	latest := LatestActualCorrections(ws.Actuals)
 	for _, actual := range ws.Actuals {
 		if req.Type != "" && actual.Type != req.Type {
 			continue
@@ -205,7 +234,14 @@ func (s ActualService) List(ctx context.Context, req ActualListRequest) (ActualL
 		if req.ResourceID != "" && actual.ResourceRef.ID != req.ResourceID {
 			continue
 		}
-		result.Actuals = append(result.Actuals, actualSummary(actual))
+		summary := actualSummary(actual)
+		if actual.Type == "correction" {
+			summary.CorrectedTo = actual.CorrectedAmount
+		} else if correction, ok := latest[actual.ID]; ok {
+			// Amount stays as booked; corrected_to is what reports count.
+			summary.CorrectedTo = correction.CorrectedAmount
+		}
+		result.Actuals = append(result.Actuals, summary)
 	}
 	sort.Slice(result.Actuals, func(i, j int) bool {
 		if result.Actuals[i].OccurredAt == result.Actuals[j].OccurredAt {
@@ -213,6 +249,86 @@ func (s ActualService) List(ctx context.Context, req ActualListRequest) (ActualL
 		}
 		return result.Actuals[i].OccurredAt < result.Actuals[j].OccurredAt
 	})
+	return result, nil
+}
+
+func (s ActualService) Correct(ctx context.Context, req ActualCorrectRequest) (ActualCorrectResult, error) {
+	ws, loadDiags := s.loader.Load(ctx)
+	result := ActualCorrectResult{DryRun: req.DryRun, PlannedWrites: []PlannedWrite{}, WrittenFiles: []string{}, Warnings: []Diagnostic{}, Errors: []Diagnostic{}}
+	appendLoadDiagnostics(&result.Warnings, &result.Errors, loadDiags)
+	original, _ := validateCorrectActualRequest(&result.Errors, ws, req)
+	if len(result.Errors) > 0 {
+		return result, ErrValidationFailed
+	}
+	occurredAt := req.OccurredAt
+	if occurredAt == "" {
+		now := req.Now
+		if now.IsZero() {
+			now = time.Now()
+		}
+		occurredAt = now.Format(time.RFC3339)
+	}
+	latest := LatestActualCorrections(ws.Actuals)
+	previousAmount := original.Amount
+	if correction, exists := latest[original.ID]; exists && correction.CorrectedAmount != nil {
+		previousAmount = *correction.CorrectedAmount
+	}
+	if previousAmount == *req.CorrectedAmount {
+		addActualRequestError(&result.Errors, "actual_correction_no_change", fmt.Sprintf("actual %s effective amount is already %g", original.ID, previousAmount), "actual", original.ID)
+		return result, ErrValidationFailed
+	}
+	actual := domain.Actual{
+		ID: "actual." + slugID(original.ID) + ".correction." + compactTimestamp(occurredAt), Type: "correction",
+		CorrectsRef: domain.Ref{Kind: "actual", ID: original.ID}, CorrectedAmount: req.CorrectedAmount,
+		TaskRef: original.TaskRef, DemandRef: original.DemandRef, ResourceRef: original.ResourceRef, Unit: original.Unit,
+		OccurredAt: occurredAt, StatusDate: datePart(occurredAt), AcceptedBy: domain.Ref{Kind: "actor", ID: req.ActorID}, Reason: req.Reason,
+		EvidenceRefs: []domain.Ref{{Kind: "evidence", ID: req.EvidenceID}},
+	}
+	if hasActualID(ws.Actuals, actual.ID) {
+		addActualRequestError(&result.Errors, "actual_already_exists", fmt.Sprintf("actual %s already exists", actual.ID), "actual", actual.ID)
+		return result, ErrValidationFailed
+	}
+	recordYAML, err := yaml.Marshal(struct {
+		Actuals []domain.Actual `yaml:"actuals"`
+	}{[]domain.Actual{actual}})
+	if err != nil {
+		return result, err
+	}
+	audit := domain.AuditRecord{ID: "audit." + compactTimestamp(occurredAt) + ".actual-correct." + slugID(original.ID), OccurredAt: occurredAt, ActorRef: domain.Ref{Kind: "actor", ID: req.ActorID}, Operation: "actual_correct", TargetRef: domain.Ref{Kind: "actual", ID: original.ID}, Reason: req.Reason, EvidenceRefs: []domain.Ref{{Kind: "evidence", ID: req.EvidenceID}}, Result: "success"}
+	if req.DryRun {
+		audit.Result = "dry_run"
+	}
+	result.Actual, result.ActualSummary = actual, actualSummary(actual)
+	result.ActualSummary.CorrectedTo = actual.CorrectedAmount
+	result.PreviousAmount, result.CorrectedAmount = previousAmount, *req.CorrectedAmount
+	result.PlannedWrites = []PlannedWrite{{Path: actualsPath(actual.StatusDate), Action: "append_yaml_record", Format: "yaml", Content: string(recordYAML)}, auditPlannedWrite(audit)}
+	result.AuditRecordPreview = audit
+	if req.DryRun {
+		return result, nil
+	}
+	session := beginWrite(s.loader)
+	writer, supported := session.target.(ActualWriter)
+	if !supported {
+		addActualRequestError(&result.Errors, "storage_write_not_supported", "configured project store does not support actual writes", "project", s.loader.ProjectPath())
+		return result, ErrValidationFailed
+	}
+	actualPath, err := writer.AppendActual(actual.StatusDate, actual)
+	if err != nil {
+		return result, err
+	}
+	result.WrittenFiles = append(result.WrittenFiles, actualPath)
+	auditPath, err := writer.AppendAudit(audit)
+	if err != nil {
+		return result, err
+	}
+	result.WrittenFiles = append(result.WrittenFiles, auditPath)
+	validation, written, err := session.finish(ctx, result.WrittenFiles)
+	result.Validation, result.WrittenFiles = &validation, written
+	if err != nil {
+		result.Errors = append(result.Errors, validation.Errors...)
+		return result, err
+	}
+	result.Applied = true
 	return result, nil
 }
 
@@ -777,12 +893,57 @@ func actualSummary(actual domain.Actual) ActualSummary {
 		DemandID:     actual.DemandRef.ID,
 		ResourceID:   actual.ResourceRef.ID,
 		Amount:       actual.Amount,
+		CorrectsID:   actual.CorrectsRef.ID,
+		CorrectedTo:  actual.CorrectedAmount,
 		Unit:         actual.Unit,
 		OccurredAt:   actual.OccurredAt,
 		StatusDate:   actual.StatusDate,
 		AcceptedBy:   actual.AcceptedBy.ID,
 		EvidenceRefs: evidenceRefs,
 	}
+}
+
+func validateCorrectActualRequest(errors *[]Diagnostic, ws domain.Workspace, req ActualCorrectRequest) (domain.Actual, bool) {
+	if req.ActualID == "" {
+		addActualRequestError(errors, "missing_actual", "actual is required", "actual", "")
+	}
+	if req.CorrectedAmount == nil {
+		addActualRequestError(errors, "missing_corrected_amount", "choose an amount or void", "actual", req.ActualID)
+	} else if !validAmount(*req.CorrectedAmount) {
+		addActualRequestError(errors, "invalid_amount", "corrected amount must be a finite number, zero or greater", "actual", req.ActualID)
+	}
+	if strings.TrimSpace(req.Reason) == "" {
+		addActualRequestError(errors, "missing_reason", "reason is required", "actual", req.ActualID)
+	}
+	if req.ActorID == "" {
+		addActualRequestError(errors, "missing_actor", "actor is required", "actor", "")
+	} else if !hasActor(ws.Actors, req.ActorID) {
+		addActualRequestError(errors, "actor_not_found", fmt.Sprintf("actor %s not found", req.ActorID), "actor", req.ActorID)
+	}
+	if req.EvidenceID == "" {
+		addActualRequestError(errors, "missing_evidence", "evidence is required", "evidence", "")
+	} else if !hasEvidence(ws.Evidence, req.EvidenceID) {
+		addActualRequestError(errors, "evidence_not_found", fmt.Sprintf("evidence %s not found", req.EvidenceID), "evidence", req.EvidenceID)
+	}
+	if req.OccurredAt != "" {
+		if _, err := time.Parse(time.RFC3339, req.OccurredAt); err != nil {
+			addActualRequestError(errors, "invalid_occurred_at", fmt.Sprintf("occurred-at %q must be RFC3339", req.OccurredAt), "actual", req.ActualID)
+		}
+	}
+	for _, actual := range ws.Actuals {
+		if actual.ID != req.ActualID {
+			continue
+		}
+		if actual.Type == "correction" || !estimateConsumptionTypes[actual.Type] {
+			addActualRequestError(errors, "actual_not_correctable", fmt.Sprintf("actual %s of type %s is not correctable", actual.ID, actual.Type), "actual", actual.ID)
+			return actual, false
+		}
+		return actual, true
+	}
+	if req.ActualID != "" {
+		addActualRequestError(errors, "actual_not_found", fmt.Sprintf("actual %s not found", req.ActualID), "actual", req.ActualID)
+	}
+	return domain.Actual{}, false
 }
 
 func validateAddStatusRequest(errors *[]Diagnostic, ws domain.Workspace, req ActualAddStatusRequest) (domain.Task, bool) {

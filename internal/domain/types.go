@@ -298,17 +298,20 @@ type CalibrationSizeBand struct {
 }
 
 type Actual struct {
-	ID           string  `json:"id" yaml:"id"`
-	Type         string  `json:"type" yaml:"type"`
-	TaskRef      Ref     `json:"task_ref,omitempty" yaml:"task_ref,omitempty"`
-	DemandRef    Ref     `json:"demand_ref,omitempty" yaml:"demand_ref,omitempty"`
-	ResourceRef  Ref     `json:"resource_ref,omitempty" yaml:"resource_ref,omitempty"`
-	Amount       float64 `json:"amount,omitempty" yaml:"amount,omitempty"`
-	Unit         string  `json:"unit,omitempty" yaml:"unit,omitempty"`
-	OccurredAt   string  `json:"occurred_at,omitempty" yaml:"occurred_at,omitempty"`
-	StatusDate   string  `json:"status_date,omitempty" yaml:"status_date,omitempty"`
-	AcceptedBy   Ref     `json:"accepted_by" yaml:"accepted_by"`
-	EvidenceRefs []Ref   `json:"evidence_refs,omitempty" yaml:"evidence_refs,omitempty"`
+	ID              string   `json:"id" yaml:"id"`
+	Type            string   `json:"type" yaml:"type"`
+	CorrectsRef     Ref      `json:"corrects_ref,omitempty" yaml:"corrects_ref,omitempty"`
+	CorrectedAmount *float64 `json:"corrected_amount,omitempty" yaml:"corrected_amount,omitempty"`
+	TaskRef         Ref      `json:"task_ref,omitempty" yaml:"task_ref,omitempty"`
+	DemandRef       Ref      `json:"demand_ref,omitempty" yaml:"demand_ref,omitempty"`
+	ResourceRef     Ref      `json:"resource_ref,omitempty" yaml:"resource_ref,omitempty"`
+	Amount          float64  `json:"amount,omitempty" yaml:"amount,omitempty"`
+	Unit            string   `json:"unit,omitempty" yaml:"unit,omitempty"`
+	OccurredAt      string   `json:"occurred_at,omitempty" yaml:"occurred_at,omitempty"`
+	StatusDate      string   `json:"status_date,omitempty" yaml:"status_date,omitempty"`
+	AcceptedBy      Ref      `json:"accepted_by" yaml:"accepted_by"`
+	EvidenceRefs    []Ref    `json:"evidence_refs,omitempty" yaml:"evidence_refs,omitempty"`
+	Reason          string   `json:"reason,omitempty" yaml:"reason,omitempty"`
 }
 
 type Evidence struct {

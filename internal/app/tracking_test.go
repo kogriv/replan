@@ -3,6 +3,7 @@ package app_test
 import (
 	"context"
 	"errors"
+	"math"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -101,6 +102,27 @@ func TestTrackingSuggestWriteCandidatesRequiresActor(t *testing.T) {
 	if !hasTrackingDiagnostic(result.Errors, "actor_required") {
 		t.Fatalf("expected actor_required, got %#v", result.Errors)
 	}
+}
+
+func TestTrackingSuggestForecastUsesCorrectedAmount(t *testing.T) {
+	corrected := .1
+	ws := domain.Workspace{Project: domain.Project{ID: "project.test", Name: "Test"}, Resources: []domain.Resource{{ID: "resource.agent", Class: "ai_agent"}}, Tasks: []domain.Task{{ID: "task.test", Title: "Test", TrackingStatus: "in_progress"}}, ResourceDemands: []domain.ResourceDemand{{ID: "demand.test", TaskRef: domain.Ref{ID: "task.test"}, ResourceRef: domain.Ref{ID: "resource.agent"}, ResourceClass: "ai_agent", Unit: "agent_hours", PlannedAmount: .25, RemainingAmount: domain.Amount(.2)}}, Actuals: []domain.Actual{
+		{ID: "actual.test", Type: "work_consumed", TaskRef: domain.Ref{ID: "task.test"}, DemandRef: domain.Ref{ID: "demand.test"}, ResourceRef: domain.Ref{ID: "resource.agent"}, Amount: .33, Unit: "agent_hours", EvidenceRefs: []domain.Ref{{ID: "evidence.test"}}},
+		{ID: "correction.test", Type: "correction", CorrectsRef: domain.Ref{Kind: "actual", ID: "actual.test"}, CorrectedAmount: &corrected, TaskRef: domain.Ref{ID: "task.test"}, DemandRef: domain.Ref{ID: "demand.test"}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "agent_hours", OccurredAt: "2026-10-30T12:00:00Z", EvidenceRefs: []domain.Ref{{ID: "evidence.test"}}},
+	}}
+	result, err := app.NewTrackingService(staticWorkspaceLoader{workspace: ws}).Suggest(context.Background(), app.TrackingSuggestRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, suggestion := range result.Suggestions {
+		if suggestion.DemandID == "demand.test" {
+			if suggestion.Actual != corrected || math.Abs(suggestion.Forecast-.3) > 1e-9 {
+				t.Fatalf("suggestion = %#v", suggestion)
+			}
+			return
+		}
+	}
+	t.Fatalf("forecast suggestion missing: %#v", result.Suggestions)
 }
 
 func TestTrackingSuggestValidationPrecedenceStopsBeforeAnalysis(t *testing.T) {

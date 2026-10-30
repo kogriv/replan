@@ -188,7 +188,7 @@ func (c *workloadCalculation) addCapacities() {
 }
 
 func (c *workloadCalculation) addActuals() {
-	for _, actual := range c.workspace.Actuals {
+	for _, actual := range EffectiveActuals(c.workspace.Actuals) {
 		if actual.Type != "work_consumed" || (c.hasWeekFilter && !actualIntersectsWeek(actual, c.weekStart, c.weekEnd)) || actual.ResourceRef.ID == "" || actual.Unit == "" {
 			continue
 		}

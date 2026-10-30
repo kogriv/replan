@@ -151,6 +151,7 @@ func (s ReportService) Estimates(ctx context.Context, req EstimateReportRequest)
 		return result, ErrValidationFailed
 	}
 
+	ws.Actuals = EffectiveActuals(ws.Actuals)
 	buildEstimateReport(&result, ws, baseline)
 	for _, calibration := range ws.Calibrations {
 		for _, source := range calibration.SourceBaselines {

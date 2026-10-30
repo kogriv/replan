@@ -159,6 +159,26 @@ func TestDashboardTrackingSmallTeamFixture(t *testing.T) {
 	}
 }
 
+func TestDashboardTrackingUsesCorrectedActualAmount(t *testing.T) {
+	corrected := 0.1
+	ws := domain.Workspace{Project: domain.Project{ID: "project.test", DefaultStatusDate: "2026-10-30"}, Tasks: []domain.Task{{ID: "task.test", TrackingStatus: "in_progress"}}, ResourceDemands: []domain.ResourceDemand{{ID: "demand.test", TaskRef: domain.Ref{ID: "task.test"}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "agent_hours", PlannedAmount: 1, RemainingAmount: domain.Amount(.2)}}, Actuals: []domain.Actual{
+		{ID: "actual.test", Type: "work_consumed", TaskRef: domain.Ref{ID: "task.test"}, DemandRef: domain.Ref{ID: "demand.test"}, ResourceRef: domain.Ref{ID: "resource.agent"}, Amount: .33, Unit: "agent_hours"},
+		{ID: "correction.test", Type: "correction", CorrectsRef: domain.Ref{Kind: "actual", ID: "actual.test"}, CorrectedAmount: &corrected, TaskRef: domain.Ref{ID: "task.test"}, DemandRef: domain.Ref{ID: "demand.test"}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "agent_hours", OccurredAt: "2026-10-30T12:00:00Z"},
+	}}
+	overview, err := app.NewReportService(stubLoader{ws: ws}).Dashboard(context.Background(), app.DashboardReportRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	row, ok := findTrackingRow(overview.Tracking, "task.test")
+	if !ok {
+		t.Fatal("tracking row missing")
+	}
+	demand, ok := findDemandTracking(row.Demands, "demand.test")
+	if !ok || demand.Actual != corrected || !closeFloat(demand.Forecast, .3) {
+		t.Fatalf("demand = %#v", demand)
+	}
+}
+
 func TestDashboardTrackingProposalLoopSelfFixture(t *testing.T) {
 	projectPath := copyTrackingProjectFixture(t)
 	removeTrackingProposalArtifacts(t, projectPath)

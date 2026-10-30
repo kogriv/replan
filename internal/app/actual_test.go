@@ -2,13 +2,111 @@ package app_test
 
 import (
 	"context"
+	"math"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/kogriv/replan/internal/app"
+	"github.com/kogriv/replan/internal/domain"
 	"github.com/kogriv/replan/internal/storage/filestore"
 )
+
+func TestEffectiveActualsLatestCorrectionSupersedesAndVoidDrops(t *testing.T) {
+	down, up, zero := 1.0, 1.5, 0.0
+	original := domain.Actual{ID: "actual.original", Type: "work_consumed", Amount: 2, Unit: "hours"}
+	actuals := []domain.Actual{
+		original,
+		{ID: "correction.1", Type: "correction", CorrectsRef: domain.Ref{Kind: "actual", ID: original.ID}, CorrectedAmount: &down, OccurredAt: "2026-10-30T10:00:00Z"},
+		{ID: "correction.2", Type: "correction", CorrectsRef: domain.Ref{Kind: "actual", ID: original.ID}, CorrectedAmount: &up, OccurredAt: "2026-10-30T11:00:00Z"},
+	}
+	effective := app.EffectiveActuals(actuals)
+	if len(effective) != 1 || effective[0].Amount != up || effective[0].CorrectedAmount == nil || *effective[0].CorrectedAmount != up {
+		t.Fatalf("effective actuals = %#v", effective)
+	}
+	actuals = append(actuals, domain.Actual{ID: "correction.3", Type: "correction", CorrectsRef: domain.Ref{Kind: "actual", ID: original.ID}, CorrectedAmount: &zero, OccurredAt: "2026-10-30T12:00:00Z"})
+	if got := app.EffectiveActuals(actuals); len(got) != 0 {
+		t.Fatalf("voided effective actuals = %#v", got)
+	}
+}
+
+func TestActualCorrectApplySupersedeVoidListAndAudit(t *testing.T) {
+	projectPath := copyAppProjectFixture(t)
+	store := filestore.New(projectPath)
+	service := app.NewActualService(store)
+	originalID := "actual.repair-pump.petr.20260706.1"
+	for index, amount := range []float64{0.1, 0.25, 0} {
+		result, err := service.Correct(context.Background(), app.ActualCorrectRequest{ActualID: originalID, CorrectedAmount: &amount, Reason: "Correct guessed duration.", EvidenceID: "evidence.github.pr.45", ActorID: "actor.human.operator", OccurredAt: []string{"2026-10-30T10:00:00+07:00", "2026-10-30T11:00:00+07:00", "2026-10-30T12:00:00+07:00"}[index]})
+		if err != nil || !result.Applied {
+			t.Fatalf("correction %d: result=%#v err=%v", index, result, err)
+		}
+		if result.AuditRecordPreview.Operation != "actual_correct" {
+			t.Fatalf("audit operation = %q", result.AuditRecordPreview.Operation)
+		}
+	}
+	list, err := service.List(context.Background(), app.ActualListRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(list.Actuals) != 4 {
+		t.Fatalf("listed actuals = %#v", list.Actuals)
+	}
+	if list.Actuals[0].ID != originalID || list.Actuals[0].Amount != 2 || list.Actuals[0].CorrectedTo == nil || *list.Actuals[0].CorrectedTo != 0 {
+		t.Fatalf("listed original = %#v", list.Actuals[0])
+	}
+	verify, err := app.NewAuditService(store).Verify(context.Background(), app.AuditVerifyRequest{})
+	if err != nil || !verify.Valid {
+		t.Fatalf("audit verify = %#v, %v", verify, err)
+	}
+}
+
+func TestActualCorrectRefusals(t *testing.T) {
+	amount, same, negative, nan := 1.0, 2.0, -1.0, math.NaN()
+	base := domain.Workspace{
+		Actors:   []domain.Actor{{ID: "actor.test"}},
+		Evidence: []domain.Evidence{{ID: "evidence.test", Type: "operator_note"}},
+		Actuals: []domain.Actual{
+			{ID: "actual.work", Type: "work_consumed", Amount: 2, Unit: "hours", AcceptedBy: domain.Ref{ID: "actor.test"}},
+			{ID: "actual.status", Type: "status", AcceptedBy: domain.Ref{ID: "actor.test"}},
+		},
+	}
+	tests := []struct {
+		name, id, code string
+		value          *float64
+	}{
+		{"unknown", "actual.missing", "actual_not_found", &amount},
+		{"status", "actual.status", "actual_not_correctable", &amount},
+		{"no change", "actual.work", "actual_correction_no_change", &same},
+		{"negative", "actual.work", "invalid_amount", &negative},
+		{"non finite", "actual.work", "invalid_amount", &nan},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := app.NewActualService(stubLoader{ws: base}).Correct(context.Background(), app.ActualCorrectRequest{ActualID: tc.id, CorrectedAmount: tc.value, Reason: "reason", EvidenceID: "evidence.test", ActorID: "actor.test", DryRun: true})
+			if err == nil || !hasAppDiagnosticCode(result.Errors, tc.code) {
+				t.Fatalf("errors = %#v, err=%v", result.Errors, err)
+			}
+		})
+	}
+}
+
+func TestValidateRejectsDanglingAndMismatchedCorrection(t *testing.T) {
+	amount := 1.0
+	ws := domain.Workspace{Actors: []domain.Actor{{ID: "actor.test"}}, Actuals: []domain.Actual{{ID: "actual.correction", Type: "correction", CorrectsRef: domain.Ref{Kind: "actual", ID: "actual.missing"}, CorrectedAmount: &amount, DemandRef: domain.Ref{ID: "demand.wrong"}, Unit: "hours", AcceptedBy: domain.Ref{ID: "actor.test"}}}}
+	result, err := app.NewValidateService(stubLoader{ws: ws}).Validate(context.Background(), app.ValidateRequest{})
+	if err == nil || !hasAppDiagnosticCode(result.Errors, "unresolved_reference") {
+		t.Fatalf("validation errors = %#v, err=%v", result.Errors, err)
+	}
+}
+
+func hasAppDiagnosticCode(diags []app.Diagnostic, code string) bool {
+	for _, diag := range diags {
+		if diag.Code == code {
+			return true
+		}
+	}
+	return false
+}
 
 func TestActualListSmallTeamFixture(t *testing.T) {
 	store := filestore.New("../../examples/small-team")

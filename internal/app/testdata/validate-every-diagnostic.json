@@ -749,6 +749,60 @@
       }
     },
     {
+      "code": "invalid_actual_correction",
+      "message": "correction must have an actual corrects_ref",
+      "severity": "error",
+      "target": {
+        "kind": "actual",
+        "id": "actual.correction.invalid-ref"
+      }
+    },
+    {
+      "code": "unresolved_reference",
+      "message": "correction target actual \"actual.missing\" does not exist",
+      "severity": "error",
+      "target": {
+        "kind": "actual",
+        "id": "actual.correction.dangling"
+      }
+    },
+    {
+      "code": "actual_not_correctable",
+      "message": "correction target actual actual.status is not correctable",
+      "severity": "error",
+      "target": {
+        "kind": "actual",
+        "id": "actual.correction.status"
+      }
+    },
+    {
+      "code": "invalid_amount",
+      "message": "correction corrected_amount must be finite, zero or greater",
+      "severity": "error",
+      "target": {
+        "kind": "actual",
+        "id": "actual.correction.bad"
+      }
+    },
+    {
+      "code": "actual_correction_demand_mismatch",
+      "message": "correction demand demand.b does not match original demand demand.a",
+      "severity": "error",
+      "target": {
+        "kind": "actual",
+        "id": "actual.correction.bad"
+      }
+    },
+    {
+      "code": "actual_correction_unit_mismatch",
+      "message": "correction unit days does not match original unit hours",
+      "severity": "error",
+      "target": {
+        "kind": "actual",
+        "id": "actual.correction.bad"
+      }
+    },
+    {
       "code": "missing_evidence_type",
       "message": "evidence type is required",
       "severity": "error",

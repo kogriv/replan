@@ -97,6 +97,20 @@ func TestEstimateReportDemandVarianceDatesSummariesAndSplit(t *testing.T) {
 	}
 }
 
+func TestEstimateReportUsesCorrectedActualAmount(t *testing.T) {
+	ws := estimateReportWorkspace(t)
+	corrected := 0.1
+	ws.Actuals = append(ws.Actuals, domain.Actual{ID: "actual.agent.correction", Type: "correction", CorrectsRef: domain.Ref{Kind: "actual", ID: "actual.agent"}, CorrectedAmount: &corrected, DemandRef: domain.Ref{ID: "demand.finished.agent"}, Unit: "agent_hours", OccurredAt: "2026-10-30T12:00:00Z"})
+	result, err := app.NewReportService(stubLoader{ws: ws}).Estimates(context.Background(), app.EstimateReportRequest{BaselineID: "baseline.estimates"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	demand := estimateDemandByID(t, estimateTaskByID(t, result.Tasks, "task.finished").Demands, "demand.finished.agent")
+	if demand.ActualAmount != corrected {
+		t.Fatalf("actual amount = %g, want %g", demand.ActualAmount, corrected)
+	}
+}
+
 func TestEstimateReportRefusals(t *testing.T) {
 	refOnly := domain.Baseline{ID: "baseline.ref", CreatedAt: "2026-10-01T00:00:00Z", ApprovedBy: domain.Ref{Kind: "actor", ID: "actor.test"},
 		IncludedTasks: []domain.BaselineTaskEntry{{Ref: domain.Ref{Kind: "task", ID: "task.finished"}}}}

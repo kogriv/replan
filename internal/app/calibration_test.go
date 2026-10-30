@@ -92,6 +92,19 @@ func TestCalibrationObservationUsesSameDayActualTimestamp(t *testing.T) {
 	}
 }
 
+func TestCalibrationUsesCorrectedActualAmount(t *testing.T) {
+	baselineAmount, corrected := 2.0, 0.1
+	baseline := domain.Baseline{ID: "baseline.corrected", ApprovedAt: "2026-01-01T09:00:00Z", IncludedTasks: []domain.BaselineTaskEntry{{Ref: domain.Ref{ID: "task.corrected"}}}, IncludedDemands: []domain.BaselineDemandEntry{{Ref: domain.Ref{ID: "demand.corrected"}, Task: "task.corrected", Resource: "resource.agent", Unit: "hours", PlannedAmount: &baselineAmount}}}
+	ws := domain.Workspace{Tasks: []domain.Task{{ID: "task.corrected", TrackingStatus: "accepted"}}, ResourceDemands: []domain.ResourceDemand{{ID: "demand.corrected", TaskRef: domain.Ref{ID: "task.corrected"}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "hours"}}, Actuals: []domain.Actual{
+		{ID: "actual.corrected", Type: "work_consumed", TaskRef: domain.Ref{ID: "task.corrected"}, DemandRef: domain.Ref{ID: "demand.corrected"}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "hours", Amount: .33, StatusDate: "2026-01-02"},
+		{ID: "correction.corrected", Type: "correction", CorrectsRef: domain.Ref{Kind: "actual", ID: "actual.corrected"}, CorrectedAmount: &corrected, DemandRef: domain.Ref{ID: "demand.corrected"}, Unit: "hours", OccurredAt: "2026-01-03T12:00:00Z"},
+	}}
+	observations, excluded := calibrationObservations(ws, []domain.Baseline{baseline}, domain.CalibrationScope{Resources: []string{"resource.agent"}, Unit: "hours"}, nil)
+	if len(excluded) != 0 || len(observations) != 1 || observations[0].actual != corrected {
+		t.Fatalf("observations=%#v excluded=%#v", observations, excluded)
+	}
+}
+
 func TestCalibrationStatisticsBandsAndRounding(t *testing.T) {
 	observations := []calibrationObservation{
 		{baseline: 1, actual: 1, ratio: 1},

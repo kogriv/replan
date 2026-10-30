@@ -123,6 +123,7 @@ Inspect actual execution facts:
 go run ./cmd/replan actual list --project examples/small-team --format json
 go run ./cmd/replan actual list --project examples/small-team --resource resource.human.petr --format markdown
 go run ./cmd/replan actual add-consumption --project examples/small-team --task task.op.1234 --demand resource_demand.task-op-1234.implementer --resource resource.human.ivan --amount 3 --unit hours --evidence evidence.github.pr.45 --actor actor.human.operator --occurred-at 2026-07-06T16:00:00+07:00 --status-date 2026-07-06 --dry-run --format json
+go run ./cmd/replan actual correct --project examples/small-team --actual actual.repair-pump.petr.20260706.1 --amount 0.1 --reason "Correct guessed start duration" --evidence evidence.github.pr.45 --actor actor.human.operator --occurred-at 2026-07-06T18:00:00+07:00 --dry-run --format json
 go run ./cmd/replan actual set-remaining --project examples/small-team --demand resource_demand.task-op-1234.implementer --amount 5 --unit hours --reason "Operator review after pull request" --evidence evidence.github.pr.45 --actor actor.human.operator --occurred-at 2026-07-06T16:30:00+07:00 --status-date 2026-07-06 --dry-run --format json
 go run ./cmd/replan actual close-demand --project examples/small-team --demand resource_demand.task-op-1234.implementer --status consumed --reason "Operator reviewed demand lifecycle" --evidence evidence.github.pr.45 --actor actor.human.operator --occurred-at 2026-07-06T16:45:00+07:00 --status-date 2026-07-06 --dry-run --format json
 go run ./cmd/replan actual add-status --project examples/small-team --task task.op.1234 --status review_ready --reason "Pull request is open and ready for review" --evidence evidence.github.pr.45 --actor actor.human.operator --occurred-at 2026-07-06T17:00:00+07:00 --status-date 2026-07-06 --dry-run --format json
@@ -186,7 +187,7 @@ Implemented command families as of 2026-10-30:
 - `estimate calibrate`, `list`, `show`, `apply` for sealed estimate
   calibrations and calibration-linked scenarios;
 - `audit list`, `verify`;
-- `actual list`, `add-consumption`, `set-remaining`, `close-demand`,
+- `actual list`, `add-consumption`, `correct`, `set-remaining`, `close-demand`,
   `reopen-demand`, `acknowledge-overrun`, `add-status`;
 - `resource add`, with optional actor creation for human and AI-agent
   resources, and `resource list`;

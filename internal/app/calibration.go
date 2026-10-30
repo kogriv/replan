@@ -397,7 +397,7 @@ func baselineApprovedBeforeStart(baseline domain.Baseline, window taskActualWind
 func calibrationTaskActual(ws domain.Workspace, taskID string, scope domain.CalibrationScope, demands map[string]domain.ResourceDemand) (float64, bool) {
 	resources := stringSet(scope.Resources)
 	amount, recorded := 0.0, false
-	for _, actual := range ws.Actuals {
+	for _, actual := range EffectiveActuals(ws.Actuals) {
 		if !estimateConsumptionTypes[actual.Type] || actual.Unit != scope.Unit {
 			continue
 		}
@@ -594,7 +594,7 @@ func buildCalibrationScenario(ws domain.Workspace, calibration domain.Calibratio
 		tasks[task.ID] = task
 	}
 	actualByDemand := map[string]float64{}
-	for _, actual := range ws.Actuals {
+	for _, actual := range EffectiveActuals(ws.Actuals) {
 		if estimateConsumptionTypes[actual.Type] && actual.Unit == calibration.Scope.Unit {
 			actualByDemand[actual.DemandRef.ID] += actual.Amount
 		}

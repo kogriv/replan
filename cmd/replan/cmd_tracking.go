@@ -122,6 +122,8 @@ func runActual(args []string, stdout, stderr *os.File) int {
 		return runActualSetRemaining(args[1:], stdout, stderr)
 	case "close-demand":
 		return runActualCloseDemand(args[1:], stdout, stderr)
+	case "correct":
+		return runActualCorrect(args[1:], stdout, stderr)
 	case "add-status":
 		return runActualAddStatus(args[1:], stdout, stderr)
 	case "reopen-demand":
@@ -136,6 +138,49 @@ func runActual(args []string, stdout, stderr *os.File) int {
 		printUsage(stderr)
 		return exitInvalidUsage
 	}
+}
+
+func runActualCorrect(args []string, stdout, stderr *os.File) int {
+	fs := newCLIFlagSet("actual correct")
+	projectPath, format := addProjectFormatFlags(fs, "json")
+	actualID := fs.String("actual", "", "actual id to correct")
+	amount := fs.Float64("amount", 0, "corrected effective amount")
+	void := fs.Bool("void", false, "correct the effective amount to zero")
+	reason := fs.String("reason", "", "reason for the correction")
+	evidenceID := fs.String("evidence", "", "evidence id")
+	actorID := fs.String("actor", "", "actor id accepting the correction")
+	occurredAt := fs.String("occurred-at", "", "RFC3339 occurrence timestamp")
+	writeFlags := addCanonicalWriteFlags(fs)
+	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+		return code
+	}
+	dryRun, code, done := requireCanonicalWriteChoice("actual correct", *projectPath, *format, writeFlags, stdout, stderr)
+	if done {
+		return code
+	}
+	amountSet := false
+	fs.Visit(func(f *flag.Flag) {
+		if f.Name == "amount" {
+			amountSet = true
+		}
+	})
+	if amountSet == *void {
+		message := "actual correct requires exactly one of --amount or --void"
+		env := envelope{OK: false, Command: "actual correct", ProjectPath: *projectPath, Warnings: []app.Diagnostic{}, Errors: []app.Diagnostic{{Code: "actual_correction_choice_required", Message: message, Severity: "error"}}}
+		if *format == "json" {
+			_ = printEnvelope(stdout, "json", env)
+		} else {
+			fmt.Fprintln(stderr, message)
+		}
+		return exitInvalidUsage
+	}
+	corrected := *amount
+	if *void {
+		corrected = 0
+	}
+	result, err := app.NewActualService(newStore(*projectPath)).Correct(context.Background(), app.ActualCorrectRequest{ActualID: *actualID, CorrectedAmount: &corrected, Reason: *reason, EvidenceID: *evidenceID, ActorID: *actorID, OccurredAt: *occurredAt, DryRun: dryRun})
+	lines := []string{fmt.Sprintf("- Original actual: `%s`", *actualID), fmt.Sprintf("- Effective amount: %g -> %g", result.PreviousAmount, result.CorrectedAmount), fmt.Sprintf("- Correction: `%s`", result.Actual.ID)}
+	return finishLifecycleCommand(stdout, stderr, *format, "actual correct", "Actual Correct", *projectPath, result.DryRun, result.Applied, result.WrittenFiles, lines, result, result.Warnings, result.Errors, err)
 }
 
 func runActualList(args []string, stdout, stderr *os.File) int {
@@ -448,19 +493,25 @@ func writeActualListMarkdown(stdout *os.File, result app.ActualListResult) error
 		_, err := fmt.Fprintln(stdout, "No actuals.")
 		return err
 	}
-	if _, err := fmt.Fprintln(stdout, "| Actual | Type | Task | Resource | Amount | Unit | Occurred | Accepted By |"); err != nil {
+	if _, err := fmt.Fprintln(stdout, "| Actual | Type | Task | Resource | Amount | Corrected To | Corrects | Unit | Occurred | Accepted By |"); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintln(stdout, "|---|---|---|---|---:|---|---|---|"); err != nil {
+	if _, err := fmt.Fprintln(stdout, "|---|---|---|---|---:|---:|---|---|---|---|"); err != nil {
 		return err
 	}
 	for _, actual := range result.Actuals {
-		if _, err := fmt.Fprintf(stdout, "| `%s` | `%s` | `%s` | `%s` | %g | %s | %s | `%s` |\n",
+		correctedTo := "—"
+		if actual.CorrectedTo != nil {
+			correctedTo = formatFloat(*actual.CorrectedTo)
+		}
+		if _, err := fmt.Fprintf(stdout, "| `%s` | `%s` | `%s` | `%s` | %g | %s | `%s` | %s | %s | `%s` |\n",
 			actual.ID,
 			actual.Type,
 			actual.TaskID,
 			actual.ResourceID,
 			actual.Amount,
+			correctedTo,
+			actual.CorrectsID,
 			actual.Unit,
 			actual.OccurredAt,
 			actual.AcceptedBy); err != nil {

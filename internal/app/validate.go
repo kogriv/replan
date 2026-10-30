@@ -485,6 +485,10 @@ func (v *workspaceValidator) calibrations(calibrations []domain.Calibration, bas
 }
 
 func (v *workspaceValidator) actuals(actuals []domain.Actual) {
+	byID := make(map[string]domain.Actual, len(actuals))
+	for _, actual := range actuals {
+		byID[actual.ID] = actual
+	}
 	for _, actual := range actuals {
 		v.register("actual", actual.ID)
 		if actual.AcceptedBy.ID == "" {
@@ -492,6 +496,30 @@ func (v *workspaceValidator) actuals(actuals []domain.Actual) {
 		}
 		if actual.Unit == "" && actual.Amount != 0 {
 			v.errorf("missing_unit", "actual", actual.ID, "actual unit is required when amount is present")
+		}
+		if actual.Type != "correction" {
+			continue
+		}
+		if actual.CorrectsRef.Kind != "actual" || actual.CorrectsRef.ID == "" {
+			v.errorf("invalid_actual_correction", "actual", actual.ID, "correction must have an actual corrects_ref")
+			continue
+		}
+		original, ok := byID[actual.CorrectsRef.ID]
+		if !ok {
+			v.errorf("unresolved_reference", "actual", actual.ID, "correction target actual %q does not exist", actual.CorrectsRef.ID)
+			continue
+		}
+		if original.Type == "correction" || !estimateConsumptionTypes[original.Type] {
+			v.errorf("actual_not_correctable", "actual", actual.ID, "correction target actual %s is not correctable", original.ID)
+		}
+		if actual.CorrectedAmount == nil || !validAmount(*actual.CorrectedAmount) {
+			v.errorf("invalid_amount", "actual", actual.ID, "correction corrected_amount must be finite, zero or greater")
+		}
+		if actual.DemandRef.ID != original.DemandRef.ID {
+			v.errorf("actual_correction_demand_mismatch", "actual", actual.ID, "correction demand %s does not match original demand %s", actual.DemandRef.ID, original.DemandRef.ID)
+		}
+		if actual.Unit != original.Unit {
+			v.errorf("actual_correction_unit_mismatch", "actual", actual.ID, "correction unit %s does not match original unit %s", actual.Unit, original.Unit)
 		}
 	}
 }

@@ -660,6 +660,7 @@ task set-dates
 task record-actual-window
 task set-title
 actual add-consumption
+actual correct
 actual set-remaining
 actual close-demand
 actual reopen-demand
@@ -1075,9 +1076,12 @@ Implemented estimate-accuracy report slice:
   baseline returns `baseline_has_no_estimates` with exit 2 and names
   `replan baseline create`; an absent, unsupported or changed seal returns
   `baseline_modified` with exit 2;
-- consumption is the sum, in the demand's unit, of demand-linked actuals whose
+- consumption is the sum, in the demand's unit, of demand-linked effective actuals whose
   type is `work_consumed`, `consumption` or `runtime_consumed`. Other actual
-  types and mismatched units do not enter the amount. Every summed or derived
+  types and mismatched units do not enter the amount. A latest `correction`
+  record replaces its original's amount; a corrected amount of zero voids the
+  original from consumption. Correction records are never summed themselves.
+  Every summed or derived
   result amount and ratio is rounded to six decimal places before JSON or
   Markdown rendering; canonical actuals and estimates are not rewritten;
 - every baseline demand is `current` or `removed`; every current demand on a
@@ -1867,6 +1871,7 @@ Subcommands:
 replan actual list
 replan actual add
 replan actual add-consumption
+replan actual correct
 replan actual set-remaining
 replan actual close-demand
 replan actual reopen-demand
@@ -1878,6 +1883,8 @@ Examples:
 
 ```bash
 replan actual add-consumption --task task.op.1234 --demand demand.task-op-1234.implementer --resource resource.human.ivan --amount 3 --unit hours --evidence evidence.manual.time-entry.20260706.1 --actor actor.human.operator --apply
+replan actual correct --actual actual.op-1234.human-ivan.20260706T1600000700.work-consumed --amount 0.1 --reason "Correct guessed start duration" --actor actor.human.operator --evidence evidence.manual.time-entry.20260706.2 --dry-run
+replan actual correct --actual actual.op-1234.human-ivan.20260706T1600000700.work-consumed --void --reason "Duplicate booking" --actor actor.human.operator --evidence evidence.manual.time-entry.20260706.2 --dry-run
 replan actual set-remaining --demand demand.task-op-1234.implementer --amount 5 --unit hours --reason "Operator review after pull request" --actor actor.human.operator --apply
 replan actual close-demand --demand demand.task-op-1234.implementer --status consumed --reason "Accepted task demand reviewed" --actor actor.human.operator --apply
 replan actual add-status --task task.op.1234 --status review_ready --evidence evidence.github.pr.45 --dry-run --format json
@@ -1890,6 +1897,7 @@ Implemented command flags:
 ```text
 replan actual list --project -p --bindings --format --demand --resource --task --type
 replan actual add-consumption --project -p --bindings --format --actor --amount --apply --demand --dry-run --evidence --occurred-at --resource --status-date --task --unit
+replan actual correct --project -p --bindings --format --actual --amount --void --reason --actor --evidence --occurred-at --dry-run --apply
 replan actual set-remaining --project -p --bindings --format --actor --amount --apply --demand --dry-run --evidence --occurred-at --reason --status-date --unit
 replan actual close-demand --project -p --bindings --format --actor --apply --demand --dry-run --evidence --occurred-at --reason --status --status-date
 replan actual reopen-demand --project -p --bindings --format --actor --apply --demand --dry-run --evidence --occurred-at --reason --remaining
@@ -1904,6 +1912,22 @@ Rules:
 - actual commands should support dry-run;
 - actual commands should reference evidence where available;
 - actual commands must not rewrite baseline;
+- `actual correct` appends a `correction` actual and an `actual_correct` audit
+  record. It copies the original task, demand, resource and unit, requires one
+  of a finite non-negative `--amount` or `--void` (zero), and requires reason,
+  actor and evidence. The original stays byte-for-byte unchanged;
+- an unknown target is `actual_not_found`. Corrections, status actuals and
+  other non-consumption actuals are `actual_not_correctable`. Repeating the
+  current effective amount is `actual_correction_no_change`. The latest
+  correction by occurrence time supersedes earlier corrections of the same
+  original;
+- validation requires every correction to point to an existing correctable
+  actual with the same demand and unit. Workload, estimate reporting,
+  calibration, tracking forecasts and dashboard views consume the shared
+  effective-actual projection. `actual list` retains both raw correction rows
+  and originals while showing the effective corrected amount;
+- this is an additive optional record shape in project format version 1, so no
+  project migration step is required;
 - demand lifecycle close supports only `consumed` and `cancelled`;
 - closing as `consumed` also sets `remaining_amount: 0` in the same write and
   audit record, because a consumed demand has nothing left; the result reports
@@ -2799,6 +2823,7 @@ replan report weekly -> GenerateReport(request)
 replan scenario create -> CreateScenario(request)
 replan proposal accept -> AcceptProposal(request)
 replan actual add-consumption -> AddActual(request)
+replan actual correct -> CorrectActual(request)
 replan import openproject -> ImportSource(request)
 replan export taskjuggler -> ExportSchedule(request)
 replan audit list -> ListAuditRecords(request)
