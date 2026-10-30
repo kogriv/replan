@@ -2374,3 +2374,15 @@ evidence:
     targets:
       - kind: task
         id: task.self.connect-third-project-to-openproject-tools
+  - id: evidence.self.start-fix-first-project-defects
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T14:37:34+07:00"
+    summary: 'Operator on 2026-10-30 agreed to the order after the third project work: first-project defects, then onboarding, then the audit tasks, the relates import and the minimum Python check. Original estimate before the Codex split: 1.5 agent hours.'
+    targets:
+      - kind: task
+        id: task.self.fix-first-project-defects
