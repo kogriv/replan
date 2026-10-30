@@ -5297,7 +5297,7 @@ tasks:
       title: Serialize concurrent writes to one project
       description: 'Found on 2026-10-30 while checking an outside audit: 30 replan evidence add --apply processes run in parallel on one project all answered ok with exit 0, but only 2 evidence records and 3 audit lines remained; audit lines exist for records that are gone, which the commit comment in internal/storage/filestore/files.go says cannot happen. Every write reads, validates and commits without an inter-process lock, so concurrent writers lose updates silently. Take an exclusive project lock around read, validate and commit of every write, re-read under the lock, refuse with a clear code when the lock cannot be taken in time, and add a parallel-writers regression test. The non-atomic set of files on an interrupted commit is a separate question.'
       type: implementation
-      tracking_status: review_ready
+      tracking_status: accepted
       planned_start: "2026-10-30"
       planned_finish: "2026-10-30"
       assignee_hint:
@@ -5516,7 +5516,7 @@ tasks:
       title: Let the OpenProject toolkit work without a plan and read secrets from files
       description: 'Found on 2026-10-30 for the third project, which tracks work in OpenProject without a RePlan plan: the work-package toolkit already creates, inspects and updates work packages and adds comments by work-package id, but it still requires REPLAN_PROJECT and a bindings file, and it reads the token and the perimeter key only from environment values, while that project keeps them in root-only files on the server that runs the helpers. Let the work-package commands that act by work-package id run without a plan (no REPLAN_PROJECT, no bindings), and add REPLAN_OPENPROJECT_TOKEN_FILE and REPLAN_OPENPROJECT_PERIMETER_KEY_FILE, read at run time and never printed, with tests and kit documentation.'
       type: implementation
-      tracking_status: review_ready
+      tracking_status: accepted
       planned_start: "2026-10-30"
       planned_finish: "2026-10-30"
       assignee_hint:

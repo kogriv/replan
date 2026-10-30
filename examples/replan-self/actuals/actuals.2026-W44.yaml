@@ -2267,3 +2267,45 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.openproject-toolkit-without-a-plan
+    - id: actual.self-serialize-concurrent-project-writes.ci-github-actions.20261030T1321040700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.serialize-concurrent-project-writes
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.serialize-concurrent-project-writes.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-30T13:21:04+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-serialize-concurrent-project-writes
+    - id: actual.self-openproject-toolkit-without-a-plan.ci-github-actions.20261030T1321330700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.openproject-toolkit-without-a-plan
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-toolkit-without-a-plan.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-30T13:21:33+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-openproject-toolkit-without-a-plan

@@ -9765,7 +9765,7 @@ resource_demands:
       planned_amount: 0.75
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.serialize-concurrent-project-writes.codex
       task_ref:
         kind: task
@@ -9779,7 +9779,7 @@ resource_demands:
       planned_amount: 2.5
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.serialize-concurrent-project-writes.maintainer
       task_ref:
         kind: task
@@ -9791,9 +9791,9 @@ resource_demands:
       role: maintainer
       unit: hours
       planned_amount: 0.25
-      remaining_amount: 0.25
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.serialize-concurrent-project-writes.local-dev
       task_ref:
         kind: task
@@ -9805,9 +9805,9 @@ resource_demands:
       role: development_environment
       unit: concurrent_slots
       planned_amount: 1
-      remaining_amount: 1
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.serialize-concurrent-project-writes.ci
       task_ref:
         kind: task
@@ -9819,9 +9819,9 @@ resource_demands:
       role: ci_runtime
       unit: ci_minutes
       planned_amount: 10
-      remaining_amount: 10
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.document-local-trust-boundary.agent
       task_ref:
         kind: task
@@ -10227,7 +10227,7 @@ resource_demands:
       planned_amount: 0.5
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.openproject-toolkit-without-a-plan.codex
       task_ref:
         kind: task
@@ -10241,7 +10241,7 @@ resource_demands:
       planned_amount: 1.5
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.openproject-toolkit-without-a-plan.maintainer
       task_ref:
         kind: task
@@ -10253,9 +10253,9 @@ resource_demands:
       role: maintainer
       unit: hours
       planned_amount: 0.25
-      remaining_amount: 0.25
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.openproject-toolkit-without-a-plan.local-dev
       task_ref:
         kind: task
@@ -10267,9 +10267,9 @@ resource_demands:
       role: development_environment
       unit: concurrent_slots
       planned_amount: 1
-      remaining_amount: 1
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.openproject-toolkit-without-a-plan.ci
       task_ref:
         kind: task
@@ -10281,9 +10281,9 @@ resource_demands:
       role: ci_runtime
       unit: ci_minutes
       planned_amount: 10
-      remaining_amount: 10
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.openproject-relations-and-parent-by-id.agent
       task_ref:
         kind: task
