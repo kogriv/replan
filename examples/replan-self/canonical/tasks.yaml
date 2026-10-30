@@ -5655,3 +5655,31 @@ tasks:
           object_type: work_package
           object_id: "2289"
           url: https://op.example.internal/work_packages/2289
+    - id: task.self.correct-mis-booked-actuals
+      title: Correct a mis-booked actual
+      description: 'Found on 2026-10-30: an actual booked with a wrong amount or time (0.33 agent hours from a guessed start instead of about 0.1) cannot be corrected; actuals are append-only, add-consumption refuses amounts of zero or below, and the only recourse is an evidence record that the reports do not read. Add an audited correction: a reversing or adjusting actual that names the actual it corrects, carries evidence and a reason, and is reflected in workload, estimate accuracy and calibration samples, with the original kept for the audit trail.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-10-30"
+      planned_finish: "2026-10-30"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.correct-mis-booked-actuals.agent
+        - kind: resource_demand
+          id: resource_demand.correct-mis-booked-actuals.maintainer
+        - kind: resource_demand
+          id: resource_demand.correct-mis-booked-actuals.local-dev
+        - kind: resource_demand
+          id: resource_demand.correct-mis-booked-actuals.ci
+      tags:
+        - actuals
+        - tracking
+        - gap
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2290"
+          url: https://op.example.internal/work_packages/2290

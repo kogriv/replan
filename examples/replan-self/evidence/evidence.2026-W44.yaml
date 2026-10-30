@@ -2399,3 +2399,15 @@ evidence:
         id: task.self.document-local-trust-boundary
       - kind: task
         id: task.self.require-human-approvers
+  - id: evidence.self.correct-document-local-trust-boundary-actual
+    type: decision
+    subtype: correction
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T14:46:09+07:00"
+    summary: 'Correction: the 0.33 agent hours booked for task.self.document-local-trust-boundary used a guessed start of 14:21. The work started after the Codex round on the first-project defects began at 14:37:51 and ended with commit e98939b at 2026-10-30T14:44:00+07:00, about 0.1 agent hours; the in_progress status time 14:21 is likewise too early. Actuals are append-only and RePlan has no correction entry, so the booked amount stays and this record states the real window; planned as task.self.correct-mis-booked-actuals.'
+    targets:
+      - kind: task
+        id: task.self.document-local-trust-boundary

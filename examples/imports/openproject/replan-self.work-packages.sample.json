@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 189,
-  "count": 189,
+  "total": 190,
+  "count": 190,
   "_embedded": {
     "elements": [
       {
@@ -5475,6 +5475,35 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2289"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2290,
+        "subject": "Correct a mis-booked actual",
+        "description": {
+          "raw": "Found on 2026-10-30: an actual booked with a wrong amount or time (0.33 agent hours from a guessed start instead of about 0.1) cannot be corrected; actuals are append-only, add-consumption refuses amounts of zero or below, and the only recourse is an evidence record that the reports do not read. Add an audited correction: a reversing or adjusting actual that names the actual it corrects, carries evidence and a reason, and is reflected in workload, estimate accuracy and calibration samples, with the original kept for the audit trail."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2290"
           },
           "status": {
             "title": "New"
