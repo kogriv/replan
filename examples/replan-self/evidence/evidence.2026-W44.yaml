@@ -2339,3 +2339,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.openproject-toolkit-without-a-plan
+  - id: evidence.self.openproject-relations-and-parent-by-id
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T13:54:01+07:00"
+    summary: 'Codex round 1 (13:11-13:23): relation create --from --to --type for the eleven OpenProject types, idempotent (relates either way), follows and precedes restore manual scheduling and endpoint dates through logic now shared with apply-openproject-relations; relation list --work-package and relation delete work without a plan; update-metadata --parent and --clear-parent with lockVersion, a 403 or PropertyIsReadOnly 422 maps to openproject_permission_missing. On review the live check failed because it chose as parent the work package the child follows, which OpenProject refuses; it now creates a fresh parent: 78 live kit checks pass, parent set and cleared by an ordinary member. Known limit: an inverse pair such as blocked against an existing blocks is not recognised as a repeat; OpenProject then refuses it. Full local gate green.'
+    targets:
+      - kind: task
+        id: task.self.openproject-relations-and-parent-by-id

@@ -294,6 +294,48 @@ expect "a member updates status without a RePlan plan" "d['ok'] and d['plan'] ==
 run 1 env REPLAN_PROJECT= "$TOOLKIT" comment add --work-package "$NO_PLAN_WORK_PACKAGE" --text "Checked without a RePlan plan."
 expect "a member comments without a RePlan plan" "d['ok'] and d['plan'] == 'none' and d['counts']['applied_actions'] == 1"
 
+PLAN_WORK_PACKAGE="$(python3 -c 'import sys, yaml; d=yaml.safe_load(open(sys.argv[1])); print(d["openproject_private_bindings"]["tasks"][0]["source_ref"]["object_id"])' "$WORK_DIR/bindings.yaml")"
+run 1 env REPLAN_PROJECT= "$TOOLKIT" relation create --from "$NO_PLAN_WORK_PACKAGE" --to "$PLAN_WORK_PACKAGE" --type relates --description "Agent kit live relation"
+expect "a member creates a relation by work-package id without a plan" "d['ok'] and d['plan'] == 'none' and d['counts']['created_relation'] == 1"
+RELATION="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["actions"][0]["relation_id"])' "$WORK_DIR/out.json")"
+run 1 env REPLAN_PROJECT= "$TOOLKIT" relation create --from "$NO_PLAN_WORK_PACKAGE" --to "$PLAN_WORK_PACKAGE" --type relates --description "Agent kit live relation"
+expect "repeating relation create is idempotent" "d['ok'] and d['already_exists'] and d['actions'][0]['relation_id'] == '$RELATION' and d['counts']['applied_actions'] == 0"
+run "" env REPLAN_PROJECT= "$TOOLKIT" relation list --work-package "$NO_PLAN_WORK_PACKAGE"
+expect "relations are listed by work-package id without a plan" "d['ok'] and any(item['relation_id'] == '$RELATION' for item in d['items'])"
+run 1 env REPLAN_PROJECT= "$TOOLKIT" relation delete --relation "$RELATION"
+expect "a relation is deleted without a plan or private binding" "d['ok'] and d['counts']['applied_actions'] == 1 and d['actions'][0]['private_binding_removal'] == 'not_available_without_plan'"
+
+run "" env REPLAN_PROJECT= "$TOOLKIT" work-package inspect --work-package "$NO_PLAN_WORK_PACKAGE"
+cp "$WORK_DIR/out.json" "$WORK_DIR/no-plan.before-follows.json"
+run "" env REPLAN_PROJECT= "$TOOLKIT" work-package inspect --work-package "$PLAN_WORK_PACKAGE"
+cp "$WORK_DIR/out.json" "$WORK_DIR/plan.before-follows.json"
+run 1 env REPLAN_PROJECT= "$TOOLKIT" relation create --from "$NO_PLAN_WORK_PACKAGE" --to "$PLAN_WORK_PACKAGE" --type follows
+expect "a member creates follows by id and schedule restoration completes" "d['ok'] and d['counts']['created_relation'] == 1 and 'rescheduling_unknown' not in d['warning_codes']"
+run "" env REPLAN_PROJECT= "$TOOLKIT" work-package inspect --work-package "$NO_PLAN_WORK_PACKAGE"
+cp "$WORK_DIR/out.json" "$WORK_DIR/no-plan.after-follows.json"
+run "" env REPLAN_PROJECT= "$TOOLKIT" work-package inspect --work-package "$PLAN_WORK_PACKAGE"
+cp "$WORK_DIR/out.json" "$WORK_DIR/plan.after-follows.json"
+checks=$((checks + 1))
+python3 -c 'import json, sys; rows=[json.load(open(p))["items"][0] for p in sys.argv[1:]]; before=rows[:2]; after=rows[2:]; dates=lambda r:(r.get("start_date", ""),r.get("due_date", "")); sys.exit(0 if [dates(r) for r in before] == [dates(r) for r in after] and all(r.get("schedule_manually") is True for r in after) else 1)' \
+  "$WORK_DIR/no-plan.before-follows.json" "$WORK_DIR/plan.before-follows.json" \
+  "$WORK_DIR/no-plan.after-follows.json" "$WORK_DIR/plan.after-follows.json" \
+  || fail "toolkit follows create changed endpoint dates or left automatic scheduling enabled"
+
+# The parent is a fresh work package: OpenProject refuses a parent that the
+# child already follows.
+run 1 env REPLAN_PROJECT= "$TOOLKIT" work-package create --subject "Agent kit no-plan parent"
+expect "a member creates a parent work package without a plan" "d['ok'] and d['counts']['applied_actions'] == 1"
+PARENT_WORK_PACKAGE="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["created_work_package_id"])' "$WORK_DIR/out.json")"
+run 1 env REPLAN_PROJECT= "$TOOLKIT" work-package update-metadata --work-package "$NO_PLAN_WORK_PACKAGE" --parent "$PARENT_WORK_PACKAGE"
+if python3 -c 'import json, sys; sys.exit(0 if json.load(open(sys.argv[1]))["ok"] else 1)' "$WORK_DIR/out.json"; then
+  expect "an ordinary member sets a parent by work-package id" "d['counts']['applied_actions'] == 1"
+  run 1 env REPLAN_PROJECT= "$TOOLKIT" work-package update-metadata --work-package "$NO_PLAN_WORK_PACKAGE" --clear-parent
+  expect "an ordinary member clears a parent by work-package id" "d['ok'] and d['counts']['applied_actions'] == 1"
+else
+  expect "missing hierarchy permission has the specific mapping" "d['error_codes'] == ['openproject_permission_missing'] and 'hierarchies (subtasks)' in d['errors'][0]['message']"
+  printf 'agent kit live note: ordinary Member lacks hierarchy permission; openproject_permission_missing mapping verified\n'
+fi
+
 checks=$((checks + 1))
 ! grep -rq "go must not be needed" "$WORK_DIR"/out.* || fail "a helper tried to build with go"
 

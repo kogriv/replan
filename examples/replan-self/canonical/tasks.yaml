@@ -5545,7 +5545,7 @@ tasks:
       title: Create relations and set parents by work-package id
       description: 'Found on 2026-10-30 for the third project: the toolkit lists and deletes relations but creates them only from a plan, and it cannot set a parent. Add relation create by work-package id for relates, blocks and the other OpenProject types, with follows and precedes keeping both work packages manually scheduled and their dates as apply-openproject-relations.sh does, and a parent set and clear on work-package update-metadata. Dry run first, REPLAN_APPLY=1 to write; a 422 for a missing permission is reported as such. Tests against the throwaway OpenProject.'
       type: implementation
-      tracking_status: in_progress
+      tracking_status: review_ready
       planned_start: "2026-10-30"
       planned_finish: "2026-10-30"
       assignee_hint:

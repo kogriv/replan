@@ -4,6 +4,8 @@ from datetime import date
 import json
 import urllib.parse
 
+import openproject_working_days
+
 
 DATE_FIELDS = (("startDate", "start_date"), ("dueDate", "due_date"))
 
@@ -48,6 +50,58 @@ def work_package_dates(client, work_package_ids, *, tolerate_failures=False):
             continue
         snapshots[work_package_id] = snapshot(work_package)
     return snapshots, unread
+
+
+def schedule_changed(before, after):
+    """Whether a relation changed dates or left a package automatically scheduled."""
+    return (
+        before.get("scheduleManually") is False
+        or before.get("scheduleManually") != after.get("scheduleManually")
+        or before.get("startDate", "") != after.get("startDate", "")
+        or before.get("dueDate", "") != after.get("dueDate", "")
+    )
+
+
+def restore_manual_schedule(client, work_package_id, before, current, working_by_day):
+    """Restore one relation-affected package and return the reported action.
+
+    This is shared by the plan relation writer and the by-id toolkit command so
+    OpenProject scheduler side effects are repaired with the same payload.
+    """
+    action = {
+        "action": "restore_manual_schedule",
+        "work_package_id": str(work_package_id),
+        "before": {
+            "scheduleManually": current.get("scheduleManually"),
+            "startDate": current.get("startDate", ""),
+            "dueDate": current.get("dueDate", ""),
+        },
+        "after": {
+            "scheduleManually": True,
+            "startDate": before.get("startDate", ""),
+            "dueDate": before.get("dueDate", ""),
+        },
+    }
+    payload = openproject_working_days.manual_schedule_payload(
+        current.get("lockVersion"),
+        before.get("startDate", ""),
+        before.get("dueDate", ""),
+        action,
+        working_by_day,
+        include_dates=True,
+    )
+    _, updated = client.request_json(
+        "PATCH", f"/api/v3/work_packages/{urllib.parse.quote(str(work_package_id))}",
+        payload, expected=(200,),
+    )
+    return {
+        **action,
+        "after": {
+            "scheduleManually": updated.get("scheduleManually"),
+            "startDate": updated.get("startDate", ""),
+            "dueDate": updated.get("dueDate", ""),
+        },
+    }
 
 
 def project_work_package_dates(

@@ -49,11 +49,15 @@ class ToolkitWithoutPlanTest(unittest.TestCase):
             ["work-package", "update-dates", "--work-package", "1234", "--start-date", "2026-11-02"],
             ["work-package", "update-text", "--work-package", "1234", "--description", "Updated text"],
             ["work-package", "update-metadata", "--work-package", "1234", "--estimated-hours", "4"],
+            ["work-package", "update-metadata", "--work-package", "1234", "--parent", "1235"],
+            ["work-package", "update-metadata", "--work-package", "1234", "--clear-parent"],
             ["comment", "add", "--work-package", "1234", "--text", "Reviewed"],
             ["status", "list"],
             ["type", "list"],
             ["user", "list"],
             ["priority", "list"],
+            ["relation", "list", "--work-package", "1234"],
+            ["relation", "delete", "--relation", "1"],
         )
         for args in cases:
             with self.subTest(args=args):
@@ -81,7 +85,6 @@ class ToolkitWithoutPlanTest(unittest.TestCase):
             ["comment", "add", "--task", "task.a", "--text", "Text"],
             ["backlog", "reconcile"],
             ["relation", "list"],
-            ["relation", "delete", "--relation", "1"],
         )
         for args in cases:
             with self.subTest(args=args):
@@ -89,6 +92,51 @@ class ToolkitWithoutPlanTest(unittest.TestCase):
                 self.assertEqual(proc.returncode, 8)
                 self.assertEqual(out["error_codes"], ["missing_setting"])
                 self.assertEqual(out["missing_settings"], ["REPLAN_PROJECT"])
+
+    def test_relation_create_types_and_description_are_planned_without_plan(self):
+        relation_types = (
+            "relates", "blocks", "blocked", "duplicates", "duplicated",
+            "includes", "partof", "requires", "required", "follows",
+            "precedes",
+        )
+        for relation_type in relation_types:
+            with self.subTest(relation_type=relation_type):
+                proc, out = self.run_toolkit([
+                    "relation", "create", "--from", "1234", "--to", "5678",
+                    "--type", relation_type, "--description", "Reason",
+                ])
+                self.assertEqual(proc.returncode, 0, out)
+                request = out["planned_request"]
+                self.assertEqual(request["method"], "POST")
+                self.assertEqual(request["path"], "/api/v3/work_packages/1234/relations")
+                self.assertEqual(request["body"], {
+                    "type": relation_type,
+                    "description": "Reason",
+                    "_links": {
+                        "from": {"href": "/api/v3/work_packages/1234"},
+                        "to": {"href": "/api/v3/work_packages/5678"},
+                    },
+                })
+                if relation_type in {"follows", "precedes"}:
+                    self.assertIn("openproject_relation_may_reschedule", out["warning_codes"])
+
+    def test_invalid_relation_type_is_a_usage_error_listing_allowed_types(self):
+        proc, out = self.run_toolkit([
+            "relation", "create", "--from", "1", "--to", "2",
+            "--type", "unknown",
+        ])
+        self.assertEqual(proc.returncode, 8, out)
+        self.assertEqual(out["error_codes"], ["usage_error"])
+        for relation_type in ("relates", "blocks", "follows", "precedes"):
+            self.assertIn(relation_type, out["errors"][0]["message"])
+
+    def test_delete_without_plan_reports_no_private_binding(self):
+        proc, out = self.run_toolkit(["relation", "delete", "--relation", "88"])
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertEqual(
+            out["actions"][0]["private_binding_removal"],
+            "not_available_without_plan",
+        )
 
     def test_secret_files_are_used_and_never_reported(self):
         with tempfile.TemporaryDirectory() as temp_dir:

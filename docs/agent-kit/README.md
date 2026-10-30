@@ -440,7 +440,36 @@ list` work in this mode, as do `work-package list`, `work-package inspect
 
 Commands that select a RePlan task or otherwise need plan bindings still
 require `REPLAN_PROJECT`: `work-package bind`, all `--task` forms, `backlog
-reconcile`, `work-package replan-links`, and `relation list|delete`.
+reconcile`, `work-package replan-links`, and `relation list` without
+`--work-package`.
+
+Relations can be managed directly by OpenProject id without a plan:
+
+```sh
+scripts/openproject-work-package-toolkit.sh relation create --from 1234 --to 5678 --type relates --description "Same delivery topic"
+scripts/openproject-work-package-toolkit.sh relation list --work-package 1234
+scripts/openproject-work-package-toolkit.sh relation delete --relation 9012
+```
+
+`relation create` accepts OpenProject's `relates`, `blocks`, `blocked`,
+`duplicates`, `duplicated`, `includes`, `partof`, `requires`, `required`,
+`follows` and `precedes` types. It is idempotent for the same endpoints and
+type; `relates` also matches the reverse endpoint order. `follows` and
+`precedes` can make the successor automatically scheduled and move dates in
+OpenProject 17.6. The toolkit snapshots both endpoint work packages and, after
+creation, restores manual scheduling and their original dates when OpenProject
+changed them. The dry run calls out this risk and the planned restoration.
+
+Set or clear a parent directly by work-package id:
+
+```sh
+scripts/openproject-work-package-toolkit.sh work-package update-metadata --work-package 5678 --parent 1234
+scripts/openproject-work-package-toolkit.sh work-package update-metadata --work-package 5678 --clear-parent
+```
+
+If OpenProject refuses the parent field, `openproject_permission_missing`
+means the member's role needs permission to manage work package hierarchies
+(subtasks).
 
 Protected credential files work here too:
 

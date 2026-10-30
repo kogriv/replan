@@ -311,12 +311,7 @@ def main():
             for work_package_id in set(rescheduling_before) & set(rescheduling_after):
                 before = rescheduling_before[work_package_id]
                 after = rescheduling_after[work_package_id]
-                if (
-                    before.get("scheduleManually") is False
-                    or before.get("scheduleManually") != after.get("scheduleManually")
-                    or before.get("startDate", "") != after.get("startDate", "")
-                    or before.get("dueDate", "") != after.get("dueDate", "")
-                ):
+                if openproject_rescheduling.schedule_changed(before, after):
                     restore_targets.add(work_package_id)
 
         working_day_warnings = []
@@ -334,39 +329,13 @@ def main():
                     "action": "restore_manual_schedule",
                     "work_package_id": work_package_id,
                     "task_id": task_id_by_wp.get(work_package_id, ""),
-                    "before": {
-                        "scheduleManually": current.get("scheduleManually"),
-                        "startDate": current.get("startDate", ""),
-                        "dueDate": current.get("dueDate", ""),
-                    },
-                    "after": {
-                        "scheduleManually": True,
-                        "startDate": before.get("startDate", ""),
-                        "dueDate": before.get("dueDate", ""),
-                    },
                 }
-                payload = openproject_working_days.manual_schedule_payload(
-                    current.get("lockVersion"),
-                    before.get("startDate", ""),
-                    before.get("dueDate", ""),
-                    step,
-                    working_by_day,
-                    include_dates=True,
-                )
                 partial_apply.attempting(step)
                 partial_apply.writing()
-                _, updated = client.request_json(
-                    "PATCH", f"/api/v3/work_packages/{work_package_id}",
-                    payload, expected=(200,),
+                applied_restore = openproject_rescheduling.restore_manual_schedule(
+                    client, work_package_id, before, current, working_by_day,
                 )
-                applied_restore = {
-                    **step,
-                    "after": {
-                        "scheduleManually": updated.get("scheduleManually"),
-                        "startDate": updated.get("startDate", ""),
-                        "dueDate": updated.get("dueDate", ""),
-                    },
-                }
+                applied_restore["task_id"] = task_id_by_wp.get(work_package_id, "")
                 restored.append(applied_restore)
                 partial_apply.applied(applied_restore)
 
