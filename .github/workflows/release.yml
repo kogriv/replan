@@ -3,8 +3,9 @@ name: Release build
 # Builds the release archives from a tag with scripts/build-release.sh, checks
 # them against the published release's SHA256SUMS when there is one, and, for
 # a pushed tag, records a build provenance attestation for every archive and
-# for SHA256SUMS (docs/dev/release-process.md). A manual run builds any tag
-# for comparison and attests nothing.
+# for SHA256SUMS (docs/dev/release-process.md). A manual run rebuilds a tag
+# for comparison; with attest set it attests a published release, and only
+# after its archives matched byte for byte.
 
 on:
   push:
@@ -15,6 +16,10 @@ on:
       tag:
         description: Release tag to rebuild and compare, for example v0.2.0
         required: true
+      attest:
+        description: Attest the archives (only a published release that matches)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -46,6 +51,7 @@ jobs:
         run: REPLAN_RELEASE_DIR="$RUNNER_TEMP/release" scripts/build-release.sh | tee "$RUNNER_TEMP/build.json"
 
       - name: Compare with the published release
+        id: compare
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -54,13 +60,14 @@ jobs:
             gh release download "$tag" --repo "$GITHUB_REPOSITORY" --pattern SHA256SUMS --dir "$RUNNER_TEMP/published"
             diff "$RUNNER_TEMP/published/SHA256SUMS" "$RUNNER_TEMP/release/SHA256SUMS"
             echo "the archives match the published release $tag byte for byte"
+            echo "matched=true" >> "$GITHUB_OUTPUT"
           else
             echo "release $tag is not published yet; compare its SHA256SUMS with this run's artifact"
           fi
           cat "$RUNNER_TEMP/release/SHA256SUMS"
 
       - name: Attest build provenance
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || (inputs.attest && steps.compare.outputs.matched == 'true')
         uses: actions/attest-build-provenance@v2
         with:
           subject-path: |
