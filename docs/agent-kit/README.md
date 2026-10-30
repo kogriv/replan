@@ -100,6 +100,14 @@ Writes to one RePlan project are serialized through `.replan/write.lock`; a
 lock within the wait limit, so leave the lock file in place and retry the
 complete command.
 
+Canonical applies journal the validated file set in
+`.replan/commit-pending/` before replacing project files. The next locked
+write completes an interrupted commit before loading the project and reports
+`recovered_commit`; read-only commands only warn with
+`interrupted_commit_pending`. Use `bin/replan project recover --project
+"$REPLAN_PROJECT" --dry-run`, then `--apply`, for explicit recovery. A
+`commit_journal_corrupt` error changes nothing; inspect the journal directory.
+
 A helper that would change OpenProject or the bindings file only reports what
 it would do. It changes something only when run with `REPLAN_APPLY=1`:
 
@@ -295,6 +303,7 @@ to its root. A write to OpenProject or the bindings file is a dry run unless
 | Inspect kit binary | `bin/replan version` | Reports the kit version, source commit, reproducible build date, toolchain, target and supported project format without loading a project. |
 | Plan and validate | `bin/replan validate "$REPLAN_PROJECT"` | Edit the canonical plan, validate it, then use `next`, `workload` and `report` to inspect it. |
 | Upgrade the RePlan file format | `bin/replan project migrate --project "$REPLAN_PROJECT" --actor <id> --dry-run` | Reviews the ordered format steps and planned writes; replace `--dry-run` with `--apply`. It never downgrades. |
+| Recover an interrupted RePlan write | `bin/replan project recover --project "$REPLAN_PROJECT" --dry-run` | Lists and validates the pending file set without writing; replace `--dry-run` with `--apply` to roll it forward under the project lock. |
 | Create a RePlan task | `bin/replan task add ... --dry-run` | Creates the task, demands and current-plan reference together; review, then use `--apply`. It does not create the OpenProject work package. |
 | Seal a planning baseline | `bin/replan baseline create ... --dry-run` | Snapshots current task dates and planned demand amounts; review, then use `--apply`. Use `baseline list` or `show` to verify the seal. |
 | Compare estimates with actuals | `bin/replan report estimates --project "$REPLAN_PROJECT" --baseline <id>` | Read-only resource and split-group summary followed by baseline-task demand, split and schedule detail; resources without counted actuals are explicit. JSON is available with `--format json`. |

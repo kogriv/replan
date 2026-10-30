@@ -1128,6 +1128,9 @@ func (s Store) Load(ctx context.Context) (domain.Workspace, []app.Diagnostic) {
 	if !info.IsDir() {
 		return ws, []app.Diagnostic{diag("project_not_found", fmt.Sprintf("project path %s is not a directory", s.projectPath), "error", "file", s.projectPath)}
 	}
+	if pending, err := commitJournalPending(s.projectPath); err == nil && pending {
+		diags = append(diags, diag("interrupted_commit_pending", fmt.Sprintf("project %s has an interrupted commit pending; run replan project recover --project %s --apply or let the next write recover it", s.projectPath, s.projectPath), "warning", "project", s.projectPath))
+	}
 
 	projectData, err := s.fs.read(projectRel)
 	if err == nil {
@@ -1237,6 +1240,17 @@ func (s Store) Load(ctx context.Context) (domain.Workspace, []app.Diagnostic) {
 	ws.AuditRecords = readAudit(s, &diags)
 
 	return ws, diags
+}
+
+func commitJournalPending(projectPath string) (bool, error) {
+	info, err := os.Stat(filepath.Join(projectPath, filepath.FromSlash(commitJournalRelativePath)))
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return info.IsDir(), nil
 }
 
 func parseProjectFormatVersion(data []byte) (int, bool, *app.Diagnostic) {

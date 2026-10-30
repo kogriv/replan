@@ -31,6 +31,7 @@ var canonicalWriteCommands = []string{
 	"estimate calibrate",
 	"import accept",
 	"project migrate",
+	"project recover",
 	"project set-status-date",
 	"proposal accept",
 	"proposal reject",

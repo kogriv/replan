@@ -1,12 +1,15 @@
 package filestore
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/kogriv/replan/internal/app"
 	"github.com/kogriv/replan/internal/domain"
 )
 
@@ -79,6 +82,159 @@ func TestStagedWritesStayInMemoryUntilCommit(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(projectPath, filepath.FromSlash(actualRel))); err != nil {
 		t.Fatalf("actuals file missing after commit: %v", err)
 	}
+	if _, err := os.Stat(filepath.Join(projectPath, filepath.FromSlash(commitJournalRelativePath))); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("commit journal remains after successful commit: %v", err)
+	}
+}
+
+func TestInterruptedCommitRollsForwardAtEveryWriteBoundary(t *testing.T) {
+	for failAfter := 0; failAfter < 2; failAfter++ {
+		t.Run(string(rune('0'+failAfter)), func(t *testing.T) {
+			projectPath := copyProjectFixture(t)
+			staged := New(projectPath).StageWrites().(*StagedStore)
+			evidence := domain.Evidence{ID: "evidence.interrupted", Type: "test_result", ActorRef: domain.Ref{Kind: "actor", ID: "actor.human.operator"}, ObservedAt: "2031-01-06T10:00:00Z", Summary: "Interrupted commit recovery test.", Targets: []domain.Ref{{Kind: "task", ID: "task.op.1234"}}}
+			if _, err := staged.AppendEvidence(evidence.ObservedAt, evidence); err != nil {
+				t.Fatalf("AppendEvidence: %v", err)
+			}
+			audit := domain.AuditRecord{ID: "audit.interrupted", OccurredAt: evidence.ObservedAt, ActorRef: domain.Ref{Kind: "actor", ID: "actor.human.operator"}, Operation: "evidence_add", TargetRef: domain.Ref{Kind: "evidence", ID: evidence.ID}, Result: "success"}
+			if _, err := staged.AppendAudit(audit); err != nil {
+				t.Fatalf("AppendAudit: %v", err)
+			}
+
+			staged.stage.disk.commitOperationHook = func(completed int, _ string) error {
+				if completed == failAfter {
+					return errors.New("injected interruption")
+				}
+				return nil
+			}
+			written, err := staged.Commit()
+			if err == nil || len(written) != failAfter {
+				t.Fatalf("Commit written=%v err=%v, want %d writes and an error", written, err, failAfter)
+			}
+
+			_, loadDiags := New(projectPath).Load(context.Background())
+			if !hasDiagnostic(loadDiags, "interrupted_commit_pending") {
+				t.Fatalf("load diagnostics = %#v, want interrupted_commit_pending", loadDiags)
+			}
+			recovery, err := RecoverCommit(projectPath)
+			if err != nil {
+				t.Fatalf("RecoverCommit: %v", err)
+			}
+			if !recovery.Pending || !recovery.Complete || len(recovery.RecoveredFiles) != 2 {
+				t.Fatalf("recovery = %#v", recovery)
+			}
+			validation, err := app.NewValidateService(New(projectPath)).Validate(context.Background(), app.ValidateRequest{IncludeObjectScan: true})
+			if err != nil || !validation.Valid {
+				t.Fatalf("validation valid=%t err=%v errors=%#v", validation.Valid, err, validation.Errors)
+			}
+			verify, err := app.NewAuditService(New(projectPath)).Verify(context.Background(), app.AuditVerifyRequest{})
+			if err != nil || !verify.Valid {
+				t.Fatalf("audit verify valid=%t err=%v errors=%#v", verify.Valid, err, verify.Errors)
+			}
+			workspace, diags := New(projectPath).Load(context.Background())
+			if len(diags) != 0 {
+				t.Fatalf("load diagnostics after recovery: %#v", diags)
+			}
+			if countEvidenceID(workspace.Evidence, evidence.ID) != 1 || countAuditID(workspace.AuditRecords, audit.ID) != 1 {
+				t.Fatalf("evidence or audit was not recovered exactly once")
+			}
+		})
+	}
+}
+
+func TestRecoverManifestlessJournalRemovesItWithoutTouchingProject(t *testing.T) {
+	projectPath := copyProjectFixture(t)
+	tasksPath := filepath.Join(projectPath, "canonical/tasks.yaml")
+	before, err := os.ReadFile(tasksPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	journalPath := filepath.Join(projectPath, filepath.FromSlash(commitJournalRelativePath))
+	if err := os.MkdirAll(filepath.Join(journalPath, "blobs"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(journalPath, "blobs", "000000"), []byte("incomplete"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	recovery, err := RecoverCommit(projectPath)
+	if err != nil {
+		t.Fatalf("RecoverCommit: %v", err)
+	}
+	if !recovery.Pending || recovery.Complete || !recovery.IncompleteRemoved || len(recovery.RecoveredFiles) != 0 {
+		t.Fatalf("recovery = %#v", recovery)
+	}
+	after, err := os.ReadFile(tasksPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(before, after) {
+		t.Fatal("project file changed while removing manifest-less journal")
+	}
+	if _, err := os.Stat(journalPath); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("journal still exists: %v", err)
+	}
+}
+
+func TestCorruptCommitJournalRefusesBeforeChangingProject(t *testing.T) {
+	projectPath := copyProjectFixture(t)
+	staged := New(projectPath).StageWrites().(*StagedStore)
+	evidence := domain.Evidence{ID: "evidence.corrupt", Type: "test_result", ActorRef: domain.Ref{Kind: "actor", ID: "actor.human.operator"}, ObservedAt: "2031-01-06T10:00:00Z", Summary: "Must not be recovered.", Targets: []domain.Ref{{Kind: "task", ID: "task.op.1234"}}}
+	if _, err := staged.AppendEvidence(evidence.ObservedAt, evidence); err != nil {
+		t.Fatal(err)
+	}
+	staged.stage.disk.commitOperationHook = func(int, string) error { return errors.New("injected interruption") }
+	if _, err := staged.Commit(); err == nil {
+		t.Fatal("Commit succeeded, want injected interruption")
+	}
+
+	evidencePath := filepath.Join(projectPath, filepath.FromSlash(evidencePath(evidence.ObservedAt)))
+	before, err := os.ReadFile(evidencePath)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		t.Fatal(err)
+	}
+	blobPath := filepath.Join(projectPath, filepath.FromSlash(commitJournalRelativePath), "blobs", "000000")
+	if err := os.WriteFile(blobPath, []byte("corrupted"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := RecoverCommit(projectPath); !errors.Is(err, ErrCommitJournalCorrupt) || !strings.Contains(err.Error(), ".replan/commit-pending/") {
+		t.Fatalf("RecoverCommit error = %v", err)
+	}
+	after, err := os.ReadFile(evidencePath)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(before, after) {
+		t.Fatal("corrupt recovery changed a project file")
+	}
+}
+
+func hasDiagnostic(diagnostics []app.Diagnostic, code string) bool {
+	for _, diagnostic := range diagnostics {
+		if diagnostic.Code == code {
+			return true
+		}
+	}
+	return false
+}
+
+func countEvidenceID(evidence []domain.Evidence, id string) int {
+	count := 0
+	for _, record := range evidence {
+		if record.ID == id {
+			count++
+		}
+	}
+	return count
+}
+
+func countAuditID(records []domain.AuditRecord, id string) int {
+	count := 0
+	for _, record := range records {
+		if record.ID == id {
+			count++
+		}
+	}
+	return count
 }
 
 func TestStagedProposalMoveRemovesSourceOnlyOnCommit(t *testing.T) {

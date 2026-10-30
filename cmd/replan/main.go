@@ -1,9 +1,12 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"strings"
 
+	"github.com/kogriv/replan/internal/app"
 	"github.com/kogriv/replan/internal/storage/filestore"
 )
 
@@ -25,6 +28,8 @@ func main() {
 }
 
 func run(args []string, stdout, stderr *os.File) (code int) {
+	clearRuntimeWarnings(stdout)
+	defer clearRuntimeWarnings(stdout)
 	originalBindings, hadBindings := os.LookupEnv("REPLAN_OPENPROJECT_BINDINGS_LAYER")
 	defer func() {
 		if hadBindings {
@@ -42,6 +47,19 @@ func run(args []string, stdout, stderr *os.File) (code int) {
 		if lock != nil {
 			defer lock.close()
 		}
+		if intent.command != "project recover" {
+			recovery, recoveryErr := filestore.RecoverCommit(intent.projectPath)
+			if recoveryErr != nil {
+				return printCommitRecoveryError(stdout, stderr, intent, recoveryErr)
+			}
+			if recovery.Pending {
+				message := fmt.Sprintf("recovered interrupted commit for project %s; files: [%s]", intent.projectPath, strings.Join(recovery.RecoveredFiles, ", "))
+				if recovery.IncompleteRemoved {
+					message = fmt.Sprintf("removed incomplete commit journal for project %s; files: []", intent.projectPath)
+				}
+				addRuntimeWarning(stdout, app.Diagnostic{Code: "recovered_commit", Message: message, Severity: "warning", Target: app.Target{Kind: "project", ID: intent.projectPath}})
+			}
+		}
 	}
 	code = runCommand(args, stdout, stderr)
 	if code != exitSuccess {
@@ -50,6 +68,21 @@ func run(args []string, stdout, stderr *os.File) (code int) {
 		}
 	}
 	return code
+}
+
+func printCommitRecoveryError(stdout, stderr *os.File, intent projectWriteIntent, recoveryErr error) int {
+	code := "commit_recovery_failed"
+	exitCode := exitGeneralError
+	if errors.Is(recoveryErr, filestore.ErrCommitJournalCorrupt) {
+		code = "commit_journal_corrupt"
+		exitCode = exitValidationFailed
+	}
+	env := envelope{OK: false, Command: intent.command, ProjectPath: intent.projectPath, Result: nil, Warnings: []app.Diagnostic{}, Errors: []app.Diagnostic{{Code: code, Message: recoveryErr.Error(), Severity: "error", Target: app.Target{Kind: "project", ID: intent.projectPath}}}}
+	if err := printEnvelope(stdout, intent.format, env); err != nil {
+		fmt.Fprintf(stderr, "failed to write output: %v\n", err)
+		return exitGeneralError
+	}
+	return exitCode
 }
 
 func runCommand(args []string, stdout, stderr *os.File) int {
@@ -132,6 +165,7 @@ func printUsage(out *os.File) {
 	fmt.Fprintln(out, "  replan estimate apply --project <path> --calibration <id> --scenario-id <id> --actor <id> (--dry-run|--apply) [--format json|markdown]")
 	fmt.Fprintln(out, "  replan next --project <path> [--week <YYYY-Www>] [--format text|json]")
 	fmt.Fprintln(out, "  replan project migrate --project <path> --actor <id> [--reason <text>] [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|markdown]")
+	fmt.Fprintln(out, "  replan project recover --project <path> (--dry-run|--apply) [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan project set-status-date --project <path> --date <YYYY-MM-DD|today> --actor <id> [--reason <text>] (--dry-run|--apply) [--format json|markdown]")
 	fmt.Fprintln(out, "  replan report state --project <path> [--week <YYYY-Www>] [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan report dashboard --project <path> [--week <YYYY-Www>] [--output <dir>] [--format html|json]")

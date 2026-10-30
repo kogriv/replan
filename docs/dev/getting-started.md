@@ -170,8 +170,9 @@ Implemented command families as of 2026-10-30:
 - `next`, the short view of what waits on a person and what an agent can
   prepare;
 - `project migrate`, the audited, explicit upgrade path for project file
-  formats, and `project set-status-date`, the audited way to move the project
-  status date;
+  formats; `project recover`, the dry-run/apply roll-forward path for an
+  interrupted multi-file commit; and `project set-status-date`, the audited
+  way to move the project status date;
 - `workload`, with `--week`, `--resource`, `--resource-class`, `--unit`,
   `--scenario` and `--demands`;
 - `report weekly`, `report state`, `report dashboard`, each with an optional
@@ -222,6 +223,21 @@ dry-run unless `REPLAN_APPLY=1` is set.
 Writes to one project are serialized through `.replan/write.lock`; if a writer
 reports `project_locked` with exit code 5, leave the lock file in place and
 retry the complete command after the other writer finishes.
+
+Canonical applies publish a durable `.replan/commit-pending/` journal before
+the first project file is replaced. A successful write removes it. The next
+locked write automatically completes a pending validated commit before it
+loads the project and reports `recovered_commit`; read-only commands instead
+report `interrupted_commit_pending` and do not write. To inspect or complete it
+explicitly, use:
+
+```bash
+go run ./cmd/replan project recover --project <path> --dry-run --format json
+go run ./cmd/replan project recover --project <path> --apply --format json
+```
+
+A blob hash mismatch is `commit_journal_corrupt` (exit 2) and changes nothing;
+inspect `.replan/commit-pending/` before deciding how to repair it.
 
 The bindings layer is read-only. Canonical-writing commands, `import
 openproject` without `--dry-run` and `tracking suggest --write-candidates`

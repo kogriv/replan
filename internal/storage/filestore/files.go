@@ -40,7 +40,8 @@ func (readOnlyFS) write(string, []byte) error { return ErrBindingsLayerReadOnly 
 func (readOnlyFS) remove(string) error { return ErrBindingsLayerReadOnly }
 
 type diskFS struct {
-	root string
+	root                string
+	commitOperationHook func(completed int, path string) error // test-only failure injection
 }
 
 func (d diskFS) abs(rel string) string {
@@ -187,34 +188,43 @@ func (s *stagedFS) pending() []string {
 	return append(out, audit...)
 }
 
-// commit writes staged data and proposal files, then applies removals, then
-// writes audit files. While CLI writers hold the project write lock, an
-// interrupted commit can therefore leave a change without its audit line, but
-// not an audit line for a change that did not happen, and not a proposal both
-// moved and still present once its audit line exists. Each file is replaced
-// atomically; the set of files is not. Callers outside the locked CLI must
-// provide equivalent serialization. The returned list holds the paths that
-// did reach the disk, in that order.
+// commit writes a durable roll-forward journal before it replaces staged data
+// and proposal files, applies removals, and replaces audit files. Each file is
+// replaced atomically. If the process stops between files, the next locked
+// write or project recover replays the complete validated set from the journal.
+// Callers outside the locked CLI must provide equivalent serialization and
+// recovery. The returned list holds the paths that did reach the disk in this
+// attempt, in commit order.
 func (s *stagedFS) commit() ([]string, error) {
 	written := []string{}
 	data, audit := splitAudit(commitOrder(s.files))
+	order := make([]commitJournalOperation, 0, len(s.files)+len(s.removed))
 	for _, rel := range data {
-		if err := s.disk.write(rel, s.files[rel]); err != nil {
-			return written, fmt.Errorf("commit %s: %w", rel, err)
-		}
-		written = append(written, rel)
+		order = append(order, commitJournalOperation{Action: journalActionWrite, Path: rel})
 	}
 	for _, rel := range sortedKeys(s.removed) {
-		if err := s.disk.remove(rel); err != nil && !errors.Is(err, os.ErrNotExist) {
-			return written, fmt.Errorf("commit removal of %s: %w", rel, err)
-		}
-		written = append(written, rel)
+		order = append(order, commitJournalOperation{Action: journalActionRemove, Path: rel})
 	}
 	for _, rel := range audit {
-		if err := s.disk.write(rel, s.files[rel]); err != nil {
-			return written, fmt.Errorf("commit %s: %w", rel, err)
+		order = append(order, commitJournalOperation{Action: journalActionWrite, Path: rel})
+	}
+	journal, err := s.disk.createCommitJournal(order, s.files)
+	if err != nil {
+		return written, err
+	}
+	for i, operation := range journal.operations {
+		if s.disk.commitOperationHook != nil {
+			if err := s.disk.commitOperationHook(i, operation.Path); err != nil {
+				return written, fmt.Errorf("commit %s: %w", operation.Path, err)
+			}
 		}
-		written = append(written, rel)
+		if err := s.disk.applyCommitOperationWithContents(operation, journal.contents); err != nil {
+			return written, err
+		}
+		written = append(written, operation.Path)
+	}
+	if err := s.disk.deleteCommitJournal(); err != nil {
+		return written, fmt.Errorf("delete completed commit journal: %w", err)
 	}
 	s.files = map[string][]byte{}
 	s.removed = map[string]bool{}

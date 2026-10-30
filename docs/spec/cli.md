@@ -346,6 +346,24 @@ If the timeout expires, the command writes nothing and reports
 `project_locked`, naming the lock file, with conflict exit code `5`. The caller
 may retry the complete command; it must not delete `.replan/write.lock`.
 
+Before replacing the first staged file, a canonical write records every full
+file image, removal, commit-order entry and SHA-256 in
+`.replan/commit-pending/`. The manifest is published last, after the blobs are
+durable. A completed write removes the journal. If a process stops after the
+manifest is published, the next locked write replays the entire validated set
+before loading the project and reports the warning `recovered_commit` with the
+file list. `replan project recover --apply` performs the same replay
+explicitly. Full-file atomic replacement and missing-file-tolerant removals
+make replay idempotent.
+
+Read-only commands never replay or remove a journal. They continue against the
+files currently on disk and report `interrupted_commit_pending`, naming the
+project. A journal without a manifest predates the first project-file
+replacement and is removed by the next recovery. A complete journal is fully
+validated before replay; a missing or hash-mismatched blob reports
+`commit_journal_corrupt` with exit code `2`, changes nothing and tells the
+operator to inspect `.replan/commit-pending/`.
+
 ### Agent mode
 
 Global flag:
@@ -634,6 +652,7 @@ scenario apply
 proposal accept
 proposal reject
 project migrate
+project recover
 project set-status-date
 evidence add
 task add
@@ -1202,11 +1221,13 @@ Implemented command flags:
 
 ```text
 replan project migrate --project -p --bindings --actor --reason --occurred-at --apply --dry-run --format
+replan project recover --project -p --bindings --apply --dry-run --format
 replan project set-status-date --project -p --bindings --date --actor --reason --occurred-at --apply --dry-run --format
 ```
 
 ```text
 replan project migrate --project <path> --actor <id> [--reason <text>] [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|markdown]
+replan project recover --project <path> (--dry-run|--apply) [--format json|markdown|text]
 replan project set-status-date --project <path> --date <YYYY-MM-DD|today> --actor <id> [--reason <text>] [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|markdown]
 ```
 
@@ -1217,6 +1238,12 @@ rewriting unrelated YAML and appends one `project_migrate` audit record.
 Already-current projects are successful no-ops with no audit record. The
 command upgrades only: a newer format is refused by project loading with
 `project_format_unsupported`.
+
+`project recover` inspects or completes `.replan/commit-pending/`. `--dry-run`
+validates a complete journal and lists its files without changing the project;
+`--apply` replays it under `.replan/write.lock` and removes the journal. No
+pending journal is a successful no-op with zero recovered files. Corrupt
+journal content is refused before any project file is touched.
 
 The project status date (`project.default_status_date` in
 `.replan/project.yaml`) sets the default week of `report state`, `next` and
@@ -1895,7 +1922,10 @@ Rules:
   changes. When validation fails, nothing is written. When the final commit
   itself fails part way, for example on a permission error, the command
   reports `commit_failed` and `written_files` lists exactly the files that
-  did reach the disk. Audit ids name the command's target, so a batch that
+  did reach the disk. Its validated change stays in `.replan/commit-pending/`,
+  and the next write or `replan project recover --apply` completes it, so a
+  failed commit is finished later rather than left half-written. Audit ids
+  name the command's target, so a batch that
   shares one `--occurred-at` does not collide.
 
 MVP minimum:

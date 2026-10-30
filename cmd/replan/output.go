@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/kogriv/replan/internal/app"
 	"github.com/kogriv/replan/internal/reports"
@@ -20,6 +21,29 @@ type envelope struct {
 	Warnings    []app.Diagnostic  `json:"warnings"`
 	Errors      []app.Diagnostic  `json:"errors"`
 	Metadata    map[string]string `json:"metadata,omitempty"`
+}
+
+var runtimeWarnings = struct {
+	sync.Mutex
+	byOutput map[*os.File][]app.Diagnostic
+}{byOutput: map[*os.File][]app.Diagnostic{}}
+
+func addRuntimeWarning(output *os.File, diagnostic app.Diagnostic) {
+	runtimeWarnings.Lock()
+	defer runtimeWarnings.Unlock()
+	runtimeWarnings.byOutput[output] = append(runtimeWarnings.byOutput[output], diagnostic)
+}
+
+func clearRuntimeWarnings(output *os.File) {
+	runtimeWarnings.Lock()
+	defer runtimeWarnings.Unlock()
+	delete(runtimeWarnings.byOutput, output)
+}
+
+func appendRuntimeWarnings(output *os.File, warnings []app.Diagnostic) []app.Diagnostic {
+	runtimeWarnings.Lock()
+	defer runtimeWarnings.Unlock()
+	return append(warnings, runtimeWarnings.byOutput[output]...)
 }
 
 func printCommandResult[T any](stdout, stderr *os.File, format string, result T, env envelope, commandErr error, writeMarkdown func(*os.File, T) error) int {
@@ -198,6 +222,7 @@ func diagnosticIsNotFound(code string) bool {
 }
 
 func printEnvelope(stdout *os.File, format string, env envelope) error {
+	env.Warnings = appendRuntimeWarnings(stdout, env.Warnings)
 	if projectNotFound := firstDiagnostic(env.Errors, "project_not_found"); projectNotFound != nil {
 		env.OK = false
 		env.Errors = []app.Diagnostic{*projectNotFound}
