@@ -199,10 +199,10 @@ def fixture_relations(work_package_id=""):
 def relations_for_work_package(work_package_id):
     if from_file:
         return fixture_relations(work_package_id)
-    return client.paginate(
-        f"/api/v3/work_packages/{urllib.parse.quote(work_package_id)}/relations",
-        500, {},
-    )
+    # /work_packages/<id>/relations answers 308 to this filter in OpenProject
+    # 17.6, and urllib before Python 3.11 does not follow a 308.
+    filters = json.dumps([{"involved": {"operator": "=", "values": [work_package_id]}}])
+    return client.paginate("/api/v3/relations", 500, {"filters": filters})
 
 
 def parent_permission_error(exc):

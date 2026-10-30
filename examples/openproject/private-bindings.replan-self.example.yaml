@@ -341,6 +341,12 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2286"
         url: https://op.example.internal/work_packages/2286
+    - replan_task_id: task.self.test-kit-on-minimum-python
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2288"
+        url: https://op.example.internal/work_packages/2288
     - replan_task_id: task.self.connect-third-project-to-openproject-tools
       source_ref:
         source: openproject

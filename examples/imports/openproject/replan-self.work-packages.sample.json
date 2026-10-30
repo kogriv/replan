@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 187,
-  "count": 187,
+  "total": 188,
+  "count": 188,
   "_embedded": {
     "elements": [
       {
@@ -5417,6 +5417,35 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2287"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2288,
+        "subject": "Test the agent kit on its minimum Python",
+        "description": {
+          "raw": "Found on 2026-10-30 when the kit was installed on a server with Python 3.10: relation list by work package failed with HTTP 308, because OpenProject 17.6 redirects /work_packages/<id>/relations and urllib before Python 3.11 does not follow a 308; every local check ran on a newer Python and passed. The call now uses /api/v3/relations directly. State the minimum Python the kit supports, make the OpenProject client handle a 308 or refuse it with a clear error, and run the kit's offline checks and the Python suite on that minimum version in CI."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2288"
           },
           "status": {
             "title": "New"

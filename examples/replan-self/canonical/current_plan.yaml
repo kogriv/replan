@@ -362,6 +362,8 @@ current_plan:
     - kind: task
       id: task.self.openproject-relations-and-parent-by-id
     - kind: task
+      id: task.self.test-kit-on-minimum-python
+    - kind: task
       id: task.self.connect-third-project-to-openproject-tools
     - kind: task
       id: task.self.document-local-trust-boundary

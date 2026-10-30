@@ -5597,3 +5597,31 @@ tasks:
           object_type: work_package
           object_id: "2287"
           url: https://op.example.internal/work_packages/2287
+    - id: task.self.test-kit-on-minimum-python
+      title: Test the agent kit on its minimum Python
+      description: 'Found on 2026-10-30 when the kit was installed on a server with Python 3.10: relation list by work package failed with HTTP 308, because OpenProject 17.6 redirects /work_packages/<id>/relations and urllib before Python 3.11 does not follow a 308; every local check ran on a newer Python and passed. The call now uses /api/v3/relations directly. State the minimum Python the kit supports, make the OpenProject client handle a 308 or refuse it with a clear error, and run the kit''s offline checks and the Python suite on that minimum version in CI.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-10-30"
+      planned_finish: "2026-10-30"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.test-kit-on-minimum-python.agent
+        - kind: resource_demand
+          id: resource_demand.test-kit-on-minimum-python.maintainer
+        - kind: resource_demand
+          id: resource_demand.test-kit-on-minimum-python.local-dev
+        - kind: resource_demand
+          id: resource_demand.test-kit-on-minimum-python.ci
+      tags:
+        - agent-kit
+        - ci
+        - gap
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2288"
+          url: https://op.example.internal/work_packages/2288
