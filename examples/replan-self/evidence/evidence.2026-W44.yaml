@@ -2501,3 +2501,17 @@ evidence:
     targets:
       - kind: task
         id: task.self.write-tested-quickstart-guide
+  - id: evidence.self.start-split-cli-main-by-command-group
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T16:44:31+07:00"
+    summary: 'Operator said on 2026-10-30 to proceed with the remaining plan: the CLI split, release attestations, recovery of interrupted writes, the relates import, then the newer findings. The smoke decoupling runs alongside. Original estimates before any Codex split: split 3, smoke decoupling 1 agent hours.'
+    targets:
+      - kind: task
+        id: task.self.split-cli-main-by-command-group
+      - kind: task
+        id: task.self.decouple-smoke-from-live-self-plan

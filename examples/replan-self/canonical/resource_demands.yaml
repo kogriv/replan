@@ -9902,8 +9902,22 @@ resource_demands:
       resource_class: ai_agent
       role: implementation_agent
       unit: agent_hours
-      planned_amount: 3
-      remaining_amount: 3
+      planned_amount: 0.5
+      remaining_amount: 0.5
+      criticality: required
+      status: active
+    - id: resource_demand.split-cli-main-by-command-group.codex
+      task_ref:
+        kind: task
+        id: task.self.split-cli-main-by-command-group
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 2.5
+      remaining_amount: 2.5
       criticality: required
       status: active
     - id: resource_demand.split-cli-main-by-command-group.maintainer
