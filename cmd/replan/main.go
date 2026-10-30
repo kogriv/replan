@@ -31,6 +31,7 @@ const (
 	exitValidationFailed = 2
 	exitPolicyDenied     = 3
 	exitNotFound         = 4
+	exitConflict         = 5
 	exitExternalSource   = 6
 	exitInvalidUsage     = 8
 	bindingsOutputCode   = "bindings_layer_output_in_project"
@@ -187,6 +188,16 @@ func run(args []string, stdout, stderr *os.File) (code int) {
 			_ = os.Unsetenv("REPLAN_OPENPROJECT_BINDINGS_LAYER")
 		}
 	}()
+	intent := projectWriteIntentForArgs(args)
+	if intent.write && !intent.bindingsLayer {
+		lock, err := acquireProjectWriteLock(intent.projectPath, projectWriteLockTimeout())
+		if err != nil {
+			return printProjectLocked(stdout, stderr, intent, err)
+		}
+		if lock != nil {
+			defer lock.close()
+		}
+	}
 	code = runCommand(args, stdout, stderr)
 	if code != exitSuccess {
 		if path := os.Getenv("REPLAN_OPENPROJECT_BINDINGS_LAYER"); path != "" && filestore.OpenProjectBindingsError(path) != nil {

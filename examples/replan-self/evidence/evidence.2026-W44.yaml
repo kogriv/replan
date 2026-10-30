@@ -2234,3 +2234,32 @@ evidence:
         id: task.self.attest-release-builds
       - kind: task
         id: task.self.recover-interrupted-multi-file-commits
+  - id: evidence.self.start-connect-third-project-to-openproject-tools
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T12:10:35+07:00"
+    summary: 'Operator on 2026-10-30 approved the onboarding design as recommended (top-level replan init, optional evidence for resource and capacity commands, no owner capacity in init, no availability, pool, rename or remove commands) and asked to give the third project RePlans OpenProject tools first: correct, current OpenProject work matters most there, resource planning may come later.'
+    targets:
+      - kind: task
+        id: task.self.connect-third-project-to-openproject-tools
+      - kind: task
+        id: task.self.design-first-project-onboarding
+      - kind: task
+        id: task.self.implement-replan-init-and-resource-commands
+      - kind: task
+        id: task.self.write-tested-quickstart-guide
+  - id: evidence.self.serialize-concurrent-project-writes
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T12:24:38+07:00"
+    summary: 'Codex round 1 (12:04-12:11): every command that writes into a project takes an exclusive advisory lock .replan/write.lock (flock on Unix, LockFileEx on Windows, no new dependency) before loading and holds it through commit; 30 s wait, then project_locked with exit 5 and nothing written; dry runs take no lock; the lock file is gitignored. Reviewed: write intent decided in one place before dispatch, consistent with the existing in-project output checks, no nested run calls. Rerun of the 30 parallel writers: 30 records, 30 audit lines, validate ok; a held lock gives exit 5 with project_locked; a dry run under the held lock exits 0. Full local gate green, Windows and macOS builds pass.'
+    targets:
+      - kind: task
+        id: task.self.serialize-concurrent-project-writes

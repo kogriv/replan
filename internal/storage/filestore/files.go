@@ -188,11 +188,13 @@ func (s *stagedFS) pending() []string {
 }
 
 // commit writes staged data and proposal files, then applies removals, then
-// writes audit files. An interrupted commit can therefore leave a change
-// without its audit line, but never an audit line for a change that did not
-// happen, and never a proposal both moved and still present once its audit
-// line exists. Each file is replaced atomically; the set of files is not. The
-// returned list holds the paths that did reach the disk, in that order.
+// writes audit files. While CLI writers hold the project write lock, an
+// interrupted commit can therefore leave a change without its audit line, but
+// not an audit line for a change that did not happen, and not a proposal both
+// moved and still present once its audit line exists. Each file is replaced
+// atomically; the set of files is not. Callers outside the locked CLI must
+// provide equivalent serialization. The returned list holds the paths that
+// did reach the disk, in that order.
 func (s *stagedFS) commit() ([]string, error) {
 	written := []string{}
 	data, audit := splitAudit(commitOrder(s.files))

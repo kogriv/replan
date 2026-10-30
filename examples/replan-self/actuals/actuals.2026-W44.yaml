@@ -2183,3 +2183,45 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.accept-release-build-ignores-surrounding-git
+    - id: actual.self-serialize-concurrent-project-writes.ai-codex-local.20261030T1224380700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.serialize-concurrent-project-writes
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.serialize-concurrent-project-writes.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.12
+      unit: agent_hours
+      occurred_at: "2026-10-30T12:24:38+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.serialize-concurrent-project-writes
+    - id: actual.self-serialize-concurrent-project-writes.ai-agent-executor.20261030T1224380700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.serialize-concurrent-project-writes
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.serialize-concurrent-project-writes.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.35
+      unit: agent_hours
+      occurred_at: "2026-10-30T12:24:38+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.serialize-concurrent-project-writes

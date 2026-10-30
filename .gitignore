@@ -22,6 +22,7 @@ private/
 private-pilot/
 local-pilot/
 .replan-local/
+**/.replan/write.lock
 
 examples/*/reports/latest/
 examples/replan-self/imports/

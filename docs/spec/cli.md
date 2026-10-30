@@ -13,7 +13,7 @@ the binary's own `--help`, which is authoritative for what exists.
 Implemented as specified, or narrower: the command families listed in
 [`../dev/getting-started.md`](../dev/getting-started.md), the JSON envelope,
 per-command `--project`/`-p`, `--format`, `--actor`, `--dry-run` and
-canonical-writer `--apply`, and Go CLI exit codes `0`, `1`, `2`, `4`, `6`
+canonical-writer `--apply`, and Go CLI exit codes `0`, `1`, `2`, `4`, `5`, `6`
 and `8`.
 
 The project-independent `replan version [--format text|json]` command and the
@@ -24,7 +24,7 @@ Specified here and not implemented:
 | Section | Not implemented |
 | --- | --- |
 | Global flags | global placement of `--project`, `--format`, `--actor` and `--dry-run`; `--agent`, `--yes`, `--verbose`, `--quiet`, `--debug`; the Go CLI environment fallback `REPLAN_ACTOR`; policy `default_actor`; parent-directory discovery of `.replan/project.yaml` (an empty `--project` means the current directory) |
-| Go CLI exit codes | `3`, `5`, `7`, `9`, `10`, `11`; helper-script exits are a separate contract below and do use `7` and `11` |
+| Go CLI exit codes | `3`, `7`, `9`, `10`, `11`; helper-script exits are a separate contract below and do use `7` and `11` |
 | `validate` | `--warnings-as-errors`, `--scope`; the binary has `--strict` |
 | `workload` | `--from`, `--to`, `--status-date`, `--task`, `--include-scenarios` (GAP-011) |
 | `report` | `workload`, `tracking`, `warnings`, `scenario`, `proposals`; `report weekly --output` |
@@ -325,6 +325,27 @@ Rules:
 - dry-run may produce audit only if policy explicitly wants dry-run audit;
 - dry-run output must be structured and reviewable.
 
+### Project write lock
+
+The Go CLI serializes commands that write files inside one project with an
+exclusive advisory lock at `.replan/write.lock`. The lock covers loading the
+project, calculating and validating the planned change, and committing every
+file, so a waiting writer checks preconditions against the state left by the
+previous writer. The lock file is created on demand and remains in place;
+deleting lock files is unsafe because it can create two independently locked
+files.
+
+Canonical `--apply` commands, import snapshot writes, proposal-candidate
+writes, project-local report/export artifacts and project-local TaskJuggler
+artifacts take the lock. Dry runs, read-only commands and artifacts written
+outside the project do not. A writer polls the non-blocking platform lock for
+up to 30 seconds. `REPLAN_LOCK_TIMEOUT_SECONDS` may set a different positive
+timeout, including fractional seconds for tests.
+
+If the timeout expires, the command writes nothing and reports
+`project_locked`, naming the lock file, with conflict exit code `5`. The caller
+may retry the complete command; it must not delete `.replan/write.lock`.
+
 ### Agent mode
 
 Global flag:
@@ -472,7 +493,8 @@ Rules:
   directory remains a validation failure (exit code `2`) with
   `missing_required_file` errors, and other stat or read failures remain
   validation failures such as `file_stat_error`;
-- file lock or concurrent mutation conflict uses exit code `5`;
+- file lock or concurrent mutation conflict uses exit code `5`; lock timeout
+  uses diagnostic code `project_locked` and does not write project data;
 - OpenProject/GitHub/GitLab/TaskJuggler failures use exit code `6`. The
   binary uses it for `import openproject` when OpenProject is unreachable,
   refuses the token or the project, rate-limits, or answers garbage; an

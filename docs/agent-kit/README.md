@@ -85,6 +85,10 @@ Nothing writes canonical state without `--apply` or `REPLAN_APPLY=1`.
 Helpers default to a dry run; CLI commands refuse to guess and require
 `--dry-run` or `--apply` unless `REPLAN_APPLY=1` supplies the apply choice.
 An explicit `--dry-run` remains a preview even when `REPLAN_APPLY=1` is set.
+Writes to one RePlan project are serialized through `.replan/write.lock`; a
+`project_locked` response with exit 5 means another writer did not release the
+lock within the wait limit, so leave the lock file in place and retry the
+complete command.
 
 A helper that would change OpenProject or the bindings file only reports what
 it would do. It changes something only when run with `REPLAN_APPLY=1`:

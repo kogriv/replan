@@ -2,8 +2,8 @@
 
 Date: 2026-10-30
 
-Status: proposed (`task.self.design-first-project-onboarding`); waiting for
-operator decisions.
+Status: approved on 2026-10-30 (`task.self.design-first-project-onboarding`);
+the operator decisions are at the end.
 
 ## Purpose
 
@@ -146,14 +146,13 @@ are the original estimates.
 3. The quickstart guide, its smoke check and the kit section: about 1.5
    agent hours.
 
-## Questions for the operator
+## Operator decisions
 
-1. Is `replan init` as a top-level command right, or should it be
-   `replan project init`?
-2. Should evidence stay optional for `resource add` and `capacity set`, or be
-   required as for `task add`?
-3. Should `replan init` also give the owner a capacity (`--owner-hours 30`)
-   so the guide needs one command less, or keep capacities to
-   `capacity set` only?
-4. Is the scope of the first version right: no availability, pools or
-   removal commands?
+Agreed by the operator on 2026-10-30:
+
+1. The command is the top-level `replan init`.
+2. Evidence is optional for `resource add` and `capacity set`; the audit
+   record is always written.
+3. `replan init` gives the owner no capacity; every capacity comes from
+   `capacity set`.
+4. The first version has no availability, pool, rename or remove commands.

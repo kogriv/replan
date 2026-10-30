@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 181,
-  "count": 181,
+  "total": 184,
+  "count": 184,
   "_embedded": {
     "elements": [
       {
@@ -5243,6 +5243,93 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2281"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2284,
+        "subject": "Give the third project RePlan's OpenProject tools",
+        "description": {
+          "raw": "Agreed with the operator on 2026-10-30: the third project's agent session works with its OpenProject project through raw API calls. RePlan's OpenProject tools (work-package create, update, status, relations, comments, drift checks, wiki) should serve it even without resource planning. Find out what that session needs, import its OpenProject project read-only into a scratch RePlan project to check the mapping, work out how a project whose work packages already exist gets its plan and bindings, build and hand over a kit with instructions, and plan every gap found (for example parent links, which its token may not set) as a task. Its conventions stay its own decision."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2284"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2282,
+        "subject": "Add replan init and the resource and capacity commands",
+        "description": {
+          "raw": "Approved by the operator on 2026-10-30 (docs/dev/first-project-onboarding-design.md, sections 1 and 2): replan init creates the smallest valid project with the owner as actor and human resource and no capacity, refuses an existing project with project_exists, writes a project_init audit record and nothing without --apply; replan resource add and resource list for every resource class with an optional matching actor; replan capacity set adds a periodic capacity, a later effective date adds a new period. Evidence is optional for resource add and capacity set; the audit record is always written. No availability, pool, rename or remove commands."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2282"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2283,
+        "subject": "Write the tested quickstart guide",
+        "description": {
+          "raw": "Approved by the operator on 2026-10-30 (docs/dev/first-project-onboarding-design.md, sections 4 and 5): docs/quickstart.md linked from the README walks from install through replan init, a person and an AI agent with capacities, two tasks with demands, a weekly report showing an overload and the dashboard, with pointers to scenarios, baselines and tracker imports. The smoke runs the guide's commands in a temporary directory and checks the promised overload. The agent kit README gains the same path and the kit check runs replan init."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2283"
           },
           "status": {
             "title": "New"

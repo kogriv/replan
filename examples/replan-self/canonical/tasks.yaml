@@ -5297,7 +5297,7 @@ tasks:
       title: Serialize concurrent writes to one project
       description: 'Found on 2026-10-30 while checking an outside audit: 30 replan evidence add --apply processes run in parallel on one project all answered ok with exit 0, but only 2 evidence records and 3 audit lines remained; audit lines exist for records that are gone, which the commit comment in internal/storage/filestore/files.go says cannot happen. Every write reads, validates and commits without an inter-process lock, so concurrent writers lose updates silently. Take an exclusive project lock around read, validate and commit of every write, re-read under the lock, refuse with a clear code when the lock cannot be taken in time, and add a parallel-writers regression test. The non-atomic set of files on an interrupted commit is a separate question.'
       type: implementation
-      tracking_status: in_progress
+      tracking_status: review_ready
       planned_start: "2026-10-30"
       planned_finish: "2026-10-30"
       assignee_hint:
@@ -5431,3 +5431,84 @@ tasks:
           object_type: work_package
           object_id: "2281"
           url: https://op.example.internal/work_packages/2281
+    - id: task.self.connect-third-project-to-openproject-tools
+      title: Give the third project RePlan's OpenProject tools
+      description: 'Agreed with the operator on 2026-10-30: the third project''s agent session works with its OpenProject project through raw API calls. RePlan''s OpenProject tools (work-package create, update, status, relations, comments, drift checks, wiki) should serve it even without resource planning. Find out what that session needs, import its OpenProject project read-only into a scratch RePlan project to check the mapping, work out how a project whose work packages already exist gets its plan and bindings, build and hand over a kit with instructions, and plan every gap found (for example parent links, which its token may not set) as a task. Its conventions stay its own decision.'
+      type: operations
+      tracking_status: in_progress
+      planned_start: "2026-10-30"
+      planned_finish: "2026-10-30"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.connect-third-project-to-openproject-tools.agent
+        - kind: resource_demand
+          id: resource_demand.connect-third-project-to-openproject-tools.maintainer
+        - kind: resource_demand
+          id: resource_demand.connect-third-project-to-openproject-tools.local-dev
+        - kind: resource_demand
+          id: resource_demand.connect-third-project-to-openproject-tools.ci
+      tags:
+        - agent-kit
+        - openproject
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2284"
+          url: https://op.example.internal/work_packages/2284
+    - id: task.self.implement-replan-init-and-resource-commands
+      title: Add replan init and the resource and capacity commands
+      description: 'Approved by the operator on 2026-10-30 (docs/dev/first-project-onboarding-design.md, sections 1 and 2): replan init creates the smallest valid project with the owner as actor and human resource and no capacity, refuses an existing project with project_exists, writes a project_init audit record and nothing without --apply; replan resource add and resource list for every resource class with an optional matching actor; replan capacity set adds a periodic capacity, a later effective date adds a new period. Evidence is optional for resource add and capacity set; the audit record is always written. No availability, pool, rename or remove commands.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-10-30"
+      planned_finish: "2026-10-30"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.implement-replan-init-and-resource-commands.agent
+        - kind: resource_demand
+          id: resource_demand.implement-replan-init-and-resource-commands.maintainer
+        - kind: resource_demand
+          id: resource_demand.implement-replan-init-and-resource-commands.local-dev
+        - kind: resource_demand
+          id: resource_demand.implement-replan-init-and-resource-commands.ci
+      tags:
+        - cli
+        - oss
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2282"
+          url: https://op.example.internal/work_packages/2282
+    - id: task.self.write-tested-quickstart-guide
+      title: Write the tested quickstart guide
+      description: 'Approved by the operator on 2026-10-30 (docs/dev/first-project-onboarding-design.md, sections 4 and 5): docs/quickstart.md linked from the README walks from install through replan init, a person and an AI agent with capacities, two tasks with demands, a weekly report showing an overload and the dashboard, with pointers to scenarios, baselines and tracker imports. The smoke runs the guide''s commands in a temporary directory and checks the promised overload. The agent kit README gains the same path and the kit check runs replan init.'
+      type: documentation
+      tracking_status: not_started
+      planned_start: "2026-10-30"
+      planned_finish: "2026-10-30"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.write-tested-quickstart-guide.agent
+        - kind: resource_demand
+          id: resource_demand.write-tested-quickstart-guide.maintainer
+        - kind: resource_demand
+          id: resource_demand.write-tested-quickstart-guide.local-dev
+        - kind: resource_demand
+          id: resource_demand.write-tested-quickstart-guide.ci
+      tags:
+        - documentation
+        - oss
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2283"
+          url: https://op.example.internal/work_packages/2283

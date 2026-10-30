@@ -329,6 +329,12 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2277"
         url: https://op.example.internal/work_packages/2277
+    - replan_task_id: task.self.connect-third-project-to-openproject-tools
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2284"
+        url: https://op.example.internal/work_packages/2284
     - replan_task_id: task.self.document-local-trust-boundary
       source_ref:
         source: openproject
@@ -359,6 +365,18 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2274"
         url: https://op.example.internal/work_packages/2274
+    - replan_task_id: task.self.implement-replan-init-and-resource-commands
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2282"
+        url: https://op.example.internal/work_packages/2282
+    - replan_task_id: task.self.write-tested-quickstart-guide
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2283"
+        url: https://op.example.internal/work_packages/2283
     - replan_task_id: task.self.design-local-web-view
       source_ref:
         source: openproject

@@ -196,6 +196,10 @@ supplies the apply choice for direct CLI use, while explicit `--dry-run` wins.
 Repository scripts pass a flag explicitly. OpenProject helper scripts remain
 dry-run unless `REPLAN_APPLY=1` is set.
 
+Writes to one project are serialized through `.replan/write.lock`; if a writer
+reports `project_locked` with exit code 5, leave the lock file in place and
+retry the complete command after the other writer finishes.
+
 The bindings layer is read-only. Canonical-writing commands, `import
 openproject` without `--dry-run` and `tracking suggest --write-candidates`
 refuse it even for `--dry-run` (`bindings_layer_read_only`, exit 8), and the

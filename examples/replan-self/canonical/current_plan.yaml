@@ -358,6 +358,8 @@ current_plan:
     - kind: task
       id: task.self.serialize-concurrent-project-writes
     - kind: task
+      id: task.self.connect-third-project-to-openproject-tools
+    - kind: task
       id: task.self.document-local-trust-boundary
     - kind: task
       id: task.self.split-cli-main-by-command-group
@@ -367,6 +369,10 @@ current_plan:
       id: task.self.recover-interrupted-multi-file-commits
     - kind: task
       id: task.self.fix-first-project-defects
+    - kind: task
+      id: task.self.implement-replan-init-and-resource-commands
+    - kind: task
+      id: task.self.write-tested-quickstart-guide
     - kind: task
       id: task.self.design-local-web-view
     - kind: task
