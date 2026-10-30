@@ -2445,3 +2445,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.test-kit-on-minimum-python
+  - id: evidence.self.test-kit-on-minimum-python-ci
+    type: command_result
+    source: ci
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T15:19:44+07:00"
+    summary: 'GitHub Actions run 41025375511: the new job Python 3.10 helpers and agent kit passed (helper tests and offline kit checks on Python 3.10). The Go job failed only in the smoke because this tasks remaining work was still open after its actual was booked.'
+    targets:
+      - kind: task
+        id: task.self.test-kit-on-minimum-python
