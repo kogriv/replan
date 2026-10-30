@@ -2645,3 +2645,45 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.split-cli-main-by-command-group
+    - id: actual.self-recover-interrupted-multi-file-commits.ai-codex-local.20261030T1821370700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.recover-interrupted-multi-file-commits
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.recover-interrupted-multi-file-commits.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.3
+      unit: agent_hours
+      occurred_at: "2026-10-30T18:21:37+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.recover-interrupted-multi-file-commits
+    - id: actual.self-recover-interrupted-multi-file-commits.ai-agent-executor.20261030T1821370700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.recover-interrupted-multi-file-commits
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.recover-interrupted-multi-file-commits.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.26
+      unit: agent_hours
+      occurred_at: "2026-10-30T18:21:37+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.recover-interrupted-multi-file-commits

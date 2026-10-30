@@ -10029,7 +10029,7 @@ resource_demands:
       role: implementation_agent
       unit: agent_hours
       planned_amount: 0.5
-      remaining_amount: 0.5
+      remaining_amount: 0
       criticality: required
       status: active
     - id: resource_demand.recover-interrupted-multi-file-commits.codex
@@ -10043,7 +10043,7 @@ resource_demands:
       role: implementation_agent
       unit: agent_hours
       planned_amount: 2.5
-      remaining_amount: 2.5
+      remaining_amount: 0
       criticality: required
       status: active
     - id: resource_demand.recover-interrupted-multi-file-commits.maintainer
@@ -10420,8 +10420,22 @@ resource_demands:
       resource_class: ai_agent
       role: implementation_agent
       unit: agent_hours
-      planned_amount: 1.5
-      remaining_amount: 1.5
+      planned_amount: 0.25
+      remaining_amount: 0.25
+      criticality: required
+      status: active
+    - id: resource_demand.import-openproject-relates-relations.codex
+      task_ref:
+        kind: task
+        id: task.self.import-openproject-relates-relations
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 1.25
+      remaining_amount: 1.25
       criticality: required
       status: active
     - id: resource_demand.import-openproject-relates-relations.maintainer

@@ -2573,3 +2573,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.recover-interrupted-multi-file-commits
+  - id: evidence.self.start-import-openproject-relates-relations
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T18:06:35+07:00"
+    summary: 'Started next in the agreed order. Decision: a new dependency type relates, symmetric and with no scheduling meaning, ignored by date-order, blocking, TaskJuggler and rescheduling logic, mapped to and matched with OpenProject relates by the helpers. Original estimate before the Codex split: 1.5 agent hours.'
+    targets:
+      - kind: task
+        id: task.self.import-openproject-relates-relations
+  - id: evidence.self.recover-interrupted-multi-file-commits
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T18:21:37+07:00"
+    summary: 'Codex round 1 (17:47:40-18:05:50): commits write a roll-forward journal to .replan/commit-pending (synced blobs, then an atomically renamed manifest) before touching project files; the next write recovers under the write lock with a recovered_commit warning, read commands warn interrupted_commit_pending, replan project recover --dry-run|--apply does it explicitly, a corrupt journal is refused with commit_journal_corrupt (exit 2), a manifest-less journal is removed, replay paths are validated. Failure injection after each of the n operations passes. On review: the spec now says a commit_failed change is completed by the next write; a normal write leaves no journal. Full local gate green, 78 live kit checks.'
+    targets:
+      - kind: task
+        id: task.self.recover-interrupted-multi-file-commits
