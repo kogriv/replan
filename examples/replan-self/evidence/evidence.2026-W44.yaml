@@ -2386,3 +2386,16 @@ evidence:
     targets:
       - kind: task
         id: task.self.fix-first-project-defects
+  - id: evidence.self.document-local-trust-boundary
+    type: document
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T14:40:55+07:00"
+    summary: 'README, docs/security/access-and-actor-model.md (new section What the local CLI enforces today) and the agent kit README (What the CLI trusts) now say plainly, as checked against the code: the CLI runs with the operating-system users rights and does not authenticate --actor; only estimate calibrate requires a human approver; trust_level and proposal_only are recorded, not enforced; what is enforced for everyone (apply gate, whole-project validation, serialized writes, audit log); and how to keep agents to proposals: a separate user or read-only checkout, acceptance in the persons own shell or from OpenProject, review of audit and git history. The gap is planned as task.self.require-human-approvers. Links check clean; agent kit check passes.'
+    targets:
+      - kind: task
+        id: task.self.document-local-trust-boundary
+      - kind: task
+        id: task.self.require-human-approvers

@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 188,
-  "count": 188,
+  "total": 189,
+  "count": 189,
   "_embedded": {
     "elements": [
       {
@@ -5446,6 +5446,35 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2288"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2289,
+        "subject": "Require a human actor to approve changes",
+        "description": {
+          "raw": "Found on 2026-10-30 while documenting the local trust boundary: only estimate calibrate refuses an approver that is not a human actor; proposal accept and reject, scenario apply, baseline create and import accept take any existing actor, an AI agent's included, and trust_level and the proposal_only policy are recorded but not enforced. Require a human actor for the commands that approve or apply a change (approver_not_human, exit 3, as calibration does), enforce the policy's proposal_only for AI agent actors on canonical writes or document precisely which writes an agent may make, and test both. This does not authenticate the caller; it stops an agent's own actor from approving its own work."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2289"
           },
           "status": {
             "title": "New"

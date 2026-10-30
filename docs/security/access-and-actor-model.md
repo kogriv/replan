@@ -4,6 +4,40 @@ Date: 2026-07-02
 
 Status: initial design guardrail.
 
+## What the local CLI enforces today
+
+Checked against the code on 2026-10-30. The CLI runs with the rights of the
+operating-system user who starts it and reads and writes the project files
+directly. It does not authenticate anyone:
+
+- `--actor` and `--approved-by` must name an actor that exists in the
+  project, and every write records that actor in the audit log. Nothing
+  checks that the caller is that actor.
+- Only `estimate calibrate` checks the actor's kind: its approver must be a
+  human actor (`approver_not_human`, exit 3). `proposal accept|reject`,
+  `scenario apply`, `baseline create` and the other writes accept any
+  existing actor, an AI agent's included.
+- `trust_level` on an actor and `ai_agents.default_mutation_mode:
+  proposal_only` in the policy are recorded and validated, not enforced.
+- What the CLI does enforce for everyone: nothing is written without
+  `--apply` (or `REPLAN_APPLY=1`), every write validates the whole would-be
+  project first, writes to one project are serialized, and the audit log is
+  append-only and verifiable with `replan audit verify`.
+
+So "an agent proposes, a person approves" holds when the agent cannot run
+writes as the person. To keep it in practice:
+
+- run agents as a separate operating-system user, or give them a read-only
+  checkout of the plan, and let them hand over proposal files or a branch
+  for a person to accept;
+- let the person accept in their own shell, or accept the work in OpenProject
+  and run the acceptance from there with the person's actor;
+- review the audit log and `git log` of the plan: every accept names its
+  actor, and the plan's history shows who committed it.
+
+The rest of this document is the design the CLI grows towards: a principal
+authenticated outside RePlan, capabilities and scopes checked by policy.
+
 ## Core decision
 
 RePlan should not implement enterprise authentication, enterprise RBAC or

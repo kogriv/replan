@@ -368,6 +368,8 @@ current_plan:
     - kind: task
       id: task.self.document-local-trust-boundary
     - kind: task
+      id: task.self.require-human-approvers
+    - kind: task
       id: task.self.split-cli-main-by-command-group
     - kind: task
       id: task.self.attest-release-builds

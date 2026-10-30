@@ -5329,7 +5329,7 @@ tasks:
       title: Say plainly what the local CLI trusts
       description: 'Agreed with the operator on 2026-10-30 after an outside audit: the local CLI trusts the operating system user, so an agent that can run replan and write the project files can name any actor, including a person, in --actor and --approved-by; proposal_only for AI agents is a policy, not an enforced boundary. Say this plainly in the README, the security docs and the agent kit, and recommend how to keep agents to proposals in practice: a separate operating system user or a read-only checkout for agents, and approvals made by a person in OpenProject or the person''s own shell.'
       type: documentation
-      tracking_status: not_started
+      tracking_status: review_ready
       planned_start: "2026-10-30"
       planned_finish: "2026-10-30"
       assignee_hint:
@@ -5627,3 +5627,31 @@ tasks:
           object_type: work_package
           object_id: "2288"
           url: https://op.example.internal/work_packages/2288
+    - id: task.self.require-human-approvers
+      title: Require a human actor to approve changes
+      description: 'Found on 2026-10-30 while documenting the local trust boundary: only estimate calibrate refuses an approver that is not a human actor; proposal accept and reject, scenario apply, baseline create and import accept take any existing actor, an AI agent''s included, and trust_level and the proposal_only policy are recorded but not enforced. Require a human actor for the commands that approve or apply a change (approver_not_human, exit 3, as calibration does), enforce the policy''s proposal_only for AI agent actors on canonical writes or document precisely which writes an agent may make, and test both. This does not authenticate the caller; it stops an agent''s own actor from approving its own work.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-10-30"
+      planned_finish: "2026-10-30"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.require-human-approvers.agent
+        - kind: resource_demand
+          id: resource_demand.require-human-approvers.maintainer
+        - kind: resource_demand
+          id: resource_demand.require-human-approvers.local-dev
+        - kind: resource_demand
+          id: resource_demand.require-human-approvers.ci
+      tags:
+        - safety
+        - proposals
+        - gap
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2289"
+          url: https://op.example.internal/work_packages/2289

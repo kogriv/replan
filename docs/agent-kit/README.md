@@ -129,6 +129,17 @@ The exit code follows from the answer:
 So `set -e` and `&&` stop where you need to look. The token is never printed, and OpenProject's error
 bodies are reduced to their identifier and message.
 
+## What the CLI trusts
+
+The CLI and the helpers run with your operating-system user's rights and do
+not authenticate the `--actor` you name: an actor only has to exist in the
+plan, and the audit log records it. Only `estimate calibrate` refuses an
+approver that is not a human actor. If the plan's owner wants proposals that
+only a person accepts, run the agent as its own user or on a read-only copy
+of the plan, and let a person accept its proposals in their own shell. The
+RePlan repository's `docs/security/access-and-actor-model.md` lists what the
+local CLI enforces today.
+
 ## Who owns what
 
 - OpenProject owns task identity, titles, source status, relations, assignees,

@@ -2372,3 +2372,24 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.connect-third-project-to-openproject-tools
+    - id: actual.self-document-local-trust-boundary.ai-agent-executor.20261030T1440550700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.document-local-trust-boundary
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.document-local-trust-boundary.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.33
+      unit: agent_hours
+      occurred_at: "2026-10-30T14:40:55+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.document-local-trust-boundary
