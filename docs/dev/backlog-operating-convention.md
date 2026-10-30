@@ -344,4 +344,8 @@ A backlog item is done only when:
   resources;
 - relevant docs are updated;
 - validation and appropriate drift checks pass or the limitation is documented;
+- `replan tracking suggest --project <plan>` (and for the weeks the task ran)
+  lists nothing for the task: a real overrun is acknowledged with
+  `replan actual acknowledge-overrun` and a reason, and remaining work left
+  open by mistake is set with `replan actual set-remaining`;
 - the result is committed and pushed.

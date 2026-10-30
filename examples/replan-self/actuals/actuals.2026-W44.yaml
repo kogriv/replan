@@ -2540,3 +2540,24 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.write-tested-quickstart-guide
+    - id: actual.self-decouple-smoke-from-live-self-plan.ai-agent-executor.20261030T1653260700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.decouple-smoke-from-live-self-plan
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.decouple-smoke-from-live-self-plan.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.15
+      unit: agent_hours
+      occurred_at: "2026-10-30T16:53:26+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.decouple-smoke-from-live-self-plan

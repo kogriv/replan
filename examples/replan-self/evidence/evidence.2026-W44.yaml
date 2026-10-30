@@ -2515,3 +2515,14 @@ evidence:
         id: task.self.split-cli-main-by-command-group
       - kind: task
         id: task.self.decouple-smoke-from-live-self-plan
+  - id: evidence.self.decouple-smoke-from-live-self-plan
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T16:53:26+07:00"
+    summary: The MVP smoke still runs tracking suggest on the self plan (JSON and markdown) and the write-candidates and accept flow on a copy, but no longer requires the live plan to have no open suggestions; the code behaviour behind that check (acknowledged overruns suppressed, larger ones suggested again) is covered by the Go tests. The empty-suggestions check moved into the done rule of docs/dev/backlog-operating-convention.md. Smoke passes.
+    targets:
+      - kind: task
+        id: task.self.decouple-smoke-from-live-self-plan

@@ -5691,7 +5691,7 @@ tasks:
       title: Keep the smoke independent of the live self plan
       description: 'Found on 2026-10-30, twice in one day: CI failed in the MVP smoke because it asserts that tracking suggest finds nothing in the live self plan, so an honest overrun or an unfinished bookkeeping step in the dogfood data fails a code check. Keep the smoke''s tracking-suggest assertions on a fixture or a frozen copy whose state the test controls, and move the check that the self plan has no open suggestions into the dogfood loop (accept and finish steps) where it belongs.'
       type: implementation
-      tracking_status: in_progress
+      tracking_status: review_ready
       planned_start: "2026-10-30"
       planned_finish: "2026-10-30"
       assignee_hint:
