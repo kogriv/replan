@@ -63,6 +63,32 @@ type Actor struct {
 	PrincipalRef []Ref  `json:"principal_refs,omitempty" yaml:"principal_refs,omitempty"`
 }
 
+const (
+	AIAgentMutationProposalOnly = "proposal_only"
+	AIAgentMutationDirect       = "direct"
+)
+
+type Policy struct {
+	ID               string        `json:"id" yaml:"id"`
+	Mode             string        `json:"mode" yaml:"mode"`
+	DefaultActor     string        `json:"default_actor,omitempty" yaml:"default_actor,omitempty"`
+	RequireDryRunFor []string      `json:"require_dry_run_for,omitempty" yaml:"require_dry_run_for,omitempty"`
+	AIAgents         AIAgentPolicy `json:"ai_agents,omitempty" yaml:"ai_agents,omitempty"`
+}
+
+type AIAgentPolicy struct {
+	DefaultMutationMode string `json:"default_mutation_mode,omitempty" yaml:"default_mutation_mode,omitempty"`
+}
+
+// EffectiveAIAgentMutationMode keeps proposal-only as the safe default for
+// projects whose policy predates the ai_agents section.
+func (p Policy) EffectiveAIAgentMutationMode() string {
+	if p.AIAgents.DefaultMutationMode == "" {
+		return AIAgentMutationProposalOnly
+	}
+	return p.AIAgents.DefaultMutationMode
+}
+
 type Resource struct {
 	ID           string      `json:"id" yaml:"id"`
 	Class        string      `json:"class" yaml:"class"`
@@ -384,6 +410,7 @@ type AuditRecord struct {
 
 type Workspace struct {
 	Project         Project
+	Policy          Policy
 	Actors          []Actor
 	Resources       []Resource
 	ResourcePools   []ResourcePool

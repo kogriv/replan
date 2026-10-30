@@ -1148,6 +1148,10 @@ func (s Store) Load(ctx context.Context) (domain.Workspace, []app.Diagnostic) {
 		return ws, []app.Diagnostic{diag("file_read_error", fmt.Sprintf("failed to read %s: %v", projectRel, err), "error", "file", projectRel)}
 	}
 
+	readYAML(s, &diags, ".replan/policy.yaml", &struct {
+		Policy *domain.Policy `yaml:"policy"`
+	}{Policy: &ws.Policy})
+
 	required := []string{
 		".replan/project.yaml",
 		".replan/policy.yaml",

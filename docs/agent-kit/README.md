@@ -141,13 +141,20 @@ bodies are reduced to their identifier and message.
 ## What the CLI trusts
 
 The CLI and the helpers run with your operating-system user's rights and do
-not authenticate the `--actor` you name: an actor only has to exist in the
-plan, and the audit log records it. Only `estimate calibrate` refuses an
-approver that is not a human actor. If the plan's owner wants proposals that
-only a person accepts, run the agent as its own user or on a read-only copy
-of the plan, and let a person accept its proposals in their own shell. The
-RePlan repository's `docs/security/access-and-actor-model.md` lists what the
-local CLI enforces today.
+not authenticate the `--actor` you name. Under the default `proposal_only`
+policy, approval/apply commands refuse an actor whose kind is not `human`;
+this includes proposal decisions, scenario and import application, baseline
+and calibration approval, and accepted/cancelled task status. Dry runs report
+the same `approver_not_human` refusal. Omitting `ai_agents` from policy keeps
+that default; `default_mutation_mode: direct` explicitly allows existing
+agent actors for teams operating bounded agents.
+
+This checks the named actor, not the caller. An agent with write access can
+still name a human actor, change policy or edit YAML directly. For a real
+person-only boundary, run the agent as its own user or on a read-only copy and
+let a person approve in their own shell. The RePlan repository's
+`docs/security/access-and-actor-model.md` lists the exact covered and open
+commands.
 
 ## Who owns what
 

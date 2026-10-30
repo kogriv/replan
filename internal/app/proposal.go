@@ -308,13 +308,10 @@ func (s ProposalService) decide(ctx context.Context, req ProposalDecisionRequest
 			Target:   Target{Kind: "actor"},
 		})
 	}
-	if req.ActorID != "" && !hasActor(ws.Actors, req.ActorID) {
-		result.Errors = append(result.Errors, Diagnostic{
-			Code:     "actor_not_found",
-			Message:  fmt.Sprintf("actor %s not found", req.ActorID),
-			Severity: "error",
-			Target:   Target{Kind: "actor", ID: req.ActorID},
-		})
+	if req.ActorID != "" {
+		if diagnostic := validateApprovingActor(ws, req.ActorID); diagnostic != nil {
+			result.Errors = append(result.Errors, *diagnostic)
+		}
 	}
 	if ok && proposal.Status != "open" {
 		result.Errors = append(result.Errors, Diagnostic{

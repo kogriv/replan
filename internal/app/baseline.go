@@ -235,8 +235,8 @@ func validateBaselineCreateRequest(errors *[]Diagnostic, ws domain.Workspace, re
 	}
 	if req.ApprovedBy == "" {
 		add("missing_approved_actor", "approved-by is required", "actor", "")
-	} else if !hasActor(ws.Actors, req.ApprovedBy) {
-		add("actor_not_found", fmt.Sprintf("actor %s not found", req.ApprovedBy), "actor", req.ApprovedBy)
+	} else if diagnostic := validateApprovingActor(ws, req.ApprovedBy); diagnostic != nil {
+		*errors = append(*errors, *diagnostic)
 	}
 	if req.StatusDate != "" && !validDate(req.StatusDate) {
 		add("invalid_status_date", fmt.Sprintf("status-date %q must use YYYY-MM-DD", req.StatusDate), "baseline", req.ID)

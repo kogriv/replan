@@ -92,10 +92,11 @@ replan scenario diff --project examples/small-team --format markdown scenario.iv
 | `Ivan` | hours | 32 | 0 | 0 | 8 |
 ```
 
-Agents write suggestions, and a person accepts or rejects them; a dry run
-shows the effect first. This is a working rule, not a lock: the local CLI
-trusts whoever runs it, so an agent that can run `replan` and write the
-project files could name a person as `--actor`. See
+Agents write suggestions, and a person accepts or rejects them; under the
+default `proposal_only` policy the CLI refuses an AI-agent actor for approval
+commands, and a dry run reports the same refusal before a write is attempted.
+This is not caller authentication: an agent that can run `replan` and write
+the project files could still name a person as `--actor`. See
 [what the local CLI trusts](docs/security/access-and-actor-model.md#what-the-local-cli-enforces-today)
 for how to keep agents to suggestions in practice.
 

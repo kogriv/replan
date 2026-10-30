@@ -117,6 +117,7 @@ type workspaceValidator struct {
 func validateWorkspace(result *ValidateResult, ws domain.Workspace) {
 	v := &workspaceValidator{result: result, ids: map[string]string{}}
 	v.project(ws.Project)
+	v.policy(ws.Policy)
 	v.actors(ws.Actors)
 	v.resources(ws.Resources)
 	v.resourcePools(ws.ResourcePools)
@@ -140,6 +141,19 @@ func validateWorkspace(result *ValidateResult, ws domain.Workspace) {
 	}
 	for _, diagnostic := range taskPlanningDiagnostics(ws) {
 		addDiagnostic(result, diagnostic)
+	}
+}
+
+func (v *workspaceValidator) policy(policy domain.Policy) {
+	if policy.ID == "" {
+		// Missing required files are diagnosed by the loader. Keeping an empty
+		// policy usable here also preserves lightweight in-memory workspaces.
+		return
+	}
+	switch mode := policy.EffectiveAIAgentMutationMode(); mode {
+	case domain.AIAgentMutationProposalOnly, domain.AIAgentMutationDirect:
+	default:
+		v.errorf("invalid_ai_agent_mutation_mode", "policy", policy.ID, "policy ai_agents.default_mutation_mode must be %q or %q, got %q", domain.AIAgentMutationProposalOnly, domain.AIAgentMutationDirect, mode)
 	}
 }
 

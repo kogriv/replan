@@ -273,6 +273,15 @@ Rules:
 - mutating commands must resolve actor;
 - read-only commands should include actor when supplied;
 - AI agents should use explicit actor id;
+- `.replan/policy.yaml` accepts `ai_agents.default_mutation_mode` values
+  `proposal_only` and `direct`; omitted `ai_agents` means `proposal_only`;
+- under `proposal_only`, `proposal accept|reject`, `scenario apply`,
+  `baseline create`, `estimate calibrate`, `import accept`, and `actual
+  add-status` to `accepted` or `cancelled` require a named human actor;
+  a named non-human actor fails in dry-run and apply modes with
+  `approver_not_human` and exit 3, before any write;
+- `direct` explicitly retains existing-actor behavior for those commands;
+- the check identifies the named actor but does not authenticate the caller;
 - unknown actor should fail for mutation unless project policy allows local
   trusted fallback;
 - output metadata should include resolved actor for mutating commands.
@@ -1373,7 +1382,7 @@ Rules:
 - `list`, `show`, `calculate` and `diff` are read-only;
 - `create` and `patch` mutate scenario files and require actor/audit;
 - `apply` mutates current plan and must support dry-run;
-- AI agents should normally use `propose-apply` instead of direct `apply`;
+- under `proposal_only`, the actor named for `apply` must be human;
 - applying scenario must not mutate accepted actuals, historical evidence or
   old baselines.
 - implemented first apply slice supports `resource_demands.<id>.remaining_amount`
@@ -1452,7 +1461,8 @@ Rules:
 - `suggest-dependencies --write-candidates --actor <id>` writes reviewable
   proposal candidate files only;
 - AI agents may create proposals;
-- AI agents should not accept proposals unless policy explicitly allows.
+- under `proposal_only`, the actor named for acceptance or rejection must be
+  human; `direct` explicitly allows an existing agent actor.
 
 MVP minimum:
 
@@ -1593,7 +1603,9 @@ split group. `--exclude task-id=reason` records explicit exclusions. The factor
 is the median per-task actual/baseline ratio; the record also stores total
 ratio, interpolated p25 and p75, and medians for baseline-size bands up to 2,
 up to 4 and above 4. Apply creates a sealed, immutable
-`calibrations/<id>.yaml` and an audit record. The approver must be human.
+`calibrations/<id>.yaml` and an audit record. Under `proposal_only`, the
+approver must be human; `direct` explicitly allows an existing non-human
+approving actor.
 
 `estimate apply` creates one ordinary scenario linked by `calibration_ref`.
 It does not yet skip demands whose amount was set by a person after the calibration date because the current audit and demand history do not reliably identify that edit.
@@ -1645,6 +1657,7 @@ Rules:
   `baselines/<id>.yaml`, appends a `baseline_create` audit event, validates the
   staged project and then commits it;
 - the canonical apply gate and read-only bindings-layer refusal apply;
+- under `proposal_only`, `--approved-by` must name a human actor;
 - `list` and `show` report whether estimate fields exist and whether the seal
   is `verified`, `modified`, `unsupported` or `unsealed`.
 
@@ -1929,6 +1942,9 @@ Rules:
 - this is an additive optional record shape in project format version 1, so no
   project migration step is required;
 - demand lifecycle close supports only `consumed` and `cancelled`;
+- `actual add-status` to `accepted` or `cancelled` closes a task and therefore
+  requires a human actor under `proposal_only`; other statuses remain open to
+  agent actors;
 - closing as `consumed` also sets `remaining_amount: 0` in the same write and
   audit record, because a consumed demand has nothing left; the result reports
   `remaining_cleared` and `previous_remaining`. Closing as `cancelled` keeps
@@ -2030,6 +2046,8 @@ replan import accept --project -p --bindings --format --accept-dates --accept-de
 
 Rules:
 
+- `import accept` requires a human actor under `proposal_only`; a dry run that
+  names an agent actor reports the same policy denial as apply;
 - GitHub file import reads a versioned `replan.github-issues.v1` input
   document. Live import selects a repository through a GitHub source profile
   or `--repository`, reads only the REST API, and writes that same document as

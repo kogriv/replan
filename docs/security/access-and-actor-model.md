@@ -13,19 +13,32 @@ directly. It does not authenticate anyone:
 - `--actor` and `--approved-by` must name an actor that exists in the
   project, and every write records that actor in the audit log. Nothing
   checks that the caller is that actor.
-- Only `estimate calibrate` checks the actor's kind: its approver must be a
-  human actor (`approver_not_human`, exit 3). `proposal accept|reject`,
-  `scenario apply`, `baseline create` and the other writes accept any
-  existing actor, an AI agent's included.
-- `trust_level` on an actor and `ai_agents.default_mutation_mode:
-  proposal_only` in the policy are recorded and validated, not enforced.
+- When `ai_agents.default_mutation_mode` is `proposal_only`, the approving
+  actor must have `kind: human` for `proposal accept`, `proposal reject`,
+  `scenario apply`, `baseline create`, `estimate calibrate`, `import accept`
+  and `actual add-status --status accepted|cancelled`. A named non-human actor
+  produces `approver_not_human`, exit 3, in dry-run and apply modes, and
+  nothing is written. Omitting `ai_agents` defaults to `proposal_only`.
+- The accepted mutation modes are `proposal_only` and `direct`. `direct` is
+  an explicit opt-in for teams that allow bounded operator agents and keeps
+  the previous behavior: any existing actor may run those commands.
+- Agent writes that record work or prepare review remain allowed under
+  `proposal_only`: evidence and actual consumption; remaining-work and demand
+  lifecycle updates; non-closing task statuses; task add/date/title/actual
+  window changes; tracking suggestions and proposal candidates; estimate
+  application to a draft scenario; project status-date changes and migration;
+  initialization, resources and capacities.
+- `trust_level` is still descriptive and is not enforced.
 - What the CLI does enforce for everyone: nothing is written without
   `--apply` (or `REPLAN_APPLY=1`), every write validates the whole would-be
   project first, writes to one project are serialized, and the audit log is
   append-only and verifiable with `replan audit verify`.
 
-So "an agent proposes, a person approves" holds when the agent cannot run
-writes as the person. To keep it in practice:
+The actor-kind check stops an agent from approving under its own actor id. It
+does not stop a caller from naming a human actor, editing policy, or editing
+the YAML files directly. So "an agent proposes, a person approves" is a real
+caller boundary only when the agent cannot run writes as the person. To keep
+it in practice:
 
 - run agents as a separate operating-system user, or give them a read-only
   checkout of the plan, and let them hand over proposal files or a branch

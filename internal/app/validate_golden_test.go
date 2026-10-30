@@ -32,6 +32,7 @@ func everyDiagnosticWorkspace() domain.Workspace {
 				{ID: "github.invalid", Source: "github", Repository: "bad", TokenEnv: "bad-token", StatusMap: map[string]string{"open": "unknown"}},
 			},
 		},
+		Policy: domain.Policy{ID: "policy.bad", AIAgents: domain.AIAgentPolicy{DefaultMutationMode: "unbounded"}},
 		Actors: []domain.Actor{
 			{ID: "actor.ok", Kind: "human", TrustLevel: "high"},
 			{ID: "actor.bare"},

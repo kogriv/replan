@@ -319,6 +319,15 @@
       }
     },
     {
+      "code": "invalid_ai_agent_mutation_mode",
+      "message": "policy ai_agents.default_mutation_mode must be \"proposal_only\" or \"direct\", got \"unbounded\"",
+      "severity": "error",
+      "target": {
+        "kind": "policy",
+        "id": "policy.bad"
+      }
+    },
+    {
       "code": "missing_actor_kind",
       "message": "actor kind is required",
       "severity": "error",

@@ -966,6 +966,14 @@ func validateAddStatusRequest(errors *[]Diagnostic, ws domain.Workspace, req Act
 	if req.ActorID != "" && !hasActor(ws.Actors, req.ActorID) {
 		addActualRequestError(errors, "actor_not_found", fmt.Sprintf("actor %s not found", req.ActorID), "actor", req.ActorID)
 	}
+	if req.ActorID != "" && (req.Status == "accepted" || req.Status == "cancelled") {
+		if diagnostic := validateApprovingActor(ws, req.ActorID); diagnostic != nil {
+			// Avoid duplicating actor_not_found from the general actor check.
+			if diagnostic.Code != "actor_not_found" {
+				*errors = append(*errors, *diagnostic)
+			}
+		}
+	}
 	if req.EvidenceID != "" && !hasEvidence(ws.Evidence, req.EvidenceID) {
 		addActualRequestError(errors, "evidence_not_found", fmt.Sprintf("evidence %s not found", req.EvidenceID), "evidence", req.EvidenceID)
 	}

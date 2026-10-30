@@ -235,11 +235,8 @@ func validateCalibrationRequest(errors *[]Diagnostic, ws domain.Workspace, req C
 			add("calibration_already_exists", fmt.Sprintf("calibration %s already exists", req.ID), "calibration", req.ID)
 		}
 	}
-	actor, actorOK := findActor(ws.Actors, req.ApprovedBy)
-	if req.ApprovedBy == "" || !actorOK {
-		add("actor_not_found", fmt.Sprintf("actor %s not found", req.ApprovedBy), "actor", req.ApprovedBy)
-	} else if actor.Kind != "human" {
-		add("approver_not_human", fmt.Sprintf("calibration approver %s is %s, not human", req.ApprovedBy, actor.Kind), "actor", req.ApprovedBy)
+	if diagnostic := validateApprovingActor(ws, req.ApprovedBy); diagnostic != nil {
+		*errors = append(*errors, *diagnostic)
 	}
 	resourceSet := map[string]bool{}
 	for _, resource := range ws.Resources {

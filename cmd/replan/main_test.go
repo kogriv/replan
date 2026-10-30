@@ -250,6 +250,135 @@ func TestEstimateCalibrationRejectsAgentApproverWithExitThree(t *testing.T) {
 	}
 }
 
+func TestApprovalCommandsRejectAgentActorInDryRunAndApply(t *testing.T) {
+	type approvalCase struct {
+		name       string
+		fixture    string
+		agentActor string
+		humanActor string
+		args       func(t *testing.T, project, mode string) []string
+	}
+	cases := []approvalCase{
+		{name: "proposal accept", fixture: "../../examples/small-team", agentActor: "actor.ai.codex.local", humanActor: "actor.human.operator", args: func(_ *testing.T, project, mode string) []string {
+			return []string{"proposal", "accept", "--project", project, "--actor", "actor.ai.codex.local", mode, "--format", "json", "proposal.adjust-remaining-task-op-1234.20260706"}
+		}},
+		{name: "proposal reject", fixture: "../../examples/small-team", agentActor: "actor.ai.codex.local", humanActor: "actor.human.operator", args: func(_ *testing.T, project, mode string) []string {
+			return []string{"proposal", "reject", "--project", project, "--actor", "actor.ai.codex.local", "--reason", "Agent cannot decide this.", mode, "--format", "json", "proposal.adjust-remaining-task-op-1234.20260706"}
+		}},
+		{name: "scenario apply", fixture: "../../examples/small-team", agentActor: "actor.ai.codex.local", humanActor: "actor.human.operator", args: func(_ *testing.T, project, mode string) []string {
+			return []string{"scenario", "apply", "--project", project, "--actor", "actor.ai.codex.local", mode, "--format", "json", "scenario.task-op-1234-remaining-5"}
+		}},
+		{name: "baseline create", fixture: "../../examples/small-team", agentActor: "actor.ai.codex.local", humanActor: "actor.human.operator", args: func(_ *testing.T, project, mode string) []string {
+			return []string{"baseline", "create", "--project", project, "--id", "baseline.agent-refused", "--name", "Agent refused", "--approved-by", "actor.ai.codex.local", mode, "--format", "json"}
+		}},
+		{name: "estimate calibrate", fixture: "../../examples/estimate-calibration", agentActor: "actor.ai.executor", humanActor: "actor.human.operator", args: func(_ *testing.T, project, mode string) []string {
+			return []string{"estimate", "calibrate", "--project", project, "--baseline", "baseline.fixture.original", "--resource", "resource.ai.executor", "--resource", "resource.ai.codex", "--unit", "agent_hours", "--tag", "calibration", "--exclude", "task.cal.09=actuals_judged", "--id", "calibration.agent-refused", "--name", "Agent refused", "--approved-by", "actor.ai.executor", mode, "--format", "json"}
+		}},
+		{name: "import accept", fixture: "../../examples/small-team", agentActor: "actor.ai.codex.local", humanActor: "actor.human.operator", args: func(t *testing.T, project, mode string) []string {
+			return []string{"import", "accept", "--project", project, "--actor", "actor.ai.codex.local", mode, "--format", "json", createCLIImportSnapshot(t, project)}
+		}},
+		{name: "actual accepted", fixture: "../../examples/small-team", agentActor: "actor.ai.codex.local", humanActor: "actor.human.operator", args: func(_ *testing.T, project, mode string) []string {
+			return []string{"actual", "add-status", "--project", project, "--task", "task.op.1234", "--status", "accepted", "--actor", "actor.ai.codex.local", mode, "--format", "json"}
+		}},
+		{name: "actual cancelled", fixture: "../../examples/small-team", agentActor: "actor.ai.codex.local", humanActor: "actor.human.operator", args: func(_ *testing.T, project, mode string) []string {
+			return []string{"actual", "add-status", "--project", project, "--task", "task.op.1234", "--status", "cancelled", "--actor", "actor.ai.codex.local", mode, "--format", "json"}
+		}},
+	}
+	for _, tc := range cases {
+		for _, mode := range []string{"--dry-run", "--apply"} {
+			t.Run(tc.name+" "+mode, func(t *testing.T) {
+				project := copyCmdProjectFixtureFrom(t, tc.fixture, "project")
+				args := tc.args(t, project, mode)
+				before := projectFileContents(t, project)
+				stdout, stderr := tempOutputFiles(t)
+				if code := run(args, stdout, stderr); code != exitPolicyDenied {
+					t.Fatalf("exit=%d want=%d; stdout=%s stderr=%s", code, exitPolicyDenied, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+				}
+				env := readCLIEnvelope(t, stdout.Name())
+				if !hasDiagnosticCode(env.Errors, "approver_not_human") || !strings.Contains(readFileString(t, stdout.Name()), "ai_agent") {
+					t.Fatalf("errors=%#v, want approver_not_human naming ai_agent", env.Errors)
+				}
+				if after := projectFileContents(t, project); !reflect.DeepEqual(after, before) {
+					for path, content := range after {
+						if before[path] != content {
+							t.Fatalf("refused approval command changed project file %s", path)
+						}
+					}
+					for path := range before {
+						if _, ok := after[path]; !ok {
+							t.Fatalf("refused approval command removed project file %s", path)
+						}
+					}
+				}
+			})
+		}
+		t.Run(tc.name+" human", func(t *testing.T) {
+			project := copyCmdProjectFixtureFrom(t, tc.fixture, "project")
+			args := tc.args(t, project, "--dry-run")
+			for i := range args {
+				if args[i] == tc.agentActor {
+					args[i] = tc.humanActor
+				}
+			}
+			stdout, stderr := tempOutputFiles(t)
+			if code := run(args, stdout, stderr); code != exitSuccess {
+				t.Fatalf("human actor exit=%d; stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+			}
+		})
+	}
+}
+
+func TestApprovalPolicyDefaultsAndDirectOptIn(t *testing.T) {
+	for _, tc := range []struct {
+		name       string
+		policyEdit func(string) string
+		wantExit   int
+	}{
+		{name: "omitted ai_agents defaults proposal only", policyEdit: func(text string) string {
+			start := strings.Index(text, "  ai_agents:\n")
+			if start < 0 {
+				return text
+			}
+			return text[:start]
+		}, wantExit: exitPolicyDenied},
+		{name: "direct explicitly allows agent", policyEdit: func(text string) string {
+			return strings.Replace(text, "default_mutation_mode: proposal_only", "default_mutation_mode: direct", 1)
+		}, wantExit: exitSuccess},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			project := copyCmdProjectFixture(t)
+			policyPath := filepath.Join(project, ".replan", "policy.yaml")
+			data, err := os.ReadFile(policyPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(policyPath, []byte(tc.policyEdit(string(data))), 0o644); err != nil {
+				t.Fatal(err)
+			}
+			stdout, stderr := tempOutputFiles(t)
+			code := run([]string{"baseline", "create", "--project", project, "--id", "baseline.agent-policy", "--name", "Agent policy", "--approved-by", "actor.ai.codex.local", "--dry-run", "--format", "json"}, stdout, stderr)
+			if code != tc.wantExit {
+				t.Fatalf("exit=%d want=%d; stdout=%s stderr=%s", code, tc.wantExit, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+			}
+		})
+	}
+}
+
+func TestUncoveredAgentWritesRemainAllowed(t *testing.T) {
+	project := copyCmdProjectFixture(t)
+	commands := [][]string{
+		{"evidence", "add", "--project", project, "--id", "evidence.agent-write", "--type", "observation", "--actor", "actor.ai.codex.local", "--observed-at", "2026-10-30T12:00:00Z", "--summary", "Agent observation", "--target", "task:task.op.1234", "--apply", "--format", "json"},
+		{"actual", "add-consumption", "--project", project, "--task", "task.op.1234", "--demand", "resource_demand.task-op-1234.ai-agent", "--resource", "resource.ai.codex.local", "--amount", "1", "--unit", "agent_hours", "--actor", "actor.ai.codex.local", "--occurred-at", "2026-10-30T12:01:00Z", "--apply", "--format", "json"},
+		{"actual", "add-status", "--project", project, "--task", "task.op.1234", "--status", "in_progress", "--actor", "actor.ai.codex.local", "--occurred-at", "2026-10-30T12:02:00Z", "--apply", "--format", "json"},
+	}
+	for _, args := range commands {
+		stdout, stderr := tempOutputFiles(t)
+		if code := run(args, stdout, stderr); code != exitSuccess {
+			t.Fatalf("%v exit=%d; stdout=%s stderr=%s", args[:2], code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+		}
+	}
+}
+
 func TestDocumentedImplementedFlagsExist(t *testing.T) {
 	documented := documentedImplementedFlags(t, "../../docs/spec/cli.md")
 	paths, _ := helpPathsFromUsage(t)
@@ -2640,6 +2769,57 @@ func copyCmdProjectFixtureFrom(t *testing.T, sourcePath, targetName string) stri
 		t.Fatalf("copy fixture: %v", err)
 	}
 	return dst
+}
+
+func createCLIImportSnapshot(t *testing.T, project string) string {
+	t.Helper()
+	stdout, stderr := tempOutputFiles(t)
+	if code := run([]string{"import", "openproject", "--project", project, "--from-file", "../../examples/imports/openproject/work-packages.sample.json", "--format", "json"}, stdout, stderr); code != exitSuccess {
+		t.Fatalf("create import snapshot exit=%d; stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	var env struct {
+		Result struct {
+			Snapshot struct {
+				ID string `json:"id"`
+			} `json:"snapshot"`
+		} `json:"result"`
+	}
+	if err := json.Unmarshal([]byte(readFileString(t, stdout.Name())), &env); err != nil {
+		t.Fatal(err)
+	}
+	if env.Result.Snapshot.ID == "" {
+		t.Fatal("import returned an empty snapshot id")
+	}
+	return env.Result.Snapshot.ID
+}
+
+func projectFileContents(t *testing.T, root string) map[string]string {
+	t.Helper()
+	files := map[string]string{}
+	if err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if entry.IsDir() {
+			return nil
+		}
+		rel, err := filepath.Rel(root, path)
+		if err != nil {
+			return err
+		}
+		if strings.HasPrefix(filepath.ToSlash(rel), ".replan/lock/") {
+			return nil
+		}
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		files[filepath.ToSlash(rel)] = string(data)
+		return nil
+	}); err != nil {
+		t.Fatal(err)
+	}
+	return files
 }
 
 func setCmdProjectOpenProjectIDs(t *testing.T, projectPath, policy string) {

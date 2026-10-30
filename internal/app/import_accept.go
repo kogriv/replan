@@ -210,6 +210,7 @@ func (s ImportAcceptService) Accept(ctx context.Context, req ImportAcceptRequest
 			Target:   Target{Kind: "actor"},
 		})
 	}
+	appendNamedApprovingActorDiagnostic(&result.Errors, ws, req.ActorID)
 	reader, ok := s.loader.(ImportSnapshotReader)
 	if !ok {
 		result.Errors = append(result.Errors, Diagnostic{

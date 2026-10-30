@@ -359,13 +359,10 @@ func (s ScenarioService) Apply(ctx context.Context, req ScenarioApplyRequest) (S
 			Target:   Target{Kind: "actor"},
 		})
 	}
-	if req.ActorID != "" && !hasActor(ws.Actors, req.ActorID) {
-		result.Errors = append(result.Errors, Diagnostic{
-			Code:     "actor_not_found",
-			Message:  fmt.Sprintf("actor %s not found", req.ActorID),
-			Severity: "error",
-			Target:   Target{Kind: "actor", ID: req.ActorID},
-		})
+	if req.ActorID != "" {
+		if diagnostic := validateApprovingActor(ws, req.ActorID); diagnostic != nil {
+			result.Errors = append(result.Errors, *diagnostic)
+		}
 	}
 	if req.EvidenceID != "" && !hasEvidence(ws.Evidence, req.EvidenceID) {
 		result.Errors = append(result.Errors, Diagnostic{
