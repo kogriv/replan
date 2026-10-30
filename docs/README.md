@@ -193,6 +193,9 @@ Project-level entry points:
 - [`dev/estimate-calibration-design.md`](dev/estimate-calibration-design.md)
   — proposed design for turning estimate accuracy into a sealed, approved
   calibration applied to open work through a scenario.
+- [`dev/first-project-onboarding-design.md`](dev/first-project-onboarding-design.md)
+  — proposed `replan init`, resource and capacity commands and a tested
+  quickstart guide for a first project of one's own.
 - [`dev/openproject-helpers.md`](dev/openproject-helpers.md) — how to call
   the OpenProject import, drift, bootstrap and write-back helpers, with the
   private binding layout and the operating direction.

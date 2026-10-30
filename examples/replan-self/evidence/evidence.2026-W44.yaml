@@ -2059,3 +2059,82 @@ evidence:
     targets:
       - kind: task
         id: task.self.update-roadmap-after-v0-2-0
+  - id: evidence.self.start-fix-flaky-bindings-precedence-test
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T11:00:15+07:00"
+    summary: go test ./... failed once in TestBindingsLayerUsageAndPrecedence/helper_setting_alone_has_no_effect and passed on rerun; replan export json carries exported_at with the current second, so the byte comparison of two runs is clock-dependent.
+    targets:
+      - kind: task
+        id: task.self.fix-flaky-bindings-precedence-test
+      - kind: task
+        id: task.self.fix-first-project-defects
+  - id: evidence.self.start-keep-plugin-load-profile-check-independent-of-plan
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T11:11:56+07:00"
+    summary: 'The local gate on 2026-10-30 failed in the plugin throwaway runtime check: the overlay built from the self plan has weeks up to 2026-W44, the status date week, so add_overload_cases finds no week with capacity after the status date.'
+    targets:
+      - kind: task
+        id: task.self.keep-plugin-load-profile-check-independent-of-plan
+  - id: evidence.self.start-release-build-ignores-surrounding-git
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T11:31:32+07:00"
+    summary: 'The local gate on 2026-10-30 failed in test_build_release: go build in the git-archive source under /tmp reported "error obtaining VCS status" because an unrelated empty /tmp/.git directory appeared at 11:20, together with /tmp/.codex, /tmp/.aws and /tmp/.agents. Those directories were left in place.'
+    targets:
+      - kind: task
+        id: task.self.release-build-ignores-surrounding-git
+  - id: evidence.self.design-first-project-onboarding
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T11:44:38+07:00"
+    summary: 'Design note docs/dev/first-project-onboarding-design.md written from a walk from an empty directory to a first workload report with the v0.2.0 binary: replan init, resource add/list and capacity set, three defects (task add refuses the first task, evidence cannot target the project, workload and scenario list/show print no result in markdown and text), a tested quickstart guide and a kit section; four questions for the operator. Linked from docs/README.md.'
+    targets:
+      - kind: task
+        id: task.self.design-first-project-onboarding
+  - id: evidence.self.fix-flaky-bindings-precedence-test
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T11:44:38+07:00"
+    summary: The bindings precedence test now compares the two export runs without the export id and time, which carry the current second. With a forced 1.1 s pause between the runs the old comparison failed and the new one passes; three repeated runs pass. Full local gate green.
+    targets:
+      - kind: task
+        id: task.self.fix-flaky-bindings-precedence-test
+  - id: evidence.self.keep-plugin-load-profile-check-independent-of-plan
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T11:44:38+07:00"
+    summary: 'The rendered-page overlay copy adds the week after the last one, seven days after its start, and widens the span to it when the plan holds no work after the status date; two unit tests. The throwaway runtime check passes again with the self plan ending in the status week: rendered pages, 66 live kit checks. Full local gate green.'
+    targets:
+      - kind: task
+        id: task.self.keep-plugin-load-profile-check-independent-of-plan
+  - id: evidence.self.release-build-ignores-surrounding-git
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T11:44:38+07:00"
+    summary: Release builds pass -buildvcs=false. With the stray /tmp/.git present, the new module built v0.2.0 from a clean worktree of the tag and all six archives match the published SHA256SUMS byte for byte; test_build_release passes. Full local gate green.
+    targets:
+      - kind: task
+        id: task.self.release-build-ignores-surrounding-git

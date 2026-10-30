@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 172,
-  "count": 172,
+  "total": 176,
+  "count": 176,
   "_embedded": {
     "elements": [
       {
@@ -4982,6 +4982,122 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2272"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2273,
+        "subject": "Make the bindings precedence test independent of the clock",
+        "description": {
+          "raw": "Found on 2026-10-30 while gating the onboarding design: TestBindingsLayerUsageAndPrecedence/helper_setting_alone_has_no_effect compares two replan export json runs byte for byte, but the output carries exported_at with the current second, so the test fails whenever the two runs fall into different seconds. Compare the outputs without the export timestamp."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2273"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2274,
+        "subject": "Fix the defects found on the way to a first project",
+        "description": {
+          "raw": "Found on 2026-10-30 while walking from an empty directory to a first workload report (docs/dev/first-project-onboarding-design.md, section 3): replan task add refuses the first task of an empty current plan; replan evidence add cannot target the project, so a decision made before any task has nowhere to point; replan workload, scenario list and scenario show print only a status line in markdown and text, the result is in JSON only. Fix all three with tests and update the getting-started inventory."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2274"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2275,
+        "subject": "Keep the plugin load profile check independent of future work in the plan",
+        "description": {
+          "raw": "Found on 2026-10-30 in the local gate: the plugin throwaway runtime check stopped with \"the overlay has no resource with capacity on both sides of the status date\". The rendered-page overlay copy plants a still-overloaded week after the status date, but the self plan now ends in the status date's week, so no such week exists. Let the copy add the week after the last one when the plan has none ahead, so the check does not depend on future work in the plan."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2275"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2276,
+        "subject": "Keep release builds independent of a git directory around the build",
+        "description": {
+          "raw": "Found on 2026-10-30 in the local gate: test_build_release failed with release_build_failed because go build, run in the source extracted from git archive under TMPDIR, found an unrelated empty .git directory in /tmp and stopped with \"error obtaining VCS status\". The release build already passes the commit through ldflags, so build with -buildvcs=false; the archives stay byte-identical because the extracted source has no VCS data to stamp."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2276"
           },
           "status": {
             "title": "New"

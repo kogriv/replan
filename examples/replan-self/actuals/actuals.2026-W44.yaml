@@ -1994,3 +1994,87 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.update-roadmap-after-v0-2-0
+    - id: actual.self-design-first-project-onboarding.ai-agent-executor.20261030T1144380700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-first-project-onboarding
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.design-first-project-onboarding.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.09
+      unit: agent_hours
+      occurred_at: "2026-10-30T11:44:38+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.design-first-project-onboarding
+    - id: actual.self-fix-flaky-bindings-precedence-test.ai-agent-executor.20261030T1144380700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.fix-flaky-bindings-precedence-test
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.fix-flaky-bindings-precedence-test.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.19
+      unit: agent_hours
+      occurred_at: "2026-10-30T11:44:38+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.fix-flaky-bindings-precedence-test
+    - id: actual.self-keep-plugin-load-profile-check-independent-of-plan.ai-agent-executor.20261030T1144380700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.keep-plugin-load-profile-check-independent-of-plan
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.keep-plugin-load-profile-check-independent-of-plan.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.33
+      unit: agent_hours
+      occurred_at: "2026-10-30T11:44:38+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.keep-plugin-load-profile-check-independent-of-plan
+    - id: actual.self-release-build-ignores-surrounding-git.ai-agent-executor.20261030T1144380700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.release-build-ignores-surrounding-git
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.release-build-ignores-surrounding-git.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.22
+      unit: agent_hours
+      occurred_at: "2026-10-30T11:44:38+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.release-build-ignores-surrounding-git

@@ -151,7 +151,9 @@ with tempfile.TemporaryDirectory(prefix="replan-release.", dir=os.environ.get("T
         ))
         env = os.environ.copy()
         env.update({"CGO_ENABLED": "0", "GOOS": goos, "GOARCH": goarch})
-        run("go", "build", "-trimpath", "-ldflags", ldflags, "-o", str(binary), "./cmd/replan", cwd=source_dir, env=env)
+        # The extracted source has no VCS data; a stray .git above TMPDIR must
+        # not make go build try to stamp it. The commit comes from ldflags.
+        run("go", "build", "-trimpath", "-buildvcs=false", "-ldflags", ldflags, "-o", str(binary), "./cmd/replan", cwd=source_dir, env=env)
         stem = f"replan_{version}_{goos}_{goarch}"
         suffix = ".zip" if goos == "windows" else ".tar.gz"
         archive_path = output_dir / f"{stem}{suffix}"

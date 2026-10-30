@@ -20,6 +20,7 @@ with evidence, booked time and a predecessor with a work package of its own,
 whose task page shows all three.
 """
 
+import datetime
 import json
 import sys
 
@@ -63,11 +64,15 @@ def add_overload_cases(overlay):
     has had both and neither at different times, so the copy gets them: the
     first resource with capacity is planned over it in the week after the
     status date, which is also listed as still overloaded, and in the week
-    before, which is not.
+    before, which is not. When the plan holds no work after the status
+    date, the copy adds the week after its last one and widens the span to
+    it, so the Gantt draws it.
     """
     status = overlay.get("status_date", "")
     for resource in overlay.get("resources") or []:
         weeks = [week for week in resource.get("weeks") or [] if week.get("capacity", 0) > 0]
+        if weeks and weeks[-1].get("start_date", "") <= status:
+            weeks.append(add_next_week(overlay, resource, weeks[-1]))
         ahead = next((week for week in weeks if week.get("start_date", "") > status), None)
         behind = next((week for week in reversed(weeks) if week.get("finish_date", "") < status), None)
         if not ahead or not behind:
@@ -81,6 +86,29 @@ def add_overload_cases(overlay):
         }]
         return
     raise SystemExit("the overlay has no resource with capacity on both sides of the status date")
+
+
+def add_next_week(overlay, resource, last):
+    """Append to the resource the week after LAST, with its capacity and no load.
+
+    LAST may end early, where the plan ends, so the new week starts seven days
+    after LAST starts.
+    """
+    start = datetime.date.fromisoformat(last["start_date"]) + datetime.timedelta(days=7)
+    year, week, _ = start.isocalendar()
+    following = {
+        "label": f"{year}-W{week:02d}",
+        "start_date": start.isoformat(),
+        "finish_date": (start + datetime.timedelta(days=6)).isoformat(),
+        "capacity": last["capacity"],
+        "planned": 0,
+    }
+    resource["weeks"].append(following)
+    span = overlay.get("span")
+    if span and span.get("start_date") and span.get("finish_date", "") < following["finish_date"]:
+        span["finish_date"] = following["finish_date"]
+        span["day_count"] = (datetime.date.fromisoformat(following["finish_date"]) - datetime.date.fromisoformat(span["start_date"])).days + 1
+    return following
 
 
 if __name__ == "__main__":

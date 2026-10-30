@@ -305,6 +305,30 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2272"
         url: https://op.example.internal/work_packages/2272
+    - replan_task_id: task.self.fix-flaky-bindings-precedence-test
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2273"
+        url: https://op.example.internal/work_packages/2273
+    - replan_task_id: task.self.keep-plugin-load-profile-check-independent-of-plan
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2275"
+        url: https://op.example.internal/work_packages/2275
+    - replan_task_id: task.self.release-build-ignores-surrounding-git
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2276"
+        url: https://op.example.internal/work_packages/2276
+    - replan_task_id: task.self.fix-first-project-defects
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2274"
+        url: https://op.example.internal/work_packages/2274
     - replan_task_id: task.self.design-local-web-view
       source_ref:
         source: openproject

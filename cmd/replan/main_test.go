@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"sort"
 	"strings"
 	"testing"
@@ -935,7 +936,12 @@ func TestBindingsLayerUsageAndPrecedence(t *testing.T) {
 		if code := run([]string{"export", "json", "--project", project, "--format", "json"}, actualOut, actualErr); code != exitSuccess {
 			t.Fatal(code)
 		}
-		if got, want := readFileString(t, actualOut.Name()), readFileString(t, baselineOut.Name()); got != want {
+		// The two exports may fall into different seconds; the export id and
+		// time carry the second.
+		exportClock := regexp.MustCompile(`"(exported_at|id)": "(export\.replan\.)?[0-9T:+-]*"`)
+		got := exportClock.ReplaceAllString(readFileString(t, actualOut.Name()), "")
+		want := exportClock.ReplaceAllString(readFileString(t, baselineOut.Name()), "")
+		if got != want {
 			t.Fatalf("output changed from REPLAN_OPENPROJECT_BINDINGS_PATH alone")
 		}
 	})
