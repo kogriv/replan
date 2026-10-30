@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 190,
-  "count": 190,
+  "total": 191,
+  "count": 191,
   "_embedded": {
     "elements": [
       {
@@ -5504,6 +5504,35 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2290"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2291,
+        "subject": "Keep the smoke independent of the live self plan",
+        "description": {
+          "raw": "Found on 2026-10-30, twice in one day: CI failed in the MVP smoke because it asserts that tracking suggest finds nothing in the live self plan, so an honest overrun or an unfinished bookkeeping step in the dogfood data fails a code check. Keep the smoke's tracking-suggest assertions on a fixture or a frozen copy whose state the test controls, and move the check that the self plan has no open suggestions into the dogfood loop (accept and finish steps) where it belongs."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2291"
           },
           "status": {
             "title": "New"
