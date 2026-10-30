@@ -2640,3 +2640,17 @@ evidence:
     targets:
       - kind: task
         id: task.self.correct-mis-booked-actuals
+  - id: evidence.self.start-require-human-approvers
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T20:33:02+07:00"
+    summary: 'Operator said on 2026-10-30 to continue with the remaining tasks. Decision: under the default proposal_only policy, commands that approve or apply a change (proposal accept and reject, scenario apply, baseline create, estimate calibrate, import accept, accepted and cancelled status) require a human actor; recording work stays open to agents. Original estimate before the Codex split: 2 agent hours.'
+    targets:
+      - kind: task
+        id: task.self.require-human-approvers
+      - kind: task
+        id: task.self.accept-dependencies-with-their-tasks
