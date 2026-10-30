@@ -2490,3 +2490,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.fix-dashboard-for-short-project-paths
+  - id: evidence.self.write-tested-quickstart-guide
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T16:18:18+07:00"
+    summary: docs/quickstart.md walks from an empty directory through replan init, an AI agent with an actor, two capacities, evidence on the project, two tasks with demands, validate, the weekly report showing a 6-hour overload and the dashboard. scripts/lib/quickstart_check.py runs every sh block in one shell in a new directory with the built binary as replan and checks the lines of each following text block; the smoke runs it, with unit tests for the block parser. The README links the guide; the agent kit README gains Start a plan of your own, and the kit check runs replan init and validates the new plan with no warnings (50 offline checks). Its first run found the dashboard defect fixed separately. Full local gate green.
+    targets:
+      - kind: task
+        id: task.self.write-tested-quickstart-guide

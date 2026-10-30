@@ -193,6 +193,8 @@ Project-level entry points:
 - [`dev/estimate-calibration-design.md`](dev/estimate-calibration-design.md)
   — proposed design for turning estimate accuracy into a sealed, approved
   calibration applied to open work through a scenario.
+- [`quickstart.md`](quickstart.md) — your first project: an empty directory
+  to a weekly workload report with commands only; the smoke test runs it.
 - [`dev/first-project-onboarding-design.md`](dev/first-project-onboarding-design.md)
   — approved `replan init`, resource and capacity commands and a tested
   quickstart guide for a first project of one's own.

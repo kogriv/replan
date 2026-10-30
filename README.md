@@ -56,6 +56,9 @@ go install github.com/kogriv/replan/cmd/replan@latest
 replan --version
 ```
 
+To start a plan of your own, follow [Your first project](docs/quickstart.md):
+an empty directory to a weekly workload report in a few commands.
+
 To run the examples below, work from a clone:
 
 ```bash

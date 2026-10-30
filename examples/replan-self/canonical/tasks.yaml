@@ -5493,7 +5493,7 @@ tasks:
       title: Write the tested quickstart guide
       description: 'Approved by the operator on 2026-10-30 (docs/dev/first-project-onboarding-design.md, sections 4 and 5): docs/quickstart.md linked from the README walks from install through replan init, a person and an AI agent with capacities, two tasks with demands, a weekly report showing an overload and the dashboard, with pointers to scenarios, baselines and tracker imports. The smoke runs the guide''s commands in a temporary directory and checks the promised overload. The agent kit README gains the same path and the kit check runs replan init.'
       type: documentation
-      tracking_status: in_progress
+      tracking_status: review_ready
       planned_start: "2026-10-30"
       planned_finish: "2026-10-30"
       assignee_hint:

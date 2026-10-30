@@ -238,6 +238,26 @@ RePlan. Record them from evidence and actuals with `bin/replan actual
 add-status` and the other `actual` commands; push only the resulting tracking
 status to OpenProject.
 
+## Start a plan of your own
+
+The sample plan in `examples/small-team` shows every feature. To plan your
+own work, create a project and fill it with commands; each write takes
+`--apply` and is audited:
+
+```sh
+bin/replan init ~/plans/website --name "Website relaunch" --owner "Anna Lee" --apply
+bin/replan resource add --project ~/plans/website --id resource.ai.coder \
+  --class ai_agent --name "Coding agent" --with-actor limited \
+  --actor actor.human.anna-lee --apply
+bin/replan capacity set --project ~/plans/website --resource resource.human.anna-lee \
+  --unit hours --amount 30 --actor actor.human.anna-lee --apply
+```
+
+Then point `REPLAN_PROJECT` at it. Tasks come from `bin/replan task add` or
+from an import of your tracker (`bin/replan import openproject|github`, then
+`import accept`). The RePlan repository's `docs/quickstart.md` walks the same
+path to a first weekly report.
+
 ## Daily commands
 
 Plan and load, from the plan alone:

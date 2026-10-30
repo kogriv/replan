@@ -131,6 +131,12 @@ check
 kit bin/replan validate "$KIT/examples/small-team" --format json > "$WORK_DIR/validate.json" || fail "replan validate failed on the sample plan"
 json_true "$WORK_DIR/validate.json" "d['ok'] and not d.get('errors')" || fail "sample plan has errors"
 
+# A plan of one's own starts from the kit's binary alone.
+check
+kit bin/replan init "$WORK_DIR/own-plan" --name "Own plan" --owner "Kit User" --timezone UTC --apply --format json > "$WORK_DIR/init.json" || fail "replan init failed"
+kit bin/replan validate "$WORK_DIR/own-plan" --format json > "$WORK_DIR/init-validate.json" || fail "the new plan does not validate"
+json_true "$WORK_DIR/init-validate.json" "d['ok'] and not d.get('errors') and not d.get('warnings')" || fail "the new plan has errors or warnings"
+
 check
 kit env REPLAN_PROJECT="$KIT/examples/small-team" REPLAN_OPENPROJECT_PROJECT_ID=sample \
   scripts/plan-openproject-bootstrap.sh > "$WORK_DIR/plan.json" || fail "bootstrap plan failed"

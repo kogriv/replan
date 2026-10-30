@@ -963,6 +963,11 @@ for github_accept_mode in tasks resource-links tracking-status dates dependencie
 done
 run_json_ok github-import-project-validate "$BIN" validate "$github_project" --format json
 
+# The quickstart guide: its commands run as written, in a new directory, and
+# print what the guide shows.
+PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" \
+  python3 -m quickstart_check "$ROOT_DIR/docs/quickstart.md" "$BIN"
+
 # The agent kit: the archive an outside agent works from, built, unpacked
 # outside the repository and used with no Go toolchain.
 "$ROOT_DIR/scripts/check-agent-kit.sh"

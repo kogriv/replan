@@ -2519,3 +2519,24 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.fix-dashboard-for-short-project-paths
+    - id: actual.self-write-tested-quickstart-guide.ai-agent-executor.20261030T1618180700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.write-tested-quickstart-guide
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.write-tested-quickstart-guide.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.34
+      unit: agent_hours
+      occurred_at: "2026-10-30T16:18:18+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.write-tested-quickstart-guide
