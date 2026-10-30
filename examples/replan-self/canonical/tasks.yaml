@@ -5582,7 +5582,7 @@ tasks:
       title: Import OpenProject relates relations
       description: 'Found on 2026-10-30 in a read-only import of the third project: 13 OpenProject relations of type relates were skipped with openproject_relation_type_unsupported. Decide how relates maps into RePlan (a non-scheduling link, or reported and kept out of the dependency graph on purpose) and implement it in the import and import accept, so a tracker that links related work does not lose those links silently.'
       type: implementation
-      tracking_status: in_progress
+      tracking_status: review_ready
       planned_start: "2026-10-30"
       planned_finish: "2026-10-30"
       assignee_hint:

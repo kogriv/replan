@@ -2687,3 +2687,66 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.recover-interrupted-multi-file-commits
+    - id: actual.self-import-openproject-relates-relations.ai-codex-local.20261030T1910580700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.import-openproject-relates-relations
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.import-openproject-relates-relations.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.55
+      unit: agent_hours
+      occurred_at: "2026-10-30T19:10:58+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.import-openproject-relates-relations
+    - id: actual.self-import-openproject-relates-relations.ai-agent-executor.20261030T1910580700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.import-openproject-relates-relations
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.import-openproject-relates-relations.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.3
+      unit: agent_hours
+      occurred_at: "2026-10-30T19:10:58+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.import-openproject-relates-relations
+    - id: actual.self-import-openproject-relates-relations.ai-agent-executor.20261030T1911180700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.import-openproject-relates-relations
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.import-openproject-relates-relations.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.23
+      unit: agent_hours
+      occurred_at: "2026-10-30T19:11:18+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.import-openproject-relates-relations

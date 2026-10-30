@@ -2595,3 +2595,26 @@ evidence:
     targets:
       - kind: task
         id: task.self.recover-interrupted-multi-file-commits
+  - id: evidence.self.import-openproject-relates-relations
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T19:10:58+07:00"
+    summary: 'Codex rounds 1 (18:06-18:25) and 2 (18:41-18:55): dependency type relates, symmetric and non-scheduling, excluded from date-order, blocking, next, Gantt warnings, rescheduling and TaskJuggler; import maps OpenProject relates, accept creates optional open links, report state counts related links; helpers map and match relates in either direction. Round 2, from the live check: OpenProject allows one relation per pair, so the relations helper skips a second link with openproject_pair_already_related and validate warns dependency_pair_has_several_links. Read-only import of the third project into a scratch plan: 15 relates links accepted after the tasks, 0 unsupported, no blockers. The self plan has no pair warnings and all 141 relations match. Full local gate green, 79 live kit checks.'
+    targets:
+      - kind: task
+        id: task.self.import-openproject-relates-relations
+  - id: evidence.self.relates-review-time
+    type: decision
+    subtype: correction
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T19:11:18+07:00"
+    summary: 'The first booking of 0.3 executor hours for the relates import was not measured. Measured review windows: 18:25:44-18:41:46 between the Codex rounds and 18:55:31 to 2026-10-30T19:11:18+07:00 after the second, 0.53 hours in all; the missing 0.23 hours are booked as a second actual. The overrun against the 0.25 planned is real: the second round came from the live check.'
+    targets:
+      - kind: task
+        id: task.self.import-openproject-relates-relations
