@@ -1557,7 +1557,7 @@ Implemented dependency overview slice:
 - lists dependency id, type, status, criticality, predecessor and successor;
 - includes successor task tracking status when the successor is a task;
 - marks dependencies as `blocking` when they are active required blockers or
-  active `blocks` relations;
+  active `blocks` relations; `relates` is always shown as a non-blocking link;
 - marks dependencies as `resolvable` when the predecessor task already
   satisfies the required state;
 - lists blocked successor tasks whose required dependencies are all resolved or
@@ -2125,7 +2125,8 @@ Rules:
   safe tracker relation-backed dependency changes to
   `canonical/dependencies.yaml` and audit;
 - dependency accept must never create a duplicate canonical dependency record
-  when a matching predecessor/successor/type triple already exists;
+  when a matching predecessor/successor/type triple already exists; `relates`
+  compares its predecessor and successor as an unordered pair;
 - if the matching dependency already has the same tracker relation
   `source_ref`, dependency accept is a no-op with an already-imported warning;
 - `--accept-dependencies` is a separate accept mode and does not also accept
@@ -2146,6 +2147,9 @@ Rules:
 - dependency acceptance requires existing canonical predecessor and successor
   tasks, supported dependency type, no duplicate tracker relation source ref
   and no duplicate predecessor/successor/type triple;
+- validation warns `dependency_pair_has_several_links` when multiple
+  dependency records connect the same two tasks, because a tracker may permit
+  only one relation for the pair;
 - recommended OpenProject pilot sequence:
   ordinary `import accept --apply`, then
   `import accept --accept-resource-links --apply`, then

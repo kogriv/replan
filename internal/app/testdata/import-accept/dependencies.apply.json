@@ -79,6 +79,15 @@
       },
       "warnings": [
         {
+          "code": "dependency_pair_has_several_links",
+          "message": "dependency task pair task.offline.repair-pump and task.op.1234 is also linked by dependency.repair-pump-before-validation; trackers may allow only one relation per pair",
+          "severity": "warning",
+          "target": {
+            "kind": "dependency",
+            "id": "dependency.openproject.relation.88"
+          }
+        },
+        {
           "code": "required_dependency_unresolved",
           "message": "required dependency dependency.repair-pump-before-validation is open",
           "severity": "warning",

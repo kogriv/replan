@@ -120,6 +120,7 @@ Approved MVP dependency types:
 ```text
 finish_to_start
 blocks
+relates
 requires_input_from
 requires_resource_from
 external_dependency
@@ -147,6 +148,15 @@ Example:
 ```text
 supplier answer blocks procurement decision
 ```
+
+### relates
+
+Two tasks are associated without either one ordering or blocking the other.
+The link is symmetric: `A relates B` and `B relates A` are the same canonical
+dependency triple. It is listed in dependency and dashboard views, but date
+checks, blocker logic, `next`, dependency-resolution proposals, rescheduling
+and TaskJuggler export ignore it. The least surprising stored defaults are
+`criticality: optional`, no `required_state`, and `status: open`.
 
 ### requires_input_from
 
@@ -366,6 +376,7 @@ The approved functional dependency types are:
 ```text
 finish_to_start
 blocks
+relates
 requires_input_from
 requires_resource_from
 external_dependency
@@ -376,6 +387,7 @@ The first OpenProject accept implementation only needs to write:
 ```text
 finish_to_start
 blocks
+relates
 ```
 
 Other approved types may be supported manually before source-system import
@@ -393,14 +405,16 @@ Accepted OpenProject mapping for MVP:
 | `follows` | `finish_to_start` | `to` is predecessor, `from` is successor |
 | `blocks` | `blocks` | `from` blocks successor `to` |
 | `blocked` | `blocks` | `to` blocks successor `from` |
+| `relates` | `relates` | symmetric; retain API `from` and `to`, but compare either order as the same link |
 
 OpenProject may normalize relation creation into the reverse relation type.
 For example, a requested `precedes` relation may be returned as `follows` with
 the `from` and `to` sides reversed. RePlan should trust the relation record
 returned by the OpenProject API and apply the mapping table above.
 
-Unsupported OpenProject relation types should not be accepted until explicitly
-designed.
+OpenProject `duplicates`, `duplicated`, `includes`, `partof`, `requires` and
+`required` remain unsupported and produce
+`openproject_relation_type_unsupported`.
 
 ### Dependency accept workflow
 
@@ -423,6 +437,9 @@ Rules:
 - apply must run validation after writing;
 - apply must not mutate task dates, task status, baselines, current plan dates,
   actuals or source systems.
+- validation warns `dependency_pair_has_several_links` when multiple
+  dependency records connect the same two tasks, because trackers such as
+  OpenProject may permit only one relation for the pair;
 
 Safe acceptance requires:
 
@@ -1030,7 +1047,7 @@ MVP should not implement:
 - Deadlines are part of MVP.
 - MVP dependencies affect warnings and feasibility checks.
 - MVP dependencies do not automatically reschedule the plan.
-- Dependency types include `finish_to_start`, `blocks`,
+- Dependency types include `finish_to_start`, `blocks`, `relates`,
   `requires_input_from`, `requires_resource_from` and `external_dependency`.
 - Dependency statuses include `open`, `resolved`, `blocked`, `unknown` and
   `cancelled`.

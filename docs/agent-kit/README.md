@@ -501,6 +501,18 @@ OpenProject 17.6. The toolkit snapshots both endpoint work packages and, after
 creation, restores manual scheduling and their original dates when OpenProject
 changed them. The dry run calls out this risk and the planned restoration.
 
+For plan-backed relation apply, RePlan `relates` maps to OpenProject `relates`.
+It is a symmetric, non-scheduling link: an existing reverse-endpoint relation
+matches, no duplicate is created, and the helper does not run scheduling/date
+restoration for it. Private dependency bindings may store `relation_type:
+relates` like the existing `follows` and `blocks` bindings.
+
+OpenProject permits only one relation, of any type, between a work-package
+pair. If the live project already has another relation type on the pair, or
+the plan contains two dependency types for the same pair, relation apply plans
+only the first and reports `openproject_pair_already_related` for the skipped
+dependency instead of attempting a POST that OpenProject would reject.
+
 Set or clear a parent directly by work-package id:
 
 ```sh

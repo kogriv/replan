@@ -299,6 +299,7 @@ type DashboardHealthSummary struct {
 	ActiveTasks            int `json:"active_tasks"`
 	OpenDependencies       int `json:"open_dependencies"`
 	ResolvedDependencies   int `json:"resolved_dependencies"`
+	RelatedLinks           int `json:"related_links"`
 	OverloadedResources    int `json:"overloaded_resources"`
 	WarningCount           int `json:"warning_count"`
 	ErrorCount             int `json:"error_count"`

@@ -159,6 +159,7 @@ func writeStateHealth(b *strings.Builder, overview DashboardOverview) {
 	fmt.Fprintf(b, "- Accepted tasks: %d\n", health.AcceptedTasks)
 	fmt.Fprintf(b, "- Active tasks: %d\n", health.ActiveTasks)
 	fmt.Fprintf(b, "- Open dependencies: %d\n", health.OpenDependencies)
+	fmt.Fprintf(b, "- Related links: %d\n", health.RelatedLinks)
 	fmt.Fprintf(b, "- Missing-demand tasks: %d\n", health.MissingDemandTaskCount)
 	fmt.Fprintf(b, "- Open proposals: %d\n", health.OpenProposals)
 	fmt.Fprintf(b, "- Scenarios: %d\n", health.ScenarioCount)

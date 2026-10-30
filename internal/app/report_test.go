@@ -365,3 +365,32 @@ func TestDashboardNextActionsWaitOnPersonFirst(t *testing.T) {
 		t.Fatalf("next actions:\n%s\nwant:\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
 	}
 }
+
+func TestDashboardTreatsRelatesAsLinkNotBlockingWork(t *testing.T) {
+	ws := domain.Workspace{
+		Project: domain.Project{ID: "project.test", Name: "Test", DefaultStatusDate: "2026-09-24"},
+		Tasks: []domain.Task{
+			{ID: "task.a", Title: "A", TrackingStatus: "accepted"},
+			{ID: "task.b", Title: "B", TrackingStatus: "in_progress"},
+		},
+		Dependencies: []domain.Dependency{{
+			ID: "dependency.related", Type: "relates", Status: "open", Criticality: "required",
+			PredecessorRef: domain.Ref{Kind: "task", ID: "task.a"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.b"},
+		}},
+	}
+	overview, err := app.NewReportService(stubLoader{ws: ws}).Dashboard(context.Background(), app.DashboardReportRequest{ProjectPath: "stub"})
+	if err != nil {
+		t.Fatalf("Dashboard returned error: %v", err)
+	}
+	if len(overview.Dependencies) != 1 || overview.Dependencies[0].Type != "relates" {
+		t.Fatalf("dashboard did not list relates link: %#v", overview.Dependencies)
+	}
+	if overview.Health.OpenDependencies != 0 || overview.Health.RelatedLinks != 1 || overview.Gantt.Unscheduled[1].OpenDependencyCount != 0 {
+		t.Fatalf("relates counted as open blocking work: health=%#v gantt=%#v", overview.Health, overview.Gantt)
+	}
+	for _, action := range overview.NextActions {
+		if action.Target == "dependency.related" {
+			t.Fatalf("relates appeared in next actions: %#v", overview.NextActions)
+		}
+	}
+}

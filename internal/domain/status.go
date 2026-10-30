@@ -38,7 +38,7 @@ func ValidResourceDemandStatus(status string) bool {
 
 func ValidDependencyType(dependencyType string) bool {
 	switch dependencyType {
-	case "finish_to_start", "blocks", "requires_input_from", "requires_resource_from", "external_dependency":
+	case "finish_to_start", "blocks", "relates", "requires_input_from", "requires_resource_from", "external_dependency":
 		return true
 	default:
 		return false

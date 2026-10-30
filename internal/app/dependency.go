@@ -80,7 +80,7 @@ func (s DependencyService) List(ctx context.Context, req DependencyListRequest) 
 	openProposalsByTarget := openProposalsByTargetID(ws.Proposals)
 	requiredDependenciesBySuccessor := map[string][]domain.Dependency{}
 	for _, dependency := range ws.Dependencies {
-		if dependency.SuccessorRef.Kind == "task" && dependency.Criticality == "required" {
+		if dependency.Type != "relates" && dependency.SuccessorRef.Kind == "task" && dependency.Criticality == "required" {
 			requiredDependenciesBySuccessor[dependency.SuccessorRef.ID] = append(requiredDependenciesBySuccessor[dependency.SuccessorRef.ID], dependency)
 		}
 	}
@@ -96,7 +96,7 @@ func (s DependencyService) List(ctx context.Context, req DependencyListRequest) 
 			SuccessorKind:   dependency.SuccessorRef.Kind,
 			SuccessorID:     dependency.SuccessorRef.ID,
 			Blocking:        dependencyBlocksSuccessor(dependency),
-			Resolvable:      dependency.Criticality == "required" && dependency.Status != "resolved" && dependency.Status != "cancelled" && predecessorSatisfiesDependency(dependency, taskByID),
+			Resolvable:      dependency.Type != "relates" && dependency.Criticality == "required" && dependency.Status != "resolved" && dependency.Status != "cancelled" && predecessorSatisfiesDependency(dependency, taskByID),
 			OpenProposalIDs: stringSliceOrEmpty(openProposalsByTarget[dependency.ID]),
 		}
 		if dependency.SuccessorRef.Kind == "task" {
@@ -105,7 +105,7 @@ func (s DependencyService) List(ctx context.Context, req DependencyListRequest) 
 			}
 		}
 		result.Dependencies = append(result.Dependencies, row)
-		if row.Criticality == "required" && dependencyActive(row.Status) {
+		if row.Type != "relates" && row.Criticality == "required" && dependencyActive(row.Status) {
 			result.Summary.RequiredOpen++
 		}
 		if row.Blocking {
@@ -166,7 +166,7 @@ func stringSliceOrEmpty(values []string) []string {
 }
 
 func dependencyBlocksSuccessor(dependency domain.Dependency) bool {
-	if !dependencyActive(dependency.Status) {
+	if dependency.Type == "relates" || !dependencyActive(dependency.Status) {
 		return false
 	}
 	return dependency.Criticality == "required" || dependency.Type == "blocks"

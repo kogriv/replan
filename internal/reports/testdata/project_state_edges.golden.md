@@ -17,6 +17,7 @@
 - Accepted tasks: 1
 - Active tasks: 1
 - Open dependencies: 1
+- Related links: 0
 - Missing-demand tasks: 0
 - Open proposals: 1
 - Scenarios: 1

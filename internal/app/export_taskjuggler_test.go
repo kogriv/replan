@@ -48,6 +48,23 @@ func TestExportTaskJugglerSmallTeamFixture(t *testing.T) {
 	}
 }
 
+func TestExportTaskJugglerOmitsRelates(t *testing.T) {
+	service := app.NewExportService(staticWorkspaceLoader{workspace: domain.Workspace{
+		Project: domain.Project{ID: "project.test", Name: "Test", Timezone: "UTC", DefaultStatusDate: "2026-07-10"},
+		Tasks:   []domain.Task{{ID: "task.a", Title: "A", TrackingStatus: "ready"}, {ID: "task.b", Title: "B", TrackingStatus: "ready"}},
+		Dependencies: []domain.Dependency{{
+			ID: "dependency.related", Type: "relates", Status: "open", Criticality: "optional",
+			PredecessorRef: domain.Ref{Kind: "task", ID: "task.a"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.b"},
+		}},
+	}})
+	result, err := service.TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{Now: time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC)})
+	if err != nil {
+		t.Fatalf("TaskJuggler returned error: %v", err)
+	}
+	assertNotContains(t, result.Content, "dependency.related")
+	assertNotContains(t, result.Content, "relates")
+}
+
 func TestExportTaskJugglerAppliesScenarioAvailabilityOverlay(t *testing.T) {
 	service := app.NewExportService(filestore.New("../../examples/small-team"))
 

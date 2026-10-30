@@ -344,6 +344,53 @@ class ExitCodeFromOkTest(unittest.TestCase):
                 )
                 self.assertEqual((out["drift_status"], code), (want_status, want_exit))
 
+    def test_drift_check_matches_reverse_relates(self):
+        tasks = [
+            {"id": "task.a", "title": "A", "tracking_status": "not_started"},
+            {"id": "task.b", "title": "B", "tracking_status": "not_started"},
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            bindings = self.project(tmp, tasks)
+            with open(os.path.join(tmp, "canonical", "dependencies.yaml"), "w") as fh:
+                yaml.safe_dump({"dependencies": [{
+                    "id": "dep.related", "type": "relates",
+                    "predecessor_ref": {"kind": "task", "id": "task.a"},
+                    "successor_ref": {"kind": "task", "id": "task.b"},
+                    "status": "open", "criticality": "optional",
+                }]}, fh)
+            with open(bindings) as fh:
+                bindings_doc = yaml.safe_load(fh)
+            bindings_doc["openproject_private_bindings"]["dependencies"] = [{
+                "replan_dependency_id": "dep.related",
+                "source_ref": {"source": "openproject", "object_type": "relation", "object_id": "9"},
+                "relation_type": "relates",
+            }]
+            with open(bindings, "w") as fh:
+                yaml.safe_dump(bindings_doc, fh)
+            imp = os.path.join(tmp, "import.json")
+            with open(imp, "w") as fh:
+                json.dump({"ok": True, "result": {
+                    "task_candidates": [
+                        {"source_id": "1", "title": "A", "mapped_status": "not_started"},
+                        {"source_id": "2", "title": "B", "mapped_status": "not_started"},
+                    ],
+                    "dependency_candidates": [{
+                        "source_id": "9", "relation_type": "relates", "dependency_type": "relates",
+                        "predecessor_task_id": "task.b", "successor_task_id": "task.a",
+                    }],
+                }}, fh)
+            code, out = self.run_module(
+                "check_openproject_drift", "--import-json", imp, "--tmp-dir", tmp, "--root-dir", ROOT,
+                env={
+                    "REPLAN_PROJECT": tmp,
+                    "REPLAN_OPENPROJECT_BINDINGS_PATH": bindings,
+                    "REPLAN_OPENPROJECT_PROJECT_ID": "demo",
+                },
+            )
+        self.assertEqual((code, out["drift_status"]), (0, "aligned"), out)
+        self.assertEqual(out["counts"]["missing_live_dependencies"], 0)
+        self.assertEqual(out["counts"]["extra_live_dependencies"], 0)
+
     def test_drift_check_warns_for_date_drift_and_automatic_scheduling(self):
         task = {
             "id": "task.a", "title": "A", "tracking_status": "not_started",

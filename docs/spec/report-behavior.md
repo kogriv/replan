@@ -180,6 +180,8 @@ Implemented MVP dependency risk surface:
   `dependency_blocks_active_successor`;
 - weekly report does not automatically reschedule tasks or create proposals from
   these warnings.
+- project state reports `relates` separately as related links instead of
+  counting them as open scheduling dependencies.
 
 ## Weekly report summary
 

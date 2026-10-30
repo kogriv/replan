@@ -319,6 +319,56 @@ func TestValidateRejectsDuplicateDependencyTriple(t *testing.T) {
 	}
 }
 
+func TestValidateRelatesIsNonSchedulingAndRejectsReversedDuplicate(t *testing.T) {
+	workspace := domain.Workspace{
+		Project: domain.Project{ID: "project.test", Name: "Test", DefaultStatusDate: "2026-07-10"},
+		Tasks: []domain.Task{
+			{ID: "task.a", Title: "A", TrackingStatus: "accepted", PlannedStart: "2026-07-10", PlannedFinish: "2026-07-12"},
+			{ID: "task.b", Title: "B", TrackingStatus: "in_progress", PlannedStart: "2026-07-09", PlannedFinish: "2026-07-11"},
+		},
+		Dependencies: []domain.Dependency{{
+			ID: "dependency.related", Type: "relates", Status: "open", Criticality: "required",
+			PredecessorRef: domain.Ref{Kind: "task", ID: "task.a"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.b"},
+		}},
+	}
+	result, err := app.NewValidateService(stubLoader{ws: workspace}).Validate(context.Background(), app.ValidateRequest{})
+	if err != nil {
+		t.Fatalf("Validate returned error: %v; errors=%#v", err, result.Errors)
+	}
+	for _, code := range []string{"required_dependency_unresolved", "dependency_successor_starts_before_predecessor_finish", "dependency_blocks_active_successor"} {
+		if hasDiagnostic(result.Warnings, code) {
+			t.Fatalf("relates emitted %s: %#v", code, result.Warnings)
+		}
+	}
+
+	workspace.Dependencies = append(workspace.Dependencies, domain.Dependency{
+		ID: "dependency.related.reversed", Type: "relates", Status: "open", Criticality: "optional",
+		PredecessorRef: domain.Ref{Kind: "task", ID: "task.b"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.a"},
+	})
+	result, err = app.NewValidateService(stubLoader{ws: workspace}).Validate(context.Background(), app.ValidateRequest{})
+	if !errors.Is(err, app.ErrValidationFailed) || !hasDiagnostic(result.Errors, "duplicate_dependency_triple") {
+		t.Fatalf("reversed relates duplicate was accepted: err=%v errors=%#v", err, result.Errors)
+	}
+}
+
+func TestValidateWarnsWhenTaskPairHasSeveralDependencyLinks(t *testing.T) {
+	workspace := domain.Workspace{
+		Project: domain.Project{ID: "project.test", Name: "Test"},
+		Tasks:   []domain.Task{{ID: "task.a", Title: "A", TrackingStatus: "ready"}, {ID: "task.b", Title: "B", TrackingStatus: "ready"}},
+		Dependencies: []domain.Dependency{
+			{ID: "dependency.blocks", Type: "blocks", Status: "open", Criticality: "optional", PredecessorRef: domain.Ref{Kind: "task", ID: "task.a"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.b"}},
+			{ID: "dependency.related", Type: "relates", Status: "open", Criticality: "optional", PredecessorRef: domain.Ref{Kind: "task", ID: "task.b"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.a"}},
+		},
+	}
+	result, err := app.NewValidateService(stubLoader{ws: workspace}).Validate(context.Background(), app.ValidateRequest{})
+	if err != nil {
+		t.Fatalf("Validate returned error: %v; errors=%#v", err, result.Errors)
+	}
+	if !hasDiagnostic(result.Warnings, "dependency_pair_has_several_links") {
+		t.Fatalf("expected dependency_pair_has_several_links warning, got %#v", result.Warnings)
+	}
+}
+
 // GAP-028: an accepted task whose planned finish is after the status date is
 // flagged, in validation and as an agent next action; open tasks and tasks
 // already inside the status date are not.

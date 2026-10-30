@@ -316,7 +316,7 @@ Decision notes:
 - Dependencies and deadlines are part of MVP.
 - MVP dependencies affect warnings and feasibility checks.
 - MVP dependencies do not automatically reschedule the plan.
-- Dependency types include `finish_to_start`, `blocks`,
+- Dependency types include `finish_to_start`, `blocks`, `relates`,
   `requires_input_from`, `requires_resource_from` and `external_dependency`.
 - Minimum deadline risk is forecast finish after deadline.
 - Missing forecast, capacity, remaining work or dependency state should produce

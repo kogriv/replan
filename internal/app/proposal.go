@@ -425,6 +425,9 @@ func findProposalByID(proposals []domain.Proposal, id string) (domain.Proposal, 
 
 func dependencyProposalCandidates(dependency domain.Dependency, taskByID map[string]domain.Task, statusDate string, createdBy domain.Ref, now time.Time) []domain.Proposal {
 	var proposals []domain.Proposal
+	if dependency.Type == "relates" {
+		return proposals
+	}
 	open := dependency.Status != "resolved" && dependency.Status != "cancelled"
 	// A satisfied dependency of any criticality can be marked resolved through
 	// an audited proposal (GAP-024). Only required dependencies also get a
@@ -527,7 +530,7 @@ func dependencyProposalCandidates(dependency domain.Dependency, taskByID map[str
 func successorReadyProposalCandidates(ws domain.Workspace, createdBy domain.Ref, now time.Time) []domain.Proposal {
 	dependenciesBySuccessor := map[string][]domain.Dependency{}
 	for _, dependency := range ws.Dependencies {
-		if dependency.SuccessorRef.Kind == "task" && dependency.Criticality == "required" {
+		if dependency.Type != "relates" && dependency.SuccessorRef.Kind == "task" && dependency.Criticality == "required" {
 			dependenciesBySuccessor[dependency.SuccessorRef.ID] = append(dependenciesBySuccessor[dependency.SuccessorRef.ID], dependency)
 		}
 	}

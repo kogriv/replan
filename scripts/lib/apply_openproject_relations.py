@@ -6,6 +6,7 @@ import sys
 import yaml
 from openproject_http import OpenProjectClient, Settings
 import helper_envelope
+import import_candidates
 import openproject_bindings
 import openproject_rescheduling
 import openproject_working_days
@@ -94,6 +95,14 @@ def relation_tuple_for_dependency(dep, task_wp_by_id):
             "predecessor_task_id": predecessor_id,
             "successor_task_id": successor_id,
         }, None
+    if dep_type == "relates":
+        return {
+            "type": "relates",
+            "from_work_package_id": predecessor_wp,
+            "to_work_package_id": successor_wp,
+            "predecessor_task_id": predecessor_id,
+            "successor_task_id": successor_id,
+        }, None
     return None, {
         "dependency_id": dep.get("id", ""),
         "reason": "unsupported_dependency_type",
@@ -108,6 +117,43 @@ def relation_tuple(relation):
     from_id = (links.get("from") or {}).get("href", "").rstrip("/").split("/")[-1]
     to_id = (links.get("to") or {}).get("href", "").rstrip("/").split("/")[-1]
     return (relation.get("type", ""), from_id, to_id)
+
+def relation_key(relation_type, from_id, to_id):
+    return import_candidates.dependency_key(relation_type, from_id, to_id)
+
+def relation_pair_key(from_id, to_id):
+    return tuple(sorted((str(from_id), str(to_id))))
+
+def pair_conflict_action(dep_id, rel, existing):
+    relation_id = str(existing.get("id", ""))
+    relation_type = existing.get("type", "")
+    existing_dependency_id = existing.get("replan_dependency_id", "")
+    return {
+        "action": "skip_relation",
+        "reason": "openproject_pair_already_related",
+        "replan_dependency_id": dep_id,
+        "relation_type": rel["type"],
+        "from_work_package_id": rel["from_work_package_id"],
+        "to_work_package_id": rel["to_work_package_id"],
+        "predecessor_task_id": rel["predecessor_task_id"],
+        "successor_task_id": rel["successor_task_id"],
+        "openproject_relation_id": "",
+        "existing_openproject_relation_id": relation_id,
+        "existing_relation_type": relation_type,
+        "existing_replan_dependency_id": existing_dependency_id,
+    }
+
+def pair_conflict_warning(action):
+    existing = action["existing_relation_type"]
+    if action["existing_openproject_relation_id"]:
+        existing += " relation " + action["existing_openproject_relation_id"]
+    elif action["existing_replan_dependency_id"]:
+        existing += " dependency " + action["existing_replan_dependency_id"]
+    return helper_envelope.diagnostic(
+        "openproject_pair_already_related",
+        f"Dependency {action['replan_dependency_id']} was skipped because its work-package pair already has {existing}.",
+        "warning", "dependency", action["replan_dependency_id"],
+    )
 
 def create_relation(rel):
     payload = {
@@ -170,24 +216,56 @@ def main():
 
     existing_relations = list_relations()
     existing_by_tuple = {}
+    existing_by_pair = {}
     for relation in existing_relations:
-        existing_by_tuple[relation_tuple(relation)] = relation
+        relation_type, from_id, to_id = relation_tuple(relation)
+        existing_by_tuple[relation_key(relation_type, from_id, to_id)] = relation
+        existing_by_pair.setdefault(relation_pair_key(from_id, to_id), relation)
 
     existing_private_deps = openproject_bindings.dependency_bindings_by_id(bindings_doc)
     actions = []
     errors = []
+    warnings = []
     new_private_deps = []
     partial_binding_context["dependencies"] = new_private_deps
 
+    relation_plans = []
+    planned_by_pair = {}
+    for dep in dependencies:
+        dep_id = dep.get("id", "")
+        rel, err = relation_tuple_for_dependency(dep, task_wp_by_id)
+        if err:
+            relation_plans.append({"dependency": dep, "relation": None, "error": err})
+            continue
+        key = relation_key(rel["type"], rel["from_work_package_id"], rel["to_work_package_id"])
+        pair_key = relation_pair_key(rel["from_work_package_id"], rel["to_work_package_id"])
+        pair_planned = planned_by_pair.get(pair_key)
+        if pair_planned:
+            relation_plans.append({"dependency": dep, "relation": rel, "action": "skip_relation", "existing": pair_planned})
+            continue
+        existing = existing_by_tuple.get(key)
+        if existing:
+            planned_by_pair[pair_key] = {**existing, "replan_dependency_id": dep_id}
+            relation_plans.append({"dependency": dep, "relation": rel, "action": "match_existing_relation", "existing": existing})
+            continue
+        pair_existing = existing_by_pair.get(pair_key)
+        if pair_existing:
+            planned_by_pair[pair_key] = {**pair_existing, "replan_dependency_id": dep_id}
+            relation_plans.append({"dependency": dep, "relation": rel, "action": "skip_relation", "existing": pair_existing})
+            continue
+        planned = {"id": "", "type": rel["type"], "replan_dependency_id": dep_id}
+        planned_by_pair[pair_key] = planned
+        relation_plans.append({"dependency": dep, "relation": rel, "action": "create_relation", "planned": planned})
+
     managed_follows = []
     pending_follows = []
-    for dep in dependencies:
-        rel, err = relation_tuple_for_dependency(dep, task_wp_by_id)
-        if err or rel["type"] != "follows":
+    for plan in relation_plans:
+        rel = plan.get("relation")
+        if not rel or plan.get("action") == "skip_relation" or rel["type"] != "follows":
             continue
+        dep = plan["dependency"]
         managed_follows.append({**rel, "replan_dependency_id": dep.get("id", "")})
-        key = (rel["type"], rel["from_work_package_id"], rel["to_work_package_id"])
-        if key not in existing_by_tuple:
+        if plan["action"] == "create_relation":
             pending_follows.append({**rel, "replan_dependency_id": dep.get("id", "")})
 
     rescheduling_targets = set()
@@ -229,15 +307,22 @@ def main():
             if snapshot.get("scheduleManually") is False
         )
 
-    for dep in dependencies:
+    for plan in relation_plans:
+        dep = plan["dependency"]
         dep_id = dep.get("id", "")
-        rel, err = relation_tuple_for_dependency(dep, task_wp_by_id)
+        rel = plan.get("relation")
+        err = plan.get("error")
         if err:
             errors.append(err)
             continue
-        key = (rel["type"], rel["from_work_package_id"], rel["to_work_package_id"])
-        existing = existing_by_tuple.get(key)
-        if existing:
+        if plan["action"] == "skip_relation":
+            action_item = pair_conflict_action(dep_id, rel, plan["existing"])
+            actions.append(action_item)
+            warnings.append(pair_conflict_warning(action_item))
+            continue
+        key = relation_key(rel["type"], rel["from_work_package_id"], rel["to_work_package_id"])
+        if plan["action"] == "match_existing_relation":
+            existing = plan["existing"]
             relation_id = str(existing.get("id", ""))
             action = "match_existing_relation"
         elif mode == "apply":
@@ -252,6 +337,7 @@ def main():
             partial_apply.writing()
             created = create_relation(rel)
             relation_id = str(created.get("id", ""))
+            plan["planned"]["id"] = relation_id
             existing_by_tuple[key] = created
             action = "created_relation"
         else:
@@ -403,10 +489,11 @@ def main():
         "create_relation": sum(1 for action in actions if action["action"] == "create_relation"),
         "created_relation": sum(1 for action in actions if action["action"] == "created_relation"),
         "matched_existing_relation": sum(1 for action in actions if action["action"] == "match_existing_relation"),
+        "skipped_relation": sum(1 for action in actions if action["action"] == "skip_relation"),
         "errors": len(errors),
     }
     out = {
-        "ok": len(errors) == 0,
+        "ok": len(errors) == 0 and not warnings,
         "command": "apply-openproject-relations",
         "mode": mode,
         "project_path": project_path,
@@ -422,6 +509,7 @@ def main():
         "counts": counts,
         "actions": actions,
         "restored_work_packages": restored,
+        "warnings": warnings,
         "errors": errors,
         "operator_next_steps": [
             "If this was dry-run and actions look correct, run with REPLAN_APPLY=1.",

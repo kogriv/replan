@@ -282,17 +282,39 @@ func (v *workspaceValidator) resourceDemand(demand domain.ResourceDemand) {
 }
 
 // dependencies checks each dependency and that no OpenProject relation or
-// predecessor/successor/type triple is used twice.
+// predecessor/successor/type triple is used twice. Multiple dependency types
+// may be valid in RePlan for a task pair, but warn because trackers such as
+// OpenProject can store only one relation for that pair.
 func (v *workspaceValidator) dependencies(dependencies []domain.Dependency) {
 	sourceRefs := map[string]string{}
 	triples := map[string]string{}
+	pairs := map[string]string{}
 	for _, dependency := range dependencies {
 		v.register("dependency", dependency.ID)
 		v.dependencyFields(dependency)
 		v.dependencyEnds(dependency)
 		v.dependencySourceRefs(dependency, sourceRefs)
 		v.dependencyTriple(dependency, triples)
+		v.dependencyPair(dependency, pairs)
 	}
+}
+
+func (v *workspaceValidator) dependencyPair(dependency domain.Dependency, seen map[string]string) {
+	if dependency.PredecessorRef.Kind != "task" || dependency.SuccessorRef.Kind != "task" ||
+		dependency.PredecessorRef.ID == "" || dependency.SuccessorRef.ID == "" ||
+		dependency.PredecessorRef.ID == dependency.SuccessorRef.ID {
+		return
+	}
+	first, second := dependency.PredecessorRef.ID, dependency.SuccessorRef.ID
+	if second < first {
+		first, second = second, first
+	}
+	key := first + ":" + second
+	if prev, ok := seen[key]; ok {
+		v.warn("dependency_pair_has_several_links", fmt.Sprintf("dependency task pair %s and %s is also linked by %s; trackers may allow only one relation per pair", first, second, prev), "dependency", dependency.ID)
+		return
+	}
+	seen[key] = dependency.ID
 }
 
 func (v *workspaceValidator) dependencyFields(dependency domain.Dependency) {
@@ -357,12 +379,21 @@ func (v *workspaceValidator) dependencyTriple(dependency domain.Dependency, seen
 	if dependency.PredecessorRef.ID == "" || dependency.SuccessorRef.ID == "" {
 		return
 	}
-	key := dependency.Type + ":" + dependency.PredecessorRef.Kind + ":" + dependency.PredecessorRef.ID + ":" + dependency.SuccessorRef.Kind + ":" + dependency.SuccessorRef.ID
+	key := dependencyTripleKey(dependency.Type, dependency.PredecessorRef, dependency.SuccessorRef)
 	if prev, ok := seen[key]; ok {
 		v.errorf("duplicate_dependency_triple", "dependency", dependency.ID, "dependency predecessor/successor/type triple already used by %s", prev)
 		return
 	}
 	seen[key] = dependency.ID
+}
+
+func dependencyTripleKey(dependencyType string, predecessor, successor domain.Ref) string {
+	predecessorKey := predecessor.Kind + ":" + predecessor.ID
+	successorKey := successor.Kind + ":" + successor.ID
+	if dependencyType == "relates" && successorKey < predecessorKey {
+		predecessorKey, successorKey = successorKey, predecessorKey
+	}
+	return dependencyType + ":" + predecessorKey + ":" + successorKey
 }
 
 // taskDatesAndRefs runs after demands and dependencies are registered, so a
@@ -607,7 +638,7 @@ func dependencyPlanningDiagnostics(ws domain.Workspace) []Diagnostic {
 	}
 	var diagnostics []Diagnostic
 	for _, dependency := range ws.Dependencies {
-		if dependency.Criticality == "required" && dependency.Status != "resolved" && dependency.Status != "cancelled" {
+		if dependency.Type != "relates" && dependency.Criticality == "required" && dependency.Status != "resolved" && dependency.Status != "cancelled" {
 			if reason, due := unresolvedDependencyReason(dependency, taskByID, ws.Project.DefaultStatusDate); due {
 				diagnostics = append(diagnostics, Diagnostic{
 					Code:     "required_dependency_unresolved",

@@ -6,6 +6,7 @@ import sys
 import yaml
 from openproject_http import OpenProjectClient, Settings
 import helper_envelope
+import import_candidates
 import openproject_bindings
 import openproject_rescheduling
 import openproject_working_days
@@ -67,7 +68,7 @@ def update_work_package_dates(wp, start_date, due_date, working_by_day, action):
     return updated
 
 def dependency_key(dep):
-    return (
+    return import_candidates.dependency_key(
         as_text(dep.get("type")),
         as_text((dep.get("predecessor_ref") or {}).get("id")),
         as_text((dep.get("successor_ref") or {}).get("id")),
@@ -185,7 +186,7 @@ if require_dependency_check:
 
     live_dep_tuples = {}
     for dep in dep_candidates:
-        key = (
+        key = import_candidates.dependency_key(
             as_text(dep.get("dependency_type")),
             as_text(dep.get("predecessor_task_id")),
             as_text(dep.get("successor_task_id")),

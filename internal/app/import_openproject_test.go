@@ -1143,8 +1143,8 @@ func TestOpenProjectImportIncludesDependencyCandidates(t *testing.T) {
 		case "/api/v3/relations":
 			fmt.Fprint(w, `{
   "_type": "Collection",
-  "total": 2,
-  "count": 2,
+  "total": 5,
+  "count": 5,
   "pageSize": 100,
   "_embedded": {
     "elements": [
@@ -1174,6 +1174,24 @@ func TestOpenProjectImportIncludesDependencyCandidates(t *testing.T) {
           "self": {"href": "/api/v3/relations/9"},
           "from": {"href": "/api/v3/work_packages/1235"},
           "to": {"href": "/api/v3/work_packages/9999"}
+        }
+      },
+      {
+        "id": 97,
+        "type": "relates",
+        "_links": {
+          "self": {"href": "/api/v3/relations/97"},
+          "from": {"href": "/api/v3/work_packages/1234"},
+          "to": {"href": "/api/v3/work_packages/1235"}
+        }
+      },
+      {
+        "id": 98,
+        "type": "relates",
+        "_links": {
+          "self": {"href": "/api/v3/relations/98"},
+          "from": {"href": "/api/v3/work_packages/1235"},
+          "to": {"href": "/api/v3/work_packages/1234"}
         }
       }
     ]
@@ -1226,8 +1244,8 @@ func TestOpenProjectImportIncludesDependencyCandidates(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Import returned error: %v", err)
 	}
-	if len(result.DependencyCandidates) != 2 {
-		t.Fatalf("DependencyCandidates len = %d, want 2: %#v", len(result.DependencyCandidates), result.DependencyCandidates)
+	if len(result.DependencyCandidates) != 3 {
+		t.Fatalf("DependencyCandidates len = %d, want 3: %#v", len(result.DependencyCandidates), result.DependencyCandidates)
 	}
 	candidate := result.DependencyCandidates[0]
 	if candidate.SourceID != "7" {
@@ -1260,6 +1278,10 @@ func TestOpenProjectImportIncludesDependencyCandidates(t *testing.T) {
 	}
 	if unmatched.AcceptStatus != "task_unmatched" || unmatched.WouldCreate {
 		t.Fatalf("unexpected unmatched accept fields: %#v", unmatched)
+	}
+	related := result.DependencyCandidates[2]
+	if related.SourceID != "97" || related.DependencyType != "relates" || related.PredecessorTaskID != "task.op.1234" || related.SuccessorTaskID != "task.op.1235" {
+		t.Fatalf("unexpected relates candidate or reverse duplicate was not removed: %#v", related)
 	}
 	if !hasDiagnostic(result.Warnings, "openproject_relation_type_unsupported") {
 		t.Fatalf("expected unsupported relation warning: %#v", result.Warnings)

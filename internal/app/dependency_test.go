@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/kogriv/replan/internal/app"
+	"github.com/kogriv/replan/internal/domain"
 	"github.com/kogriv/replan/internal/storage/filestore"
 )
 
@@ -31,6 +32,26 @@ func TestDependencyListSmallTeamFixture(t *testing.T) {
 	}
 	if !hasDependencyRow(result.Dependencies, "dependency.openai-quota-blocks-validation", true, false) {
 		t.Fatalf("expected active quota blocker row, got %#v", result.Dependencies)
+	}
+}
+
+func TestDependencyListTreatsRelatesAsLink(t *testing.T) {
+	service := app.NewDependencyService(staticWorkspaceLoader{workspace: domain.Workspace{
+		Tasks: []domain.Task{{ID: "task.a", TrackingStatus: "accepted"}, {ID: "task.b", TrackingStatus: "in_progress"}},
+		Dependencies: []domain.Dependency{{
+			ID: "dependency.related", Type: "relates", Status: "open", Criticality: "required",
+			PredecessorRef: domain.Ref{Kind: "task", ID: "task.a"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.b"},
+		}},
+	}})
+	result, err := service.List(context.Background(), app.DependencyListRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !hasDependencyRow(result.Dependencies, "dependency.related", false, false) {
+		t.Fatalf("relates row is not a non-blocking link: %#v", result.Dependencies)
+	}
+	if result.Summary.RequiredOpen != 0 || result.Summary.ActiveBlockers != 0 || len(result.BlockedSuccessors) != 0 {
+		t.Fatalf("relates affected blocker summaries: %#v", result)
 	}
 }
 

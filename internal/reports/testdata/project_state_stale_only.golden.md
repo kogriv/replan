@@ -13,6 +13,7 @@
 - Accepted tasks: 0
 - Active tasks: 0
 - Open dependencies: 0
+- Related links: 0
 - Missing-demand tasks: 0
 - Open proposals: 0
 - Scenarios: 0

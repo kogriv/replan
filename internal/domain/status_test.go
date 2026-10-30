@@ -27,7 +27,7 @@ func TestValidResourceDemandStatus(t *testing.T) {
 }
 
 func TestValidDependencyType(t *testing.T) {
-	valid := []string{"finish_to_start", "blocks", "requires_input_from", "requires_resource_from", "external_dependency"}
+	valid := []string{"finish_to_start", "blocks", "relates", "requires_input_from", "requires_resource_from", "external_dependency"}
 	invalid := []string{"", "start_to_start", "depends_on", "blocked"}
 	assertPredicate(t, "ValidDependencyType", ValidDependencyType, valid, invalid)
 }

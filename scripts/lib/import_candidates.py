@@ -21,6 +21,16 @@ def dependency_source_ids(candidate):
     return predecessor or from_id, successor or to_id
 
 
+def dependency_key(dependency_type, predecessor, successor):
+    """Return the comparison key; relates is symmetric."""
+    dependency_type = as_text(dependency_type)
+    predecessor = as_text(predecessor)
+    successor = as_text(successor)
+    if dependency_type == "relates" and successor < predecessor:
+        predecessor, successor = successor, predecessor
+    return dependency_type, predecessor, successor
+
+
 def source_object_id(candidate):
     return as_text(candidate.get("source_object_id")) or as_text(
         candidate.get("work_package_id")

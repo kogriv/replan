@@ -5,6 +5,7 @@ import sys
 
 import yaml
 import helper_envelope
+import import_candidates
 import openproject_bindings
 import openproject_rescheduling
 from openproject_http import OpenProjectClient, Settings
@@ -211,11 +212,11 @@ for dep in local_deps:
     dep_type = dep.get("type", "")
     predecessor = (dep.get("predecessor_ref") or {}).get("id", "")
     successor = (dep.get("successor_ref") or {}).get("id", "")
-    local_dep_tuples[(dep_type, predecessor, successor)] = dep_id
+    local_dep_tuples[import_candidates.dependency_key(dep_type, predecessor, successor)] = dep_id
 
 live_dep_tuples = {}
 for dep in dep_candidates:
-    key = (
+    key = import_candidates.dependency_key(
         as_text(dep.get("dependency_type")),
         as_text(dep.get("predecessor_task_id")),
         as_text(dep.get("successor_task_id")),
@@ -232,7 +233,7 @@ for dep in local_deps:
     dep_type = dep.get("type", "")
     predecessor = (dep.get("predecessor_ref") or {}).get("id", "")
     successor = (dep.get("successor_ref") or {}).get("id", "")
-    key = (dep_type, predecessor, successor)
+    key = import_candidates.dependency_key(dep_type, predecessor, successor)
     if not dep_relation_by_id.get(dep_id, ""):
         unbound_local_dependencies.append({
             "dependency_id": dep_id,

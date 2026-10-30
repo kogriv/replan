@@ -1206,6 +1206,7 @@ MVP persistence subset:
 ```text
 finish_to_start
 blocks
+relates
 requires_input_from
 requires_resource_from
 external_dependency
@@ -1220,6 +1221,7 @@ OpenProject relation accept initially needs only:
 ```text
 finish_to_start
 blocks
+relates
 ```
 
 Rules:
@@ -1232,7 +1234,10 @@ Rules:
 - source-system relations become canonical dependencies only through explicit
   accept, not during read-only import;
 - duplicate detection should check both source relation reference and canonical
-  predecessor/successor/type triple.
+  predecessor/successor/type triple. For `relates`, endpoint order is ignored.
+- `relates` is a symmetric link with no scheduling or blocking meaning. Its
+  normal persisted defaults are `criticality: optional`, no `required_state`,
+  and `status: open`.
 
 ## Deadline
 

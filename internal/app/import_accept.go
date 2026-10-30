@@ -1482,8 +1482,12 @@ func safeImportDependencyCandidate(ws domain.Workspace, candidate ImportDependen
 
 func dependencyFromOpenProjectCandidate(candidate ImportDependencyCandidate) domain.Dependency {
 	requiredState := ""
+	criticality := "required"
 	if candidate.DependencyType == "finish_to_start" {
 		requiredState = "accepted"
+	}
+	if candidate.DependencyType == "relates" {
+		criticality = "optional"
 	}
 	notes := fmt.Sprintf("Imported from %s %s %s.", importDependencySource(candidate), candidate.RelationType, candidate.SourceID)
 	if importDependencySource(candidate) == "openproject" {
@@ -1496,7 +1500,7 @@ func dependencyFromOpenProjectCandidate(candidate ImportDependencyCandidate) dom
 		SuccessorRef:   domain.Ref{Kind: "task", ID: candidate.SuccessorTaskID},
 		RequiredState:  requiredState,
 		Status:         "open",
-		Criticality:    "required",
+		Criticality:    criticality,
 		SourceRefs:     []domain.SourceRef{openProjectDependencySourceRef(candidate)},
 		Notes:          notes,
 	}
@@ -1550,7 +1554,7 @@ func (s dependencyAcceptSeen) add(candidate ImportDependencyCandidate, dependenc
 		})
 		return false
 	}
-	tripleKey := dependency.Type + ":" + dependency.PredecessorRef.Kind + ":" + dependency.PredecessorRef.ID + ":" + dependency.SuccessorRef.Kind + ":" + dependency.SuccessorRef.ID
+	tripleKey := dependencyTripleKey(dependency.Type, dependency.PredecessorRef, dependency.SuccessorRef)
 	if prev, ok := s.triples[tripleKey]; ok {
 		*warnings = append(*warnings, Diagnostic{
 			Code:     source + "_dependency_duplicate_candidate",
@@ -1711,12 +1715,9 @@ func dependencyHasSourceRef(dependency domain.Dependency, source, objectType, ob
 }
 
 func findDependencyByTriple(dependencies []domain.Dependency, dependencyType string, predecessor, successor domain.Ref) (domain.Dependency, bool) {
+	wanted := dependencyTripleKey(dependencyType, predecessor, successor)
 	for _, dependency := range dependencies {
-		if dependency.Type == dependencyType &&
-			dependency.PredecessorRef.Kind == predecessor.Kind &&
-			dependency.PredecessorRef.ID == predecessor.ID &&
-			dependency.SuccessorRef.Kind == successor.Kind &&
-			dependency.SuccessorRef.ID == successor.ID {
+		if dependencyTripleKey(dependency.Type, dependency.PredecessorRef, dependency.SuccessorRef) == wanted {
 			return dependency, true
 		}
 	}

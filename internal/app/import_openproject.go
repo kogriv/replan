@@ -1393,7 +1393,23 @@ func mapOpenProjectDependencyCandidates(ws domain.Workspace, taskCandidates []Op
 	sort.Slice(out, func(i, j int) bool {
 		return out[i].SourceID < out[j].SourceID
 	})
-	return out
+	deduplicated := out[:0]
+	seen := map[string]struct{}{}
+	for _, candidate := range out {
+		if candidate.DependencyType != "relates" {
+			deduplicated = append(deduplicated, candidate)
+			continue
+		}
+		key := dependencyTripleKey(candidate.DependencyType,
+			domain.Ref{Kind: "task", ID: candidate.PredecessorSourceID},
+			domain.Ref{Kind: "task", ID: candidate.SuccessorSourceID})
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
+		deduplicated = append(deduplicated, candidate)
+	}
+	return deduplicated
 }
 
 func mapOpenProjectDependencyCandidate(ws domain.Workspace, taskCandidates []OpenProjectTaskCandidate, relation openProjectRelation) OpenProjectDependencyCandidate {
@@ -1451,6 +1467,8 @@ func mapOpenProjectRelationType(relationType, fromID, toID string) (string, stri
 		return fromID, toID, "blocks", true
 	case "blocked":
 		return toID, fromID, "blocks", true
+	case "relates":
+		return fromID, toID, "relates", true
 	default:
 		return "", "", "", false
 	}

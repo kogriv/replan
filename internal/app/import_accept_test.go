@@ -914,6 +914,47 @@ func TestImportAcceptApplyDependenciesWritesDependencyAndAudit(t *testing.T) {
 	}
 }
 
+func TestImportAcceptCreatesOptionalRelatesAndMatchesReverse(t *testing.T) {
+	projectDir := copyProjectFixture(t)
+	store := filestore.New(projectDir)
+	snapshotID := writeOpenProjectMappedSnapshotForDependency(t, projectDir, "safe_to_accept", true, "task.op.1234", "task.offline.repair-pump", "88")
+	rewriteMappedSnapshotDependencyType(t, projectDir, snapshotID, "relates", "relates")
+
+	result, err := app.NewImportAcceptService(store).Accept(context.Background(), app.ImportAcceptRequest{
+		SnapshotID: snapshotID, Apply: true, AcceptDependencies: true,
+		ActorID: "actor.human.operator", Reason: "Accept related link for test.",
+		Now: time.Date(2026, 7, 27, 12, 0, 0, 0, time.UTC),
+	})
+	if err != nil || !result.Applied {
+		t.Fatalf("accept relates: applied=%v err=%v result=%#v", result.Applied, err, result)
+	}
+	dependenciesYAML, err := os.ReadFile(filepath.Join(projectDir, "canonical/dependencies.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(dependenciesYAML)
+	for _, want := range []string{"id: dependency.openproject.relation.88", "type: relates", "status: open", "criticality: optional"} {
+		if !containsString(text, want) {
+			t.Fatalf("dependencies.yaml missing %q:\n%s", want, text)
+		}
+	}
+	if containsString(text, "id: dependency.openproject.relation.88\n    type: relates\n    required_state:") {
+		t.Fatalf("relates unexpectedly has required_state:\n%s", text)
+	}
+
+	reversedSnapshot := writeOpenProjectMappedSnapshotForDependency(t, projectDir, "safe_to_accept", true, "task.offline.repair-pump", "task.op.1234", "89")
+	rewriteMappedSnapshotDependencyType(t, projectDir, reversedSnapshot, "relates", "relates")
+	reversed, err := app.NewImportAcceptService(store).Accept(context.Background(), app.ImportAcceptRequest{
+		SnapshotID: reversedSnapshot, DryRun: true, AcceptDependencies: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !hasImportChange(reversed.Changes, "update_dependency_source_refs", "dependency.openproject.relation.88") || hasImportChange(reversed.Changes, "create_dependency", "dependency.openproject.relation.89") {
+		t.Fatalf("reverse relates was not deduplicated: %#v", reversed)
+	}
+}
+
 func TestImportAcceptDependenciesDryRunLinksExistingDependencySourceRef(t *testing.T) {
 	projectDir := copyProjectFixture(t)
 	store := filestore.New(projectDir)
@@ -1497,6 +1538,31 @@ func stripSourceNeutralCandidateFields(t *testing.T, projectDir, snapshotID stri
 			delete(candidate, "successor_source_id")
 			delete(candidate, "source_object_id")
 		}
+	}
+	data, err = json.MarshalIndent(mapped, "", "  ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, data, 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func rewriteMappedSnapshotDependencyType(t *testing.T, projectDir, snapshotID, dependencyType, relationType string) {
+	t.Helper()
+	key := strings.TrimPrefix(snapshotID, "source_snapshot.openproject.")
+	path := filepath.Join(projectDir, "imports/openproject", key, "mapped.json")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var mapped app.OpenProjectMappedSnapshot
+	if err := json.Unmarshal(data, &mapped); err != nil {
+		t.Fatal(err)
+	}
+	for i := range mapped.DependencyCandidates {
+		mapped.DependencyCandidates[i].DependencyType = dependencyType
+		mapped.DependencyCandidates[i].RelationType = relationType
 	}
 	data, err = json.MarshalIndent(mapped, "", "  ")
 	if err != nil {

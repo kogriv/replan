@@ -68,6 +68,13 @@ printf '%s\n' "$(fact token)" > "$WORK_DIR/openproject-token"
 chmod 600 "$WORK_DIR/openproject-token"
 
 cp -R "$KIT/examples/small-team" "$WORK_DIR/plan"
+python3 -c '
+import sys, yaml
+path = sys.argv[1]
+with open(path, encoding="utf-8") as handle: document = yaml.safe_load(handle)
+document["dependencies"].append({"id": "dependency.repair-pump-related-validation", "type": "relates", "predecessor_ref": {"kind": "task", "id": "task.offline.repair-pump"}, "successor_ref": {"kind": "task", "id": "task.op.1234"}, "status": "open", "criticality": "optional", "notes": "Throwaway agent-kit check for a non-scheduling symmetric link."})
+with open(path, "w", encoding="utf-8") as handle: yaml.safe_dump(document, handle, sort_keys=False)
+' "$WORK_DIR/plan/canonical/dependencies.yaml"
 sed -e "s#^REPLAN_OPENPROJECT_BASE_URL=.*#REPLAN_OPENPROJECT_BASE_URL=$WEB_URL#" \
     -e "s#^REPLAN_OPENPROJECT_PROJECT_ID=.*#REPLAN_OPENPROJECT_PROJECT_ID=$PROJECT#" \
     -e "s#^REPLAN_OPENPROJECT_PROJECT_NAME=.*#REPLAN_OPENPROJECT_PROJECT_NAME=Agent kit check#" \
@@ -115,8 +122,10 @@ expect "a second run creates nothing" "d['ok'] and d['counts']['created_work_pac
 run "" "$TOOLKIT" work-package list
 cp "$WORK_DIR/out.json" "$WORK_DIR/work-packages.before-relations.json"
 run 1 scripts/apply-openproject-relations.sh
-expect "a member creates the relation between the two tasks" "d['counts']['created_relation'] == 1"
+expect "a member creates follows and skips relates on the occupied pair" "d['counts']['created_relation'] == 1 and d['counts']['skipped_relation'] == 1 and d['private_binding_layer']['dependency_bindings'] == 1 and 'openproject_pair_already_related' in d['warning_codes'] and any(a['relation_type'] == 'relates' and a['action'] == 'skip_relation' and a['reason'] == 'openproject_pair_already_related' for a in d['actions'])"
 expect "the dates around the new relation are read back and any move is reported" "'rescheduling_unknown' not in d.get('warning_codes', []) and (('openproject_rescheduled' in d.get('warning_codes', [])) == bool(d.get('rescheduled_work_packages')))"
+run "" scripts/apply-openproject-relations.sh
+expect "a second run matches follows and still skips relates without a duplicate" "d['counts']['create_relation'] == 0 and d['counts']['matched_existing_relation'] == 1 and d['counts']['skipped_relation'] == 1 and 'openproject_pair_already_related' in d['warning_codes'] and any(a['relation_type'] == 'relates' and a['action'] == 'skip_relation' for a in d['actions']) and d['restored_work_packages'] == []"
 run "" "$TOOLKIT" work-package list
 expect "relations leave every sample work package manually scheduled" "d['ok'] and all(item.get('schedule_manually') is True for item in d['items'])"
 checks=$((checks + 1))

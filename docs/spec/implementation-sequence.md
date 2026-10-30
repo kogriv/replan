@@ -845,7 +845,8 @@ Implemented in the OpenProject dependency/relation mapper-only slice:
 - `replan import openproject --include-relations` fetches OpenProject relation
   records in API mode;
 - supported relation types are mapped into read-only `dependency_candidates`;
-- supported relation types are `precedes`, `follows`, `blocks` and `blocked`;
+- supported relation types are `precedes`, `follows`, `blocks`, `blocked` and
+  symmetric, non-scheduling `relates`;
 - file-mode `--include-relations` reads public relation fixtures from
   `_embedded.relations.elements`;
 - canonical dependency writes are implemented through explicit

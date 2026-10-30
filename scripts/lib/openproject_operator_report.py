@@ -146,7 +146,7 @@ for candidate in task_candidates:
 
 local_dep_tuples = {}
 for dep in deps:
-    key = (
+    key = import_candidates.dependency_key(
         as_text(dep.get("type")),
         as_text((dep.get("predecessor_ref") or {}).get("id")),
         as_text((dep.get("successor_ref") or {}).get("id")),
@@ -155,7 +155,7 @@ for dep in deps:
 
 live_dep_tuples = {}
 for candidate in dep_candidates:
-    key = (
+    key = import_candidates.dependency_key(
         as_text(candidate.get("dependency_type")),
         as_text(candidate.get("predecessor_task_id")),
         as_text(candidate.get("successor_task_id")),
@@ -169,7 +169,7 @@ extra_live_relations = []
 relation_binding_mismatches = []
 for dep in deps:
     dep_id = dep.get("id", "")
-    key = (
+    key = import_candidates.dependency_key(
         as_text(dep.get("type")),
         as_text((dep.get("predecessor_ref") or {}).get("id")),
         as_text((dep.get("successor_ref") or {}).get("id")),

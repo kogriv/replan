@@ -35,6 +35,16 @@ class ImportCandidatesTest(unittest.TestCase):
             import_candidates.source_object_id({"work_package_id": "1234"}), "1234"
         )
 
+    def test_relates_dependency_key_is_symmetric(self):
+        self.assertEqual(
+            import_candidates.dependency_key("relates", "task.b", "task.a"),
+            ("relates", "task.a", "task.b"),
+        )
+        self.assertNotEqual(
+            import_candidates.dependency_key("blocks", "task.b", "task.a"),
+            import_candidates.dependency_key("blocks", "task.a", "task.b"),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

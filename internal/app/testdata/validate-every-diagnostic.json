@@ -66,6 +66,24 @@
       }
     },
     {
+      "code": "dependency_pair_has_several_links",
+      "message": "dependency task pair task.a and task.c is also linked by dependency.fs; trackers may allow only one relation per pair",
+      "severity": "warning",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.fs2"
+      }
+    },
+    {
+      "code": "dependency_pair_has_several_links",
+      "message": "dependency task pair task.a and task.c is also linked by dependency.fs; trackers may allow only one relation per pair",
+      "severity": "warning",
+      "target": {
+        "kind": "dependency",
+        "id": "dependency.blocks"
+      }
+    },
+    {
       "code": "required_dependency_unresolved",
       "message": "required dependency dependency.external is open",
       "severity": "warning",

@@ -83,6 +83,170 @@ class ReschedulingReportTest(unittest.TestCase):
             "REPLAN_APPLY": "1",
         }
 
+    def test_relates_dry_run_plans_create_and_matches_reverse_without_rescheduling(self):
+        def handler(relations):
+            class OpenProject(http.server.BaseHTTPRequestHandler):
+                def do_GET(self):
+                    body = json.dumps({
+                        "total": len(relations), "pageSize": 500, "offset": 1,
+                        "_embedded": {"elements": relations},
+                    }).encode()
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/hal+json")
+                    self.send_header("Content-Length", str(len(body)))
+                    self.end_headers()
+                    self.wfile.write(body)
+
+                def do_POST(self):
+                    raise AssertionError("dry run must not create a relation")
+
+                def log_message(self, *_args):
+                    pass
+            return OpenProject
+
+        tasks = [{"id": "task.a", "title": "A"}, {"id": "task.b", "title": "B"}]
+        deps = [{
+            "id": "dep.related", "type": "relates",
+            "predecessor_ref": {"id": "task.a"}, "successor_ref": {"id": "task.b"},
+        }]
+        cases = (
+            ("missing", [], "create_relation", ""),
+            ("reverse existing", [{
+                "id": 9, "type": "relates", "_links": {
+                    "from": {"href": "/api/v3/work_packages/2"},
+                    "to": {"href": "/api/v3/work_packages/1"},
+                },
+            }], "match_existing_relation", "9"),
+        )
+        for name, relations, action, relation_id in cases:
+            with self.subTest(name), tempfile.TemporaryDirectory() as tmp:
+                bindings = self.write_project(tmp, tasks, deps)
+                base = self.start_server(handler(relations))
+                env = self.relation_env(tmp, bindings, base)
+                env["REPLAN_APPLY"] = ""
+                code, out = self.run_module(
+                    "apply_openproject_relations", "--root-dir", ROOT, env=env,
+                )
+                self.assertEqual(code, 0, out)
+                self.assertEqual(out["actions"][0]["action"], action)
+                self.assertEqual(out["actions"][0]["relation_type"], "relates")
+                self.assertEqual(out["actions"][0]["openproject_relation_id"], relation_id)
+                self.assertEqual(out["restored_work_packages"], [])
+
+    def test_relation_pair_conflicts_are_skipped_before_post(self):
+        def handler(relations):
+            class OpenProject(http.server.BaseHTTPRequestHandler):
+                def do_GET(self):
+                    body = json.dumps({
+                        "total": len(relations), "pageSize": 500, "offset": 1,
+                        "_embedded": {"elements": relations},
+                    }).encode()
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/hal+json")
+                    self.send_header("Content-Length", str(len(body)))
+                    self.end_headers()
+                    self.wfile.write(body)
+
+                def do_POST(self):
+                    raise AssertionError("pair conflicts must be skipped before POST")
+
+                def log_message(self, *_args):
+                    pass
+            return OpenProject
+
+        tasks = [{"id": "task.a", "title": "A"}, {"id": "task.b", "title": "B"}]
+        cases = (
+            (
+                "live pair",
+                [{"id": "dep.related", "type": "relates", "predecessor_ref": {"id": "task.a"}, "successor_ref": {"id": "task.b"}}],
+                [{"id": 9, "type": "blocks", "_links": {"from": {"href": "/api/v3/work_packages/2"}, "to": {"href": "/api/v3/work_packages/1"}}}],
+                "9", "blocks", "",
+            ),
+            (
+                "plan pair",
+                [
+                    {"id": "dep.blocks", "type": "blocks", "predecessor_ref": {"id": "task.a"}, "successor_ref": {"id": "task.b"}},
+                    {"id": "dep.related", "type": "relates", "predecessor_ref": {"id": "task.b"}, "successor_ref": {"id": "task.a"}},
+                ],
+                [], "", "blocks", "dep.blocks",
+            ),
+            (
+                "plan pair matching one live relation",
+                [
+                    {"id": "dep.related.one", "type": "relates", "predecessor_ref": {"id": "task.a"}, "successor_ref": {"id": "task.b"}},
+                    {"id": "dep.related.two", "type": "relates", "predecessor_ref": {"id": "task.b"}, "successor_ref": {"id": "task.a"}},
+                ],
+                [{"id": 9, "type": "relates", "_links": {"from": {"href": "/api/v3/work_packages/1"}, "to": {"href": "/api/v3/work_packages/2"}}}],
+                "9", "relates", "dep.related.one",
+            ),
+        )
+        for name, dependencies, relations, relation_id, relation_type, dependency_id in cases:
+            with self.subTest(name), tempfile.TemporaryDirectory() as tmp:
+                bindings = self.write_project(tmp, tasks, dependencies)
+                base = self.start_server(handler(relations))
+                env = self.relation_env(tmp, bindings, base)
+                env["REPLAN_APPLY"] = ""
+                code, out = self.run_module("apply_openproject_relations", "--root-dir", ROOT, env=env)
+                self.assertEqual(code, 11, out)
+                skipped = [item for item in out["actions"] if item["action"] == "skip_relation"]
+                self.assertEqual(len(skipped), 1, out)
+                self.assertEqual(skipped[0]["reason"], "openproject_pair_already_related")
+                self.assertEqual(skipped[0]["existing_openproject_relation_id"], relation_id)
+                self.assertEqual(skipped[0]["existing_relation_type"], relation_type)
+                self.assertEqual(skipped[0]["existing_replan_dependency_id"], dependency_id)
+                self.assertEqual(out["warning_codes"], ["openproject_pair_already_related"])
+                self.assertEqual(out["counts"]["skipped_relation"], 1)
+
+    def test_relation_pair_conflicts_apply_only_the_first_plan_dependency(self):
+        posts = []
+
+        class OpenProject(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                body = json.dumps({
+                    "total": 0, "pageSize": 500, "offset": 1,
+                    "_embedded": {"elements": []},
+                }).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/hal+json")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            def do_POST(self):
+                payload = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)))
+                posts.append(payload)
+                body = json.dumps({"id": 10, **payload}).encode()
+                self.send_response(201)
+                self.send_header("Content-Type", "application/hal+json")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            def log_message(self, *_args):
+                pass
+
+        tasks = [{"id": "task.a", "title": "A"}, {"id": "task.b", "title": "B"}]
+        dependencies = [
+            {"id": "dep.blocks", "type": "blocks", "predecessor_ref": {"id": "task.a"}, "successor_ref": {"id": "task.b"}},
+            {"id": "dep.related", "type": "relates", "predecessor_ref": {"id": "task.b"}, "successor_ref": {"id": "task.a"}},
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            bindings = self.write_project(tmp, tasks, dependencies)
+            base = self.start_server(OpenProject)
+            code, out = self.run_module(
+                "apply_openproject_relations", "--root-dir", ROOT,
+                env=self.relation_env(tmp, bindings, base),
+            )
+        self.assertEqual(code, 7, out)
+        self.assertEqual(len(posts), 1)
+        self.assertEqual(posts[0]["type"], "blocks")
+        self.assertEqual(out["counts"]["created_relation"], 1)
+        self.assertEqual(out["counts"]["skipped_relation"], 1)
+        skipped = next(item for item in out["actions"] if item["action"] == "skip_relation")
+        self.assertEqual(skipped["existing_openproject_relation_id"], "10")
+        self.assertEqual(skipped["existing_relation_type"], "blocks")
+        self.assertEqual(out["warning_codes"], ["openproject_pair_already_related"])
+
     def test_relation_create_restores_successor_chain_roots_first(self):
         state = {
             "created": False,

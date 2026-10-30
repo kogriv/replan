@@ -209,8 +209,9 @@ func (s ReportService) Dashboard(ctx context.Context, req DashboardReportRequest
 		SourceHealth:  dashboardSourceHealth(ws),
 		Health: reports.DashboardHealthSummary{
 			TaskCount:              len(ws.Tasks),
-			ResolvedDependencies:   dependencyStatusCount(ws.Dependencies, "resolved"),
-			OpenDependencies:       dependencyStatusCount(ws.Dependencies, "open"),
+			ResolvedDependencies:   schedulingDependencyStatusCount(ws.Dependencies, "resolved"),
+			OpenDependencies:       schedulingDependencyStatusCount(ws.Dependencies, "open"),
+			RelatedLinks:           dependencyTypeCount(ws.Dependencies, "relates"),
 			OverloadedResources:    weekly.Summary.Overloaded,
 			WarningCount:           len(weekly.Warnings),
 			ErrorCount:             len(weekly.Errors),
@@ -695,10 +696,20 @@ func dashboardSourceHealth(ws domain.Workspace) reports.DashboardSourceHealth {
 	return health
 }
 
-func dependencyStatusCount(dependencies []domain.Dependency, status string) int {
+func schedulingDependencyStatusCount(dependencies []domain.Dependency, status string) int {
 	count := 0
 	for _, dependency := range dependencies {
-		if dependency.Status == status {
+		if dependency.Type != "relates" && dependency.Status == status {
+			count++
+		}
+	}
+	return count
+}
+
+func dependencyTypeCount(dependencies []domain.Dependency, dependencyType string) int {
+	count := 0
+	for _, dependency := range dependencies {
+		if dependency.Type == dependencyType {
 			count++
 		}
 	}
@@ -865,6 +876,9 @@ func dashboardGanttView(ws domain.Workspace, overview reports.DashboardOverview,
 			continue
 		}
 		dependencyCountByTaskID[taskID]++
+		if dependency.Type == "relates" {
+			continue
+		}
 		if dependency.Status == "open" {
 			openDependencyCountByTaskID[taskID]++
 		}
@@ -1382,7 +1396,7 @@ func dashboardNextActions(ws domain.Workspace, overview reports.DashboardOvervie
 		})
 	}
 	for _, dependency := range ws.Dependencies {
-		if dependency.Status != "open" {
+		if dependency.Type == "relates" || dependency.Status != "open" {
 			continue
 		}
 		// A dependency on a task that is not done yet is not an action of its
