@@ -5293,3 +5293,31 @@ tasks:
           object_type: work_package
           object_id: "2276"
           url: https://op.example.internal/work_packages/2276
+    - id: task.self.serialize-concurrent-project-writes
+      title: Serialize concurrent writes to one project
+      description: 'Found on 2026-10-30 while checking an outside audit: 30 replan evidence add --apply processes run in parallel on one project all answered ok with exit 0, but only 2 evidence records and 3 audit lines remained; audit lines exist for records that are gone, which the commit comment in internal/storage/filestore/files.go says cannot happen. Every write reads, validates and commits without an inter-process lock, so concurrent writers lose updates silently. Take an exclusive project lock around read, validate and commit of every write, re-read under the lock, refuse with a clear code when the lock cannot be taken in time, and add a parallel-writers regression test. The non-atomic set of files on an interrupted commit is a separate question.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-10-30"
+      planned_finish: "2026-10-30"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.serialize-concurrent-project-writes.agent
+        - kind: resource_demand
+          id: resource_demand.serialize-concurrent-project-writes.maintainer
+        - kind: resource_demand
+          id: resource_demand.serialize-concurrent-project-writes.local-dev
+        - kind: resource_demand
+          id: resource_demand.serialize-concurrent-project-writes.ci
+      tags:
+        - storage
+        - safety
+        - gap
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2277"
+          url: https://op.example.internal/work_packages/2277

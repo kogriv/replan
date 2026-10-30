@@ -356,6 +356,8 @@ current_plan:
     - kind: task
       id: task.self.release-build-ignores-surrounding-git
     - kind: task
+      id: task.self.serialize-concurrent-project-writes
+    - kind: task
       id: task.self.fix-first-project-defects
     - kind: task
       id: task.self.design-local-web-view

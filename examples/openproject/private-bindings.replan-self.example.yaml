@@ -323,6 +323,12 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2276"
         url: https://op.example.internal/work_packages/2276
+    - replan_task_id: task.self.serialize-concurrent-project-writes
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2277"
+        url: https://op.example.internal/work_packages/2277
     - replan_task_id: task.self.fix-first-project-defects
       source_ref:
         source: openproject

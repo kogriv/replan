@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 176,
-  "count": 176,
+  "total": 177,
+  "count": 177,
   "_embedded": {
     "elements": [
       {
@@ -5098,6 +5098,35 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2276"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2277,
+        "subject": "Serialize concurrent writes to one project",
+        "description": {
+          "raw": "Found on 2026-10-30 while checking an outside audit: 30 replan evidence add --apply processes run in parallel on one project all answered ok with exit 0, but only 2 evidence records and 3 audit lines remained; audit lines exist for records that are gone, which the commit comment in internal/storage/filestore/files.go says cannot happen. Every write reads, validates and commits without an inter-process lock, so concurrent writers lose updates silently. Take an exclusive project lock around read, validate and commit of every write, re-read under the lock, refuse with a clear code when the lock cannot be taken in time, and add a parallel-writers regression test. The non-atomic set of files on an interrupted commit is a separate question."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2277"
           },
           "status": {
             "title": "New"

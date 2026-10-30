@@ -2138,3 +2138,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.release-build-ignores-surrounding-git
+  - id: evidence.self.found-serialize-concurrent-project-writes
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T11:46:13+07:00"
+    summary: '30 parallel replan evidence add --apply runs on a copy of a small project: all 30 answered ok, exit 0; 2 records and 3 audit lines remained.'
+    targets:
+      - kind: task
+        id: task.self.serialize-concurrent-project-writes
