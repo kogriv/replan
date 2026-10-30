@@ -2562,3 +2562,14 @@ evidence:
         id: task.self.split-cli-main-by-command-group
       - kind: task
         id: task.self.correct-mis-booked-actuals
+  - id: evidence.self.start-recover-interrupted-multi-file-commits
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T17:47:24+07:00"
+    summary: 'Started next in the order the operator agreed. Design chosen: a roll-forward journal of the validated staged files written before the commit; the next write or replan project recover completes an interrupted commit, read commands warn. Original estimate before the Codex split: 3 agent hours.'
+    targets:
+      - kind: task
+        id: task.self.recover-interrupted-multi-file-commits

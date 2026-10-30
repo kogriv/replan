@@ -5412,7 +5412,7 @@ tasks:
       title: Recover from an interrupted multi-file write
       description: 'Agreed with the operator on 2026-10-30 after an outside audit: a write validates the whole change before it reaches the disk, but then replaces files one by one, so an interrupted commit can leave part of a change and its audit line missing. Design and implement recovery: record the planned file set before the commit, detect an unfinished commit on the next load and complete or refuse with a clear code, and test it with a failure injected between files. Builds on task.self.serialize-concurrent-project-writes.'
       type: implementation
-      tracking_status: not_started
+      tracking_status: in_progress
       planned_start: "2026-10-30"
       planned_finish: "2026-10-30"
       assignee_hint:
@@ -5421,6 +5421,8 @@ tasks:
       resource_demands:
         - kind: resource_demand
           id: resource_demand.recover-interrupted-multi-file-commits.agent
+        - kind: resource_demand
+          id: resource_demand.recover-interrupted-multi-file-commits.codex
         - kind: resource_demand
           id: resource_demand.recover-interrupted-multi-file-commits.maintainer
         - kind: resource_demand
