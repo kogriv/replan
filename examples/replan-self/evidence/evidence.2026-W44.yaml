@@ -2301,3 +2301,15 @@ evidence:
     targets:
       - kind: task
         id: task.self.connect-third-project-to-openproject-tools
+  - id: evidence.self.start-openproject-relations-and-parent-by-id
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T13:11:36+07:00"
+    summary: 'Started right after the toolkit without a plan, on the operators priority for the third project, which needs relates and blocks relations and a parent for its epic. Original estimate before the Codex split: 2 agent hours.'
+    targets:
+      - kind: task
+        id: task.self.openproject-relations-and-parent-by-id

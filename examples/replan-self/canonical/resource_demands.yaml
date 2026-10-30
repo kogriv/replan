@@ -10294,8 +10294,22 @@ resource_demands:
       resource_class: ai_agent
       role: implementation_agent
       unit: agent_hours
-      planned_amount: 2
-      remaining_amount: 2
+      planned_amount: 0.5
+      remaining_amount: 0.5
+      criticality: required
+      status: active
+    - id: resource_demand.openproject-relations-and-parent-by-id.codex
+      task_ref:
+        kind: task
+        id: task.self.openproject-relations-and-parent-by-id
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 1.5
+      remaining_amount: 1.5
       criticality: required
       status: active
     - id: resource_demand.openproject-relations-and-parent-by-id.maintainer
