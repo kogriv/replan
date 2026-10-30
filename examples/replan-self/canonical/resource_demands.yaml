@@ -10015,7 +10015,7 @@ resource_demands:
       role: ci_runtime
       unit: ci_minutes
       planned_amount: 10
-      remaining_amount: 10
+      remaining_amount: 3
       criticality: required
       status: active
     - id: resource_demand.recover-interrupted-multi-file-commits.agent
