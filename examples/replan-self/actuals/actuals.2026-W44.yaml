@@ -2884,3 +2884,45 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.require-human-approvers
+    - id: actual.self-accept-dependencies-with-their-tasks.ai-codex-local.20261030T2200520700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.accept-dependencies-with-their-tasks
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.accept-dependencies-with-their-tasks.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.23
+      unit: agent_hours
+      occurred_at: "2026-10-30T22:00:52+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-dependencies-with-their-tasks
+    - id: actual.self-accept-dependencies-with-their-tasks.ai-agent-executor.20261030T2200520700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.accept-dependencies-with-their-tasks
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.accept-dependencies-with-their-tasks.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.31
+      unit: agent_hours
+      occurred_at: "2026-10-30T22:00:52+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-dependencies-with-their-tasks

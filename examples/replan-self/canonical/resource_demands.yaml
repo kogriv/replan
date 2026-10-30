@@ -10810,9 +10810,20 @@ resource_demands:
       role: implementation_agent
       unit: agent_hours
       planned_amount: 0.25
-      remaining_amount: 0.25
+      remaining_amount: 0
       criticality: required
       status: active
+      overrun_review:
+          acknowledged_forecast: 0.31
+          unit: agent_hours
+          reason: 'Real overrun: the review included a read-only re-import of a real project and a full gate run; measured from the Codex round''s end to the finish.'
+          reviewed_by:
+              kind: actor
+              id: actor.ai.agent.executor
+          reviewed_at: "2026-10-30T22:01:13+07:00"
+          evidence_refs:
+              - kind: evidence
+                id: evidence.self.accept-dependencies-with-their-tasks
     - id: resource_demand.accept-dependencies-with-their-tasks.codex
       task_ref:
         kind: task
@@ -10824,7 +10835,7 @@ resource_demands:
       role: implementation_agent
       unit: agent_hours
       planned_amount: 1.25
-      remaining_amount: 1.25
+      remaining_amount: 0
       criticality: required
       status: active
     - id: resource_demand.accept-dependencies-with-their-tasks.maintainer

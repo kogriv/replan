@@ -2676,3 +2676,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.accept-dependencies-with-their-tasks
+  - id: evidence.self.accept-dependencies-with-their-tasks
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T22:00:52+07:00"
+    summary: 'Codex round 1 (21:28:31-21:42:05): import accept re-matches task_unmatched candidates against the current plan by source refs for dependencies (OpenProject and GitHub blocked_by), dates, tracking status and resource demands; time entries already resolved at accept time; a missing endpoint is named in the warning; the quickstart and the CLI spec give the order. Checked on a read-only import of the third project into a new project: one snapshot, tasks then dependencies, 15 relates links accepted without a second import; validate ok. Full local gate green, 79 live kit checks.'
+    targets:
+      - kind: task
+        id: task.self.accept-dependencies-with-their-tasks
