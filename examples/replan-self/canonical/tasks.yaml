@@ -5464,7 +5464,7 @@ tasks:
       title: Add replan init and the resource and capacity commands
       description: 'Approved by the operator on 2026-10-30 (docs/dev/first-project-onboarding-design.md, sections 1 and 2): replan init creates the smallest valid project with the owner as actor and human resource and no capacity, refuses an existing project with project_exists, writes a project_init audit record and nothing without --apply; replan resource add and resource list for every resource class with an optional matching actor; replan capacity set adds a periodic capacity, a later effective date adds a new period. Evidence is optional for resource add and capacity set; the audit record is always written. No availability, pool, rename or remove commands.'
       type: implementation
-      tracking_status: not_started
+      tracking_status: in_progress
       planned_start: "2026-10-30"
       planned_finish: "2026-10-30"
       assignee_hint:
@@ -5473,6 +5473,8 @@ tasks:
       resource_demands:
         - kind: resource_demand
           id: resource_demand.implement-replan-init-and-resource-commands.agent
+        - kind: resource_demand
+          id: resource_demand.implement-replan-init-and-resource-commands.codex
         - kind: resource_demand
           id: resource_demand.implement-replan-init-and-resource-commands.maintainer
         - kind: resource_demand

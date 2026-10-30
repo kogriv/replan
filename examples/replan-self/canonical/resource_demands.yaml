@@ -10126,8 +10126,22 @@ resource_demands:
       resource_class: ai_agent
       role: implementation_agent
       unit: agent_hours
-      planned_amount: 4
-      remaining_amount: 4
+      planned_amount: 1
+      remaining_amount: 1
+      criticality: required
+      status: active
+    - id: resource_demand.implement-replan-init-and-resource-commands.codex
+      task_ref:
+        kind: task
+        id: task.self.implement-replan-init-and-resource-commands
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 3
+      remaining_amount: 3
       criticality: required
       status: active
     - id: resource_demand.implement-replan-init-and-resource-commands.maintainer

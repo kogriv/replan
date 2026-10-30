@@ -2422,3 +2422,15 @@ evidence:
     targets:
       - kind: task
         id: task.self.fix-first-project-defects
+  - id: evidence.self.start-implement-replan-init-and-resource-commands
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T15:12:13+07:00"
+    summary: 'Started after the first-project defects, in the order the operator agreed on 2026-10-30, from the approved design. Original estimate before the Codex split: 4 agent hours.'
+    targets:
+      - kind: task
+        id: task.self.implement-replan-init-and-resource-commands
