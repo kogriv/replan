@@ -3010,3 +3010,402 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.refresh-agent-kits-v0-3-0
+    - id: actual.self-fix-first-project-defects.ci-github-actions.20261031T0556570700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.fix-first-project-defects
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.fix-first-project-defects.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-31T05:56:57+07:00"
+      status_date: "2026-10-31"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-fix-first-project-defects
+    - id: actual.self-document-local-trust-boundary.ci-github-actions.20261031T0557440700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.document-local-trust-boundary
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.document-local-trust-boundary.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-31T05:57:44+07:00"
+      status_date: "2026-10-31"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-document-local-trust-boundary
+    - id: actual.self-split-cli-main-by-command-group.ci-github-actions.20261031T0558160700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.split-cli-main-by-command-group
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.split-cli-main-by-command-group.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-31T05:58:16+07:00"
+      status_date: "2026-10-31"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-split-cli-main-by-command-group
+    - id: actual.self-attest-release-builds.ci-github-actions.20261031T0558490700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.attest-release-builds
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.attest-release-builds.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-31T05:58:49+07:00"
+      status_date: "2026-10-31"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-attest-release-builds
+    - id: actual.self-recover-interrupted-multi-file-commits.ci-github-actions.20261031T0559220700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.recover-interrupted-multi-file-commits
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.recover-interrupted-multi-file-commits.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-31T05:59:22+07:00"
+      status_date: "2026-10-31"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-recover-interrupted-multi-file-commits
+    - id: actual.self-connect-third-project-to-openproject-tools.ci-github-actions.20261031T0559560700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.connect-third-project-to-openproject-tools
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.connect-third-project-to-openproject-tools.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-31T05:59:56+07:00"
+      status_date: "2026-10-31"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-connect-third-project-to-openproject-tools
+    - id: actual.self-implement-replan-init-and-resource-commands.ci-github-actions.20261031T0600280700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-replan-init-and-resource-commands
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.implement-replan-init-and-resource-commands.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-31T06:00:28+07:00"
+      status_date: "2026-10-31"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-implement-replan-init-and-resource-commands
+    - id: actual.self-write-tested-quickstart-guide.ci-github-actions.20261031T0601020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.write-tested-quickstart-guide
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.write-tested-quickstart-guide.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-31T06:01:02+07:00"
+      status_date: "2026-10-31"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-write-tested-quickstart-guide
+    - id: actual.self-openproject-relations-and-parent-by-id.ci-github-actions.20261031T0601330700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.openproject-relations-and-parent-by-id
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.openproject-relations-and-parent-by-id.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-31T06:01:33+07:00"
+      status_date: "2026-10-31"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-openproject-relations-and-parent-by-id
+    - id: actual.self-import-openproject-relates-relations.ci-github-actions.20261031T0602080700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.import-openproject-relates-relations
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.import-openproject-relates-relations.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-31T06:02:08+07:00"
+      status_date: "2026-10-31"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-import-openproject-relates-relations
+    - id: actual.self-test-kit-on-minimum-python.ci-github-actions.20261031T0602410700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.test-kit-on-minimum-python
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.test-kit-on-minimum-python.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-31T06:02:41+07:00"
+      status_date: "2026-10-31"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-test-kit-on-minimum-python
+    - id: actual.self-require-human-approvers.ci-github-actions.20261031T0603130700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.require-human-approvers
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.require-human-approvers.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-31T06:03:13+07:00"
+      status_date: "2026-10-31"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-require-human-approvers
+    - id: actual.self-correct-mis-booked-actuals.ci-github-actions.20261031T0603470700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.correct-mis-booked-actuals
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.correct-mis-booked-actuals.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-31T06:03:47+07:00"
+      status_date: "2026-10-31"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-correct-mis-booked-actuals
+    - id: actual.self-decouple-smoke-from-live-self-plan.ci-github-actions.20261031T0604230700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.decouple-smoke-from-live-self-plan
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.decouple-smoke-from-live-self-plan.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-31T06:04:23+07:00"
+      status_date: "2026-10-31"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-decouple-smoke-from-live-self-plan
+    - id: actual.self-fix-dashboard-for-short-project-paths.ci-github-actions.20261031T0604550700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.fix-dashboard-for-short-project-paths
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.fix-dashboard-for-short-project-paths.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-31T06:04:55+07:00"
+      status_date: "2026-10-31"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-fix-dashboard-for-short-project-paths
+    - id: actual.self-accept-dependencies-with-their-tasks.ci-github-actions.20261031T0605280700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.accept-dependencies-with-their-tasks
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.accept-dependencies-with-their-tasks.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-31T06:05:28+07:00"
+      status_date: "2026-10-31"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-accept-dependencies-with-their-tasks
+    - id: actual.self-publish-release-v0-3-0.ci-github-actions.20261031T0606020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.publish-release-v0-3-0
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.publish-release-v0-3-0.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-31T06:06:02+07:00"
+      status_date: "2026-10-31"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-publish-release-v0-3-0
+    - id: actual.self-refresh-agent-kits-v0-3-0.ci-github-actions.20261031T0606340700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.refresh-agent-kits-v0-3-0
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.refresh-agent-kits-v0-3-0.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-31T06:06:34+07:00"
+      status_date: "2026-10-31"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-refresh-agent-kits-v0-3-0
+    - id: actual.self-kit-build-ignores-surrounding-git.ci-github-actions.20261031T0607100700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.kit-build-ignores-surrounding-git
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.kit-build-ignores-surrounding-git.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-31T06:07:10+07:00"
+      status_date: "2026-10-31"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-kit-build-ignores-surrounding-git
