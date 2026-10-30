@@ -2106,6 +2106,13 @@ Rules:
 - `import accept` reads the source-neutral candidate fields first and falls
   back to the deprecated OpenProject aliases in snapshots written before
   those fields existed;
+- accept modes whose candidates point at tasks resolve snapshot-time unmatched
+  tasks again from the current plan's tracker source refs. This applies to
+  dates, tracking status, resource demands and dependencies, so those modes
+  can follow ordinary task acceptance from the same snapshot. Only candidates
+  stored as task-unmatched are refreshed; every other stored accept status is
+  preserved. Time-entry acceptance already resolves its work package against
+  current task source refs at accept time;
 - without `--dry-run`, OpenProject import writes `manifest.yaml`, `raw.json`
   and `mapped.json` under `imports/openproject/<snapshot-key>/`;
 - when `project.openproject_ids` is `private_bindings`, live API import without
@@ -2166,6 +2173,11 @@ Rules:
 - `replan import accept --accept-dependencies --apply --actor <id>` writes only
   safe tracker relation-backed dependency changes to
   `canonical/dependencies.yaml` and audit;
+- a dependency stored with `accept_status: task_unmatched` is re-matched at
+  accept time by both endpoint source refs. If both tasks have since been
+  accepted, the dependency is safe to accept without another tracker import;
+  otherwise the not-safe warning names the unmatched predecessor or successor
+  source object and says to accept that task first;
 - dependency accept must never create a duplicate canonical dependency record
   when a matching predecessor/successor/type triple already exists; `relates`
   compares its predecessor and successor as an unordered pair;
@@ -2198,9 +2210,9 @@ Rules:
   `import accept --accept-resource-demands --apply`, then
   `import accept --accept-time-entries --apply`, and optionally
   `import accept --accept-tracking-status --apply`; relation-backed
-  dependencies require a snapshot imported with `--include-relations` after
-  ordinary task accept and can then be accepted with
-  `import accept --accept-dependencies --apply`;
+  dependencies require a snapshot imported with `--include-relations` and,
+  after accepting that snapshot's tasks, can be accepted from the same snapshot
+  with `import accept --accept-dependencies --apply`;
 - time-entry duplicate detection uses `evidence.source_ref` with
   `source=openproject`, `object_type=time_entry` and the OpenProject time-entry
   id;

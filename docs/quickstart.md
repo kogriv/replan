@@ -120,6 +120,8 @@ workload.html
 - **Bring tasks from a tracker** instead of typing them:
   `replan import openproject` or `replan import github`, then
   `replan import accept`. Both import into a project made by `replan init`.
+  When the snapshot includes relations, accept its tasks first and then accept
+  its dependencies from that same snapshot.
 - **Let an agent work on the plan** with the
   [agent kit](agent-kit/README.md); it also covers OpenProject write-back.
 

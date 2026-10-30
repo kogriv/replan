@@ -48,6 +48,176 @@ func TestInitDryRunApplyValidateAndProjectExists(t *testing.T) {
 	}
 }
 
+func TestInitImportAcceptsDependenciesFromSameSnapshot(t *testing.T) {
+	tests := []struct {
+		name         string
+		command      string
+		input        string
+		dependencyID string
+	}{
+		{
+			name:    "openproject",
+			command: "openproject",
+			input: `{
+  "_type": "Collection",
+  "total": 2,
+  "count": 2,
+  "_embedded": {
+    "elements": [
+      {"id": 11, "subject": "Prepare release", "status": {"name": "In progress"}, "startDate": "2026-10-30", "dueDate": "2026-10-31", "_links": {"self": {"href": "/api/v3/work_packages/11"}}},
+      {"id": 12, "subject": "Ship release", "status": {"name": "New"}, "startDate": "2026-11-01", "dueDate": "2026-11-02", "_links": {"self": {"href": "/api/v3/work_packages/12"}}}
+    ],
+    "relations": {"elements": [
+      {"id": 91, "type": "blocks", "_links": {"self": {"href": "/api/v3/relations/91"}, "from": {"href": "/api/v3/work_packages/11"}, "to": {"href": "/api/v3/work_packages/12"}}}
+    ]}
+  }
+}`,
+			dependencyID: "dependency.openproject.relation.91",
+		},
+		{
+			name:    "github",
+			command: "github",
+			input: `{
+  "format": "replan.github-issues.v1",
+  "repository": {"owner": "example-org", "name": "same-snapshot"},
+  "issues": [
+    {"id": 101, "number": 1, "title": "Prepare release", "state": "open", "html_url": "https://github.com/example-org/same-snapshot/issues/1"},
+    {"id": 102, "number": 2, "title": "Ship release", "state": "open", "html_url": "https://github.com/example-org/same-snapshot/issues/2"}
+  ],
+  "blocked_by": [
+    {"issue_number": 2, "issues": [{"repository": "example-org/same-snapshot", "number": 1, "id": 101}]}
+  ]
+}`,
+			dependencyID: "dependency.github.blocked-by.example-org.same-snapshot.1.example-org.same-snapshot.2",
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			project := initOnboardingProject(t)
+			inputPath := filepath.Join(t.TempDir(), tc.command+".json")
+			if err := os.WriteFile(inputPath, []byte(tc.input), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			importArgs := []string{"import", tc.command, "--project", project, "--from-file", inputPath, "--include-relations", "--format", "json"}
+			if tc.name == "openproject" {
+				sidecarPath := filepath.Join(t.TempDir(), "resource-demands.yaml")
+				sidecar := `openproject_resource_demands:
+  - work_package_id: "11"
+    demands:
+      - id: resource_demand.same-snapshot.owner
+        resource_ref:
+          kind: resource
+          id: resource.human.owner
+        resource_class: human
+        role: implementer
+        unit: hours
+        planned_amount: 1
+        remaining_amount: 1
+        criticality: required
+        status: planned
+`
+				if err := os.WriteFile(sidecarPath, []byte(sidecar), 0o600); err != nil {
+					t.Fatal(err)
+				}
+				importArgs = append(importArgs, "--resource-demands-sidecar", sidecarPath)
+			}
+			code, stdout, stderr := runOnboardingCLI(t, importArgs...)
+			if code != exitSuccess || stderr != "" {
+				t.Fatalf("import exit=%d stdout=%s stderr=%s", code, stdout, stderr)
+			}
+			snapshotID := onboardingImportSnapshotID(t, stdout)
+			code, stdout, stderr = runOnboardingCLI(t, "import", "accept", snapshotID, "--project", project, "--actor", "actor.human.owner", "--apply", "--format", "json")
+			if code != exitSuccess || stderr != "" {
+				t.Fatalf("task accept exit=%d stdout=%s stderr=%s", code, stdout, stderr)
+			}
+			if tc.name == "openproject" {
+				for _, mode := range []struct {
+					flag string
+					op   string
+				}{
+					{"--accept-dates", "update_task_planned_start"},
+					{"--accept-tracking-status", "update_task_tracking_status"},
+					{"--accept-resource-demands", "create_resource_demand"},
+				} {
+					code, stdout, stderr = runOnboardingCLI(t, "import", "accept", snapshotID, "--project", project, mode.flag, "--actor", "actor.human.owner", "--apply", "--format", "json")
+					if code != exitSuccess || stderr != "" || !strings.Contains(stdout, `"op": "`+mode.op+`"`) {
+						t.Fatalf("%s exit=%d stdout=%s stderr=%s", mode.flag, code, stdout, stderr)
+					}
+				}
+			}
+			code, stdout, stderr = runOnboardingCLI(t, "import", "accept", snapshotID, "--project", project, "--accept-dependencies", "--actor", "actor.human.owner", "--apply", "--format", "json")
+			if code != exitSuccess || stderr != "" || !strings.Contains(stdout, `"op": "create_dependency"`) {
+				t.Fatalf("dependency accept exit=%d stdout=%s stderr=%s", code, stdout, stderr)
+			}
+			dependencies, err := os.ReadFile(filepath.Join(project, "canonical", "dependencies.yaml"))
+			if err != nil || !strings.Contains(string(dependencies), "id: "+tc.dependencyID) {
+				t.Fatalf("dependency %s not written: %v\n%s", tc.dependencyID, err, dependencies)
+			}
+			code, stdout, stderr = runOnboardingCLI(t, "validate", project, "--format", "json")
+			if code != exitSuccess || stderr != "" || !strings.Contains(stdout, `"valid": true`) {
+				t.Fatalf("validate exit=%d stdout=%s stderr=%s", code, stdout, stderr)
+			}
+		})
+	}
+}
+
+func TestImportDependencyRematchNamesEndpointThatMustBeAccepted(t *testing.T) {
+	project := initOnboardingProject(t)
+	inputPath := filepath.Join(t.TempDir(), "partial-openproject.json")
+	input := `{
+  "_type": "Collection",
+  "total": 1,
+  "count": 1,
+  "_embedded": {
+    "elements": [
+      {"id": 11, "subject": "Prepare release", "status": {"name": "New"}, "_links": {"self": {"href": "/api/v3/work_packages/11"}}}
+    ],
+    "relations": {"elements": [
+      {"id": 92, "type": "blocks", "_links": {"self": {"href": "/api/v3/relations/92"}, "from": {"href": "/api/v3/work_packages/11"}, "to": {"href": "/api/v3/work_packages/12"}}}
+    ]}
+  }
+}`
+	if err := os.WriteFile(inputPath, []byte(input), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	code, stdout, stderr := runOnboardingCLI(t, "import", "openproject", "--project", project, "--from-file", inputPath, "--include-relations", "--format", "json")
+	if code != exitSuccess || stderr != "" {
+		t.Fatalf("import exit=%d stdout=%s stderr=%s", code, stdout, stderr)
+	}
+	snapshotID := onboardingImportSnapshotID(t, stdout)
+	code, stdout, stderr = runOnboardingCLI(t, "import", "accept", snapshotID, "--project", project, "--actor", "actor.human.owner", "--apply", "--format", "json")
+	if code != exitSuccess || stderr != "" {
+		t.Fatalf("task accept exit=%d stdout=%s stderr=%s", code, stdout, stderr)
+	}
+	code, stdout, stderr = runOnboardingCLI(t, "import", "accept", snapshotID, "--project", project, "--accept-dependencies", "--actor", "actor.human.owner", "--apply", "--format", "json")
+	if code != exitSuccess || stderr != "" {
+		t.Fatalf("dependency accept exit=%d stdout=%s stderr=%s", code, stdout, stderr)
+	}
+	if !strings.Contains(stdout, `"code": "openproject_dependency_not_safe_to_accept"`) ||
+		!strings.Contains(stdout, "successor work package 12") || !strings.Contains(stdout, "accept that task first") {
+		t.Fatalf("unmatched endpoint warning is unclear: %s", stdout)
+	}
+	dependencies, err := os.ReadFile(filepath.Join(project, "canonical", "dependencies.yaml"))
+	if err != nil || strings.Contains(string(dependencies), "dependency.openproject.relation.92") {
+		t.Fatalf("unsafe dependency was written: %v\n%s", err, dependencies)
+	}
+}
+
+func onboardingImportSnapshotID(t *testing.T, stdout string) string {
+	t.Helper()
+	var envelope struct {
+		Result struct {
+			Snapshot struct {
+				ID string `json:"id"`
+			} `json:"snapshot"`
+		} `json:"result"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &envelope); err != nil || envelope.Result.Snapshot.ID == "" {
+		t.Fatalf("import result has no snapshot id: %v\n%s", err, stdout)
+	}
+	return envelope.Result.Snapshot.ID
+}
+
 func TestInitRequiresTimezoneWhenDetectionFails(t *testing.T) {
 	old := detectMachineIANATimezone
 	detectMachineIANATimezone = func() string { return "" }

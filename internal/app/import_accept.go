@@ -716,6 +716,7 @@ func buildImportAcceptTimeEntryChanges(ws domain.Workspace, mapped ImportMappedS
 func buildImportAcceptResourceDemandChanges(ws domain.Workspace, mapped ImportMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptChange {
 	var changes []ImportAcceptChange
 	for _, candidate := range mapped.ResourceDemandCandidates {
+		candidate = rematchImportResourceDemandCandidate(ws, mapped, candidate)
 		if !safeImportResourceDemandCandidate(ws, candidate, warnings) {
 			continue
 		}
@@ -752,6 +753,7 @@ func buildImportAcceptResourceLinkChanges(ws domain.Workspace, mapped ImportMapp
 func buildImportAcceptTrackingStatusChanges(ws domain.Workspace, mapped ImportMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptChange {
 	var changes []ImportAcceptChange
 	for _, candidate := range mapped.TaskCandidates {
+		candidate = rematchImportTaskCandidate(ws, candidate)
 		task, ok := safeOpenProjectTrackingStatusCandidate(ws, candidate, warnings)
 		if !ok {
 			continue
@@ -771,6 +773,7 @@ func buildImportAcceptTrackingStatusChanges(ws domain.Workspace, mapped ImportMa
 func buildImportAcceptDateChanges(ws domain.Workspace, mapped ImportMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptChange {
 	var changes []ImportAcceptChange
 	for _, candidate := range mapped.TaskCandidates {
+		candidate = rematchImportTaskCandidate(ws, candidate)
 		task, start, finish, ok := safeOpenProjectDateCandidate(ws, candidate, warnings)
 		if !ok {
 			continue
@@ -801,6 +804,10 @@ func buildImportAcceptDependencyChanges(ws domain.Workspace, mapped ImportMapped
 	var changes []ImportAcceptChange
 	seen := newDependencyAcceptSeen()
 	for _, candidate := range mapped.DependencyCandidates {
+		candidate, ok := rematchImportDependencyCandidate(ws, mapped, candidate, warnings)
+		if !ok {
+			continue
+		}
 		dependency, op, ok := safeImportDependencyCandidate(ws, candidate, warnings)
 		if !ok {
 			continue
@@ -871,6 +878,7 @@ func buildSafeImportAcceptTaskChanges(ws domain.Workspace, mapped ImportMappedSn
 func buildSafeImportAcceptResourceDemandChanges(ws domain.Workspace, mapped ImportMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptResourceDemandChange {
 	var changes []ImportAcceptResourceDemandChange
 	for _, candidate := range mapped.ResourceDemandCandidates {
+		candidate = rematchImportResourceDemandCandidate(ws, mapped, candidate)
 		if !safeImportResourceDemandCandidate(ws, candidate, warnings) {
 			continue
 		}
@@ -904,6 +912,7 @@ func buildSafeImportAcceptResourceLinkChanges(ws domain.Workspace, mapped Import
 func buildSafeImportAcceptTrackingStatusChanges(ws domain.Workspace, mapped ImportMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptTrackingStatusChange {
 	var changes []ImportAcceptTrackingStatusChange
 	for _, candidate := range mapped.TaskCandidates {
+		candidate = rematchImportTaskCandidate(ws, candidate)
 		if _, ok := safeOpenProjectTrackingStatusCandidate(ws, candidate, warnings); !ok {
 			continue
 		}
@@ -918,6 +927,7 @@ func buildSafeImportAcceptTrackingStatusChanges(ws domain.Workspace, mapped Impo
 func buildSafeImportAcceptDateChanges(ws domain.Workspace, mapped ImportMappedSnapshot, warnings *[]Diagnostic) []ImportAcceptDateChange {
 	var changes []ImportAcceptDateChange
 	for _, candidate := range mapped.TaskCandidates {
+		candidate = rematchImportTaskCandidate(ws, candidate)
 		task, start, finish, ok := safeOpenProjectDateCandidate(ws, candidate, warnings)
 		if !ok {
 			continue
@@ -931,6 +941,10 @@ func buildSafeImportAcceptDependencyChanges(ws domain.Workspace, mapped ImportMa
 	var changes []ImportAcceptDependencyChange
 	seen := newDependencyAcceptSeen()
 	for _, candidate := range mapped.DependencyCandidates {
+		candidate, ok := rematchImportDependencyCandidate(ws, mapped, candidate, warnings)
+		if !ok {
+			continue
+		}
 		dependency, op, ok := safeImportDependencyCandidate(ws, candidate, warnings)
 		if !ok {
 			continue
@@ -1209,6 +1223,106 @@ func findResourceByID(resources []domain.Resource, id string) (domain.Resource, 
 		}
 	}
 	return domain.Resource{}, false
+}
+
+// rematchImportTaskCandidate refreshes only the snapshot-time unmatched case.
+// Once a task has been accepted from the snapshot, its source ref is the
+// stable identity used by the importers and by the specialized accept modes.
+func rematchImportTaskCandidate(ws domain.Workspace, candidate ImportTaskCandidate) ImportTaskCandidate {
+	if candidate.MatchedTaskID != "" || !candidate.WouldCreate {
+		return candidate
+	}
+	if taskID := matchTaskBySourceRef(ws.Tasks, importTaskSource(candidate), importTaskObjectType(candidate), candidate.SourceID); taskID != "" {
+		candidate.MatchedTaskID = taskID
+		candidate.MatchReason = "source_ref"
+		candidate.WouldCreate = false
+	}
+	return candidate
+}
+
+func rematchImportResourceDemandCandidate(ws domain.Workspace, mapped ImportMappedSnapshot, candidate ImportResourceDemandCandidate) ImportResourceDemandCandidate {
+	if candidate.AcceptStatus != "task_unmatched" {
+		return candidate
+	}
+	taskID := matchMappedTaskSourceRef(ws, mapped, importDemandSource(candidate), candidate.SourceObjectID)
+	if taskID == "" {
+		return candidate
+	}
+	candidate.MatchedTaskID = taskID
+	candidate.Canonical.TaskRef = domain.Ref{Kind: "task", ID: taskID}
+	candidate.AcceptStatus = "safe_to_accept"
+	candidate.WouldCreate = true
+	return candidate
+}
+
+func rematchImportDependencyCandidate(ws domain.Workspace, mapped ImportMappedSnapshot, candidate ImportDependencyCandidate, warnings *[]Diagnostic) (ImportDependencyCandidate, bool) {
+	if candidate.AcceptStatus != "task_unmatched" {
+		return candidate, true
+	}
+	source := importDependencySource(candidate)
+	predecessorTaskID := matchMappedTaskSourceRef(ws, mapped, source, candidate.PredecessorSourceID)
+	successorTaskID := matchMappedTaskSourceRef(ws, mapped, source, candidate.SuccessorSourceID)
+	if predecessorTaskID == "" || successorTaskID == "" {
+		missing := make([]string, 0, 2)
+		if predecessorTaskID == "" {
+			missing = append(missing, dependencyEndpointDescription(mapped, source, "predecessor", candidate.PredecessorSourceID))
+		}
+		if successorTaskID == "" {
+			missing = append(missing, dependencyEndpointDescription(mapped, source, "successor", candidate.SuccessorSourceID))
+		}
+		pronoun := "that task"
+		verb := "is"
+		if len(missing) > 1 {
+			pronoun = "those tasks"
+			verb = "are"
+		}
+		*warnings = append(*warnings, Diagnostic{
+			Code:     source + "_dependency_not_safe_to_accept",
+			Message:  fmt.Sprintf("%s dependency candidate %s has accept_status %q because %s %s not matched to a canonical task; accept %s first", importSourceDisplay(source), candidate.SourceID, candidate.AcceptStatus, strings.Join(missing, " and "), verb, pronoun),
+			Severity: "warning",
+			Target:   Target{Kind: source + "_" + importDependencyObjectType(candidate), ID: candidate.SourceID},
+		})
+		return candidate, false
+	}
+	candidate.PredecessorTaskID = predecessorTaskID
+	candidate.SuccessorTaskID = successorTaskID
+	candidate.AcceptStatus = "safe_to_accept"
+	candidate.WouldCreate = true
+	return candidate, true
+}
+
+func dependencyEndpointDescription(mapped ImportMappedSnapshot, source, endpoint, sourceID string) string {
+	objectType := mappedTaskObjectType(mapped, source, sourceID)
+	return fmt.Sprintf("%s %s %s", endpoint, strings.ReplaceAll(objectType, "_", " "), sourceID)
+}
+
+func matchMappedTaskSourceRef(ws domain.Workspace, mapped ImportMappedSnapshot, source, sourceID string) string {
+	objectType := mappedTaskObjectType(mapped, source, sourceID)
+	return matchTaskBySourceRef(ws.Tasks, source, objectType, sourceID)
+}
+
+func mappedTaskObjectType(mapped ImportMappedSnapshot, source, sourceID string) string {
+	for _, candidate := range mapped.TaskCandidates {
+		if importTaskSource(candidate) == source && candidate.SourceID == sourceID {
+			return importTaskObjectType(candidate)
+		}
+	}
+	if source == "github" {
+		return "issue"
+	}
+	return "work_package"
+}
+
+func matchTaskBySourceRef(tasks []domain.Task, source, objectType, objectID string) string {
+	if strings.TrimSpace(objectID) == "" {
+		return ""
+	}
+	for _, task := range tasks {
+		if taskHasSourceRef(task, source, objectType, objectID) {
+			return task.ID
+		}
+	}
+	return ""
 }
 
 func safeOpenProjectTrackingStatusCandidate(ws domain.Workspace, candidate ImportTaskCandidate, warnings *[]Diagnostic) (domain.Task, bool) {
