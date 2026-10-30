@@ -2351,3 +2351,24 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.openproject-relations-and-parent-by-id
+    - id: actual.self-connect-third-project-to-openproject-tools.ai-agent-executor.20261030T1407420700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.connect-third-project-to-openproject-tools
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.connect-third-project-to-openproject-tools.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.98
+      unit: agent_hours
+      occurred_at: "2026-10-30T14:07:42+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.connect-third-project-to-openproject-tools

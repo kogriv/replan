@@ -2363,3 +2363,14 @@ evidence:
         id: task.self.openproject-relations-and-parent-by-id
       - kind: task
         id: task.self.test-kit-on-minimum-python
+  - id: evidence.self.connect-third-project-to-openproject-tools
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T14:07:42+07:00"
+    summary: 'The third project now works with OpenProject through the RePlan agent kit: the kit is installed on the server its session reaches over ssh, in a versioned directory with a current link and the previous version kept for rollback; its settings hold only the local OpenProject address, the project and the path of the agents root-only token file. Checked there by reading and dry runs only: 55 work packages listed, status, comment, relation and parent dry runs pass, the token never appears in output. The session received Russian instructions for create, comment, status, text, relations and parent, confirmed inspect and a comment dry run, and moved its task, comment and status work to the kit. The agent role gained subtask and relation permissions (separate evidence). A read-only import of the project into a scratch plan took all 55 tasks and found 13 relates relations unsupported (planned).'
+    targets:
+      - kind: task
+        id: task.self.connect-third-project-to-openproject-tools
