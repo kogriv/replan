@@ -2603,3 +2603,45 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.attest-release-builds
+    - id: actual.self-split-cli-main-by-command-group.ai-codex-local.20261030T1743300700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.split-cli-main-by-command-group
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.split-cli-main-by-command-group.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.45
+      unit: agent_hours
+      occurred_at: "2026-10-30T17:43:30+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.split-cli-main-by-command-group
+    - id: actual.self-split-cli-main-by-command-group.ai-agent-executor.20261030T1743300700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.split-cli-main-by-command-group
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.split-cli-main-by-command-group.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.2
+      unit: agent_hours
+      occurred_at: "2026-10-30T17:43:30+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.split-cli-main-by-command-group

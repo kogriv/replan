@@ -2537,3 +2537,28 @@ evidence:
     targets:
       - kind: task
         id: task.self.attest-release-builds
+  - id: evidence.self.split-cli-main-by-command-group
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T17:43:30+07:00"
+    summary: 'Codex round 1 (2026-10-30 16:48:25 2026-10-30 17:10:32 ): cmd/replan/main.go (6321 lines, 167 functions) is split verbatim into main.go (164 lines: main, run, dispatch, exit codes, usage), output.go, flags.go and one file per command group (workload, reports, scenarios, proposals, tracking, tasks, imports, exports, taskjuggler, taskjuggler import, baselines, validate, version), the largest 836 lines; no renames or logic changes. Codex compared 113 outputs before and after; on review, 119 commands on copies of the small-team and self plans (238 stdout and stderr files with exit codes) are identical between binaries built from HEAD and from the split. Full local gate green, 78 live kit checks.'
+    targets:
+      - kind: task
+        id: task.self.split-cli-main-by-command-group
+  - id: evidence.self.correct-split-codex-actual
+    type: decision
+    subtype: correction
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T17:46:35+07:00"
+    summary: 'Correction: 0.45 Codex agent hours were booked for task.self.split-cli-main-by-command-group, but the round ran from its prompt at 16:48:25 to its last message at 17:10:32, 0.37 hours. The booked actual stays (append-only); task.self.correct-mis-booked-actuals plans the proper correction.'
+    targets:
+      - kind: task
+        id: task.self.split-cli-main-by-command-group
+      - kind: task
+        id: task.self.correct-mis-booked-actuals
