@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 184,
-  "count": 184,
+  "total": 187,
+  "count": 187,
   "_embedded": {
     "elements": [
       {
@@ -5330,6 +5330,93 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2283"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2285,
+        "subject": "Let the OpenProject toolkit work without a plan and read secrets from files",
+        "description": {
+          "raw": "Found on 2026-10-30 for the third project, which tracks work in OpenProject without a RePlan plan: the work-package toolkit already creates, inspects and updates work packages and adds comments by work-package id, but it still requires REPLAN_PROJECT and a bindings file, and it reads the token and the perimeter key only from environment values, while that project keeps them in root-only files on the server that runs the helpers. Let the work-package commands that act by work-package id run without a plan (no REPLAN_PROJECT, no bindings), and add REPLAN_OPENPROJECT_TOKEN_FILE and REPLAN_OPENPROJECT_PERIMETER_KEY_FILE, read at run time and never printed, with tests and kit documentation."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2285"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2286,
+        "subject": "Create relations and set parents by work-package id",
+        "description": {
+          "raw": "Found on 2026-10-30 for the third project: the toolkit lists and deletes relations but creates them only from a plan, and it cannot set a parent. Add relation create by work-package id for relates, blocks and the other OpenProject types, with follows and precedes keeping both work packages manually scheduled and their dates as apply-openproject-relations.sh does, and a parent set and clear on work-package update-metadata. Dry run first, REPLAN_APPLY=1 to write; a 422 for a missing permission is reported as such. Tests against the throwaway OpenProject."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2286"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2287,
+        "subject": "Import OpenProject relates relations",
+        "description": {
+          "raw": "Found on 2026-10-30 in a read-only import of the third project: 13 OpenProject relations of type relates were skipped with openproject_relation_type_unsupported. Decide how relates maps into RePlan (a non-scheduling link, or reported and kept out of the dependency graph on purpose) and implement it in the import and import accept, so a tracker that links related work does not lose those links silently."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2287"
           },
           "status": {
             "title": "New"

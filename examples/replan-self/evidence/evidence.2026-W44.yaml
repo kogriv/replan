@@ -2263,3 +2263,19 @@ evidence:
     targets:
       - kind: task
         id: task.self.serialize-concurrent-project-writes
+  - id: evidence.self.start-openproject-toolkit-without-a-plan
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T12:29:18+07:00"
+    summary: 'The third project session answered on 2026-10-30: it runs on a Linux amd64 machine but its OpenProject token and perimeter key live only in root-only files on the server, so the toolkit should run there and read them from files; it needs create, comment add, update-status, update-text, a parent for its epic once permitted, and relates or blocks relations, not follows, dates, versions, wiki, attachments, time or estimates. The operator put this project first. Original estimate before the Codex split: 2 agent hours.'
+    targets:
+      - kind: task
+        id: task.self.openproject-toolkit-without-a-plan
+      - kind: task
+        id: task.self.connect-third-project-to-openproject-tools
+      - kind: task
+        id: task.self.openproject-relations-and-parent-by-id

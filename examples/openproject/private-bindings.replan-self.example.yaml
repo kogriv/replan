@@ -329,6 +329,18 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2277"
         url: https://op.example.internal/work_packages/2277
+    - replan_task_id: task.self.openproject-toolkit-without-a-plan
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2285"
+        url: https://op.example.internal/work_packages/2285
+    - replan_task_id: task.self.openproject-relations-and-parent-by-id
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2286"
+        url: https://op.example.internal/work_packages/2286
     - replan_task_id: task.self.connect-third-project-to-openproject-tools
       source_ref:
         source: openproject
@@ -359,6 +371,12 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2281"
         url: https://op.example.internal/work_packages/2281
+    - replan_task_id: task.self.import-openproject-relates-relations
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2287"
+        url: https://op.example.internal/work_packages/2287
     - replan_task_id: task.self.fix-first-project-defects
       source_ref:
         source: openproject

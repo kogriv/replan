@@ -10214,3 +10214,185 @@ resource_demands:
       remaining_amount: 10
       criticality: required
       status: active
+    - id: resource_demand.openproject-toolkit-without-a-plan.agent
+      task_ref:
+        kind: task
+        id: task.self.openproject-toolkit-without-a-plan
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 0.5
+      remaining_amount: 0.5
+      criticality: required
+      status: active
+    - id: resource_demand.openproject-toolkit-without-a-plan.codex
+      task_ref:
+        kind: task
+        id: task.self.openproject-toolkit-without-a-plan
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 1.5
+      remaining_amount: 1.5
+      criticality: required
+      status: active
+    - id: resource_demand.openproject-toolkit-without-a-plan.maintainer
+      task_ref:
+        kind: task
+        id: task.self.openproject-toolkit-without-a-plan
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      resource_class: human
+      role: maintainer
+      unit: hours
+      planned_amount: 0.25
+      remaining_amount: 0.25
+      criticality: required
+      status: active
+    - id: resource_demand.openproject-toolkit-without-a-plan.local-dev
+      task_ref:
+        kind: task
+        id: task.self.openproject-toolkit-without-a-plan
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      resource_class: environment
+      role: development_environment
+      unit: concurrent_slots
+      planned_amount: 1
+      remaining_amount: 1
+      criticality: required
+      status: active
+    - id: resource_demand.openproject-toolkit-without-a-plan.ci
+      task_ref:
+        kind: task
+        id: task.self.openproject-toolkit-without-a-plan
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      resource_class: service_quota
+      role: ci_runtime
+      unit: ci_minutes
+      planned_amount: 10
+      remaining_amount: 10
+      criticality: required
+      status: active
+    - id: resource_demand.openproject-relations-and-parent-by-id.agent
+      task_ref:
+        kind: task
+        id: task.self.openproject-relations-and-parent-by-id
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 2
+      remaining_amount: 2
+      criticality: required
+      status: active
+    - id: resource_demand.openproject-relations-and-parent-by-id.maintainer
+      task_ref:
+        kind: task
+        id: task.self.openproject-relations-and-parent-by-id
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      resource_class: human
+      role: maintainer
+      unit: hours
+      planned_amount: 0.25
+      remaining_amount: 0.25
+      criticality: required
+      status: active
+    - id: resource_demand.openproject-relations-and-parent-by-id.local-dev
+      task_ref:
+        kind: task
+        id: task.self.openproject-relations-and-parent-by-id
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      resource_class: environment
+      role: development_environment
+      unit: concurrent_slots
+      planned_amount: 1
+      remaining_amount: 1
+      criticality: required
+      status: active
+    - id: resource_demand.openproject-relations-and-parent-by-id.ci
+      task_ref:
+        kind: task
+        id: task.self.openproject-relations-and-parent-by-id
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      resource_class: service_quota
+      role: ci_runtime
+      unit: ci_minutes
+      planned_amount: 10
+      remaining_amount: 10
+      criticality: required
+      status: active
+    - id: resource_demand.import-openproject-relates-relations.agent
+      task_ref:
+        kind: task
+        id: task.self.import-openproject-relates-relations
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 1.5
+      remaining_amount: 1.5
+      criticality: required
+      status: active
+    - id: resource_demand.import-openproject-relates-relations.maintainer
+      task_ref:
+        kind: task
+        id: task.self.import-openproject-relates-relations
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      resource_class: human
+      role: maintainer
+      unit: hours
+      planned_amount: 0.25
+      remaining_amount: 0.25
+      criticality: required
+      status: active
+    - id: resource_demand.import-openproject-relates-relations.local-dev
+      task_ref:
+        kind: task
+        id: task.self.import-openproject-relates-relations
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      resource_class: environment
+      role: development_environment
+      unit: concurrent_slots
+      planned_amount: 1
+      remaining_amount: 1
+      criticality: required
+      status: active
+    - id: resource_demand.import-openproject-relates-relations.ci
+      task_ref:
+        kind: task
+        id: task.self.import-openproject-relates-relations
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      resource_class: service_quota
+      role: ci_runtime
+      unit: ci_minutes
+      planned_amount: 10
+      remaining_amount: 10
+      criticality: required
+      status: active

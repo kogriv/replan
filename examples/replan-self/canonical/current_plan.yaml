@@ -358,6 +358,10 @@ current_plan:
     - kind: task
       id: task.self.serialize-concurrent-project-writes
     - kind: task
+      id: task.self.openproject-toolkit-without-a-plan
+    - kind: task
+      id: task.self.openproject-relations-and-parent-by-id
+    - kind: task
       id: task.self.connect-third-project-to-openproject-tools
     - kind: task
       id: task.self.document-local-trust-boundary
@@ -367,6 +371,8 @@ current_plan:
       id: task.self.attest-release-builds
     - kind: task
       id: task.self.recover-interrupted-multi-file-commits
+    - kind: task
+      id: task.self.import-openproject-relates-relations
     - kind: task
       id: task.self.fix-first-project-defects
     - kind: task
