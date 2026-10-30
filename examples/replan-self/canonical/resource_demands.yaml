@@ -9405,3 +9405,115 @@ resource_demands:
       remaining_amount: 0
       criticality: required
       status: consumed
+    - id: resource_demand.update-roadmap-after-v0-2-0.agent
+      task_ref:
+        kind: task
+        id: task.self.update-roadmap-after-v0-2-0
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 0.25
+      remaining_amount: 0
+      criticality: required
+      status: active
+    - id: resource_demand.update-roadmap-after-v0-2-0.maintainer
+      task_ref:
+        kind: task
+        id: task.self.update-roadmap-after-v0-2-0
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      resource_class: human
+      role: maintainer
+      unit: hours
+      planned_amount: 0.25
+      remaining_amount: 0.25
+      criticality: required
+      status: active
+    - id: resource_demand.update-roadmap-after-v0-2-0.local-dev
+      task_ref:
+        kind: task
+        id: task.self.update-roadmap-after-v0-2-0
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      resource_class: environment
+      role: development_environment
+      unit: concurrent_slots
+      planned_amount: 1
+      remaining_amount: 1
+      criticality: required
+      status: active
+    - id: resource_demand.update-roadmap-after-v0-2-0.ci
+      task_ref:
+        kind: task
+        id: task.self.update-roadmap-after-v0-2-0
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      resource_class: service_quota
+      role: ci_runtime
+      unit: ci_minutes
+      planned_amount: 10
+      remaining_amount: 10
+      criticality: required
+      status: active
+    - id: resource_demand.design-first-project-onboarding.agent
+      task_ref:
+        kind: task
+        id: task.self.design-first-project-onboarding
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 1
+      remaining_amount: 1
+      criticality: required
+      status: active
+    - id: resource_demand.design-first-project-onboarding.maintainer
+      task_ref:
+        kind: task
+        id: task.self.design-first-project-onboarding
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      resource_class: human
+      role: maintainer
+      unit: hours
+      planned_amount: 0.25
+      remaining_amount: 0.25
+      criticality: required
+      status: active
+    - id: resource_demand.design-first-project-onboarding.local-dev
+      task_ref:
+        kind: task
+        id: task.self.design-first-project-onboarding
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      resource_class: environment
+      role: development_environment
+      unit: concurrent_slots
+      planned_amount: 1
+      remaining_amount: 1
+      criticality: required
+      status: active
+    - id: resource_demand.design-first-project-onboarding.ci
+      task_ref:
+        kind: task
+        id: task.self.design-first-project-onboarding
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      resource_class: service_quota
+      role: ci_runtime
+      unit: ci_minutes
+      planned_amount: 10
+      remaining_amount: 10
+      criticality: required
+      status: active

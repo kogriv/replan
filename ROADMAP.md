@@ -20,11 +20,17 @@ going. The task-level plan is RePlan's own project,
   changes, each backed by evidence.
 - **Baselines.** Sealed snapshots of the approved estimates, and a report of
   how far the actuals drifted from them.
+- **Calibrated estimates.** A sealed, human-approved correction factor per
+  resource group, computed from what baselined tasks really took, shown next
+  to new estimates and applied only through a scenario.
 - **Reports.** Weekly (Markdown, JSON, CSV, HTML), project state, next actions
-  and a static HTML dashboard.
+  and a static HTML dashboard with workload, scenario, proposal and estimate
+  pages.
 - **OpenProject.** Staged read-only import, drift checks, dry-run-first
   write-back of dates, status and titles, and a read-only plugin with a
   resource view and a per-task panel.
+- **GitHub Issues.** Read-only import from an exported file or over the API
+  into the same staged review as OpenProject.
 - **TaskJuggler.** Optional export, run and import of the result as a scenario
   for review.
 - **Agent kit.** The CLI, the helpers and the operating rules packaged for an
@@ -37,18 +43,20 @@ going. The task-level plan is RePlan's own project,
 These are directions, not commitments; each becomes a task in the self plan
 before work starts.
 
+- **A first project of your own.** `replan init` and commands for resources
+  and capacities, plus a short guide from an empty directory to a first
+  workload report, so a new project does not start from hand-written YAML.
 - **A stable file format.** The project format is versioned and
   `replan project migrate` exists; the format becomes stable once outside
   users have data in it.
-- **Calibrated estimates.** Feed the estimate accuracy report back into
-  planning, so a plan made by an agent starts from what similar tasks really
-  took.
-- **More task trackers.** A read-only GitHub Issues adapter, from an exported
-  file first and then over the API, to prove the model is not shaped around
-  OpenProject.
-- **More dashboard pages.** The weekly heatmap, scenario comparison, proposal
-  review and estimate accuracy as read-only pages of the static dashboard.
-  A served web application is not planned until these show it is needed.
+- **Calibration by task size.** Small tasks overrun their calibrated estimate
+  more than large ones; a factor per size band instead of one per resource
+  group.
+- **GitHub Projects fields over the API.** Dates and estimates from GitHub
+  Projects are read from an exported file today; the live import needs the
+  GraphQL API for them.
+- **Release builds in CI.** Build and publish the release archives from the
+  tagged commit in GitHub Actions instead of a maintainer's machine.
 
 ## Not planned
 

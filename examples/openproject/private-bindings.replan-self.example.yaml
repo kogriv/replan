@@ -293,6 +293,18 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2270"
         url: https://op.example.internal/work_packages/2270
+    - replan_task_id: task.self.update-roadmap-after-v0-2-0
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2271"
+        url: https://op.example.internal/work_packages/2271
+    - replan_task_id: task.self.design-first-project-onboarding
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2272"
+        url: https://op.example.internal/work_packages/2272
     - replan_task_id: task.self.design-local-web-view
       source_ref:
         source: openproject

@@ -2034,3 +2034,28 @@ evidence:
     targets:
       - kind: task
         id: task.self.refresh-second-project-agent-kit-v0-2-0
+  - id: evidence.self.start-update-roadmap-after-v0-2-0
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T10:52:19+07:00"
+    summary: Operator agreed on 2026-10-30 to update ROADMAP.md after release v0.2.0 and then to design onboarding for a first project of ones own as the next work.
+    targets:
+      - kind: task
+        id: task.self.update-roadmap-after-v0-2-0
+      - kind: task
+        id: task.self.design-first-project-onboarding
+  - id: evidence.self.update-roadmap-after-v0-2-0
+    type: document
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T10:52:56+07:00"
+    summary: 'ROADMAP.md updated after release v0.2.0: calibrated estimates, the GitHub Issues import and the dashboard pages moved to Works today; Next keeps the stable file format with its condition and adds a first project of your own, calibration by task size, GitHub Projects fields over the API and release builds in CI. git diff --check is clean.'
+    targets:
+      - kind: task
+        id: task.self.update-roadmap-after-v0-2-0

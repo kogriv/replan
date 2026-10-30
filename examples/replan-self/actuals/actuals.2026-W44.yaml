@@ -1973,3 +1973,24 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.refresh-second-project-agent-kit-v0-2-0
+    - id: actual.self-update-roadmap-after-v0-2-0.ai-agent-executor.20261030T1052560700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.update-roadmap-after-v0-2-0
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.update-roadmap-after-v0-2-0.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.05
+      unit: agent_hours
+      occurred_at: "2026-10-30T10:52:56+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.update-roadmap-after-v0-2-0

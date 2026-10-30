@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 170,
-  "count": 170,
+  "total": 172,
+  "count": 172,
   "_embedded": {
     "elements": [
       {
@@ -4924,6 +4924,64 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2270"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2271,
+        "subject": "Update the roadmap after release v0.2.0",
+        "description": {
+          "raw": "Agreed with the operator on 2026-10-30: ROADMAP.md still lists estimate calibration, the GitHub Issues import and the dashboard pages under Next although release v0.2.0 shipped them. Move them to Works today, keep the stable file format under Next with its condition, and add the next directions agreed in chat: onboarding for a first project of one's own, estimate calibration by size band, GitHub Projects fields in the live import, and release builds in GitHub Actions. Each direction still becomes a self plan task before work starts."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2271"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2272,
+        "subject": "Design onboarding for a first project of one's own",
+        "description": {
+          "raw": "Agreed with the operator on 2026-10-30 as the next work after the roadmap update: today a new user can only start a project of their own by writing the YAML files by hand; there is no replan init, no command to add resources or capacities, and no short guide from an empty directory to a first workload report. Write a design note for first-project onboarding: what replan init creates, which resource and capacity commands are needed, how a first task with a demand is added, what the quickstart guide covers and what stays out of scope. Bring the design to the operator for decisions before any implementation task is planned."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2272"
           },
           "status": {
             "title": "New"
