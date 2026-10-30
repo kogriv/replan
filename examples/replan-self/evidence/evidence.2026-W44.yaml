@@ -2434,3 +2434,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.implement-replan-init-and-resource-commands
+  - id: evidence.self.test-kit-on-minimum-python
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T15:15:05+07:00"
+    summary: The minimum Python for the kit is 3.10, stated in the kit README. The shared OpenProject client follows a 308 as a 307, which urllib does only from Python 3.11; a new test with a local server answering 308 passes, and on Python 3.10.12 the same test fails with the previous client (HTTP Error 308) and passes with the new one. A CI job runs the helper tests and the agent kit offline checks on Python 3.10.
+    targets:
+      - kind: task
+        id: task.self.test-kit-on-minimum-python

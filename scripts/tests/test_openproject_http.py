@@ -43,6 +43,12 @@ class _Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         self.record()
+        if self.path == "/moved":
+            self.send_response(308)
+            self.send_header("Location", "/item-new")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
         if self.path == "/missing":
             self.reply(404, b'{"message":"not found"}')
             return
@@ -146,6 +152,17 @@ class OpenProjectClientTest(unittest.TestCase):
         self.assertEqual(headers["X-Forwarded-Proto"], "https")
         self.assertEqual(headers["X-Test-Edge"], "edge-secret")
         self.assertTrue(headers["Authorization"].startswith("Basic "))
+
+    def test_get_follows_a_permanent_redirect_with_its_headers(self):
+        client = OpenProjectClient(
+            self.base_url, self.settings(), "openproject.example", "https"
+        )
+        status, body = client.request_json("GET", "/moved", expected=(200,))
+        self.assertEqual((status, body), (200, {"ok": True}))
+        method, path, headers, _ = _Handler.requests[-1]
+        self.assertEqual((method, path), ("GET", "/item-new"))
+        self.assertTrue(headers["Authorization"].startswith("Basic "))
+        self.assertEqual(headers["Host"], "openproject.example")
 
     def test_request_json_retries_a_transient_status(self):
         _Handler.transient_remaining = 1

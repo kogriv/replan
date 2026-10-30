@@ -395,6 +395,23 @@ def _unknown_outcome(attempt, retry_skipped=""):
     return outcome
 
 
+class _PermanentRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Follow 308 as 307, which urllib does only from Python 3.11.
+
+    OpenProject 17.6 answers some deprecated API paths with a 308. The kit
+    supports Python 3.10, where urllib raises the 308 as an error.
+    """
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return super().redirect_request(req, fp, 307 if code == 308 else code, msg, headers, newurl)
+
+    def http_error_308(self, req, fp, code, msg, headers):
+        return self.http_error_302(req, fp, code, msg, headers)
+
+
+_opener = urllib.request.build_opener(_PermanentRedirectHandler)
+
+
 def openproject_request_json(req, method, path, expected=(200, 201, 204), *, options=None, idempotent=False):
     options = options or openproject_request_options()
     timeout_seconds = options["timeout_seconds"]
@@ -409,7 +426,7 @@ def openproject_request_json(req, method, path, expected=(200, 201, 204), *, opt
 
     for attempt in range(attempts):
         try:
-            with urllib.request.urlopen(req, timeout=timeout_seconds) as resp:
+            with _opener.open(req, timeout=timeout_seconds) as resp:
                 body = resp.read()
                 if resp.status not in expected:
                     raise _runtime_error(

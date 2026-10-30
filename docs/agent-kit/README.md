@@ -19,7 +19,8 @@ It contains:
 ## What you need
 
 - Linux on x86-64, `sh` and `bash`;
-- Python 3 with PyYAML (`python3 -c 'import yaml'` must work);
+- Python 3.10 or newer with PyYAML (`python3 -c 'import yaml'` must work);
+  CI runs the helpers' tests and the kit checks on 3.10;
 - `rsync`, for publishing the RePlan overlay to OpenProject;
 - an OpenProject account that is a member of your project, and an API token
   of that account: in OpenProject, "My account", "Access tokens", "API";

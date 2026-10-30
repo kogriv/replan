@@ -54,6 +54,37 @@ jobs:
       - name: shellcheck
         run: shellcheck scripts/*.sh scripts/lib/*.sh
 
+  # The agent kit's helpers run on the Python of the machine they are
+  # installed on; the oldest supported one is 3.10 (docs/agent-kit/README.md).
+  python-minimum:
+    name: Python 3.10 helpers and agent kit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install PyYAML
+        run: python3 -m pip install pyyaml
+
+      - name: Build replan
+        run: go build -o "$RUNNER_TEMP/replan" ./cmd/replan
+
+      - name: Helper tests
+        run: REPLAN_BIN="$RUNNER_TEMP/replan" PYTHONPATH=scripts/lib python3 -W error::ResourceWarning -m unittest discover -s scripts/tests
+
+      - name: Agent kit offline checks
+        run: ./scripts/check-agent-kit.sh
+
   taskjuggler:
     name: TaskJuggler validation
     runs-on: ubuntu-latest
