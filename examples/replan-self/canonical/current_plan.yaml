@@ -384,6 +384,10 @@ current_plan:
     - kind: task
       id: task.self.accept-dependencies-with-their-tasks
     - kind: task
+      id: task.self.publish-release-v0-3-0
+    - kind: task
+      id: task.self.refresh-agent-kits-v0-3-0
+    - kind: task
       id: task.self.fix-first-project-defects
     - kind: task
       id: task.self.implement-replan-init-and-resource-commands

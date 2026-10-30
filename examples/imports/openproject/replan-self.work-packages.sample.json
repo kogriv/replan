@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 193,
-  "count": 193,
+  "total": 195,
+  "count": 195,
   "_embedded": {
     "elements": [
       {
@@ -5591,6 +5591,64 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2293"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2294,
+        "subject": "Publish release v0.3.0",
+        "description": {
+          "raw": "Agreed with the operator on 2026-10-30: publish release v0.3.0. Tag the reviewed main commit after its CI run passed, build the six archives locally with build-release.sh, verify them, push the tag so the Release build workflow rebuilds and attests them, compare its SHA256SUMS with the local build, create the GitHub release with the local archives and release notes, and check gh attestation verify and go install on the published release. First release whose provenance is attested by the tag push itself."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2294"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2295,
+        "subject": "Refresh the second and third projects' agent kits to v0.3.0",
+        "description": {
+          "raw": "Agreed with the operator on 2026-10-30: after release v0.3.0, refresh the agent kits of the second project (archive and checksum on its tools wiki page, dry run first, page text updated with what changed) and of the third project (versioned directory on the server with the current link moved, settings kept, previous version kept for rollback), check each kit by dry runs only, and tell each project's session what changed. Deleting older kit attachments stays the operator's decision."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2295"
           },
           "status": {
             "title": "New"

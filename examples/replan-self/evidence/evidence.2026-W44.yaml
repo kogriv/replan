@@ -2687,3 +2687,17 @@ evidence:
     targets:
       - kind: task
         id: task.self.accept-dependencies-with-their-tasks
+  - id: evidence.self.start-publish-release-v0-3-0
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T22:53:04+07:00"
+    summary: Operator approved on 2026-10-30 publishing release v0.3.0 and refreshing the second and third projects kits to it.
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-3-0
+      - kind: task
+        id: task.self.refresh-agent-kits-v0-3-0
