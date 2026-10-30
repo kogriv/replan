@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -4307,7 +4308,19 @@ func dashboardPublicationOverview(overview reports.DashboardOverview) (reports.D
 	if err != nil {
 		return reports.DashboardOverview{}, err
 	}
-	content = bytes.ReplaceAll(content, encodedPath[1:len(encodedPath)-1], encodedPlaceholder[1:len(encodedPlaceholder)-1])
+	// Replace the path only where it stands as a path of its own, with no
+	// path character next to it (a slash may follow). A bare replace of a
+	// short path such as "." would rewrite every dot, numbers included.
+	inner := regexp.QuoteMeta(string(encodedPath[1 : len(encodedPath)-1]))
+	standalone := regexp.MustCompile(`(^|[^A-Za-z0-9._~/-])` + inner + `($|[^A-Za-z0-9._~-])`)
+	placeholder := string(encodedPlaceholder[1 : len(encodedPlaceholder)-1])
+	for {
+		replaced := standalone.ReplaceAll(content, []byte("${1}"+placeholder+"${2}"))
+		if bytes.Equal(replaced, content) {
+			break
+		}
+		content = replaced
+	}
 	var publicationOverview reports.DashboardOverview
 	if err := json.Unmarshal(content, &publicationOverview); err != nil {
 		return reports.DashboardOverview{}, err

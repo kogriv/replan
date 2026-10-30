@@ -2467,3 +2467,26 @@ evidence:
     targets:
       - kind: task
         id: task.self.implement-replan-init-and-resource-commands
+  - id: evidence.self.fix-dashboard-for-short-project-paths
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T15:58:45+07:00"
+    summary: 'Reproduced: on a project made by replan init, the dashboard wrote fine until the first task, then failed with invalid JSON for --project . because every dot was replaced by the path placeholder. The publication overview now replaces the path only where no path character touches it (a slash may follow), in strings and inside messages; a new test covers . and an absolute path with fractional numbers, dotted ids and a path inside a message; the existing no-leak test still passes; the quickstart walk-through writes its dashboard.'
+    targets:
+      - kind: task
+        id: task.self.fix-dashboard-for-short-project-paths
+  - id: evidence.self.correct-fix-dashboard-start
+    type: decision
+    subtype: correction
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T15:59:30+07:00"
+    summary: 'Correction: the in_progress status of task.self.fix-dashboard-for-short-project-paths was recorded with a guessed time of 16:02, later than the record itself. From file times, the defect surfaced at 15:56:20 in the first quickstart check run, the reproduction ran at 15:56:33 and the fix with its test passed by 15:58:40. The audit line is kept as written.'
+    targets:
+      - kind: task
+        id: task.self.fix-dashboard-for-short-project-paths

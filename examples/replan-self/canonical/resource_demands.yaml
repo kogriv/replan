@@ -10662,3 +10662,59 @@ resource_demands:
       remaining_amount: 10
       criticality: required
       status: active
+    - id: resource_demand.fix-dashboard-for-short-project-paths.agent
+      task_ref:
+        kind: task
+        id: task.self.fix-dashboard-for-short-project-paths
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 0.5
+      remaining_amount: 0
+      criticality: required
+      status: active
+    - id: resource_demand.fix-dashboard-for-short-project-paths.maintainer
+      task_ref:
+        kind: task
+        id: task.self.fix-dashboard-for-short-project-paths
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      resource_class: human
+      role: maintainer
+      unit: hours
+      planned_amount: 0.25
+      remaining_amount: 0.25
+      criticality: required
+      status: active
+    - id: resource_demand.fix-dashboard-for-short-project-paths.local-dev
+      task_ref:
+        kind: task
+        id: task.self.fix-dashboard-for-short-project-paths
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      resource_class: environment
+      role: development_environment
+      unit: concurrent_slots
+      planned_amount: 1
+      remaining_amount: 1
+      criticality: required
+      status: active
+    - id: resource_demand.fix-dashboard-for-short-project-paths.ci
+      task_ref:
+        kind: task
+        id: task.self.fix-dashboard-for-short-project-paths
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      resource_class: service_quota
+      role: ci_runtime
+      unit: ci_minutes
+      planned_amount: 10
+      remaining_amount: 10
+      criticality: required
+      status: active

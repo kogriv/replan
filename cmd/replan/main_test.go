@@ -2705,3 +2705,30 @@ func hasDiagnosticCode(diags []app.Diagnostic, code string) bool {
 	}
 	return false
 }
+
+func TestDashboardPublicationOverviewReplacesOnlyStandalonePaths(t *testing.T) {
+	for _, path := range []string{".", "/home/someone/plan"} {
+		overview := reports.DashboardOverview{
+			ProjectPath: path,
+			ProjectID:   "project.website",
+			Workload:    []reports.ResourceRow{{ResourceID: "resource.human.anna-lee", Unit: "hours", Capacity: 30, Planned: 24.5}},
+			Warnings: []reports.ReportIssue{{
+				Code:    "example",
+				Message: "failed to read " + path + "/canonical/tasks.yaml (" + path + ")",
+			}},
+		}
+		published, err := dashboardPublicationOverview(overview)
+		if err != nil {
+			t.Fatalf("%s: %v", path, err)
+		}
+		if published.ProjectPath != "<project>" {
+			t.Fatalf("%s: project path = %q", path, published.ProjectPath)
+		}
+		if published.ProjectID != "project.website" || published.Workload[0].ResourceID != "resource.human.anna-lee" || published.Workload[0].Planned != 24.5 {
+			t.Fatalf("%s: unrelated values changed: %+v", path, published)
+		}
+		if got, want := published.Warnings[0].Message, "failed to read <project>/canonical/tasks.yaml (<project>)"; got != want {
+			t.Fatalf("%s: message = %q, want %q", path, got, want)
+		}
+	}
+}

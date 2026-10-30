@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 191,
-  "count": 191,
+  "total": 192,
+  "count": 192,
   "_embedded": {
     "elements": [
       {
@@ -5536,6 +5536,35 @@
           },
           "status": {
             "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2292,
+        "subject": "Write the dashboard for a project given as a short path",
+        "description": {
+          "raw": "Found on 2026-10-30 by the quickstart check: replan report dashboard --project . --output <dir> failed with \"invalid character '\\\\' after object key:value pair\" as soon as the project had a task. Before writing, the dashboard replaced the project path by <project> with a plain byte replace over the whole JSON, so a short path such as \".\" rewrote every dot, numbers included. Replace the path only where it stands as a path of its own, keep absolute paths out of published pages as before, and test both."
+        },
+        "status": {
+          "name": "Developed"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2292"
+          },
+          "status": {
+            "title": "Developed"
           },
           "assignee": {
             "href": "/api/v3/users/101",

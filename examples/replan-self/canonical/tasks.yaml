@@ -5493,7 +5493,7 @@ tasks:
       title: Write the tested quickstart guide
       description: 'Approved by the operator on 2026-10-30 (docs/dev/first-project-onboarding-design.md, sections 4 and 5): docs/quickstart.md linked from the README walks from install through replan init, a person and an AI agent with capacities, two tasks with demands, a weekly report showing an overload and the dashboard, with pointers to scenarios, baselines and tracker imports. The smoke runs the guide''s commands in a temporary directory and checks the promised overload. The agent kit README gains the same path and the kit check runs replan init.'
       type: documentation
-      tracking_status: not_started
+      tracking_status: in_progress
       planned_start: "2026-10-30"
       planned_finish: "2026-10-30"
       assignee_hint:
@@ -5713,3 +5713,30 @@ tasks:
           object_type: work_package
           object_id: "2291"
           url: https://op.example.internal/work_packages/2291
+    - id: task.self.fix-dashboard-for-short-project-paths
+      title: Write the dashboard for a project given as a short path
+      description: 'Found on 2026-10-30 by the quickstart check: replan report dashboard --project . --output <dir> failed with "invalid character ''\\'' after object key:value pair" as soon as the project had a task. Before writing, the dashboard replaced the project path by <project> with a plain byte replace over the whole JSON, so a short path such as "." rewrote every dot, numbers included. Replace the path only where it stands as a path of its own, keep absolute paths out of published pages as before, and test both.'
+      type: implementation
+      tracking_status: review_ready
+      planned_start: "2026-10-30"
+      planned_finish: "2026-10-30"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.fix-dashboard-for-short-project-paths.agent
+        - kind: resource_demand
+          id: resource_demand.fix-dashboard-for-short-project-paths.maintainer
+        - kind: resource_demand
+          id: resource_demand.fix-dashboard-for-short-project-paths.local-dev
+        - kind: resource_demand
+          id: resource_demand.fix-dashboard-for-short-project-paths.ci
+      tags:
+        - dashboard
+        - gap
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2292"
+          url: https://op.example.internal/work_packages/2292

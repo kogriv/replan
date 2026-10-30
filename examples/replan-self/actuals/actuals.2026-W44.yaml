@@ -2498,3 +2498,24 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.implement-replan-init-and-resource-commands
+    - id: actual.self-fix-dashboard-for-short-project-paths.ai-agent-executor.20261030T1559300700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.fix-dashboard-for-short-project-paths
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.fix-dashboard-for-short-project-paths.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.05
+      unit: agent_hours
+      occurred_at: "2026-10-30T15:59:30+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.fix-dashboard-for-short-project-paths
