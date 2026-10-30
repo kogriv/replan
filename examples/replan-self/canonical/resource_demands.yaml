@@ -9643,6 +9643,17 @@ resource_demands:
       remaining_amount: 0
       criticality: required
       status: active
+      overrun_review:
+          acknowledged_forecast: 0.33
+          unit: agent_hours
+          reason: 'Real overrun: the first fix left the added week inside the status week and outside the Gantt span, so the throwaway runtime check ran three times'
+          reviewed_by:
+              kind: actor
+              id: actor.ai.agent.executor
+          reviewed_at: "2026-10-30T11:53:08+07:00"
+          evidence_refs:
+              - kind: evidence
+                id: evidence.self.keep-plugin-load-profile-check-independent-of-plan
     - id: resource_demand.keep-plugin-load-profile-check-independent-of-plan.maintainer
       task_ref:
         kind: task
