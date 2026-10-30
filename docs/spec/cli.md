@@ -742,6 +742,46 @@ the compact line. JSON uses the standard envelope and returns `version`,
 `commit`, `build_date`, `go_version`, `os_arch` and
 `project_format_version` in `result`.
 
+## `replan init`
+
+Create the smallest valid RePlan project without interactive prompts. Dry-run
+lists every file; apply creates the directory when needed and writes the
+project, local policy, owner actor/resource, empty canonical collections,
+empty current plan and `project_init` audit record. Initialization refuses an
+existing `.replan/` directory or canonical file with `project_exists`.
+
+Implemented command flags:
+
+```text
+replan init <dir> --name --owner --id --timezone --dry-run --apply --format --bindings
+```
+
+## `replan resource add` and `replan resource list`
+
+Add and inspect canonical resources. `--with-actor` is limited to `human` and
+`ai_agent` resources and creates cross-references in both records. Evidence is
+optional; every add writes a `resource_add` audit record.
+
+Implemented command flags:
+
+```text
+replan resource add --project --id --class --name --capability --with-actor --actor --evidence --dry-run --apply --format --bindings
+replan resource list --project --format --bindings
+```
+
+## `replan capacity set`
+
+Add a weekly `periodic_capacity`. A later effective period closes the prior
+period for the same resource and unit on the preceding day. The default
+effective date is the project status date, then today when no status date is
+set. Evidence is optional; every set writes a `capacity_set` audit record.
+
+Implemented command flags:
+
+```text
+replan capacity set --project --resource --unit --amount --period --effective-from --actor --evidence --dry-run --apply --format --bindings
+```
+
 ## `replan validate`
 
 Purpose:

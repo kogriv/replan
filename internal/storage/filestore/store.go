@@ -15,6 +15,7 @@ import (
 
 	"github.com/kogriv/replan/internal/app"
 	"github.com/kogriv/replan/internal/domain"
+	"github.com/kogriv/replan/internal/storage/yamlformat"
 	"gopkg.in/yaml.v3"
 )
 
@@ -169,6 +170,8 @@ const (
 	demandsRel      = "canonical/resource_demands.yaml"
 	dependenciesRel = "canonical/dependencies.yaml"
 	resourcesRel    = "canonical/resources.yaml"
+	actorsRel       = "canonical/actors.yaml"
+	capacitiesRel   = "canonical/capacities.yaml"
 )
 
 // updateYAML is the single read-modify-write path for YAML files: read and
@@ -192,6 +195,29 @@ func updateYAML[T any](s Store, rel string, missingOK bool, mutate func(*T) erro
 		return err
 	}
 	return writeYAML(s, rel, data, doc)
+}
+
+// rewriteYAML updates a complete generated document with the canonical
+// two-space renderer. It is used for onboarding files that begin as an empty
+// sequence, where there is no existing sequence item for the splicer to use
+// as an indentation template.
+func rewriteYAML[T any](s Store, rel string, mutate func(*T) error) error {
+	var doc T
+	data, err := s.fs.read(rel)
+	if err != nil {
+		return fmt.Errorf("read %s: %w", rel, err)
+	}
+	if err := yaml.Unmarshal(data, &doc); err != nil {
+		return fmt.Errorf("parse %s: %w", rel, err)
+	}
+	if err := mutate(&doc); err != nil {
+		return err
+	}
+	out, err := yamlformat.Render(doc)
+	if err != nil {
+		return fmt.Errorf("render %s: %w", rel, err)
+	}
+	return s.fs.write(rel, out)
 }
 
 // writeYAML writes doc to rel. original is the file doc was read from, or
@@ -299,6 +325,55 @@ func (s Store) AddTask(task domain.Task, demands []domain.ResourceDemand, afterT
 		return []string{tasksRel, demandsRel}, err
 	}
 	return []string{tasksRel, demandsRel, planRel}, nil
+}
+
+func (s Store) AddResource(resource domain.Resource, actor *domain.Actor, audit domain.AuditRecord) ([]string, error) {
+	if err := updateYAML(s, resourcesRel, false, func(doc *resourcesDoc) error {
+		doc.Resources = append(doc.Resources, resource)
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	written := []string{resourcesRel}
+	if actor != nil {
+		if err := updateYAML(s, actorsRel, false, func(doc *struct {
+			Actors []domain.Actor `yaml:"actors"`
+		}) error {
+			doc.Actors = append(doc.Actors, *actor)
+			return nil
+		}); err != nil {
+			return written, err
+		}
+		written = append(written, actorsRel)
+	}
+	auditRel, err := s.AppendAudit(audit)
+	if err != nil {
+		return written, err
+	}
+	return append(written, auditRel), nil
+}
+
+func (s Store) SetCapacity(previousID, previousEffectiveTo string, capacity domain.Capacity, audit domain.AuditRecord) ([]string, error) {
+	err := rewriteYAML(s, capacitiesRel, func(doc *struct {
+		Capacities []domain.Capacity `yaml:"capacities"`
+	}) error {
+		if previousID != "" {
+			found := false
+			for i := range doc.Capacities {
+				if doc.Capacities[i].ID == previousID {
+					doc.Capacities[i].EffectiveTo = previousEffectiveTo
+					found = true
+					break
+				}
+			}
+			if !found {
+				return fmt.Errorf("capacity %s not found", previousID)
+			}
+		}
+		doc.Capacities = append(doc.Capacities, capacity)
+		return nil
+	})
+	return s.withAudit(capacitiesRel, err, audit)
 }
 
 // insertCurrentPlanTask is a narrow splice for the ordered included_tasks
@@ -494,16 +569,11 @@ func (s Store) SetProjectStatusDate(date string) (string, error) {
 			&yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: "default_status_date"},
 			&yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: date, Style: yaml.DoubleQuotedStyle})
 	}
-	var out bytes.Buffer
-	encoder := yaml.NewEncoder(&out)
-	encoder.SetIndent(2)
-	if err := encoder.Encode(&root); err != nil {
+	out, err := yamlformat.Render(&root)
+	if err != nil {
 		return projectRel, fmt.Errorf("render %s: %w", projectRel, err)
 	}
-	if err := encoder.Close(); err != nil {
-		return projectRel, fmt.Errorf("render %s: %w", projectRel, err)
-	}
-	return projectRel, s.fs.write(projectRel, out.Bytes())
+	return projectRel, s.fs.write(projectRel, out)
 }
 
 // mappingValue returns the value node for key in a mapping node, or in the

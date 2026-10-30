@@ -44,6 +44,8 @@ commands.
 
 ### 1. `replan init` creates the smallest valid project
 
+Status: implemented on 2026-10-30.
+
 ```text
 replan init <dir> --name <name> --owner <display name>
     [--id <project-id>] [--timezone <IANA zone>]
@@ -73,6 +75,8 @@ agent can run it too.
 `--project`.
 
 ### 2. Commands for resources and capacities
+
+Status: implemented on 2026-10-30.
 
 ```text
 replan resource add --project <path> --id <resource-id> --class <class>

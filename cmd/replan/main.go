@@ -215,6 +215,8 @@ func runCommand(args []string, stdout, stderr *os.File) int {
 	}
 
 	switch args[0] {
+	case "init":
+		return runInit(args[1:], stdout, stderr)
 	case "version":
 		return runVersion(args[1:], stdout, stderr, true)
 	case "--version":
@@ -249,6 +251,10 @@ func runCommand(args []string, stdout, stderr *os.File) int {
 		return runEvidence(args[1:], stdout, stderr)
 	case "task":
 		return runTask(args[1:], stdout, stderr)
+	case "resource":
+		return runResource(args[1:], stdout, stderr)
+	case "capacity":
+		return runCapacity(args[1:], stdout, stderr)
 	case "import":
 		return runImport(args[1:], stdout, stderr)
 	case "export":
@@ -4749,6 +4755,7 @@ func printUsage(out *os.File) {
 	fmt.Fprintln(out, "Usage:")
 	fmt.Fprintln(out, "  Workspace-loading commands accept [--bindings <path>] (or REPLAN_OPENPROJECT_BINDINGS_LAYER; flag wins).")
 	fmt.Fprintln(out, "  replan version [--format text|json]")
+	fmt.Fprintln(out, "  replan init <dir> --name <name> --owner <display-name> [--id <project-id>] [--timezone <IANA-zone>] (--dry-run|--apply) [--format json|text]")
 	fmt.Fprintln(out, "  replan validate [project-path] [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan workload --project <path> [--week <YYYY-Www>] [--resource <id>] [--resource-class <class>] [--unit <unit>] [--scenario <id>] [--demands] [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan report weekly --project <path> --week <YYYY-Www> [--format json|markdown|csv|html] [--write]")
@@ -4772,6 +4779,9 @@ func printUsage(out *os.File) {
 	fmt.Fprintln(out, "  replan audit list|verify --project <path> [--format json|markdown]")
 	fmt.Fprintln(out, "  replan actual list|add-consumption|set-remaining|close-demand|reopen-demand|acknowledge-overrun|add-status --project <path> [--dry-run|--apply for mutations] [--format json|markdown]")
 	fmt.Fprintln(out, "  replan evidence add --project <path> --id <id> --type <type> [--subtype <subtype>] [--source <source>] [--url <url>] --actor <id> --observed-at <RFC3339> [--confidence <confidence>] --summary <text> --target <kind:id> [--target <kind:id> ...] (--dry-run|--apply) [--format json|text]")
+	fmt.Fprintln(out, "  replan resource add --project <path> --id <resource-id> --class <class> --name <name> [--capability <name> ...] [--with-actor <trust-level>] --actor <id> [--evidence <id>] (--dry-run|--apply) [--format json|text]")
+	fmt.Fprintln(out, "  replan resource list --project <path> [--format json|markdown|text]")
+	fmt.Fprintln(out, "  replan capacity set --project <path> --resource <resource-id> --unit <unit> --amount <n> [--period week] [--effective-from <YYYY-MM-DD>] --actor <id> [--evidence <id>] (--dry-run|--apply) [--format json|text]")
 	fmt.Fprintln(out, "  replan task add --project <path> --id <task-id> --title <title> [--description <text>] [--type <type>] [--planned-start <YYYY-MM-DD>] [--planned-finish <YYYY-MM-DD>] [--tag <tag> ...] [--assignee <resource-id>] [--after <task-id>] --demand <SUFFIX=RESOURCE_ID:AMOUNT:UNIT[:ROLE]> [--demand ...] --actor <id> --evidence <id> [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text] (does not create an OpenProject work package; next use scripts/apply-openproject-bootstrap.sh or toolkit work-package create + bind)")
 	fmt.Fprintln(out, "  replan task set-dates --project <path> --task <task-id> [--planned-start <YYYY-MM-DD>] [--planned-finish <YYYY-MM-DD>] --reason <text> --actor <id> --evidence <id> [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text] (push to OpenProject separately with scripts/push-openproject-date-drift.sh)")
 	fmt.Fprintln(out, "  replan task record-actual-window --project <path> --task <task-id> --actor <id> --evidence <id> [--reason <text>] [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text]")

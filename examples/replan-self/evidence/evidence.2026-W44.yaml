@@ -2456,3 +2456,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.test-kit-on-minimum-python
+  - id: evidence.self.implement-replan-init-and-resource-commands
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T15:51:46+07:00"
+    summary: 'Codex rounds 1 (15:12-15:29) and 2 (15:30-15:37): replan init writes the smallest valid project (owner as human actor and resource, no capacity, project_init audit, project_exists refusal, time zone from the machine or --timezone); resource add and list for every class with --with-actor for people and agents; capacity set adds periods and closes the previous one with effective_to; all under the apply gate and the write lock. Round 2, from review: every project file renders through one shared two-space YAML renderer that the store now uses too, and render errors are reported. Walk-through: init, an AI agent resource with actor, capacities, a later period, an earlier period refused, evidence on the project, a task with two demands, workload shows a 6-hour overload for the person; validate ok without warnings. Full local gate green, 78 live kit checks.'
+    targets:
+      - kind: task
+        id: task.self.implement-replan-init-and-resource-commands

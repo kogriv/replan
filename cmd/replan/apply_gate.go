@@ -17,6 +17,7 @@ const (
 )
 
 var canonicalWriteCommands = []string{
+	"init",
 	"actual acknowledge-overrun",
 	"actual add-consumption",
 	"actual add-status",
@@ -24,6 +25,7 @@ var canonicalWriteCommands = []string{
 	"actual reopen-demand",
 	"actual set-remaining",
 	"baseline create",
+	"capacity set",
 	"evidence add",
 	"estimate apply",
 	"estimate calibrate",
@@ -32,6 +34,7 @@ var canonicalWriteCommands = []string{
 	"project set-status-date",
 	"proposal accept",
 	"proposal reject",
+	"resource add",
 	"scenario apply",
 	"task add",
 	"task record-actual-window",

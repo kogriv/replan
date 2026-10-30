@@ -44,6 +44,11 @@ func projectWriteIntentForArgs(args []string) projectWriteIntent {
 
 	dryRun := flagBool(args, false, "dry-run")
 	switch intent.command {
+	case "init":
+		// init creates .replan atomically and acquires the lock itself. Keeping
+		// this out of the generic pre-dispatch lock is what makes two first
+		// initializations race on one mkdir, with exactly one winner.
+		intent.write = false
 	case "import openproject", "import github":
 		intent.write = !dryRun
 	case "tracking suggest", "proposal suggest-dependencies":

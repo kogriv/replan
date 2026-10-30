@@ -159,11 +159,13 @@ go run ./cmd/replan --help
 go run ./cmd/replan <command> <subcommand> --help
 ```
 
-Implemented command families as of 2026-10-28:
+Implemented command families as of 2026-10-30:
 
 - `version`, which needs no project and reports release, VCS, toolchain,
   platform and current project-format metadata; `--version` prints its compact
   text line;
+- `init`, which creates the smallest valid project with an owner actor and
+  resource, local policy, empty canonical state and an initialization audit;
 - `validate`;
 - `next`, the short view of what waits on a person and what an agent can
   prepare;
@@ -185,6 +187,10 @@ Implemented command families as of 2026-10-28:
 - `audit list`, `verify`;
 - `actual list`, `add-consumption`, `set-remaining`, `close-demand`,
   `reopen-demand`, `acknowledge-overrun`, `add-status`;
+- `resource add`, with optional actor creation for human and AI-agent
+  resources, and `resource list`;
+- `capacity set`, which adds dated weekly capacity periods and closes the
+  preceding period without rewriting its history;
 - `task add`, `task set-dates`, `task record-actual-window`, `task set-title`;
 - `import openproject` from a file, a source profile or the API, with
   relations, time entries and resource sidecars;

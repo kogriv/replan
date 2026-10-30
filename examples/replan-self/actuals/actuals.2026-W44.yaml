@@ -2456,3 +2456,45 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.test-kit-on-minimum-python
+    - id: actual.self-implement-replan-init-and-resource-commands.ai-codex-local.20261030T1551460700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-replan-init-and-resource-commands
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.implement-replan-init-and-resource-commands.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.4
+      unit: agent_hours
+      occurred_at: "2026-10-30T15:51:46+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.implement-replan-init-and-resource-commands
+    - id: actual.self-implement-replan-init-and-resource-commands.ai-agent-executor.20261030T1551460700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.implement-replan-init-and-resource-commands
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.implement-replan-init-and-resource-commands.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.35
+      unit: agent_hours
+      occurred_at: "2026-10-30T15:51:46+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.implement-replan-init-and-resource-commands
