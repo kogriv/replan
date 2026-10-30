@@ -329,6 +329,30 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2277"
         url: https://op.example.internal/work_packages/2277
+    - replan_task_id: task.self.document-local-trust-boundary
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2278"
+        url: https://op.example.internal/work_packages/2278
+    - replan_task_id: task.self.split-cli-main-by-command-group
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2279"
+        url: https://op.example.internal/work_packages/2279
+    - replan_task_id: task.self.attest-release-builds
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2280"
+        url: https://op.example.internal/work_packages/2280
+    - replan_task_id: task.self.recover-interrupted-multi-file-commits
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2281"
+        url: https://op.example.internal/work_packages/2281
     - replan_task_id: task.self.fix-first-project-defects
       source_ref:
         source: openproject

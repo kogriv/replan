@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 177,
-  "count": 177,
+  "total": 181,
+  "count": 181,
   "_embedded": {
     "elements": [
       {
@@ -5127,6 +5127,122 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2277"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2278,
+        "subject": "Say plainly what the local CLI trusts",
+        "description": {
+          "raw": "Agreed with the operator on 2026-10-30 after an outside audit: the local CLI trusts the operating system user, so an agent that can run replan and write the project files can name any actor, including a person, in --actor and --approved-by; proposal_only for AI agents is a policy, not an enforced boundary. Say this plainly in the README, the security docs and the agent kit, and recommend how to keep agents to proposals in practice: a separate operating system user or a read-only checkout for agents, and approvals made by a person in OpenProject or the person's own shell."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2278"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2279,
+        "subject": "Split the CLI entry file by command group",
+        "description": {
+          "raw": "Agreed with the operator on 2026-10-30 after an outside audit: cmd/replan/main.go has about 6100 lines and 160 functions. Split it into files per command group (workload and reports, scenarios and proposals, tracking and actuals, tasks and evidence, imports and exports, baselines and calibration, shared output helpers) without changing behaviour: the CLI snapshot of every command's help, outputs and exit codes is identical before and after, and the full gate passes."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2279"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2280,
+        "subject": "Build releases in CI with provenance attestations",
+        "description": {
+          "raw": "Agreed with the operator on 2026-10-30 after an outside audit: release archives are built on the maintainer's machine, and SHA256SUMS alone does not show where a binary came from. Build the archives from the tag in GitHub Actions with build_release, check they match a local build byte for byte, publish GitHub artifact attestations (build provenance) for the archives and SHA256SUMS, and document how to verify a download with gh attestation verify. Rehearse on a test tag before the next release."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2280"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2281,
+        "subject": "Recover from an interrupted multi-file write",
+        "description": {
+          "raw": "Agreed with the operator on 2026-10-30 after an outside audit: a write validates the whole change before it reaches the disk, but then replaces files one by one, so an interrupted commit can leave part of a change and its audit line missing. Design and implement recovery: record the planned file set before the commit, detect an unfinished commit on the next load and complete or refuse with a clear code, and test it with a failure injected between files. Builds on task.self.serialize-concurrent-project-writes."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-10-30",
+        "dueDate": "2026-10-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2281"
           },
           "status": {
             "title": "New"

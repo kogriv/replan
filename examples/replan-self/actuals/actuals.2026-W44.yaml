@@ -2078,3 +2078,108 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.release-build-ignores-surrounding-git
+    - id: actual.self-update-roadmap-after-v0-2-0.ci-github-actions.20261030T1157580700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.update-roadmap-after-v0-2-0
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.update-roadmap-after-v0-2-0.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-30T11:57:58+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-update-roadmap-after-v0-2-0
+    - id: actual.self-design-first-project-onboarding.ci-github-actions.20261030T1158250700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.design-first-project-onboarding
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.design-first-project-onboarding.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-30T11:58:25+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-design-first-project-onboarding
+    - id: actual.self-fix-flaky-bindings-precedence-test.ci-github-actions.20261030T1158530700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.fix-flaky-bindings-precedence-test
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.fix-flaky-bindings-precedence-test.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-30T11:58:53+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-fix-flaky-bindings-precedence-test
+    - id: actual.self-keep-plugin-load-profile-check-independent-of-plan.ci-github-actions.20261030T1159220700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.keep-plugin-load-profile-check-independent-of-plan
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.keep-plugin-load-profile-check-independent-of-plan.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-30T11:59:22+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-keep-plugin-load-profile-check-independent-of-plan
+    - id: actual.self-release-build-ignores-surrounding-git.ci-github-actions.20261030T1159500700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.release-build-ignores-surrounding-git
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.release-build-ignores-surrounding-git.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-10-30T11:59:50+07:00"
+      status_date: "2026-10-30"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-release-build-ignores-surrounding-git

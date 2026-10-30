@@ -9418,7 +9418,7 @@ resource_demands:
       planned_amount: 0.25
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.update-roadmap-after-v0-2-0.maintainer
       task_ref:
         kind: task
@@ -9430,9 +9430,9 @@ resource_demands:
       role: maintainer
       unit: hours
       planned_amount: 0.25
-      remaining_amount: 0.25
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.update-roadmap-after-v0-2-0.local-dev
       task_ref:
         kind: task
@@ -9444,9 +9444,9 @@ resource_demands:
       role: development_environment
       unit: concurrent_slots
       planned_amount: 1
-      remaining_amount: 1
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.update-roadmap-after-v0-2-0.ci
       task_ref:
         kind: task
@@ -9458,9 +9458,9 @@ resource_demands:
       role: ci_runtime
       unit: ci_minutes
       planned_amount: 10
-      remaining_amount: 10
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.design-first-project-onboarding.agent
       task_ref:
         kind: task
@@ -9474,7 +9474,7 @@ resource_demands:
       planned_amount: 1
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.design-first-project-onboarding.maintainer
       task_ref:
         kind: task
@@ -9486,9 +9486,9 @@ resource_demands:
       role: maintainer
       unit: hours
       planned_amount: 0.25
-      remaining_amount: 0.25
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.design-first-project-onboarding.local-dev
       task_ref:
         kind: task
@@ -9500,9 +9500,9 @@ resource_demands:
       role: development_environment
       unit: concurrent_slots
       planned_amount: 1
-      remaining_amount: 1
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.design-first-project-onboarding.ci
       task_ref:
         kind: task
@@ -9514,9 +9514,9 @@ resource_demands:
       role: ci_runtime
       unit: ci_minutes
       planned_amount: 10
-      remaining_amount: 10
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.fix-flaky-bindings-precedence-test.agent
       task_ref:
         kind: task
@@ -9530,7 +9530,7 @@ resource_demands:
       planned_amount: 0.25
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.fix-flaky-bindings-precedence-test.maintainer
       task_ref:
         kind: task
@@ -9542,9 +9542,9 @@ resource_demands:
       role: maintainer
       unit: hours
       planned_amount: 0.25
-      remaining_amount: 0.25
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.fix-flaky-bindings-precedence-test.local-dev
       task_ref:
         kind: task
@@ -9556,9 +9556,9 @@ resource_demands:
       role: development_environment
       unit: concurrent_slots
       planned_amount: 1
-      remaining_amount: 1
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.fix-flaky-bindings-precedence-test.ci
       task_ref:
         kind: task
@@ -9570,9 +9570,9 @@ resource_demands:
       role: ci_runtime
       unit: ci_minutes
       planned_amount: 10
-      remaining_amount: 10
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.fix-first-project-defects.agent
       task_ref:
         kind: task
@@ -9642,7 +9642,7 @@ resource_demands:
       planned_amount: 0.25
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
       overrun_review:
           acknowledged_forecast: 0.33
           unit: agent_hours
@@ -9665,9 +9665,9 @@ resource_demands:
       role: maintainer
       unit: hours
       planned_amount: 0.25
-      remaining_amount: 0.25
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.keep-plugin-load-profile-check-independent-of-plan.local-dev
       task_ref:
         kind: task
@@ -9679,9 +9679,9 @@ resource_demands:
       role: development_environment
       unit: concurrent_slots
       planned_amount: 1
-      remaining_amount: 1
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.keep-plugin-load-profile-check-independent-of-plan.ci
       task_ref:
         kind: task
@@ -9693,9 +9693,9 @@ resource_demands:
       role: ci_runtime
       unit: ci_minutes
       planned_amount: 10
-      remaining_amount: 10
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.release-build-ignores-surrounding-git.agent
       task_ref:
         kind: task
@@ -9709,7 +9709,7 @@ resource_demands:
       planned_amount: 0.25
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.release-build-ignores-surrounding-git.maintainer
       task_ref:
         kind: task
@@ -9721,9 +9721,9 @@ resource_demands:
       role: maintainer
       unit: hours
       planned_amount: 0.25
-      remaining_amount: 0.25
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.release-build-ignores-surrounding-git.local-dev
       task_ref:
         kind: task
@@ -9735,9 +9735,9 @@ resource_demands:
       role: development_environment
       unit: concurrent_slots
       planned_amount: 1
-      remaining_amount: 1
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.release-build-ignores-surrounding-git.ci
       task_ref:
         kind: task
@@ -9749,9 +9749,9 @@ resource_demands:
       role: ci_runtime
       unit: ci_minutes
       planned_amount: 10
-      remaining_amount: 10
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.serialize-concurrent-project-writes.agent
       task_ref:
         kind: task
@@ -9762,8 +9762,22 @@ resource_demands:
       resource_class: ai_agent
       role: implementation_agent
       unit: agent_hours
-      planned_amount: 3
-      remaining_amount: 3
+      planned_amount: 0.75
+      remaining_amount: 0.75
+      criticality: required
+      status: active
+    - id: resource_demand.serialize-concurrent-project-writes.codex
+      task_ref:
+        kind: task
+        id: task.self.serialize-concurrent-project-writes
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 2.5
+      remaining_amount: 2.5
       criticality: required
       status: active
     - id: resource_demand.serialize-concurrent-project-writes.maintainer
@@ -9798,6 +9812,230 @@ resource_demands:
       task_ref:
         kind: task
         id: task.self.serialize-concurrent-project-writes
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      resource_class: service_quota
+      role: ci_runtime
+      unit: ci_minutes
+      planned_amount: 10
+      remaining_amount: 10
+      criticality: required
+      status: active
+    - id: resource_demand.document-local-trust-boundary.agent
+      task_ref:
+        kind: task
+        id: task.self.document-local-trust-boundary
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 0.5
+      remaining_amount: 0.5
+      criticality: required
+      status: active
+    - id: resource_demand.document-local-trust-boundary.maintainer
+      task_ref:
+        kind: task
+        id: task.self.document-local-trust-boundary
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      resource_class: human
+      role: maintainer
+      unit: hours
+      planned_amount: 0.25
+      remaining_amount: 0.25
+      criticality: required
+      status: active
+    - id: resource_demand.document-local-trust-boundary.local-dev
+      task_ref:
+        kind: task
+        id: task.self.document-local-trust-boundary
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      resource_class: environment
+      role: development_environment
+      unit: concurrent_slots
+      planned_amount: 1
+      remaining_amount: 1
+      criticality: required
+      status: active
+    - id: resource_demand.document-local-trust-boundary.ci
+      task_ref:
+        kind: task
+        id: task.self.document-local-trust-boundary
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      resource_class: service_quota
+      role: ci_runtime
+      unit: ci_minutes
+      planned_amount: 10
+      remaining_amount: 10
+      criticality: required
+      status: active
+    - id: resource_demand.split-cli-main-by-command-group.agent
+      task_ref:
+        kind: task
+        id: task.self.split-cli-main-by-command-group
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 3
+      remaining_amount: 3
+      criticality: required
+      status: active
+    - id: resource_demand.split-cli-main-by-command-group.maintainer
+      task_ref:
+        kind: task
+        id: task.self.split-cli-main-by-command-group
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      resource_class: human
+      role: maintainer
+      unit: hours
+      planned_amount: 0.25
+      remaining_amount: 0.25
+      criticality: required
+      status: active
+    - id: resource_demand.split-cli-main-by-command-group.local-dev
+      task_ref:
+        kind: task
+        id: task.self.split-cli-main-by-command-group
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      resource_class: environment
+      role: development_environment
+      unit: concurrent_slots
+      planned_amount: 1
+      remaining_amount: 1
+      criticality: required
+      status: active
+    - id: resource_demand.split-cli-main-by-command-group.ci
+      task_ref:
+        kind: task
+        id: task.self.split-cli-main-by-command-group
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      resource_class: service_quota
+      role: ci_runtime
+      unit: ci_minutes
+      planned_amount: 10
+      remaining_amount: 10
+      criticality: required
+      status: active
+    - id: resource_demand.attest-release-builds.agent
+      task_ref:
+        kind: task
+        id: task.self.attest-release-builds
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 2
+      remaining_amount: 2
+      criticality: required
+      status: active
+    - id: resource_demand.attest-release-builds.maintainer
+      task_ref:
+        kind: task
+        id: task.self.attest-release-builds
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      resource_class: human
+      role: maintainer
+      unit: hours
+      planned_amount: 0.25
+      remaining_amount: 0.25
+      criticality: required
+      status: active
+    - id: resource_demand.attest-release-builds.local-dev
+      task_ref:
+        kind: task
+        id: task.self.attest-release-builds
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      resource_class: environment
+      role: development_environment
+      unit: concurrent_slots
+      planned_amount: 1
+      remaining_amount: 1
+      criticality: required
+      status: active
+    - id: resource_demand.attest-release-builds.ci
+      task_ref:
+        kind: task
+        id: task.self.attest-release-builds
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      resource_class: service_quota
+      role: ci_runtime
+      unit: ci_minutes
+      planned_amount: 10
+      remaining_amount: 10
+      criticality: required
+      status: active
+    - id: resource_demand.recover-interrupted-multi-file-commits.agent
+      task_ref:
+        kind: task
+        id: task.self.recover-interrupted-multi-file-commits
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 3
+      remaining_amount: 3
+      criticality: required
+      status: active
+    - id: resource_demand.recover-interrupted-multi-file-commits.maintainer
+      task_ref:
+        kind: task
+        id: task.self.recover-interrupted-multi-file-commits
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      resource_class: human
+      role: maintainer
+      unit: hours
+      planned_amount: 0.25
+      remaining_amount: 0.25
+      criticality: required
+      status: active
+    - id: resource_demand.recover-interrupted-multi-file-commits.local-dev
+      task_ref:
+        kind: task
+        id: task.self.recover-interrupted-multi-file-commits
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      resource_class: environment
+      role: development_environment
+      unit: concurrent_slots
+      planned_amount: 1
+      remaining_amount: 1
+      criticality: required
+      status: active
+    - id: resource_demand.recover-interrupted-multi-file-commits.ci
+      task_ref:
+        kind: task
+        id: task.self.recover-interrupted-multi-file-commits
       resource_ref:
         kind: resource
         id: resource.ci.github-actions

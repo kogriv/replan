@@ -2149,3 +2149,88 @@ evidence:
     targets:
       - kind: task
         id: task.self.serialize-concurrent-project-writes
+  - id: evidence.self.accept-update-roadmap-after-v0-2-0
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-30T11:57:58+07:00"
+    confidence: observed
+    summary: Operator accepted on 2026-10-30.
+    targets:
+      - kind: task
+        id: task.self.update-roadmap-after-v0-2-0
+  - id: evidence.self.accept-design-first-project-onboarding
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-30T11:58:25+07:00"
+    confidence: observed
+    summary: Operator accepted on 2026-10-30.
+    targets:
+      - kind: task
+        id: task.self.design-first-project-onboarding
+  - id: evidence.self.accept-fix-flaky-bindings-precedence-test
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-30T11:58:53+07:00"
+    confidence: observed
+    summary: Operator accepted on 2026-10-30.
+    targets:
+      - kind: task
+        id: task.self.fix-flaky-bindings-precedence-test
+  - id: evidence.self.accept-keep-plugin-load-profile-check-independent-of-plan
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-30T11:59:22+07:00"
+    confidence: observed
+    summary: Operator accepted on 2026-10-30.
+    targets:
+      - kind: task
+        id: task.self.keep-plugin-load-profile-check-independent-of-plan
+  - id: evidence.self.accept-release-build-ignores-surrounding-git
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-10-30T11:59:50+07:00"
+    confidence: observed
+    summary: Operator accepted on 2026-10-30.
+    targets:
+      - kind: task
+        id: task.self.release-build-ignores-surrounding-git
+  - id: evidence.self.start-serialize-concurrent-project-writes
+    type: decision
+    subtype: operator_request
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-30T12:03:26+07:00"
+    summary: 'Operator on 2026-10-30 accepted the onboarding design task and the three gate fixes, approved four tasks from the outside audit (trust boundary, CLI split, release attestations, interrupted-commit recovery) and set the order: serialize concurrent writes first, then the first-project defects, then onboarding. Original estimate before the Codex split: 3 agent hours.'
+    targets:
+      - kind: task
+        id: task.self.serialize-concurrent-project-writes
+      - kind: task
+        id: task.self.document-local-trust-boundary
+      - kind: task
+        id: task.self.split-cli-main-by-command-group
+      - kind: task
+        id: task.self.attest-release-builds
+      - kind: task
+        id: task.self.recover-interrupted-multi-file-commits

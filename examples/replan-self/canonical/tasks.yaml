@@ -5132,7 +5132,7 @@ tasks:
       title: Update the roadmap after release v0.2.0
       description: 'Agreed with the operator on 2026-10-30: ROADMAP.md still lists estimate calibration, the GitHub Issues import and the dashboard pages under Next although release v0.2.0 shipped them. Move them to Works today, keep the stable file format under Next with its condition, and add the next directions agreed in chat: onboarding for a first project of one''s own, estimate calibration by size band, GitHub Projects fields in the live import, and release builds in GitHub Actions. Each direction still becomes a self plan task before work starts.'
       type: documentation
-      tracking_status: review_ready
+      tracking_status: accepted
       planned_start: "2026-10-30"
       planned_finish: "2026-10-30"
       assignee_hint:
@@ -5159,7 +5159,7 @@ tasks:
       title: Design onboarding for a first project of one's own
       description: 'Agreed with the operator on 2026-10-30 as the next work after the roadmap update: today a new user can only start a project of their own by writing the YAML files by hand; there is no replan init, no command to add resources or capacities, and no short guide from an empty directory to a first workload report. Write a design note for first-project onboarding: what replan init creates, which resource and capacity commands are needed, how a first task with a demand is added, what the quickstart guide covers and what stays out of scope. Bring the design to the operator for decisions before any implementation task is planned.'
       type: design
-      tracking_status: review_ready
+      tracking_status: accepted
       planned_start: "2026-10-30"
       planned_finish: "2026-10-30"
       assignee_hint:
@@ -5187,7 +5187,7 @@ tasks:
       title: Make the bindings precedence test independent of the clock
       description: 'Found on 2026-10-30 while gating the onboarding design: TestBindingsLayerUsageAndPrecedence/helper_setting_alone_has_no_effect compares two replan export json runs byte for byte, but the output carries exported_at with the current second, so the test fails whenever the two runs fall into different seconds. Compare the outputs without the export timestamp.'
       type: implementation
-      tracking_status: review_ready
+      tracking_status: accepted
       planned_start: "2026-10-30"
       planned_finish: "2026-10-30"
       assignee_hint:
@@ -5242,7 +5242,7 @@ tasks:
       title: Keep the plugin load profile check independent of future work in the plan
       description: 'Found on 2026-10-30 in the local gate: the plugin throwaway runtime check stopped with "the overlay has no resource with capacity on both sides of the status date". The rendered-page overlay copy plants a still-overloaded week after the status date, but the self plan now ends in the status date''s week, so no such week exists. Let the copy add the week after the last one when the plan has none ahead, so the check does not depend on future work in the plan.'
       type: implementation
-      tracking_status: review_ready
+      tracking_status: accepted
       planned_start: "2026-10-30"
       planned_finish: "2026-10-30"
       assignee_hint:
@@ -5270,7 +5270,7 @@ tasks:
       title: Keep release builds independent of a git directory around the build
       description: 'Found on 2026-10-30 in the local gate: test_build_release failed with release_build_failed because go build, run in the source extracted from git archive under TMPDIR, found an unrelated empty .git directory in /tmp and stopped with "error obtaining VCS status". The release build already passes the commit through ldflags, so build with -buildvcs=false; the archives stay byte-identical because the extracted source has no VCS data to stamp.'
       type: implementation
-      tracking_status: review_ready
+      tracking_status: accepted
       planned_start: "2026-10-30"
       planned_finish: "2026-10-30"
       assignee_hint:
@@ -5297,7 +5297,7 @@ tasks:
       title: Serialize concurrent writes to one project
       description: 'Found on 2026-10-30 while checking an outside audit: 30 replan evidence add --apply processes run in parallel on one project all answered ok with exit 0, but only 2 evidence records and 3 audit lines remained; audit lines exist for records that are gone, which the commit comment in internal/storage/filestore/files.go says cannot happen. Every write reads, validates and commits without an inter-process lock, so concurrent writers lose updates silently. Take an exclusive project lock around read, validate and commit of every write, re-read under the lock, refuse with a clear code when the lock cannot be taken in time, and add a parallel-writers regression test. The non-atomic set of files on an interrupted commit is a separate question.'
       type: implementation
-      tracking_status: not_started
+      tracking_status: in_progress
       planned_start: "2026-10-30"
       planned_finish: "2026-10-30"
       assignee_hint:
@@ -5306,6 +5306,8 @@ tasks:
       resource_demands:
         - kind: resource_demand
           id: resource_demand.serialize-concurrent-project-writes.agent
+        - kind: resource_demand
+          id: resource_demand.serialize-concurrent-project-writes.codex
         - kind: resource_demand
           id: resource_demand.serialize-concurrent-project-writes.maintainer
         - kind: resource_demand
@@ -5321,3 +5323,111 @@ tasks:
           object_type: work_package
           object_id: "2277"
           url: https://op.example.internal/work_packages/2277
+    - id: task.self.document-local-trust-boundary
+      title: Say plainly what the local CLI trusts
+      description: 'Agreed with the operator on 2026-10-30 after an outside audit: the local CLI trusts the operating system user, so an agent that can run replan and write the project files can name any actor, including a person, in --actor and --approved-by; proposal_only for AI agents is a policy, not an enforced boundary. Say this plainly in the README, the security docs and the agent kit, and recommend how to keep agents to proposals in practice: a separate operating system user or a read-only checkout for agents, and approvals made by a person in OpenProject or the person''s own shell.'
+      type: documentation
+      tracking_status: not_started
+      planned_start: "2026-10-30"
+      planned_finish: "2026-10-30"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.document-local-trust-boundary.agent
+        - kind: resource_demand
+          id: resource_demand.document-local-trust-boundary.maintainer
+        - kind: resource_demand
+          id: resource_demand.document-local-trust-boundary.local-dev
+        - kind: resource_demand
+          id: resource_demand.document-local-trust-boundary.ci
+      tags:
+        - safety
+        - documentation
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2278"
+          url: https://op.example.internal/work_packages/2278
+    - id: task.self.split-cli-main-by-command-group
+      title: Split the CLI entry file by command group
+      description: 'Agreed with the operator on 2026-10-30 after an outside audit: cmd/replan/main.go has about 6100 lines and 160 functions. Split it into files per command group (workload and reports, scenarios and proposals, tracking and actuals, tasks and evidence, imports and exports, baselines and calibration, shared output helpers) without changing behaviour: the CLI snapshot of every command''s help, outputs and exit codes is identical before and after, and the full gate passes.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-10-30"
+      planned_finish: "2026-10-30"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.split-cli-main-by-command-group.agent
+        - kind: resource_demand
+          id: resource_demand.split-cli-main-by-command-group.maintainer
+        - kind: resource_demand
+          id: resource_demand.split-cli-main-by-command-group.local-dev
+        - kind: resource_demand
+          id: resource_demand.split-cli-main-by-command-group.ci
+      tags:
+        - cli
+        - refactoring
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2279"
+          url: https://op.example.internal/work_packages/2279
+    - id: task.self.attest-release-builds
+      title: Build releases in CI with provenance attestations
+      description: 'Agreed with the operator on 2026-10-30 after an outside audit: release archives are built on the maintainer''s machine, and SHA256SUMS alone does not show where a binary came from. Build the archives from the tag in GitHub Actions with build_release, check they match a local build byte for byte, publish GitHub artifact attestations (build provenance) for the archives and SHA256SUMS, and document how to verify a download with gh attestation verify. Rehearse on a test tag before the next release.'
+      type: release
+      tracking_status: not_started
+      planned_start: "2026-10-30"
+      planned_finish: "2026-10-30"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.attest-release-builds.agent
+        - kind: resource_demand
+          id: resource_demand.attest-release-builds.maintainer
+        - kind: resource_demand
+          id: resource_demand.attest-release-builds.local-dev
+        - kind: resource_demand
+          id: resource_demand.attest-release-builds.ci
+      tags:
+        - release
+        - ci
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2280"
+          url: https://op.example.internal/work_packages/2280
+    - id: task.self.recover-interrupted-multi-file-commits
+      title: Recover from an interrupted multi-file write
+      description: 'Agreed with the operator on 2026-10-30 after an outside audit: a write validates the whole change before it reaches the disk, but then replaces files one by one, so an interrupted commit can leave part of a change and its audit line missing. Design and implement recovery: record the planned file set before the commit, detect an unfinished commit on the next load and complete or refuse with a clear code, and test it with a failure injected between files. Builds on task.self.serialize-concurrent-project-writes.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-10-30"
+      planned_finish: "2026-10-30"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.recover-interrupted-multi-file-commits.agent
+        - kind: resource_demand
+          id: resource_demand.recover-interrupted-multi-file-commits.maintainer
+        - kind: resource_demand
+          id: resource_demand.recover-interrupted-multi-file-commits.local-dev
+        - kind: resource_demand
+          id: resource_demand.recover-interrupted-multi-file-commits.ci
+      tags:
+        - storage
+        - safety
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2281"
+          url: https://op.example.internal/work_packages/2281
