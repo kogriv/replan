@@ -89,3 +89,14 @@ evidence:
       targets:
         - kind: task
           id: task.self.smoke-dashboard-week-follows-status-date
+    - id: evidence.self.keep-new-tasks-calibratable
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-02T19:46:02+07:00"
+      summary: 'Codex round 1 (19:04:28-19:20:37) added baseline create --task (scope: tasks, sealed), the unpinned report fallback skipping limited baselines, estimate calibrate --all-baselines with a conflict refusal, a next suggestion across limited baselines, scope in baseline list/show, one dashboard table for limited baselines, and the planning step in the backlog convention. Review fixes: validate refuses an unknown baseline scope (split out to keep gocyclo under 30), a test expected 4 demands where the fixture task has 5. Checked on a copy of the self plan: a one-task baseline is 1.7 KB, unknown task refused, --all-baselines with --baseline refused, --all-baselines picks up the limited baseline, weekly report keeps the pinned whole-plan baseline. Full local gate green, 79 live kit checks (commit 4e30b1a). Agent time excludes the smoke fix (task 671) and a reply to another session, about 0.1 h.'
+      targets:
+        - kind: task
+          id: task.self.keep-new-tasks-calibratable

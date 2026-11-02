@@ -5894,7 +5894,7 @@ tasks:
       title: Baseline new tasks before they start so calibration can learn from them
       description: 'Found on 2026-11-02 while preparing the size-band calibration: of 164 baselined tasks, 116 are excluded from calibration as estimated_after_start, because tasks planned after 2026-10-29 were started without a baseline taken first; their original estimates live only in evidence notes, which calibration does not read. Keep new tasks calibratable: decide with the operator between a baseline limited to the given tasks (baseline create --task), taken when a task is planned, and a periodic full baseline; who approves it under the human-approval rule; and add the step to the backlog operating convention.'
       type: implementation
-      tracking_status: in_progress
+      tracking_status: review_ready
       planned_start: "2026-11-03"
       planned_finish: "2026-11-03"
       assignee_hint:

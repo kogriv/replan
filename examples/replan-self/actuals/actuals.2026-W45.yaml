@@ -104,3 +104,45 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.smoke-dashboard-week-follows-status-date-go-test
+    - id: actual.self-keep-new-tasks-calibratable.ai-codex-local.20261102T1946020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.keep-new-tasks-calibratable
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.keep-new-tasks-calibratable.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.27
+      unit: agent_hours
+      occurred_at: "2026-11-02T19:46:02+07:00"
+      status_date: "2026-11-02"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.keep-new-tasks-calibratable
+    - id: actual.self-keep-new-tasks-calibratable.ai-agent-executor.20261102T1946020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.keep-new-tasks-calibratable
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.keep-new-tasks-calibratable.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.36
+      unit: agent_hours
+      occurred_at: "2026-11-02T19:46:02+07:00"
+      status_date: "2026-11-02"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.keep-new-tasks-calibratable
