@@ -561,9 +561,16 @@ func (v *workspaceValidator) evidence(evidence []domain.Evidence) {
 	}
 }
 
+func (v *workspaceValidator) baselineScope(baseline domain.Baseline) {
+	if baseline.Scope != "" && baseline.Scope != "tasks" {
+		v.errorf("baseline_scope_unknown", "baseline", baseline.ID, "baseline scope %q is unknown", baseline.Scope)
+	}
+}
+
 func (v *workspaceValidator) baselines(baselines []domain.Baseline) {
 	for _, baseline := range baselines {
 		v.register("baseline", baseline.ID)
+		v.baselineScope(baseline)
 		if baseline.ApprovedBy.ID == "" {
 			v.errorf("missing_approved_actor", "baseline", baseline.ID, "baseline approved_by is required")
 		} else {

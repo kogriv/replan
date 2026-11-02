@@ -86,6 +86,25 @@ func TestReportBaselineUsesCurrentPlanPin(t *testing.T) {
 	}
 }
 
+func TestReportBaselineFallbackSkipsTaskLimitedBaseline(t *testing.T) {
+	ws := domain.Workspace{
+		Project: domain.Project{ID: "project.test", Name: "Test"}, CurrentPlan: domain.CurrentPlan{ID: "current"},
+		Baselines: []domain.Baseline{
+			{ID: "baseline.whole", ApprovedAt: "2026-10-20T12:00:00Z"},
+			{ID: "baseline.limited", Scope: "tasks", ApprovedAt: "2026-10-21T12:00:00Z"},
+		},
+	}
+	report, err := app.NewReportService(stubLoader{ws: ws}).Weekly(context.Background(), app.WeeklyReportRequest{ProjectPath: "stub", Week: "2026-W44"})
+	if err != nil || report.BaselineID != "baseline.whole" {
+		t.Fatalf("error=%v baseline=%q", err, report.BaselineID)
+	}
+	ws.CurrentPlan.BasedOnBaseline = domain.Ref{ID: "baseline.limited"}
+	report, err = app.NewReportService(stubLoader{ws: ws}).Weekly(context.Background(), app.WeeklyReportRequest{ProjectPath: "stub", Week: "2026-W44"})
+	if err != nil || report.BaselineID != "baseline.limited" {
+		t.Fatalf("pinned error=%v baseline=%q", err, report.BaselineID)
+	}
+}
+
 func TestReportBaselineFallbackOrderWithoutPin(t *testing.T) {
 	tests := []struct {
 		name      string

@@ -582,8 +582,9 @@ func defaultDashboardWeek(ws domain.Workspace) string {
 }
 
 // reportBaseline resolves the baseline reports compare against. An explicit
-// current-plan pin wins. Legacy plans without a pin use the latest approval,
-// then creation time, then id; file load order is never significant.
+// current-plan pin wins, including a task-limited baseline. Plans without a
+// pin use the latest whole-plan approval, then creation time, then id; file
+// load order is never significant.
 func reportBaseline(ws domain.Workspace) (domain.Baseline, bool) {
 	if id := ws.CurrentPlan.BasedOnBaseline.ID; id != "" {
 		for _, baseline := range ws.Baselines {
@@ -592,16 +593,18 @@ func reportBaseline(ws domain.Workspace) (domain.Baseline, bool) {
 			}
 		}
 	}
-	if len(ws.Baselines) == 0 {
-		return domain.Baseline{}, false
-	}
-	latest := ws.Baselines[0]
-	for _, baseline := range ws.Baselines[1:] {
-		if baselineLaterThan(baseline, latest) {
+	var latest domain.Baseline
+	found := false
+	for _, baseline := range ws.Baselines {
+		if baseline.Scope == "tasks" {
+			continue
+		}
+		if !found || baselineLaterThan(baseline, latest) {
 			latest = baseline
+			found = true
 		}
 	}
-	return latest, true
+	return latest, found
 }
 
 func baselineLaterThan(candidate, current domain.Baseline) bool {
@@ -1336,10 +1339,16 @@ func dashboardNextActions(ws domain.Workspace, overview reports.DashboardOvervie
 		for _, resourceID := range suggestion.Resources {
 			resourceFlags += " --resource " + resourceID
 		}
+		baselineFlag := " --all-baselines"
+		targetBaseline := "all-baselines"
+		if !suggestion.AllBaselines {
+			baselineFlag = " --baseline " + suggestion.BaselineID
+			targetBaseline = suggestion.BaselineID
+		}
 		actions = append(actions, reports.DashboardNextAction{
 			Code: "suggest_calibration", Label: fmt.Sprintf("%d clean finished tasks can calibrate this estimate scope.", suggestion.Count),
-			Target:  suggestion.BaselineID + ":" + strings.Join(suggestion.Resources, ",") + ":" + suggestion.Unit,
-			Command: fmt.Sprintf("replan estimate calibrate --project %s --baseline %s%s --unit %s --id <id> --name <name> --approved-by <human-actor-id> --dry-run --format markdown", overview.ProjectPath, suggestion.BaselineID, resourceFlags, suggestion.Unit),
+			Target:  targetBaseline + ":" + strings.Join(suggestion.Resources, ",") + ":" + suggestion.Unit,
+			Command: fmt.Sprintf("replan estimate calibrate --project %s%s%s --unit %s --id <id> --name <name> --approved-by <human-actor-id> --dry-run --format markdown", overview.ProjectPath, baselineFlag, resourceFlags, suggestion.Unit),
 			Actor:   reports.NextActionActorAgent,
 		})
 	}

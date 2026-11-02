@@ -228,7 +228,14 @@ type DashboardEstimatesPage struct {
 }
 
 type DashboardEstimatesData struct {
-	Baselines []DashboardEstimateBaseline `json:"baselines"`
+	Baselines        []DashboardEstimateBaseline        `json:"baselines"`
+	LimitedBaselines []DashboardEstimateLimitedBaseline `json:"limited_baselines"`
+}
+
+type DashboardEstimateLimitedBaseline struct {
+	ID         string `json:"id"`
+	ApprovedAt string `json:"approved_at,omitempty"`
+	Tasks      int    `json:"tasks"`
 }
 
 type DashboardEstimateBaseline struct {

@@ -821,6 +821,15 @@
       }
     },
     {
+      "code": "baseline_scope_unknown",
+      "message": "baseline scope \"everything\" is unknown",
+      "severity": "error",
+      "target": {
+        "kind": "baseline",
+        "id": "baseline.bad"
+      }
+    },
+    {
       "code": "missing_approved_actor",
       "message": "baseline approved_by is required",
       "severity": "error",

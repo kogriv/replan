@@ -246,6 +246,7 @@ type CurrentPlan struct {
 type Baseline struct {
 	ID              string                `json:"id" yaml:"id"`
 	Name            string                `json:"name,omitempty" yaml:"name,omitempty"`
+	Scope           string                `json:"scope,omitempty" yaml:"scope,omitempty"`
 	CreatedAt       string                `json:"created_at" yaml:"created_at"`
 	ApprovedAt      string                `json:"approved_at,omitempty" yaml:"approved_at,omitempty"`
 	ApprovedBy      Ref                   `json:"approved_by" yaml:"approved_by"`

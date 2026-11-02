@@ -183,6 +183,11 @@ When a new non-trivial work item is agreed:
    and planned dates while preserving deliberately drifted date examples.
    Run it after applying `accept-task.sh` and after `replan task set-title`,
    then commit the refreshed sample with the acceptance or rename.
+   Right after writing the demands and before the task starts, seal a limited
+   baseline of the new task or tasks, for example:
+   `replan baseline create --project examples/replan-self --task <id> --id baseline.<date>.<slug> --name "<title>" --approved-by actor.human.maintainer --apply`.
+   The operator's agreement to plan the task approves its estimate. If its
+   demands are split later, calibration still compares the resource group.
 3. Run RePlan validation.
 4. Run OpenProject/RePlan drift check when live OpenProject is involved.
 5. Run resource schedule drift check.

@@ -18,17 +18,18 @@ const CalibrationMinimumSample = 8
 type CalibrationService struct{ loader WorkspaceLoader }
 
 type CalibrationCalibrateRequest struct {
-	BaselineIDs []string
-	ResourceIDs []string
-	Unit        string
-	Tag         string
-	Exclusions  map[string]string
-	ID          string
-	Name        string
-	ApprovedBy  string
-	OccurredAt  string
-	DryRun      bool
-	BySize      bool
+	BaselineIDs  []string
+	AllBaselines bool
+	ResourceIDs  []string
+	Unit         string
+	Tag          string
+	Exclusions   map[string]string
+	ID           string
+	Name         string
+	ApprovedBy   string
+	OccurredAt   string
+	DryRun       bool
+	BySize       bool
 }
 
 type CalibrationCalibrateResult struct {
@@ -102,10 +103,11 @@ type CalibrationApplyResult struct {
 }
 
 type CalibrationSuggestion struct {
-	BaselineID string
-	Resources  []string
-	Unit       string
-	Count      int
+	BaselineID   string
+	AllBaselines bool
+	Resources    []string
+	Unit         string
+	Count        int
 }
 
 type CalibratedDemandValue struct {
@@ -232,7 +234,12 @@ func validateCalibrationRequest(errors *[]Diagnostic, ws domain.Workspace, req C
 		add("missing_calibration_name", "calibration name is required", "calibration", req.ID)
 	}
 	if len(req.BaselineIDs) == 0 {
-		add("missing_baseline_id", "at least one baseline is required", "baseline", "")
+		if !req.AllBaselines {
+			add("missing_baseline_id", "at least one baseline is required", "baseline", "")
+		}
+	}
+	if req.AllBaselines && len(req.BaselineIDs) > 0 {
+		add("calibration_baseline_flags_conflict", "--all-baselines cannot be combined with --baseline", "calibration", req.ID)
 	}
 	if len(req.ResourceIDs) == 0 {
 		add("missing_calibration_resource", "at least one resource is required", "calibration", req.ID)
@@ -263,6 +270,19 @@ func validateCalibrationRequest(errors *[]Diagnostic, ws domain.Workspace, req C
 		}
 	}
 	var baselines []domain.Baseline
+	if req.AllBaselines {
+		for _, baseline := range ws.Baselines {
+			if !domain.BaselineCarriesEstimates(baseline) {
+				continue
+			}
+			if status := baselineSealStatus(baseline); status != "verified" {
+				add("baseline_modified", fmt.Sprintf("baseline %s seal does not verify (status %s)", baseline.ID, status), "baseline", baseline.ID)
+				continue
+			}
+			baselines = append(baselines, baseline)
+		}
+		return baselines
+	}
 	for _, id := range req.BaselineIDs {
 		baseline, ok := estimateBaseline(ws.Baselines, id)
 		if !ok {
@@ -858,9 +878,13 @@ func CalibrationOpenDemandGroups(ws domain.Workspace) []CalibrationOpenDemands {
 // choice, so next suggests the command rather than creating a record.
 func CalibrationSuggestions(ws domain.Workspace) []CalibrationSuggestion {
 	candidates := map[calibrationSuggestionKey]CalibrationSuggestion{}
+	limited := []domain.Baseline{}
 	for _, baseline := range ws.Baselines {
 		if !domain.BaselineCarriesEstimates(baseline) || baselineSealStatus(baseline) != "verified" {
 			continue
+		}
+		if baseline.Scope == "tasks" {
+			limited = append(limited, baseline)
 		}
 		scopes := map[calibrationSuggestionKey][]string{}
 		for _, demand := range baseline.IncludedDemands {
@@ -883,11 +907,15 @@ func CalibrationSuggestions(ws domain.Workspace) []CalibrationSuggestion {
 			addCalibrationSuggestion(candidates, ws, baseline, resources, key.unit)
 		}
 	}
+	addAllBaselineSuggestions(candidates, ws, limited)
 	result := []CalibrationSuggestion{}
 	for _, suggestion := range candidates {
 		result = append(result, suggestion)
 	}
 	sort.Slice(result, func(i, j int) bool {
+		if result[i].AllBaselines != result[j].AllBaselines {
+			return result[i].AllBaselines
+		}
 		if result[i].BaselineID != result[j].BaselineID {
 			return result[i].BaselineID < result[j].BaselineID
 		}
@@ -896,7 +924,62 @@ func CalibrationSuggestions(ws domain.Workspace) []CalibrationSuggestion {
 		}
 		return strings.Join(result[i].Resources, "\x00") < strings.Join(result[j].Resources, "\x00")
 	})
-	return result
+	unique := result[:0]
+	seenScopes := map[string]bool{}
+	for _, suggestion := range result {
+		scope := suggestion.Unit + "\x00" + strings.Join(suggestion.Resources, "\x00")
+		if seenScopes[scope] {
+			continue
+		}
+		seenScopes[scope] = true
+		unique = append(unique, suggestion)
+	}
+	return unique
+}
+
+func addAllBaselineSuggestions(candidates map[calibrationSuggestionKey]CalibrationSuggestion, ws domain.Workspace, baselines []domain.Baseline) {
+	if len(baselines) == 0 {
+		return
+	}
+	scopes := map[calibrationSuggestionKey][]string{}
+	for _, baseline := range baselines {
+		for _, demand := range baseline.IncludedDemands {
+			if estimateBaselineAmount(demand) > 0 {
+				key := calibrationSuggestionKey{baseline: "*", unit: demand.Unit, resources: demand.Resource}
+				scopes[key] = []string{demand.Resource}
+			}
+		}
+		report := EstimateReportResult{Resources: []EstimateResourceSummary{}, SplitGroups: []EstimateSplitGroupSummary{}, Tasks: []EstimateTask{}}
+		buildEstimateReport(&report, ws, baseline)
+		for _, group := range report.SplitGroups {
+			resources := uniqueSorted(append([]string{group.OriginalResourceID}, group.SplitResourceIDs...))
+			key := calibrationSuggestionKey{baseline: "*", unit: group.Unit, resources: strings.Join(resources, "\x00")}
+			scopes[key] = resources
+		}
+	}
+	for key, resources := range scopes {
+		if calibrationScopeHasStrictSuperset(key, resources, scopes) {
+			continue
+		}
+		resources = uniqueSorted(resources)
+		observations, _ := calibrationObservations(ws, baselines, domain.CalibrationScope{Resources: resources, Unit: key.unit}, nil)
+		count := 0
+		for _, observation := range observations {
+			if !calibrationTaskSampleUsed(ws.Calibrations, observation.taskID, resources, key.unit) {
+				count++
+			}
+		}
+		if count < CalibrationMinimumSample {
+			continue
+		}
+		resourceKey := strings.Join(resources, "\x00")
+		for candidateKey, suggestion := range candidates {
+			if suggestion.Unit == key.unit && strings.Join(suggestion.Resources, "\x00") == resourceKey {
+				delete(candidates, candidateKey)
+			}
+		}
+		candidates[calibrationSuggestionKey{baseline: "*", unit: key.unit, resources: resourceKey}] = CalibrationSuggestion{AllBaselines: true, Resources: resources, Unit: key.unit, Count: count}
+	}
 }
 
 func addCalibrationSuggestion(candidates map[calibrationSuggestionKey]CalibrationSuggestion, ws domain.Workspace, baseline domain.Baseline, resources []string, unit string) {

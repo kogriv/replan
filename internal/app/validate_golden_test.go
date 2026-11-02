@@ -83,7 +83,7 @@ func everyDiagnosticWorkspace() domain.Workspace {
 		},
 		Availabilities: []domain.Availability{{ID: "availability.bad", ResourceRef: ref("resource", "resource.missing")}},
 		Baselines: []domain.Baseline{
-			{ID: "baseline.bad",
+			{ID: "baseline.bad", Scope: "everything",
 				IncludedTasks: []domain.BaselineTaskEntry{
 					{Ref: ref("task", "task.a"), PlannedStart: "soon"},
 					{Ref: ref("task", "task.c"), PlannedStart: "2026-10-10", PlannedFinish: "2026-10-01"},

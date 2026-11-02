@@ -45,6 +45,35 @@ func TestBaselineCreateDryRunSnapshotsPlanWithoutWriting(t *testing.T) {
 	}
 }
 
+func TestBaselineCreateLimitedToTasks(t *testing.T) {
+	projectPath := copyAppProjectFixture(t)
+	req := baselineRequest()
+	req.DryRun = true
+	req.TaskIDs = []string{"task.op.1234"}
+	result, err := app.NewBaselineService(filestore.New(projectPath)).Create(context.Background(), req)
+	if err != nil {
+		t.Fatalf("Create returned error: %v; diagnostics=%#v", err, result.Errors)
+	}
+	if result.Baseline.Scope != "tasks" || result.TaskCount != 1 || result.DemandCount != 5 || result.Baseline.IncludedTasks[0].ID != "task.op.1234" {
+		t.Fatalf("unexpected limited baseline: %#v", result)
+	}
+	for _, demand := range result.Baseline.IncludedDemands {
+		if demand.Task != "task.op.1234" {
+			t.Fatalf("included unrelated demand: %#v", demand)
+		}
+	}
+}
+
+func TestBaselineCreateRefusesUnknownLimitedTask(t *testing.T) {
+	req := baselineRequest()
+	req.DryRun = true
+	req.TaskIDs = []string{"task.missing"}
+	result, err := app.NewBaselineService(filestore.New(copyAppProjectFixture(t))).Create(context.Background(), req)
+	if err == nil || !hasAppDiagnostic(result.Errors, "task_not_found") {
+		t.Fatalf("error=%v diagnostics=%#v", err, result.Errors)
+	}
+}
+
 func TestBaselineCreateApplyWritesSealedFileAuditAndValidation(t *testing.T) {
 	projectPath := copyAppProjectFixture(t)
 	result, err := app.NewBaselineService(filestore.New(projectPath)).Create(context.Background(), baselineRequest())

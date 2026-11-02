@@ -133,6 +133,18 @@ The numbers above are illustrative. `approved_by` must be a human actor: an
 agent may run the dry run and propose a calibration, but writing one is an
 approval like a baseline.
 
+#### Limited baselines
+
+`replan baseline create --task <id>` is repeatable and seals only those
+current-plan tasks and their demands. Its `scope: tasks` marker keeps it out of
+the implicit whole-plan report baseline. This makes a new estimate cheap to
+freeze when the task is planned and before it starts.
+
+`replan estimate calibrate --all-baselines` combines every verified baseline
+that carries estimates. Baselines without estimates are ignored. For a task
+present in more than one baseline, the latest approval before its actual start
+still wins. `--all-baselines` and `--baseline` cannot be used together.
+
 ### 5. Applying a calibration is a scenario
 
 `replan estimate apply --calibration <id>` writes a scenario, not a plan
@@ -178,7 +190,7 @@ estimates.
 ## Commands
 
 ```text
-replan estimate calibrate --project <path> --baseline <id> [--baseline <id> ...]
+replan estimate calibrate --project <path> (--baseline <id> [--baseline <id> ...]|--all-baselines)
     --resource <id> [--resource <id> ...] --unit <unit> [--tag <tag>]
     [--by-size] [--exclude <task-id>=<reason> ...] --id <id> --name <name>
     --approved-by <actor-id> (--dry-run|--apply) [--format json|markdown]
@@ -189,6 +201,7 @@ replan estimate apply --project <path> --calibration <id> --scenario-id <id>
 
 Refusals: `baseline_not_found` (4), `baseline_has_no_estimates` and
 `baseline_modified` (2) as in `report estimates`;
+`calibration_baseline_flags_conflict` (2);
 `calibration_sample_too_small` (2); `calibration_modified` (2) when the seal
 does not verify; `approver_not_human` (3, policy denied).
 

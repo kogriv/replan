@@ -24,6 +24,7 @@ type BaselineCreateRequest struct {
 	Assumptions []string
 	OccurredAt  string
 	DryRun      bool
+	TaskIDs     []string
 }
 
 type BaselineCreateResult struct {
@@ -50,6 +51,7 @@ type BaselineSummary struct {
 	Demands          int    `json:"demands"`
 	CarriesEstimates bool   `json:"carries_estimates"`
 	SealStatus       string `json:"seal_status"`
+	Scope            string `json:"scope,omitempty"`
 }
 
 type BaselineListResult struct {
@@ -62,6 +64,8 @@ type BaselineShowResult struct {
 	Baseline         domain.Baseline `json:"baseline"`
 	CarriesEstimates bool            `json:"carries_estimates"`
 	SealStatus       string          `json:"seal_status"`
+	Scope            string          `json:"scope,omitempty"`
+	TaskCount        int             `json:"task_count"`
 	Warnings         []Diagnostic    `json:"warnings"`
 	Errors           []Diagnostic    `json:"errors"`
 }
@@ -98,8 +102,15 @@ func (s BaselineService) Create(ctx context.Context, req BaselineCreateRequest) 
 		IncludedTasks: []domain.BaselineTaskEntry{}, IncludedDemands: []domain.BaselineDemandEntry{},
 		Assumptions: append([]string(nil), req.Assumptions...),
 	}
+	if len(req.TaskIDs) > 0 {
+		baseline.Scope = "tasks"
+	}
 	included := make(map[string]bool, len(ws.CurrentPlan.IncludedTasks))
+	selected := stringSet(req.TaskIDs)
 	for _, ref := range ws.CurrentPlan.IncludedTasks {
+		if len(selected) > 0 && !selected[ref.ID] {
+			continue
+		}
 		task := tasksByID[ref.ID]
 		baseline.IncludedTasks = append(baseline.IncludedTasks, domain.BaselineTaskEntry{
 			Ref: domain.Ref{Kind: "task", ID: ref.ID}, PlannedStart: task.PlannedStart, PlannedFinish: task.PlannedFinish,
@@ -210,6 +221,8 @@ func (s BaselineService) Show(ctx context.Context, id string) (BaselineShowResul
 			result.Baseline = baseline
 			result.CarriesEstimates = domain.BaselineCarriesEstimates(baseline)
 			result.SealStatus = baselineSealStatus(baseline)
+			result.Scope = baseline.Scope
+			result.TaskCount = len(baseline.IncludedTasks)
 			return result, nil
 		}
 	}
@@ -249,6 +262,15 @@ func validateBaselineCreateRequest(errors *[]Diagnostic, ws domain.Workspace, re
 	if len(ws.CurrentPlan.IncludedTasks) == 0 {
 		add("empty_current_plan", "current plan has no included tasks", "current_plan", ws.CurrentPlan.ID)
 	}
+	currentTasks := map[string]bool{}
+	for _, ref := range ws.CurrentPlan.IncludedTasks {
+		currentTasks[ref.ID] = true
+	}
+	for _, id := range uniqueSorted(req.TaskIDs) {
+		if !currentTasks[id] {
+			add("task_not_found", fmt.Sprintf("task %s not found in current plan", id), "task", id)
+		}
+	}
 }
 
 func baselineSummary(baseline domain.Baseline) BaselineSummary {
@@ -256,6 +278,7 @@ func baselineSummary(baseline domain.Baseline) BaselineSummary {
 		ID: baseline.ID, Name: baseline.Name, StatusDate: baseline.StatusDate, ApprovedBy: baseline.ApprovedBy.ID,
 		Tasks: len(baseline.IncludedTasks), Demands: len(baseline.IncludedDemands),
 		CarriesEstimates: domain.BaselineCarriesEstimates(baseline), SealStatus: baselineSealStatus(baseline),
+		Scope: baseline.Scope,
 	}
 }
 

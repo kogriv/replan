@@ -44,7 +44,9 @@ func runBaselineCreate(args []string, stdout, stderr *os.File) int {
 	approvedBy := fs.String("approved-by", "", "required existing approving actor id")
 	statusDate := fs.String("status-date", "", "optional status date (YYYY-MM-DD)")
 	var assumptions repeatedStringFlag
+	var tasks repeatedStringFlag
 	fs.Var(&assumptions, "assumption", "optional repeatable baseline assumption")
+	fs.Var(&tasks, "task", "optional repeatable current-plan task id")
 	occurredAt := fs.String("occurred-at", "", "optional RFC3339 timestamp; defaults to now")
 	writeFlags := addCanonicalWriteFlags(fs)
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
@@ -60,7 +62,7 @@ func runBaselineCreate(args []string, stdout, stderr *os.File) int {
 	}
 	result, err := app.NewBaselineService(newStore(*projectPath)).Create(context.Background(), app.BaselineCreateRequest{
 		ID: *id, Name: *name, ApprovedBy: *approvedBy, StatusDate: *statusDate,
-		Assumptions: assumptions, OccurredAt: *occurredAt, DryRun: dryRun,
+		Assumptions: assumptions, OccurredAt: *occurredAt, DryRun: dryRun, TaskIDs: tasks,
 	})
 	env := envelope{OK: err == nil && len(result.Errors) == 0, Command: "baseline create", ProjectPath: *projectPath, Result: result, Warnings: result.Warnings, Errors: result.Errors}
 	if formatValue == "text" && err == nil {
@@ -217,14 +219,18 @@ func writeBaselineListMarkdown(stdout *os.File, result app.BaselineListResult) e
 		_, err := fmt.Fprintln(stdout, "No baselines.")
 		return err
 	}
-	if _, err := fmt.Fprintln(stdout, "| ID | Status date | Tasks | Demands | Estimates | Seal |"); err != nil {
+	if _, err := fmt.Fprintln(stdout, "| ID | Status date | Scope | Tasks | Demands | Estimates | Seal |"); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintln(stdout, "|---|---|---:|---:|---|---|"); err != nil {
+	if _, err := fmt.Fprintln(stdout, "|---|---|---|---:|---:|---|---|"); err != nil {
 		return err
 	}
 	for _, baseline := range result.Baselines {
-		if _, err := fmt.Fprintf(stdout, "| `%s` | %s | %d | %d | %t | %s |\n", baseline.ID, emptyDash(baseline.StatusDate), baseline.Tasks, baseline.Demands, baseline.CarriesEstimates, baseline.SealStatus); err != nil {
+		scope := "whole plan"
+		if baseline.Scope == "tasks" {
+			scope = "limited to tasks"
+		}
+		if _, err := fmt.Fprintf(stdout, "| `%s` | %s | %s | %d | %d | %t | %s |\n", baseline.ID, emptyDash(baseline.StatusDate), scope, baseline.Tasks, baseline.Demands, baseline.CarriesEstimates, baseline.SealStatus); err != nil {
 			return err
 		}
 	}
@@ -246,7 +252,11 @@ func writeBaselineShowMarkdown(stdout *os.File, result app.BaselineShowResult) e
 		}
 		return nil
 	}
-	if _, err := fmt.Fprintf(stdout, "# Baseline: %s\n\n- Estimates: `%t`\n- Seal: `%s`\n\n```yaml\n", result.Baseline.ID, result.CarriesEstimates, result.SealStatus); err != nil {
+	scope := "whole plan"
+	if result.Scope == "tasks" {
+		scope = "limited to tasks"
+	}
+	if _, err := fmt.Fprintf(stdout, "# Baseline: %s\n\n- Scope: %s (%d tasks)\n- Estimates: `%t`\n- Seal: `%s`\n\n```yaml\n", result.Baseline.ID, scope, result.TaskCount, result.CarriesEstimates, result.SealStatus); err != nil {
 		return err
 	}
 	data, err := yaml.Marshal(struct {

@@ -80,6 +80,7 @@ go run ./cmd/replan report weekly --project examples/small-team --week 2026-W28 
 go run ./cmd/replan report dashboard --project examples/small-team --week 2026-W28 --scenario scenario.task-op-1234-reassign-petr --format json
 go run ./cmd/replan report estimates --project examples/replan-self --baseline baseline.2026-10-15.tooling-consolidation --format markdown
 go run ./cmd/replan estimate calibrate --project examples/estimate-calibration --baseline baseline.fixture.original --resource resource.ai.executor --resource resource.ai.codex --unit agent_hours --tag calibration --by-size --exclude task.cal.09=actuals_judged --id calibration.fixture.agents --name "Fixture agent calibration" --approved-by actor.human.operator --dry-run --format markdown
+go run ./cmd/replan estimate calibrate --project examples/estimate-calibration --all-baselines --resource resource.ai.executor --resource resource.ai.codex --unit agent_hours --tag calibration --exclude task.cal.09=actuals_judged --id calibration.fixture.all --name "All baseline calibration" --approved-by actor.human.operator --dry-run --format markdown
 ```
 
 `report dashboard --output` writes the static overview and Gantt plus the
@@ -258,6 +259,7 @@ Create and inspect an immutable estimate snapshot:
 
 ```bash
 go run ./cmd/replan baseline create --project examples/small-team \
+  --task task.op.1234 \
   --id baseline.2026-07-08.reviewed --name "Reviewed plan" \
   --approved-by actor.human.operator --status-date 2026-07-08 \
   --dry-run --format text

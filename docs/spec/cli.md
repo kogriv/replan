@@ -1590,7 +1590,7 @@ samples.
 Implemented command flags:
 
 ```text
-replan estimate calibrate --project -p --bindings --format --baseline --resource --unit --tag --by-size --exclude --id --name --approved-by --occurred-at --dry-run --apply
+replan estimate calibrate --project -p --bindings --format --baseline --all-baselines --resource --unit --tag --by-size --exclude --id --name --approved-by --occurred-at --dry-run --apply
 replan estimate list --project -p --bindings --format
 replan estimate show --project -p --bindings --format
 replan estimate apply --project -p --bindings --format --calibration --scenario-id --actor --occurred-at --dry-run --apply
@@ -1606,6 +1606,10 @@ up to 4 and above 4. Apply creates a sealed, immutable
 `calibrations/<id>.yaml` and an audit record. Under `proposal_only`, the
 approver must be human; `direct` explicitly allows an existing non-human
 approving actor.
+
+`--all-baselines` uses every verified baseline that carries estimates and
+silently skips baselines without estimates. It cannot be combined with
+`--baseline`. The calibration records only the baselines it used.
 
 `estimate apply` creates one ordinary scenario linked by `calibration_ref`.
 It does not yet skip demands whose amount was set by a person after the calibration date because the current audit and demand history do not reliably identify that edit.
@@ -1642,7 +1646,7 @@ replan baseline show baseline.2026-07-08.reviewed \
 Implemented command flags:
 
 ```text
-replan baseline create --project -p --bindings --format --id --name --approved-by --status-date --assumption --occurred-at --dry-run --apply
+replan baseline create --project -p --bindings --format --task --id --name --approved-by --status-date --assumption --occurred-at --dry-run --apply
 replan baseline list --project -p --bindings --format
 replan baseline show --project -p --bindings --format
 ```
@@ -1650,7 +1654,9 @@ replan baseline show --project -p --bindings --format
 Rules:
 
 - `create` snapshots every current-plan task in plan order and every demand of
-  those tasks, using `planned_amount`, not remaining work;
+  those tasks, using `planned_amount`, not remaining work. Repeatable `--task`
+  limits the snapshot to those current-plan tasks and writes `scope: tasks`;
+  an unknown task returns `task_not_found` with exit 4;
 - the id and approving actor must already be unique and known respectively;
   `created_at` and `approved_at` both use `--occurred-at`, or the current time;
 - dry-run reports the target file, counts and preview. Apply creates
@@ -1659,7 +1665,8 @@ Rules:
 - the canonical apply gate and read-only bindings-layer refusal apply;
 - under `proposal_only`, `--approved-by` must name a human actor;
 - `list` and `show` report whether estimate fields exist and whether the seal
-  is `verified`, `modified`, `unsupported` or `unsealed`.
+  is `verified`, `modified`, `unsupported` or `unsealed`; they also show a
+  limited baseline's scope and task count.
 
 ## `replan task add`
 

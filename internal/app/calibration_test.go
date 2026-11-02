@@ -3,9 +3,11 @@ package app
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/kogriv/replan/internal/domain"
+	"github.com/kogriv/replan/internal/reports"
 )
 
 type calibrationTestLoader struct{ ws domain.Workspace }
@@ -305,6 +307,75 @@ func TestCalibrationSuggestionsUseMaximalScopeAndUnusedTasks(t *testing.T) {
 	}
 	if len(candidates) != 1 {
 		t.Fatalf("candidates=%#v", candidates)
+	}
+}
+
+func limitedCalibrationWorkspace(t *testing.T) domain.Workspace {
+	t.Helper()
+	ws := domain.Workspace{
+		Actors:    []domain.Actor{{ID: "actor.operator", Kind: "human"}},
+		Resources: []domain.Resource{{ID: "resource.executor"}},
+	}
+	amount := 2.0
+	for group := 0; group < 2; group++ {
+		baseline := domain.Baseline{ID: fmt.Sprintf("baseline.%d", group), Scope: "tasks", ApprovedAt: "2026-01-01T00:00:00Z", CreatedAt: "2026-01-01T00:00:00Z", ApprovedBy: domain.Ref{ID: "actor.operator"}}
+		for item := 0; item < 4; item++ {
+			index := group*4 + item
+			taskID, demandID := fmt.Sprintf("task.%d", index), fmt.Sprintf("demand.%d", index)
+			ws.Tasks = append(ws.Tasks, domain.Task{ID: taskID, TrackingStatus: "accepted"})
+			ws.ResourceDemands = append(ws.ResourceDemands, domain.ResourceDemand{ID: demandID, TaskRef: domain.Ref{ID: taskID}, ResourceRef: domain.Ref{ID: "resource.executor"}, Unit: "hours"})
+			ws.Actuals = append(ws.Actuals, domain.Actual{ID: "actual." + taskID, Type: "work_consumed", TaskRef: domain.Ref{ID: taskID}, DemandRef: domain.Ref{ID: demandID}, ResourceRef: domain.Ref{ID: "resource.executor"}, Unit: "hours", Amount: 1, StatusDate: "2026-01-02"})
+			baseline.IncludedTasks = append(baseline.IncludedTasks, domain.BaselineTaskEntry{Ref: domain.Ref{ID: taskID}})
+			baseline.IncludedDemands = append(baseline.IncludedDemands, domain.BaselineDemandEntry{Ref: domain.Ref{ID: demandID}, Task: taskID, Resource: "resource.executor", Unit: "hours", PlannedAmount: &amount})
+		}
+		if err := domain.SealBaseline(&baseline); err != nil {
+			t.Fatal(err)
+		}
+		ws.Baselines = append(ws.Baselines, baseline)
+	}
+	return ws
+}
+
+func TestCalibrationAllBaselinesCombinesLimitedSamples(t *testing.T) {
+	ws := limitedCalibrationWorkspace(t)
+	ws.Baselines = append(ws.Baselines, domain.Baseline{ID: "baseline.ref-only"})
+	result, err := NewCalibrationService(calibrationTestLoader{ws: ws}).Calibrate(context.Background(), CalibrationCalibrateRequest{
+		AllBaselines: true, ResourceIDs: []string{"resource.executor"}, Unit: "hours", ID: "calibration.all", Name: "All", ApprovedBy: "actor.operator", DryRun: true,
+	})
+	if err != nil || result.Calibration.Result.Count != 8 || len(result.Calibration.SourceBaselines) != 2 {
+		t.Fatalf("error=%v result=%#v", err, result)
+	}
+}
+
+func TestCalibrationBaselineFlagsConflict(t *testing.T) {
+	ws := limitedCalibrationWorkspace(t)
+	result, err := NewCalibrationService(calibrationTestLoader{ws: ws}).Calibrate(context.Background(), CalibrationCalibrateRequest{
+		AllBaselines: true, BaselineIDs: []string{"baseline.0"}, ResourceIDs: []string{"resource.executor"}, Unit: "hours", ID: "calibration.conflict", Name: "Conflict", ApprovedBy: "actor.operator", DryRun: true,
+	})
+	if err == nil || len(result.Errors) == 0 || result.Errors[0].Code != "calibration_baseline_flags_conflict" {
+		t.Fatalf("error=%v diagnostics=%#v", err, result.Errors)
+	}
+}
+
+func TestCalibrationSuggestionsCombineLimitedBaselines(t *testing.T) {
+	ws := limitedCalibrationWorkspace(t)
+	suggestions := CalibrationSuggestions(ws)
+	if len(suggestions) != 1 || !suggestions[0].AllBaselines || suggestions[0].Count != 8 {
+		t.Fatalf("suggestions=%#v", suggestions)
+	}
+}
+
+func TestNextSuggestsAllLimitedBaselinesTogether(t *testing.T) {
+	ws := limitedCalibrationWorkspace(t)
+	actions := dashboardNextActions(ws, reports.DashboardOverview{ProjectPath: "fixture"})
+	var suggestions []reports.DashboardNextAction
+	for _, action := range actions {
+		if action.Code == "suggest_calibration" {
+			suggestions = append(suggestions, action)
+		}
+	}
+	if len(suggestions) != 1 || !strings.Contains(suggestions[0].Command, "--all-baselines") || strings.Contains(suggestions[0].Command, "--baseline ") {
+		t.Fatalf("suggestions=%#v", suggestions)
 	}
 }
 

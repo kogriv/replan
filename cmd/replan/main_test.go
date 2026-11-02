@@ -164,6 +164,15 @@ func TestBaselineCreateListAndShowTextOutput(t *testing.T) {
 	}
 
 	stdout, stderr = tempOutputFiles(t)
+	limitedArgs := []string{"baseline", "create", "--project", projectPath, "--task", "task.op.1234", "--id", "baseline.2026-07-08.limited", "--name", "Limited", "--approved-by", "actor.human.operator", "--occurred-at", "2026-07-08T10:00:00+07:00", "--dry-run", "--format", "json"}
+	if code := run(limitedArgs, stdout, stderr); code != exitSuccess {
+		t.Fatalf("limited dry run exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	if output := readFileString(t, stdout.Name()); !strings.Contains(output, `"scope": "tasks"`) || !strings.Contains(output, `"task_count": 1`) {
+		t.Fatalf("unexpected limited output: %s", output)
+	}
+
+	stdout, stderr = tempOutputFiles(t)
 	if code := run([]string{"baseline", "list", "--project", projectPath, "--format", "text"}, stdout, stderr); code != exitSuccess {
 		t.Fatalf("list exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
 	}
@@ -246,6 +255,18 @@ func TestEstimateCalibrationCLIWorkflow(t *testing.T) {
 	stdout, stderr = tempOutputFiles(t)
 	if code := run([]string{"scenario", "diff", "--project", projectPath, "scenario.cli.calibrated", "--format", "json"}, stdout, stderr); code != exitSuccess {
 		t.Fatalf("scenario diff exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+}
+
+func TestEstimateCalibrationAllBaselinesCLI(t *testing.T) {
+	projectPath := copyCmdProjectFixtureFrom(t, "../../examples/estimate-calibration", "estimate-calibration-all")
+	args := []string{"estimate", "calibrate", "--project", projectPath, "--all-baselines", "--resource", "resource.ai.executor", "--resource", "resource.ai.codex", "--unit", "agent_hours", "--tag", "calibration", "--exclude", "task.cal.09=actuals_judged", "--id", "calibration.cli.all", "--name", "All baselines", "--approved-by", "actor.human.operator", "--dry-run", "--format", "json"}
+	stdout, stderr := tempOutputFiles(t)
+	if code := run(args, stdout, stderr); code != exitSuccess {
+		t.Fatalf("all-baselines exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	if output := readFileString(t, stdout.Name()); !strings.Contains(output, `"count": 8`) || !strings.Contains(output, `"id": "baseline.fixture.original"`) {
+		t.Fatalf("unexpected all-baselines output: %s", output)
 	}
 }
 

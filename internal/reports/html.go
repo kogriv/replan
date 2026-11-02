@@ -952,11 +952,24 @@ func WriteDashboardEstimatesHTML(w io.Writer, page DashboardEstimatesPage) error
 	if err := writeDashboardPageStart(w, "RePlan Estimates: "+page.ProjectName, "RePlan Estimates: "+page.ProjectName, page.ProjectID, page.StatusDate, page.GeneratedAt, "estimates.json"); err != nil {
 		return err
 	}
-	if len(page.Data.Baselines) == 0 {
+	if len(page.Data.Baselines) == 0 && len(page.Data.LimitedBaselines) == 0 {
 		if _, err := fmt.Fprint(w, "<section><h2>Estimate accuracy</h2><p class=\"muted\">No sealed estimate baselines.</p></section>\n"); err != nil {
 			return err
 		}
 		return writeDashboardPageEnd(w)
+	}
+	if len(page.Data.LimitedBaselines) > 0 {
+		if _, err := fmt.Fprint(w, "<section><h2>Task-limited baselines</h2><table><thead><tr><th scope=\"col\">Baseline</th><th scope=\"col\">Approved at</th><th scope=\"col\" class=\"num\">Tasks</th></tr></thead><tbody>"); err != nil {
+			return err
+		}
+		for _, baseline := range page.Data.LimitedBaselines {
+			if _, err := fmt.Fprintf(w, "<tr><td class=\"code\">%s</td><td>%s</td><td class=\"num\">%d</td></tr>", html.EscapeString(baseline.ID), html.EscapeString(baseline.ApprovedAt), baseline.Tasks); err != nil {
+				return err
+			}
+		}
+		if _, err := fmt.Fprint(w, "</tbody></table></section>\n"); err != nil {
+			return err
+		}
 	}
 	for _, baseline := range page.Data.Baselines {
 		if _, err := fmt.Fprintf(w, "<section><h2>%s</h2><p><span class=\"code\">%s</span> · seal %s</p><table><thead><tr><th scope=\"col\">Resource</th><th scope=\"col\">Unit</th><th scope=\"col\" class=\"num\">Baseline</th><th scope=\"col\" class=\"num\">Actual</th><th scope=\"col\" class=\"num\">Actual / baseline</th></tr></thead><tbody>", html.EscapeString(baseline.Name), html.EscapeString(baseline.ID), html.EscapeString(baseline.SealStatus)); err != nil {

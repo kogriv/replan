@@ -244,9 +244,13 @@ func dashboardProposalsPage(ws domain.Workspace, metadata reports.DashboardPageM
 }
 
 func (s ReportService) dashboardEstimatesPage(ctx context.Context, ws domain.Workspace, metadata reports.DashboardPageMetadata) reports.DashboardEstimatesPage {
-	page := reports.DashboardEstimatesPage{DashboardPageMetadata: metadata, Data: reports.DashboardEstimatesData{Baselines: []reports.DashboardEstimateBaseline{}}}
+	page := reports.DashboardEstimatesPage{DashboardPageMetadata: metadata, Data: reports.DashboardEstimatesData{Baselines: []reports.DashboardEstimateBaseline{}, LimitedBaselines: []reports.DashboardEstimateLimitedBaseline{}}}
 	for _, baseline := range ws.Baselines {
 		if baseline.Seal == nil || !domain.BaselineCarriesEstimates(baseline) {
+			continue
+		}
+		if baseline.Scope == "tasks" {
+			page.Data.LimitedBaselines = append(page.Data.LimitedBaselines, reports.DashboardEstimateLimitedBaseline{ID: baseline.ID, ApprovedAt: baseline.ApprovedAt, Tasks: len(baseline.IncludedTasks)})
 			continue
 		}
 		report, _ := s.Estimates(ctx, EstimateReportRequest{BaselineID: baseline.ID})
@@ -278,6 +282,7 @@ func (s ReportService) dashboardEstimatesPage(ctx context.Context, ws domain.Wor
 		page.Data.Baselines = append(page.Data.Baselines, item)
 	}
 	sort.Slice(page.Data.Baselines, func(i, j int) bool { return page.Data.Baselines[i].ID < page.Data.Baselines[j].ID })
+	sort.Slice(page.Data.LimitedBaselines, func(i, j int) bool { return page.Data.LimitedBaselines[i].ID < page.Data.LimitedBaselines[j].ID })
 	return page
 }
 

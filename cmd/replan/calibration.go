@@ -40,7 +40,8 @@ func runEstimateCalibrate(args []string, stdout, stderr *os.File) int {
 	fs.StringVar(projectPath, "p", ".", "path to RePlan project")
 	format := fs.String("format", "json", "output format: json or markdown")
 	var baselines, resources, exclusions repeatedStringFlag
-	fs.Var(&baselines, "baseline", "required repeatable source baseline id")
+	fs.Var(&baselines, "baseline", "repeatable source baseline id; required unless --all-baselines")
+	allBaselines := fs.Bool("all-baselines", false, "use every verified baseline with estimates")
 	fs.Var(&resources, "resource", "required repeatable resource id; multiple resources form one split group")
 	fs.Var(&exclusions, "exclude", "optional repeatable task-id=reason exclusion")
 	unit := fs.String("unit", "", "required calibration unit")
@@ -68,7 +69,7 @@ func runEstimateCalibrate(args []string, stdout, stderr *os.File) int {
 		return code
 	}
 	result, err := app.NewCalibrationService(newStore(*projectPath)).Calibrate(context.Background(), app.CalibrationCalibrateRequest{
-		BaselineIDs: baselines, ResourceIDs: resources, Unit: *unit, Tag: *tag, Exclusions: excluded,
+		BaselineIDs: baselines, AllBaselines: *allBaselines, ResourceIDs: resources, Unit: *unit, Tag: *tag, Exclusions: excluded,
 		ID: *id, Name: *name, ApprovedBy: *approvedBy, OccurredAt: *occurredAt, DryRun: dryRun, BySize: *bySize,
 	})
 	env := envelope{OK: err == nil && len(result.Errors) == 0, Command: "estimate calibrate", ProjectPath: *projectPath, Result: result, Warnings: result.Warnings, Errors: result.Errors}
