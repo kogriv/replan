@@ -2,8 +2,10 @@ package app_test
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/kogriv/replan/internal/app"
 	"github.com/kogriv/replan/internal/domain"
@@ -232,8 +234,19 @@ func TestDashboardOpenProjectOverlaySelfFixture(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Dashboard returned error: %v", err)
 	}
-	if overview.WorkloadPage.Data.WindowStart != "2026-W40" || overview.WorkloadPage.Data.WindowFinish < "2026-W52" {
-		t.Fatalf("workload window = %s..%s, want 2026-W40 through at least 2026-W52", overview.WorkloadPage.Data.WindowStart, overview.WorkloadPage.Data.WindowFinish)
+	// The window runs from four weeks before the plan's status week to eight
+	// weeks after it, so it moves with the self plan's status date.
+	statusDate, err := time.Parse("2006-01-02", workspace.Project.DefaultStatusDate)
+	if err != nil {
+		t.Fatalf("self fixture status date %q: %v", workspace.Project.DefaultStatusDate, err)
+	}
+	isoWeek := func(day time.Time) string {
+		year, week := day.ISOWeek()
+		return fmt.Sprintf("%d-W%02d", year, week)
+	}
+	wantStart, wantFinish := isoWeek(statusDate.AddDate(0, 0, -28)), isoWeek(statusDate.AddDate(0, 0, 56))
+	if overview.WorkloadPage.Data.WindowStart != wantStart || overview.WorkloadPage.Data.WindowFinish != wantFinish {
+		t.Fatalf("workload window = %s..%s, want %s..%s", overview.WorkloadPage.Data.WindowStart, overview.WorkloadPage.Data.WindowFinish, wantStart, wantFinish)
 	}
 	if len(overview.WorkloadPage.Data.Weeks) == 0 || overview.WorkloadPage.Data.Weeks[0] >= overview.WorkloadPage.Data.WindowStart {
 		t.Fatalf("raw workload weeks do not retain pre-window plan history: %#v", overview.WorkloadPage.Data.Weeks)
