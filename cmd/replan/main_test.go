@@ -282,8 +282,19 @@ func TestEstimateCalibrationRejectsAgentApproverWithExitThree(t *testing.T) {
 }
 
 func TestCommittedSingleFactorCalibrationStillVerifiesAndApplies(t *testing.T) {
-	projectPath := "../../examples/replan-self"
+	// A copy with one open agent demand of its own, so the check does not
+	// depend on whether the live self plan has open work.
+	projectPath := copyCmdProjectFixtureFrom(t, "../../examples/replan-self", "replan-self")
 	stdout, stderr := tempOutputFiles(t)
+	for _, args := range [][]string{
+		{"evidence", "add", "--project", projectPath, "--id", "evidence.test.old-calibration", "--type", "decision", "--actor", "actor.human.maintainer", "--observed-at", "2026-11-02T20:00:00+07:00", "--summary", "Open work for the old calibration check.", "--target", "project:project.replan-self", "--apply", "--format", "json"},
+		{"task", "add", "--project", projectPath, "--id", "task.test.old-calibration", "--title", "Open work", "--planned-start", "2026-11-03", "--planned-finish", "2026-11-03", "--demand", "agent=resource.ai.agent.executor:4:agent_hours", "--actor", "actor.human.maintainer", "--evidence", "evidence.test.old-calibration", "--apply", "--format", "json"},
+	} {
+		if code := run(args, stdout, stderr); code != exitSuccess {
+			t.Fatalf("%s %s exit=%d stdout=%s stderr=%s", args[0], args[1], code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+		}
+		stdout, stderr = tempOutputFiles(t)
+	}
 	if code := run([]string{"estimate", "show", "--project", projectPath, "calibration.2026-10-29.agents", "--format", "json"}, stdout, stderr); code != exitSuccess {
 		t.Fatalf("show exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
 	}
@@ -294,7 +305,8 @@ func TestCommittedSingleFactorCalibrationStillVerifiesAndApplies(t *testing.T) {
 	if code := run([]string{"estimate", "apply", "--project", projectPath, "--calibration", "calibration.2026-10-29.agents", "--scenario-id", "scenario.test.old-calibration", "--actor", "actor.human.maintainer", "--dry-run", "--format", "json"}, stdout, stderr); code != exitSuccess {
 		t.Fatalf("apply exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
 	}
-	if output := readFileString(t, stdout.Name()); !strings.Contains(output, `"calibration_id": "calibration.2026-10-29.agents"`) || !strings.Contains(output, `"changes"`) {
+	// One factor of 0.21 for every size: 4 agent hours become 0.75 after rounding.
+	if output := readFileString(t, stdout.Name()); !strings.Contains(output, `"calibration_id": "calibration.2026-10-29.agents"`) || !strings.Contains(output, `"path": "resource_demands.resource_demand.old-calibration.agent.planned_amount"`) || !strings.Contains(output, `"value": 0.75`) {
 		t.Fatalf("old calibration did not apply: %s", output)
 	}
 }
