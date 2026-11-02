@@ -10,3 +10,14 @@ evidence:
       targets:
         - kind: task
           id: task.self.calibrate-estimates-by-size
+    - id: evidence.self.calibrate-estimates-by-size
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-02T18:44:24+07:00"
+      summary: 'Codex round 1 (18:05:47-18:25:09) added estimate calibrate --by-size: a sealed factor per size band, the band median at 8 or more tasks and the overall factor below, all three bands listed, one CalibrationFactor lookup used by estimate apply, task add hints, next and the reports; validate refuses unknown methods and bands without factors; the 2026-10-29 record keeps its seal and single factor. Review fixes: removed a wrong openproject_sync_pending note from the design doc, a plain bool instead of a variadic flag, task amounts computed once per calibration, show layout. Checked on a copy of the self plan: a --by-size calibration over the three estimate baselines gives 39 tasks and band factors 0.5, 0.20 and 0.16; a 1.5-hour split task takes the up-to-2 band, a 6-hour task the above-4 band; estimate apply and next use the band factors. Full local gate green, 79 live kit checks (commit a5fad14).'
+      targets:
+        - kind: task
+          id: task.self.calibrate-estimates-by-size

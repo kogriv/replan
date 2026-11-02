@@ -1,0 +1,43 @@
+actuals:
+    - id: actual.self-calibrate-estimates-by-size.ai-codex-local.20261102T1844240700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.calibrate-estimates-by-size
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.calibrate-estimates-by-size.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.32
+      unit: agent_hours
+      occurred_at: "2026-11-02T18:44:24+07:00"
+      status_date: "2026-11-02"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.calibrate-estimates-by-size
+    - id: actual.self-calibrate-estimates-by-size.ai-agent-executor.20261102T1844240700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.calibrate-estimates-by-size
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.calibrate-estimates-by-size.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.39
+      unit: agent_hours
+      occurred_at: "2026-11-02T18:44:24+07:00"
+      status_date: "2026-11-02"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.calibrate-estimates-by-size
