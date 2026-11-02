@@ -394,6 +394,8 @@ current_plan:
     - kind: task
       id: task.self.keep-new-tasks-calibratable
     - kind: task
+      id: task.self.smoke-dashboard-week-follows-status-date
+    - kind: task
       id: task.self.fix-first-project-defects
     - kind: task
       id: task.self.implement-replan-init-and-resource-commands

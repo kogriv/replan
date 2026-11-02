@@ -62,3 +62,24 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.accept-calibrate-estimates-by-size
+    - id: actual.self-smoke-dashboard-week-follows-status-date.ai-agent-executor.20261102T1914590700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.smoke-dashboard-week-follows-status-date
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.smoke-dashboard-week-follows-status-date.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.12
+      unit: agent_hours
+      occurred_at: "2026-11-02T19:14:59+07:00"
+      status_date: "2026-11-02"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.smoke-dashboard-week-follows-status-date

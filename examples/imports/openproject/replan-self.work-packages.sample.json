@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 198,
-  "count": 198,
+  "total": 199,
+  "count": 199,
   "_embedded": {
     "elements": [
       {
@@ -5736,6 +5736,35 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2298"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2299,
+        "subject": "Check the self dashboard week against the plan's status date in the smoke",
+        "description": {
+          "raw": "Found on 2026-11-02: moving the self plan's status date to 2026-11-02 failed the MVP smoke and CI, because the smoke asserts that the self dashboard's workload page shows 2026-W40, while the page shows the weeks around the status date (W41 to W53 now). It is the last smoke check tied to the live self plan's dates, missed by the 2026-10-31 decoupling. Assert the status week read from the copied project instead."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-02",
+        "dueDate": "2026-11-02",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2299"
           },
           "status": {
             "title": "New"

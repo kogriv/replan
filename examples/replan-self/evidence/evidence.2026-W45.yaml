@@ -56,3 +56,25 @@ evidence:
       targets:
         - kind: task
           id: task.self.keep-new-tasks-calibratable
+    - id: evidence.self.start-smoke-dashboard-week-follows-status-date
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-02T19:08:30+07:00"
+      summary: 'Started at once because main is red. I fix it myself, without Codex: the smoke reads default_status_date from the copied project and asserts its ISO week on the workload page. Original estimate 0.25 agent hours; not in any baseline.'
+      targets:
+        - kind: task
+          id: task.self.smoke-dashboard-week-follows-status-date
+    - id: evidence.self.smoke-dashboard-week-follows-status-date
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-02T19:14:59+07:00"
+      summary: The smoke reads default_status_date from the copied self project and asserts its ISO week (computed with python3, portable) on the dashboard workload page. Smoke and the smoke on a copy without private settings pass; shellcheck clean (commit 33db7ae).
+      targets:
+        - kind: task
+          id: task.self.smoke-dashboard-week-follows-status-date

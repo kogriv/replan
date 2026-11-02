@@ -5920,3 +5920,30 @@ tasks:
           object_type: work_package
           object_id: "2298"
           url: https://op.example.internal/work_packages/2298
+    - id: task.self.smoke-dashboard-week-follows-status-date
+      title: Check the self dashboard week against the plan's status date in the smoke
+      description: 'Found on 2026-11-02: moving the self plan''s status date to 2026-11-02 failed the MVP smoke and CI, because the smoke asserts that the self dashboard''s workload page shows 2026-W40, while the page shows the weeks around the status date (W41 to W53 now). It is the last smoke check tied to the live self plan''s dates, missed by the 2026-10-31 decoupling. Assert the status week read from the copied project instead.'
+      type: implementation
+      tracking_status: review_ready
+      planned_start: "2026-11-02"
+      planned_finish: "2026-11-02"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.smoke-dashboard-week-follows-status-date.agent
+        - kind: resource_demand
+          id: resource_demand.smoke-dashboard-week-follows-status-date.maintainer
+        - kind: resource_demand
+          id: resource_demand.smoke-dashboard-week-follows-status-date.local-dev
+        - kind: resource_demand
+          id: resource_demand.smoke-dashboard-week-follows-status-date.ci
+      tags:
+        - tests
+        - gap
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2299"
+          url: https://op.example.internal/work_packages/2299
