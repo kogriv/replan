@@ -309,6 +309,7 @@ type CalibrationExclusion struct {
 }
 
 type CalibrationResult struct {
+	Method     string                `json:"method,omitempty" yaml:"method,omitempty"`
 	Factor     float64               `json:"factor" yaml:"factor"`
 	TotalRatio float64               `json:"total_ratio" yaml:"total_ratio"`
 	P25        float64               `json:"p25" yaml:"p25"`
@@ -318,9 +319,11 @@ type CalibrationResult struct {
 }
 
 type CalibrationSizeBand struct {
-	UpTo   *float64 `json:"up_to,omitempty" yaml:"up_to,omitempty"`
-	Count  int      `json:"count" yaml:"count"`
-	Median float64  `json:"median" yaml:"median"`
+	UpTo         *float64 `json:"up_to,omitempty" yaml:"up_to,omitempty"`
+	Count        int      `json:"count" yaml:"count"`
+	Median       float64  `json:"median" yaml:"median"`
+	Factor       *float64 `json:"factor,omitempty" yaml:"factor,omitempty"`
+	FactorSource string   `json:"factor_source,omitempty" yaml:"factor_source,omitempty"`
 }
 
 type Actual struct {

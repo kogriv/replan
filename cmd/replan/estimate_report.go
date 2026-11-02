@@ -68,7 +68,11 @@ func writeEstimateCalibrationsMarkdown(out io.Writer, calibrations []app.Calibra
 		return err
 	}
 	for _, calibration := range calibrations {
-		if _, err := fmt.Fprintf(out, "- `%s`: factor %s, total ratio %s, p25/p75 %s/%s, %d tasks, seal %s\n", calibration.ID, estimateNumber(calibration.Factor), estimateNumber(calibration.TotalRatio), estimateNumber(calibration.P25), estimateNumber(calibration.P75), calibration.Count, calibration.SealStatus); err != nil {
+		method := ""
+		if calibration.Method != "" {
+			method = ", method " + calibration.Method
+		}
+		if _, err := fmt.Fprintf(out, "- `%s`: factor %s, total ratio %s, p25/p75 %s/%s, %d tasks%s, seal %s\n", calibration.ID, estimateNumber(calibration.Factor), estimateNumber(calibration.TotalRatio), estimateNumber(calibration.P25), estimateNumber(calibration.P75), calibration.Count, method, calibration.SealStatus); err != nil {
 			return err
 		}
 		for _, band := range calibration.SizeBands {
@@ -76,7 +80,11 @@ func writeEstimateCalibrationsMarkdown(out io.Writer, calibrations []app.Calibra
 			if band.UpTo != nil {
 				label = "up to " + estimateNumber(*band.UpTo)
 			}
-			if _, err := fmt.Fprintf(out, "  - %s: %d tasks, median %s\n", label, band.Count, estimateNumber(band.Median)); err != nil {
+			factor := ""
+			if band.Factor != nil {
+				factor = fmt.Sprintf(", applied factor %s (%s)", estimateNumber(*band.Factor), band.FactorSource)
+			}
+			if _, err := fmt.Fprintf(out, "  - %s: %d tasks, median %s%s\n", label, band.Count, estimateNumber(band.Median), factor); err != nil {
 				return err
 			}
 		}

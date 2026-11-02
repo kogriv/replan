@@ -29,8 +29,9 @@ going. The task-level plan is RePlan's own project,
 - **Baselines.** Sealed snapshots of the approved estimates, and a report of
   how far the actuals drifted from them.
 - **Calibrated estimates.** A sealed, human-approved correction factor per
-  resource group, computed from what baselined tasks really took, shown next
-  to new estimates and applied only through a scenario.
+  resource group, or per task-size band once a band has enough tasks,
+  computed from what baselined tasks really took, shown next to new estimates
+  and applied only through a scenario.
 - **Reports.** Weekly (Markdown, JSON, CSV, HTML), project state, next actions
   and a static HTML dashboard with workload, scenario, proposal and estimate
   pages.
@@ -56,9 +57,6 @@ before work starts.
 - **A stable file format.** The project format is versioned and
   `replan project migrate` exists; the format becomes stable once outside
   users have data in it.
-- **Calibration by task size.** Small tasks overrun their calibrated estimate
-  more than large ones; a factor per size band instead of one per resource
-  group.
 - **GitHub Projects fields over the API.** Dates and estimates from GitHub
   Projects are read from an exported file today; the live import needs the
   GraphQL API for them.

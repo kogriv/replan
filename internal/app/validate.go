@@ -480,6 +480,20 @@ func (v *workspaceValidator) calibrations(calibrations []domain.Calibration, bas
 	}
 	for _, calibration := range calibrations {
 		v.register("calibration", calibration.ID)
+		if calibration.Result.Method != "" && calibration.Result.Method != "size_bands" {
+			v.errorf("calibration_method_unknown", "calibration", calibration.ID, "calibration method %q is unknown", calibration.Result.Method)
+		}
+		if calibration.Result.Method == "size_bands" {
+			missingFactor := len(calibration.Result.SizeBands) != 3
+			for _, band := range calibration.Result.SizeBands {
+				if band.Factor == nil {
+					missingFactor = true
+				}
+			}
+			if missingFactor {
+				v.errorf("calibration_band_factor_missing", "calibration", calibration.ID, "size_bands calibration must contain three bands with factors")
+			}
+		}
 		v.resolves(calibration.ApprovedBy, "calibration", calibration.ID, "calibration approved_by")
 		for _, source := range calibration.SourceBaselines {
 			v.resolves(domain.Ref{Kind: "baseline", ID: source.ID}, "calibration", calibration.ID, "calibration source baseline")

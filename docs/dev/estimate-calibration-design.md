@@ -3,7 +3,8 @@
 Date: 2026-10-28
 
 Status: implemented on 2026-10-29
-(`task.self.implement-estimate-calibration`).
+(`task.self.implement-estimate-calibration`); factors per size band added on
+2026-11-02 (`task.self.calibrate-estimates-by-size`).
 
 Implementation note: project format version remains 1. `calibrations/` is an
 optional additive record directory, like `baselines/` and `scenarios/`; old
@@ -67,10 +68,15 @@ keeps the total ratio, the 25th and 75th percentiles, the count, and the ratio
 per estimate-size band (up to 2, up to 4, above 4 in the scope's unit), so a
 reader sees the size effect.
 
-The median is used because one badly booked task cannot move it far. The
-size effect is reported but not applied in the first version: a band has too
-few tasks today, and a factor per band would fit noise. Applying factors per
-size band is a later decision once each band has the minimum sample.
+The median is used because one badly booked task cannot move it far. By
+default existing and new records keep one overall factor. With `--by-size`,
+each size band applies its own median when it has at least eight tasks and
+falls back to the overall factor otherwise; the record states whether each
+factor came from the band or the overall sample.
+
+On 2026-11-02 the self project had 39 clean agent tasks: up to 2 agent hours
+had 9 tasks and median 0.5; up to 4 had 18 and median 0.20; above 4 had 12 and
+median 0.16. All three bands therefore meet the minimum sample.
 
 ### 3. Only clean samples count
 
@@ -155,6 +161,12 @@ values into one actionable `estimate apply` item per calibration, and hides
 the item after a scenario records that calibration. Estimating stays a human
 or agent decision; RePlan shows the evidence.
 
+For a size-band calibration, open work is assigned to a band by the task's
+total `planned_amount` in the scope: all demands whose resource belongs to the
+scope and whose unit matches, including open and closed demands. This is the
+same grouping used for the baseline sample and preserves split executor/Codex
+estimates.
+
 ### 7. Reports and the next list
 
 - `replan report estimates` gains a section per calibration that used the
@@ -168,7 +180,7 @@ or agent decision; RePlan shows the evidence.
 ```text
 replan estimate calibrate --project <path> --baseline <id> [--baseline <id> ...]
     --resource <id> [--resource <id> ...] --unit <unit> [--tag <tag>]
-    [--exclude <task-id>=<reason> ...] --id <id> --name <name>
+    [--by-size] [--exclude <task-id>=<reason> ...] --id <id> --name <name>
     --approved-by <actor-id> (--dry-run|--apply) [--format json|markdown]
 replan estimate list|show --project <path> [<id>] [--format json|markdown|text]
 replan estimate apply --project <path> --calibration <id> --scenario-id <id>
@@ -184,7 +196,7 @@ does not verify; `approver_not_human` (3, policy denied).
 
 Skipping a demand whose amount was set by a person after the calibration date is not implemented because the current audit and demand history do not reliably identify that edit.
 
-- factors per estimate-size band or per tag combination;
+- factors per tag combination;
 - calibrating durations or dates: the schedule follows from amounts and
   capacity;
 - learning across projects;

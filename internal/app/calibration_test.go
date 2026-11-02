@@ -112,7 +112,7 @@ func TestCalibrationStatisticsBandsAndRounding(t *testing.T) {
 		{baseline: 3, actual: 9, ratio: 3},
 		{baseline: 5, actual: 20, ratio: 4},
 	}
-	result := summarizeCalibration(observations)
+	result := summarizeCalibration(observations, false)
 	if result.Factor != 2.5 || result.P25 != 1.75 || result.P75 != 3.25 || result.TotalRatio != 3.090909 {
 		t.Fatalf("result=%#v", result)
 	}
@@ -123,6 +123,66 @@ func TestCalibrationStatisticsBandsAndRounding(t *testing.T) {
 		if got := RoundCalibrationAmount(input); got != want {
 			t.Errorf("RoundCalibrationAmount(%g)=%g want %g", input, got, want)
 		}
+	}
+}
+
+func TestCalibrationSizeBandFactorsAndFallback(t *testing.T) {
+	observations := []calibrationObservation{}
+	for i := 0; i < 8; i++ {
+		observations = append(observations, calibrationObservation{baseline: 1, actual: .5, ratio: .5})
+	}
+	observations = append(observations, calibrationObservation{baseline: 3, actual: .6, ratio: .2})
+	result := summarizeCalibration(observations, true)
+	if result.Method != "size_bands" || len(result.SizeBands) != 3 {
+		t.Fatalf("result=%#v", result)
+	}
+	if result.SizeBands[0].Factor == nil || *result.SizeBands[0].Factor != .5 || result.SizeBands[0].FactorSource != "band" {
+		t.Fatalf("qualified band=%#v", result.SizeBands[0])
+	}
+	if result.SizeBands[1].Factor == nil || *result.SizeBands[1].Factor != result.Factor || result.SizeBands[1].FactorSource != "overall" {
+		t.Fatalf("fallback band=%#v", result.SizeBands[1])
+	}
+	if result.SizeBands[2].Count != 0 || result.SizeBands[2].Factor == nil || result.SizeBands[2].FactorSource != "overall" {
+		t.Fatalf("empty band=%#v", result.SizeBands[2])
+	}
+}
+
+func TestCalibrationFactorUsesSplitTaskScopeAmount(t *testing.T) {
+	low, high := .5, .2
+	calibration := domain.Calibration{Scope: domain.CalibrationScope{Resources: []string{"resource.executor", "resource.codex"}, Unit: "hours"}, Result: domain.CalibrationResult{Method: "size_bands", Factor: .3, SizeBands: []domain.CalibrationSizeBand{{UpTo: floatPointer(2), Factor: &low}, {UpTo: floatPointer(4), Factor: &high}, {Factor: &high}}}}
+	demands := []domain.ResourceDemand{
+		{TaskRef: domain.Ref{ID: "task.split"}, ResourceRef: domain.Ref{ID: "resource.executor"}, Unit: "hours", PlannedAmount: 2},
+		{TaskRef: domain.Ref{ID: "task.split"}, ResourceRef: domain.Ref{ID: "resource.codex"}, Unit: "hours", PlannedAmount: 1, Status: "consumed"},
+	}
+	amounts := calibrationTaskScopeAmounts(demands, calibration)
+	factor, band := CalibrationFactor(calibration, amounts["task.split"])
+	if amounts["task.split"] != 3 || factor != .2 || band != "up to 4" {
+		t.Fatalf("amount=%g factor=%g band=%q", amounts["task.split"], factor, band)
+	}
+}
+
+func TestSizeBandFactorUsedByApplyValuesAndNext(t *testing.T) {
+	low, high := .5, .2
+	calibration := domain.Calibration{ID: "calibration.bands", Name: "Bands", Scope: domain.CalibrationScope{Resources: []string{"resource.agent"}, Unit: "hours"}, Result: domain.CalibrationResult{Method: "size_bands", Factor: .3, SizeBands: []domain.CalibrationSizeBand{{UpTo: floatPointer(2), Factor: &low}, {UpTo: floatPointer(4), Factor: &high}, {Factor: &high}}}}
+	if err := domain.SealCalibration(&calibration); err != nil {
+		t.Fatal(err)
+	}
+	four := 4.0
+	ws := domain.Workspace{CurrentPlan: domain.CurrentPlan{ID: "current"}, Actors: []domain.Actor{{ID: "actor.operator", Kind: "human"}}, Tasks: []domain.Task{{ID: "task.open"}}, Calibrations: []domain.Calibration{calibration}, ResourceDemands: []domain.ResourceDemand{{ID: "demand.open", TaskRef: domain.Ref{ID: "task.open"}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "hours", PlannedAmount: 4, RemainingAmount: &four}}}
+	values := CalibratedDemandValues(ws)
+	groups := CalibrationOpenDemandGroups(ws)
+	result, err := NewCalibrationService(calibrationTestLoader{ws: ws}).Apply(context.Background(), CalibrationApplyRequest{CalibrationID: calibration.ID, ScenarioID: "scenario.bands", ActorID: "actor.operator", DryRun: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(values) != 1 || values[0].Factor != .2 || values[0].Band != "up to 4" || values[0].Calibrated != .75 {
+		t.Fatalf("values=%#v", values)
+	}
+	if len(groups) != 1 || groups[0].Demands[0].Factor != .2 {
+		t.Fatalf("groups=%#v", groups)
+	}
+	if len(result.Scenario.Changes) != 2 || result.Scenario.Changes[0].Value != .75 {
+		t.Fatalf("scenario=%#v", result.Scenario)
 	}
 }
 

@@ -159,7 +159,7 @@ func printUsage(out *os.File) {
 	fmt.Fprintln(out, "  replan workload --project <path> [--week <YYYY-Www>] [--resource <id>] [--resource-class <class>] [--unit <unit>] [--scenario <id>] [--demands] [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan report weekly --project <path> --week <YYYY-Www> [--format json|markdown|csv|html] [--write]")
 	fmt.Fprintln(out, "  replan report estimates --project <path> --baseline <id> [--format json|markdown]")
-	fmt.Fprintln(out, "  replan estimate calibrate --project <path> --baseline <id> [--baseline <id> ...] --resource <id> [--resource <id> ...] --unit <unit> [--tag <tag>] [--exclude <task-id>=<reason> ...] --id <id> --name <name> --approved-by <actor-id> (--dry-run|--apply) [--format json|markdown]")
+	fmt.Fprintln(out, "  replan estimate calibrate --project <path> --baseline <id> [--baseline <id> ...] --resource <id> [--resource <id> ...] --unit <unit> [--tag <tag>] [--by-size] [--exclude <task-id>=<reason> ...] --id <id> --name <name> --approved-by <actor-id> (--dry-run|--apply) [--format json|markdown]")
 	fmt.Fprintln(out, "  replan estimate list --project <path> [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan estimate show --project <path> <id> [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan estimate apply --project <path> --calibration <id> --scenario-id <id> --actor <id> (--dry-run|--apply) [--format json|markdown]")

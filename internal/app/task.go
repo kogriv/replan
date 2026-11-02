@@ -53,6 +53,8 @@ type TaskCalibratedValue struct {
 	Calibrated    float64 `json:"calibrated_amount"`
 	Unit          string  `json:"unit"`
 	CalibrationID string  `json:"calibration_id"`
+	Factor        float64 `json:"factor"`
+	Band          string  `json:"band,omitempty"`
 }
 
 type TaskSetDatesRequest struct {
@@ -208,7 +210,9 @@ func calibratedTaskValues(calibrations []domain.Calibration, task domain.Task, d
 			}
 		}
 		if selected != nil {
-			values = append(values, TaskCalibratedValue{DemandID: demand.ID, TypedAmount: demand.PlannedAmount, Calibrated: RoundCalibrationAmount(demand.PlannedAmount * selected.Result.Factor), Unit: demand.Unit, CalibrationID: selected.ID})
+			amounts := calibrationTaskScopeAmounts(demands, *selected)
+			factor, band := CalibrationFactor(*selected, amounts[task.ID])
+			values = append(values, TaskCalibratedValue{DemandID: demand.ID, TypedAmount: demand.PlannedAmount, Calibrated: RoundCalibrationAmount(demand.PlannedAmount * factor), Unit: demand.Unit, CalibrationID: selected.ID, Factor: factor, Band: band})
 		}
 	}
 	return values

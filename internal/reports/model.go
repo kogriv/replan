@@ -284,13 +284,23 @@ type DashboardEstimateTotal struct {
 }
 
 type DashboardEstimateCalibration struct {
-	ID         string   `json:"id"`
-	Name       string   `json:"name"`
-	Resources  []string `json:"resources"`
-	Unit       string   `json:"unit"`
-	Factor     float64  `json:"factor"`
-	TotalRatio float64  `json:"total_ratio"`
-	Count      int      `json:"count"`
+	ID         string                         `json:"id"`
+	Name       string                         `json:"name"`
+	Resources  []string                       `json:"resources"`
+	Unit       string                         `json:"unit"`
+	Factor     float64                        `json:"factor"`
+	TotalRatio float64                        `json:"total_ratio"`
+	Count      int                            `json:"count"`
+	Method     string                         `json:"method,omitempty"`
+	SizeBands  []DashboardCalibrationSizeBand `json:"size_bands,omitempty"`
+}
+
+type DashboardCalibrationSizeBand struct {
+	Label        string   `json:"label"`
+	Count        int      `json:"count"`
+	Median       float64  `json:"median"`
+	Factor       *float64 `json:"factor,omitempty"`
+	FactorSource string   `json:"factor_source,omitempty"`
 }
 
 type DashboardHealthSummary struct {
@@ -771,6 +781,8 @@ type CalibrationDemandDetail struct {
 	TypedAmount     float64 `json:"typed_amount"`
 	CalibratedValue float64 `json:"calibrated_value"`
 	Unit            string  `json:"unit"`
+	Factor          float64 `json:"factor"`
+	Band            string  `json:"band,omitempty"`
 }
 
 type DashboardManifest struct {

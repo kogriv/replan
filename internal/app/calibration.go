@@ -28,6 +28,7 @@ type CalibrationCalibrateRequest struct {
 	ApprovedBy  string
 	OccurredAt  string
 	DryRun      bool
+	BySize      bool
 }
 
 type CalibrationCalibrateResult struct {
@@ -51,6 +52,7 @@ type CalibrationSummary struct {
 	Unit       string                       `json:"unit"`
 	Tag        string                       `json:"tag,omitempty"`
 	Factor     float64                      `json:"factor"`
+	Method     string                       `json:"method,omitempty"`
 	TotalRatio float64                      `json:"total_ratio"`
 	P25        float64                      `json:"p25"`
 	P75        float64                      `json:"p75"`
@@ -107,11 +109,13 @@ type CalibrationSuggestion struct {
 }
 
 type CalibratedDemandValue struct {
-	DemandID      string
-	TypedAmount   float64
-	Calibrated    float64
-	Unit          string
-	CalibrationID string
+	DemandID      string  `json:"demand_id"`
+	TypedAmount   float64 `json:"typed_amount"`
+	Calibrated    float64 `json:"calibrated_amount"`
+	Unit          string  `json:"unit"`
+	CalibrationID string  `json:"calibration_id"`
+	Factor        float64 `json:"factor"`
+	Band          string  `json:"band,omitempty"`
 }
 
 type CalibrationOpenDemands struct {
@@ -152,6 +156,17 @@ func (s CalibrationService) Calibrate(ctx context.Context, req CalibrationCalibr
 			Severity: "error", Target: Target{Kind: "calibration", ID: req.ID},
 		})
 		return result, ErrValidationFailed
+	}
+	if req.BySize {
+		anyBand := false
+		counts := make([]string, 0, len(calibration.Result.SizeBands))
+		for i, band := range calibration.Result.SizeBands {
+			anyBand = anyBand || band.Count >= CalibrationMinimumSample
+			counts = append(counts, fmt.Sprintf("%s=%d", calibrationBandName(i), band.Count))
+		}
+		if !anyBand {
+			result.Warnings = append(result.Warnings, Diagnostic{Code: "calibration_size_bands_below_minimum", Message: "no size band reaches the minimum sample: " + strings.Join(counts, ", "), Severity: "warning", Target: Target{Kind: "calibration", ID: req.ID}})
+		}
 	}
 	if err := domain.SealCalibration(&calibration); err != nil {
 		result.Errors = append(result.Errors, Diagnostic{Code: "calibration_seal_failed", Message: err.Error(), Severity: "error", Target: Target{Kind: "calibration", ID: req.ID}})
@@ -289,7 +304,7 @@ func buildCalibration(ws domain.Workspace, baselines []domain.Baseline, req Cali
 		calibration.Sample.Tasks = append(calibration.Sample.Tasks, observation.taskID)
 	}
 	calibration.Sample.Excluded = excluded
-	calibration.Result = summarizeCalibration(observations)
+	calibration.Result = summarizeCalibration(observations, req.BySize)
 	return calibration
 }
 
@@ -418,8 +433,11 @@ func calibrationTaskActual(ws domain.Workspace, taskID string, scope domain.Cali
 	return amount, recorded
 }
 
-func summarizeCalibration(observations []calibrationObservation) domain.CalibrationResult {
+func summarizeCalibration(observations []calibrationObservation, bySize bool) domain.CalibrationResult {
 	result := domain.CalibrationResult{Count: len(observations), SizeBands: []domain.CalibrationSizeBand{}}
+	if bySize {
+		result.Method = "size_bands"
+	}
 	if len(observations) == 0 {
 		return result
 	}
@@ -443,11 +461,22 @@ func summarizeCalibration(observations []calibrationObservation) domain.Calibrat
 				values = append(values, observation.ratio)
 			}
 		}
-		if len(values) == 0 {
+		if len(values) == 0 && !bySize {
 			continue
 		}
 		sort.Float64s(values)
-		result.SizeBands = append(result.SizeBands, domain.CalibrationSizeBand{UpTo: bound, Count: len(values), Median: roundEstimate(percentile(values, .5))})
+		band := domain.CalibrationSizeBand{UpTo: bound, Count: len(values)}
+		if len(values) > 0 {
+			band.Median = roundEstimate(percentile(values, .5))
+		}
+		if bySize {
+			factor, source := result.Factor, "overall"
+			if len(values) >= CalibrationMinimumSample {
+				factor, source = band.Median, "band"
+			}
+			band.Factor, band.FactorSource = floatPointer(factor), source
+		}
+		result.SizeBands = append(result.SizeBands, band)
 	}
 	return result
 }
@@ -474,6 +503,54 @@ func calibrationBandIndex(amount float64) int {
 		return 1
 	}
 	return 2
+}
+
+// CalibrationFactor returns the factor applicable to a task's total amount in
+// the calibration scope. Old records and incomplete band records use the
+// overall factor.
+func CalibrationFactor(calibration domain.Calibration, taskScopeAmount float64) (float64, string) {
+	if calibration.Result.Method != "size_bands" {
+		return calibration.Result.Factor, ""
+	}
+	index := calibrationBandIndex(taskScopeAmount)
+	bandName := calibrationBandName(index)
+	for _, band := range calibration.Result.SizeBands {
+		if calibrationBandIndexForBound(band.UpTo) == index && band.Factor != nil {
+			return *band.Factor, bandName
+		}
+	}
+	return calibration.Result.Factor, bandName
+}
+
+func calibrationBandIndexForBound(upTo *float64) int {
+	if upTo == nil {
+		return 2
+	}
+	if *upTo <= 2 {
+		return 0
+	}
+	return 1
+}
+
+func calibrationBandName(index int) string {
+	if index == 0 {
+		return "up to 2"
+	}
+	if index == 1 {
+		return "up to 4"
+	}
+	return "above 4"
+}
+
+func calibrationTaskScopeAmounts(demands []domain.ResourceDemand, calibration domain.Calibration) map[string]float64 {
+	amounts := map[string]float64{}
+	resources := stringSet(calibration.Scope.Resources)
+	for _, demand := range demands {
+		if demand.Unit == calibration.Scope.Unit && resources[demandResourceID(demand)] {
+			amounts[demand.TaskRef.ID] += demand.PlannedAmount
+		}
+	}
+	return amounts
 }
 
 func (s CalibrationService) List(ctx context.Context) (CalibrationListResult, error) {
@@ -597,6 +674,7 @@ func buildCalibrationScenario(ws domain.Workspace, calibration domain.Calibratio
 		}
 	}
 	resources := stringSet(calibration.Scope.Resources)
+	taskAmounts := calibrationTaskScopeAmounts(ws.ResourceDemands, calibration)
 	for _, demand := range ws.ResourceDemands {
 		if !resources[demandResourceID(demand)] || demand.Unit != calibration.Scope.Unit || (calibration.Scope.Tag != "" && !containsString(tasks[demand.TaskRef.ID].Tags, calibration.Scope.Tag)) {
 			continue
@@ -605,7 +683,8 @@ func buildCalibrationScenario(ws domain.Workspace, calibration domain.Calibratio
 			*skipped = append(*skipped, CalibrationApplySkip{DemandID: demand.ID, Reason: "closed"})
 			continue
 		}
-		scaledPlanned := RoundCalibrationAmount(demand.PlannedAmount * calibration.Result.Factor)
+		factor, _ := CalibrationFactor(calibration, taskAmounts[demand.TaskRef.ID])
+		scaledPlanned := RoundCalibrationAmount(demand.PlannedAmount * factor)
 		if actualByDemand[demand.ID] > scaledPlanned {
 			*skipped = append(*skipped, CalibrationApplySkip{DemandID: demand.ID, Reason: "actuals_above_scaled_amount"})
 			continue
@@ -614,7 +693,7 @@ func buildCalibrationScenario(ws domain.Workspace, calibration domain.Calibratio
 			scenario.Changes = append(scenario.Changes, domain.ScenarioChange{Op: "replace", Path: "resource_demands." + demand.ID + ".planned_amount", Value: scaledPlanned})
 		}
 		if demand.HasRemaining() {
-			scaledRemaining := RoundCalibrationAmount(demand.Remaining() * calibration.Result.Factor)
+			scaledRemaining := RoundCalibrationAmount(demand.Remaining() * factor)
 			if scaledRemaining != demand.Remaining() {
 				scenario.Changes = append(scenario.Changes, domain.ScenarioChange{Op: "replace", Path: "resource_demands." + demand.ID + ".remaining_amount", Value: scaledRemaining})
 			}
@@ -634,7 +713,7 @@ func RoundCalibrationAmount(value float64) float64 {
 }
 
 func calibrationSummary(calibration domain.Calibration) CalibrationSummary {
-	return CalibrationSummary{ID: calibration.ID, Name: calibration.Name, ApprovedAt: calibration.ApprovedAt, Resources: append([]string(nil), calibration.Scope.Resources...), Unit: calibration.Scope.Unit, Tag: calibration.Scope.Tag, Factor: calibration.Result.Factor, TotalRatio: calibration.Result.TotalRatio, P25: calibration.Result.P25, P75: calibration.Result.P75, Count: calibration.Result.Count, SizeBands: append([]domain.CalibrationSizeBand(nil), calibration.Result.SizeBands...), SealStatus: calibrationSealStatus(calibration)}
+	return CalibrationSummary{ID: calibration.ID, Name: calibration.Name, ApprovedAt: calibration.ApprovedAt, Resources: append([]string(nil), calibration.Scope.Resources...), Unit: calibration.Scope.Unit, Tag: calibration.Scope.Tag, Method: calibration.Result.Method, Factor: calibration.Result.Factor, TotalRatio: calibration.Result.TotalRatio, P25: calibration.Result.P25, P75: calibration.Result.P75, Count: calibration.Result.Count, SizeBands: append([]domain.CalibrationSizeBand(nil), calibration.Result.SizeBands...), SealStatus: calibrationSealStatus(calibration)}
 }
 
 func calibrationSealStatus(calibration domain.Calibration) string {
@@ -703,6 +782,7 @@ func CalibratedDemandValues(ws domain.Workspace) []CalibratedDemandValue {
 		tasks[task.ID] = task
 	}
 	values := []CalibratedDemandValue{}
+	amountsByCalibration := map[string]map[string]float64{}
 	for _, demand := range ws.ResourceDemands {
 		if calibrationDemandClosed(demand.Status) {
 			continue
@@ -721,7 +801,13 @@ func CalibratedDemandValues(ws domain.Workspace) []CalibratedDemandValue {
 			}
 		}
 		if selected != nil {
-			values = append(values, CalibratedDemandValue{DemandID: demand.ID, TypedAmount: demand.PlannedAmount, Calibrated: RoundCalibrationAmount(demand.PlannedAmount * selected.Result.Factor), Unit: demand.Unit, CalibrationID: selected.ID})
+			amounts, ok := amountsByCalibration[selected.ID]
+			if !ok {
+				amounts = calibrationTaskScopeAmounts(ws.ResourceDemands, *selected)
+				amountsByCalibration[selected.ID] = amounts
+			}
+			factor, band := CalibrationFactor(*selected, amounts[demand.TaskRef.ID])
+			values = append(values, CalibratedDemandValue{DemandID: demand.ID, TypedAmount: demand.PlannedAmount, Calibrated: RoundCalibrationAmount(demand.PlannedAmount * factor), Unit: demand.Unit, CalibrationID: selected.ID, Factor: factor, Band: band})
 		}
 	}
 	sort.Slice(values, func(i, j int) bool { return values[i].DemandID < values[j].DemandID })
@@ -747,6 +833,7 @@ func CalibrationOpenDemandGroups(ws domain.Workspace) []CalibrationOpenDemands {
 			continue
 		}
 		group := CalibrationOpenDemands{CalibrationID: calibration.ID, Demands: []CalibratedDemandValue{}}
+		amounts := calibrationTaskScopeAmounts(ws.ResourceDemands, calibration)
 		for _, demand := range ws.ResourceDemands {
 			if calibrationDemandClosed(demand.Status) || demand.Unit != calibration.Scope.Unit || !containsString(calibration.Scope.Resources, demandResourceID(demand)) {
 				continue
@@ -754,7 +841,8 @@ func CalibrationOpenDemandGroups(ws domain.Workspace) []CalibrationOpenDemands {
 			if calibration.Scope.Tag != "" && !containsString(tasks[demand.TaskRef.ID].Tags, calibration.Scope.Tag) {
 				continue
 			}
-			group.Demands = append(group.Demands, CalibratedDemandValue{DemandID: demand.ID, TypedAmount: demand.PlannedAmount, Calibrated: RoundCalibrationAmount(demand.PlannedAmount * calibration.Result.Factor), Unit: demand.Unit, CalibrationID: calibration.ID})
+			factor, band := CalibrationFactor(calibration, amounts[demand.TaskRef.ID])
+			group.Demands = append(group.Demands, CalibratedDemandValue{DemandID: demand.ID, TypedAmount: demand.PlannedAmount, Calibrated: RoundCalibrationAmount(demand.PlannedAmount * factor), Unit: demand.Unit, CalibrationID: calibration.ID, Factor: factor, Band: band})
 		}
 		if len(group.Demands) > 0 {
 			sort.Slice(group.Demands, func(i, j int) bool { return group.Demands[i].DemandID < group.Demands[j].DemandID })

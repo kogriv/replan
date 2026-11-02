@@ -988,7 +988,19 @@ func WriteDashboardEstimatesHTML(w io.Writer, page DashboardEstimatesPage) error
 				return err
 			}
 			for _, calibration := range baseline.Calibrations {
-				if _, err := fmt.Fprintf(w, "<tr><td><span class=\"code\">%s</span><br>%s</td><td>%s · %s</td><td class=\"num\">%d</td><td class=\"num\">%s</td></tr>", html.EscapeString(calibration.ID), html.EscapeString(calibration.Name), html.EscapeString(strings.Join(calibration.Resources, ", ")), html.EscapeString(calibration.Unit), calibration.Count, formatAmount(calibration.Factor)); err != nil {
+				method := ""
+				if calibration.Method != "" {
+					method = " · " + html.EscapeString(calibration.Method)
+				}
+				bands := ""
+				for _, band := range calibration.SizeBands {
+					factor := ""
+					if band.Factor != nil {
+						factor = fmt.Sprintf(", factor %s (%s)", formatAmount(*band.Factor), html.EscapeString(band.FactorSource))
+					}
+					bands += fmt.Sprintf("<br>%s: %d, median %s%s", html.EscapeString(band.Label), band.Count, formatAmount(band.Median), factor)
+				}
+				if _, err := fmt.Fprintf(w, "<tr><td><span class=\"code\">%s</span><br>%s%s</td><td>%s · %s%s</td><td class=\"num\">%d</td><td class=\"num\">%s</td></tr>", html.EscapeString(calibration.ID), html.EscapeString(calibration.Name), method, html.EscapeString(strings.Join(calibration.Resources, ", ")), html.EscapeString(calibration.Unit), bands, calibration.Count, formatAmount(calibration.Factor)); err != nil {
 					return err
 				}
 			}

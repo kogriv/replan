@@ -97,7 +97,11 @@ func runTaskAdd(args []string, stdout, stderr *os.File) int {
 		for _, demand := range result.Demands {
 			fmt.Fprintf(stdout, "- `%s`: %g %s", demand.ID, demand.PlannedAmount, demand.Unit)
 			if hint, ok := hints[demand.ID]; ok {
-				fmt.Fprintf(stdout, ", calibrated %g (%s)", hint.Calibrated, hint.CalibrationID)
+				if hint.Band != "" {
+					fmt.Fprintf(stdout, ", calibrated %g (%s, size band %s)", hint.Calibrated, hint.CalibrationID, hint.Band)
+				} else {
+					fmt.Fprintf(stdout, ", calibrated %g (%s)", hint.Calibrated, hint.CalibrationID)
+				}
 			}
 			fmt.Fprintln(stdout)
 		}

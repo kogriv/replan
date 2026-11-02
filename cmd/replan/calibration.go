@@ -45,6 +45,7 @@ func runEstimateCalibrate(args []string, stdout, stderr *os.File) int {
 	fs.Var(&exclusions, "exclude", "optional repeatable task-id=reason exclusion")
 	unit := fs.String("unit", "", "required calibration unit")
 	tag := fs.String("tag", "", "optional task tag scope")
+	bySize := fs.Bool("by-size", false, "apply a factor per estimate-size band")
 	id := fs.String("id", "", "required calibration id")
 	name := fs.String("name", "", "required calibration name")
 	approvedBy := fs.String("approved-by", "", "required human approving actor id")
@@ -68,7 +69,7 @@ func runEstimateCalibrate(args []string, stdout, stderr *os.File) int {
 	}
 	result, err := app.NewCalibrationService(newStore(*projectPath)).Calibrate(context.Background(), app.CalibrationCalibrateRequest{
 		BaselineIDs: baselines, ResourceIDs: resources, Unit: *unit, Tag: *tag, Exclusions: excluded,
-		ID: *id, Name: *name, ApprovedBy: *approvedBy, OccurredAt: *occurredAt, DryRun: dryRun,
+		ID: *id, Name: *name, ApprovedBy: *approvedBy, OccurredAt: *occurredAt, DryRun: dryRun, BySize: *bySize,
 	})
 	env := envelope{OK: err == nil && len(result.Errors) == 0, Command: "estimate calibrate", ProjectPath: *projectPath, Result: result, Warnings: result.Warnings, Errors: result.Errors}
 	if *format == "markdown" && err == nil {
@@ -88,7 +89,24 @@ func runEstimateList(args []string, stdout, stderr *os.File) int {
 	if (strings.EqualFold(*format, "markdown") || strings.EqualFold(*format, "text")) && err == nil {
 		fmt.Fprintln(stdout, "# Estimate Calibrations")
 		for _, row := range result.Calibrations {
-			fmt.Fprintf(stdout, "- `%s`: factor %.6g, %d tasks, %s (%s)\n", row.ID, row.Factor, row.Count, row.Unit, row.SealStatus)
+			method := ""
+			if row.Method != "" {
+				method = ", method " + row.Method
+			}
+			fmt.Fprintf(stdout, "- `%s`: factor %.6g, %d tasks, %s%s (%s)\n", row.ID, row.Factor, row.Count, row.Unit, method, row.SealStatus)
+			if row.Method == "size_bands" {
+				for _, band := range row.SizeBands {
+					label := "above 4"
+					if band.UpTo != nil {
+						label = fmt.Sprintf("up to %.6g", *band.UpTo)
+					}
+					if band.Factor != nil {
+						fmt.Fprintf(stdout, "  - %s: %d tasks, median %.6g, applied factor %.6g (%s)\n", label, band.Count, band.Median, *band.Factor, band.FactorSource)
+					} else {
+						fmt.Fprintf(stdout, "  - %s: %d tasks, median %.6g, missing factor\n", label, band.Count, band.Median)
+					}
+				}
+			}
 		}
 		return exitSuccess
 	}
@@ -160,14 +178,22 @@ func parseCalibrationExclusions(values []string) (map[string]string, error) {
 
 func writeCalibrationMarkdown(out *os.File, calibration domain.Calibration) {
 	fmt.Fprintf(out, "# %s\n\n", calibration.Name)
-	fmt.Fprintf(out, "- ID: `%s`\n- Factor: %.6g\n- Total ratio: %.6g\n- P25 / P75: %.6g / %.6g\n- Count: %d\n- Unit: `%s`\n- Resources: `%s`\n\n", calibration.ID, calibration.Result.Factor, calibration.Result.TotalRatio, calibration.Result.P25, calibration.Result.P75, calibration.Result.Count, calibration.Scope.Unit, strings.Join(calibration.Scope.Resources, "`, `"))
+	fmt.Fprintf(out, "- ID: `%s`\n- Factor: %.6g\n- Total ratio: %.6g\n- P25 / P75: %.6g / %.6g\n- Count: %d\n- Unit: `%s`\n- Resources: `%s`\n", calibration.ID, calibration.Result.Factor, calibration.Result.TotalRatio, calibration.Result.P25, calibration.Result.P75, calibration.Result.Count, calibration.Scope.Unit, strings.Join(calibration.Scope.Resources, "`, `"))
+	if calibration.Result.Method != "" {
+		fmt.Fprintf(out, "- Method: `%s`\n", calibration.Result.Method)
+	}
+	fmt.Fprintln(out)
 	fmt.Fprintln(out, "## Size bands")
 	for _, band := range calibration.Result.SizeBands {
 		label := "above 4"
 		if band.UpTo != nil {
 			label = fmt.Sprintf("up to %.6g", *band.UpTo)
 		}
-		fmt.Fprintf(out, "- %s: %d tasks, median %.6g\n", label, band.Count, band.Median)
+		if band.Factor != nil {
+			fmt.Fprintf(out, "- %s: %d tasks, median %.6g, applied factor %.6g (%s)\n", label, band.Count, band.Median, *band.Factor, band.FactorSource)
+		} else {
+			fmt.Fprintf(out, "- %s: %d tasks, median %.6g\n", label, band.Count, band.Median)
+		}
 	}
 	if len(calibration.Sample.Excluded) > 0 {
 		fmt.Fprintln(out, "\n## Excluded")

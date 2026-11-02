@@ -182,12 +182,12 @@ func TestBaselineCreateListAndShowTextOutput(t *testing.T) {
 
 func TestEstimateCalibrationCLIWorkflow(t *testing.T) {
 	projectPath := copyCmdProjectFixtureFrom(t, "../../examples/estimate-calibration", "estimate-calibration")
-	base := []string{"estimate", "calibrate", "--project", projectPath, "--baseline", "baseline.fixture.original", "--resource", "resource.ai.executor", "--resource", "resource.ai.codex", "--unit", "agent_hours", "--tag", "calibration", "--exclude", "task.cal.09=actuals_judged", "--id", "calibration.cli.agents", "--name", "CLI calibration", "--approved-by", "actor.human.operator", "--occurred-at", "2026-10-12T09:00:00Z", "--format", "json"}
+	base := []string{"estimate", "calibrate", "--project", projectPath, "--baseline", "baseline.fixture.original", "--resource", "resource.ai.executor", "--resource", "resource.ai.codex", "--unit", "agent_hours", "--tag", "calibration", "--by-size", "--exclude", "task.cal.09=actuals_judged", "--id", "calibration.cli.agents", "--name", "CLI calibration", "--approved-by", "actor.human.operator", "--occurred-at", "2026-10-12T09:00:00Z", "--format", "json"}
 	stdout, stderr := tempOutputFiles(t)
 	if code := run(append(append([]string{}, base...), "--dry-run"), stdout, stderr); code != exitSuccess {
 		t.Fatalf("calibrate dry-run exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
 	}
-	if output := readFileString(t, stdout.Name()); !strings.Contains(output, `"count": 8`) || !strings.Contains(output, `"actuals_judged"`) {
+	if output := readFileString(t, stdout.Name()); !strings.Contains(output, `"count": 8`) || !strings.Contains(output, `"actuals_judged"`) || !strings.Contains(output, `"method": "size_bands"`) || !strings.Contains(output, `"code": "calibration_size_bands_below_minimum"`) || strings.Count(output, `"factor_source": "overall"`) != 3 {
 		t.Fatalf("unexpected dry-run output: %s", output)
 	}
 	stdout, stderr = tempOutputFiles(t)
@@ -195,6 +195,16 @@ func TestEstimateCalibrationCLIWorkflow(t *testing.T) {
 		t.Fatalf("calibrate apply exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
 	}
 	assertFileContains(t, filepath.Join(projectPath, "calibrations", "calibration.cli.agents.yaml"), "seal_sha256:")
+	if err := os.WriteFile(filepath.Join(projectPath, "evidence", "cli.yaml"), []byte("evidence:\n  - id: evidence.fixture\n    type: planning_decision\n    observed_at: 2026-10-12T09:00:00Z\n    summary: CLI fixture.\n    actor_ref: {kind: actor, id: actor.human.operator}\n    target_refs: [{kind: project, id: project.estimate-calibration}]\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	stdout, stderr = tempOutputFiles(t)
+	if code := run([]string{"task", "add", "--project", projectPath, "--id", "task.cli.band", "--title", "Band hint", "--tag", "calibration", "--demand", "executor=resource.ai.executor:3:agent_hours", "--actor", "actor.human.operator", "--evidence", "evidence.fixture", "--dry-run", "--format", "text"}, stdout, stderr); code != exitSuccess {
+		t.Fatalf("task add exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	if output := readFileString(t, stdout.Name()); !strings.Contains(output, "size band up to 4") {
+		t.Fatalf("task add omitted size band: %s", output)
+	}
 	stdout, stderr = tempOutputFiles(t)
 	if code := run([]string{"next", "--project", projectPath, "--format", "text"}, stdout, stderr); code != exitSuccess {
 		t.Fatalf("next exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
@@ -247,6 +257,24 @@ func TestEstimateCalibrationRejectsAgentApproverWithExitThree(t *testing.T) {
 	}
 	if !strings.Contains(readFileString(t, stdout.Name()), `"approver_not_human"`) {
 		t.Fatalf("stdout=%s", readFileString(t, stdout.Name()))
+	}
+}
+
+func TestCommittedSingleFactorCalibrationStillVerifiesAndApplies(t *testing.T) {
+	projectPath := "../../examples/replan-self"
+	stdout, stderr := tempOutputFiles(t)
+	if code := run([]string{"estimate", "show", "--project", projectPath, "calibration.2026-10-29.agents", "--format", "json"}, stdout, stderr); code != exitSuccess {
+		t.Fatalf("show exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	if output := readFileString(t, stdout.Name()); !strings.Contains(output, `"seal_status": "verified"`) || strings.Contains(output, `"method"`) {
+		t.Fatalf("old calibration changed shape or seal: %s", output)
+	}
+	stdout, stderr = tempOutputFiles(t)
+	if code := run([]string{"estimate", "apply", "--project", projectPath, "--calibration", "calibration.2026-10-29.agents", "--scenario-id", "scenario.test.old-calibration", "--actor", "actor.human.maintainer", "--dry-run", "--format", "json"}, stdout, stderr); code != exitSuccess {
+		t.Fatalf("apply exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	if output := readFileString(t, stdout.Name()); !strings.Contains(output, `"calibration_id": "calibration.2026-10-29.agents"`) || !strings.Contains(output, `"changes"`) {
+		t.Fatalf("old calibration did not apply: %s", output)
 	}
 }
 

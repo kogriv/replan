@@ -1323,7 +1323,7 @@ func dashboardNextActions(ws domain.Workspace, overview reports.DashboardOvervie
 	for _, group := range CalibrationOpenDemandGroups(ws) {
 		details := make([]reports.CalibrationDemandDetail, 0, len(group.Demands))
 		for _, value := range group.Demands {
-			details = append(details, reports.CalibrationDemandDetail{DemandID: value.DemandID, TypedAmount: value.TypedAmount, CalibratedValue: value.Calibrated, Unit: value.Unit})
+			details = append(details, reports.CalibrationDemandDetail{DemandID: value.DemandID, TypedAmount: value.TypedAmount, CalibratedValue: value.Calibrated, Unit: value.Unit, Factor: value.Factor, Band: value.Band})
 		}
 		actions = append(actions, reports.DashboardNextAction{
 			Code: "apply_calibration", Label: fmt.Sprintf("Apply calibration %s to %d open demands", group.CalibrationID, len(group.Demands)),

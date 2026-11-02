@@ -956,6 +956,42 @@
       }
     },
     {
+      "code": "calibration_method_unknown",
+      "message": "calibration method \"mystery\" is unknown",
+      "severity": "error",
+      "target": {
+        "kind": "calibration",
+        "id": "calibration.unknown-method"
+      }
+    },
+    {
+      "code": "missing_calibration_seal",
+      "message": "calibration seal_sha256 is required",
+      "severity": "error",
+      "target": {
+        "kind": "calibration",
+        "id": "calibration.unknown-method"
+      }
+    },
+    {
+      "code": "calibration_band_factor_missing",
+      "message": "size_bands calibration must contain three bands with factors",
+      "severity": "error",
+      "target": {
+        "kind": "calibration",
+        "id": "calibration.missing-band-factor"
+      }
+    },
+    {
+      "code": "missing_calibration_seal",
+      "message": "calibration seal_sha256 is required",
+      "severity": "error",
+      "target": {
+        "kind": "calibration",
+        "id": "calibration.missing-band-factor"
+      }
+    },
+    {
       "code": "invalid_scenario_status",
       "message": "invalid scenario status \"pending\"",
       "severity": "error",

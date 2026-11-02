@@ -1590,7 +1590,7 @@ samples.
 Implemented command flags:
 
 ```text
-replan estimate calibrate --project -p --bindings --format --baseline --resource --unit --tag --exclude --id --name --approved-by --occurred-at --dry-run --apply
+replan estimate calibrate --project -p --bindings --format --baseline --resource --unit --tag --by-size --exclude --id --name --approved-by --occurred-at --dry-run --apply
 replan estimate list --project -p --bindings --format
 replan estimate show --project -p --bindings --format
 replan estimate apply --project -p --bindings --format --calibration --scenario-id --actor --occurred-at --dry-run --apply
