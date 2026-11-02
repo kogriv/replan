@@ -678,7 +678,10 @@ assert_contains "$self_dashboard_project/reports/latest/raw/openproject_overlay.
 assert_contains "$self_dashboard_project/reports/latest/raw/openproject_overlay.json" '"replan_task_id": "task.self.design-openproject-work-package-replan-panel"'
 assert_contains "$self_dashboard_project/reports/latest/workload.html" 'resource.human.maintainer'
 assert_contains "$self_dashboard_project/reports/latest/workload.html" 'table-scroll'
-assert_contains "$self_dashboard_project/reports/latest/workload.html" '2026-W40'
+# The workload page shows the weeks around the plan's status date.
+self_status_date=$(sed -n 's/^  default_status_date: "\(.*\)"$/\1/p' "$self_dashboard_project/.replan/project.yaml")
+self_status_week=$(python3 -c 'import datetime, sys; y, w, _ = datetime.date.fromisoformat(sys.argv[1]).isocalendar(); print(f"{y}-W{w:02d}")' "$self_status_date")
+assert_contains "$self_dashboard_project/reports/latest/workload.html" "$self_status_week"
 assert_contains "$self_dashboard_project/reports/latest/raw/workload.json" '"resource_id": "resource.human.maintainer"'
 assert_contains "$self_dashboard_project/reports/latest/scenarios.html" 'scenario.project-scope-deployed-early-20261012'
 assert_contains "$self_dashboard_project/reports/latest/scenarios.html" 'scenario-archived'
