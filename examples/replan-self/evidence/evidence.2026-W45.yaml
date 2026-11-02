@@ -21,3 +21,38 @@ evidence:
       targets:
         - kind: task
           id: task.self.calibrate-estimates-by-size
+    - id: evidence.self.accept-calibrate-estimates-by-size
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-02T18:53:29+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-02: size-band calibration (--by-size) with fallback to the overall factor.'
+      targets:
+        - kind: task
+          id: task.self.calibrate-estimates-by-size
+    - id: evidence.self.approve-size-band-calibration
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-02T18:54:46+07:00"
+      summary: 'The operator approved on 2026-11-02 ("остальное - как рекомендуешь") writing calibration.2026-11-02.agents-by-size: executor and Codex agent hours over the three estimate baselines, the six judged 15-16 October tasks excluded as before, factors per size band. Applying it to open work through a scenario is left for a separate decision.'
+      targets:
+        - kind: project
+          id: project.replan-self
+    - id: evidence.self.start-keep-new-tasks-calibratable
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-02T18:56:22+07:00"
+      summary: 'The operator chose on 2026-11-02 ("остальное - как рекомендуешь") a baseline limited to the new task(s), taken when they are planned and approved together with the task. Decision: baseline create --task with scope tasks, reports skip limited baselines when unpinned, estimate calibrate --all-baselines, next suggests across limited baselines, the step added to the backlog convention. Original estimate before the Codex split: 1.5 agent hours; the task is not in any baseline.'
+      targets:
+        - kind: task
+          id: task.self.keep-new-tasks-calibratable
