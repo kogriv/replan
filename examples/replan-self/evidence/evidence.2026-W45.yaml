@@ -1,0 +1,12 @@
+evidence:
+    - id: evidence.self.start-calibrate-estimates-by-size
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-02T18:01:37+07:00"
+      summary: 'Agreed with the operator on 2026-11-02 ("приступай как рекомендуешь"). A dry run over the three estimate baselines found 39 clean agent tasks with size bands of 9, 18 and 12 tasks (medians 0.5, 0.20, 0.16), so every band now reaches the minimum sample. Decision: an opt-in --by-size calibration with a sealed factor per band and fallback to the overall factor below the minimum; existing records keep one factor. Original estimate before the Codex split: 3 agent hours. The task is not in any baseline.'
+      targets:
+        - kind: task
+          id: task.self.calibrate-estimates-by-size

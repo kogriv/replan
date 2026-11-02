@@ -390,6 +390,10 @@ current_plan:
     - kind: task
       id: task.self.kit-build-ignores-surrounding-git
     - kind: task
+      id: task.self.calibrate-estimates-by-size
+    - kind: task
+      id: task.self.keep-new-tasks-calibratable
+    - kind: task
       id: task.self.fix-first-project-defects
     - kind: task
       id: task.self.implement-replan-init-and-resource-commands

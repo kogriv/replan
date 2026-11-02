@@ -5862,3 +5862,59 @@ tasks:
           object_type: work_package
           object_id: "2296"
           url: https://op.example.internal/work_packages/2296
+    - id: task.self.calibrate-estimates-by-size
+      title: Calibrate estimates per task size band
+      description: 'Agreed with the operator on 2026-11-02, from the roadmap. The 2026-10-29 calibration applies one factor per resource group, but small tasks use a larger share of their estimate than large ones. A dry run over the three estimate baselines on 2026-11-02 found 39 clean agent tasks, and every size band now reaches the minimum sample of 8: up to 2 agent hours 9 tasks with a median ratio of 0.5, up to 4 hours 18 tasks with 0.20, above 4 hours 12 tasks with 0.16. Let a calibration opt in to one factor per size band (estimate calibrate --by-size), recorded and sealed in the record. A band below the minimum sample falls back to the overall factor. The band of open work is chosen from the task''s planned amount in the scope, as for the sample. Apply it the same way in estimate apply, in the calibrated value next to a new demand, in replan next, in estimate list/show and in report estimates. Existing calibrations keep their single factor and their seal.'
+      type: implementation
+      tracking_status: in_progress
+      planned_start: "2026-11-02"
+      planned_finish: "2026-11-02"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.calibrate-estimates-by-size.agent
+        - kind: resource_demand
+          id: resource_demand.calibrate-estimates-by-size.codex
+        - kind: resource_demand
+          id: resource_demand.calibrate-estimates-by-size.maintainer
+        - kind: resource_demand
+          id: resource_demand.calibrate-estimates-by-size.local-dev
+        - kind: resource_demand
+          id: resource_demand.calibrate-estimates-by-size.ci
+      tags:
+        - estimates
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2297"
+          url: https://op.example.internal/work_packages/2297
+    - id: task.self.keep-new-tasks-calibratable
+      title: Baseline new tasks before they start so calibration can learn from them
+      description: 'Found on 2026-11-02 while preparing the size-band calibration: of 164 baselined tasks, 116 are excluded from calibration as estimated_after_start, because tasks planned after 2026-10-29 were started without a baseline taken first; their original estimates live only in evidence notes, which calibration does not read. Keep new tasks calibratable: decide with the operator between a baseline limited to the given tasks (baseline create --task), taken when a task is planned, and a periodic full baseline; who approves it under the human-approval rule; and add the step to the backlog operating convention.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-11-03"
+      planned_finish: "2026-11-03"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.keep-new-tasks-calibratable.agent
+        - kind: resource_demand
+          id: resource_demand.keep-new-tasks-calibratable.maintainer
+        - kind: resource_demand
+          id: resource_demand.keep-new-tasks-calibratable.local-dev
+        - kind: resource_demand
+          id: resource_demand.keep-new-tasks-calibratable.ci
+      tags:
+        - estimates
+        - dogfood
+        - gap
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2298"
+          url: https://op.example.internal/work_packages/2298

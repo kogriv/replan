@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 196,
-  "count": 196,
+  "total": 198,
+  "count": 198,
   "_embedded": {
     "elements": [
       {
@@ -5681,6 +5681,64 @@
           },
           "status": {
             "title": "Developed"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2297,
+        "subject": "Calibrate estimates per task size band",
+        "description": {
+          "raw": "Agreed with the operator on 2026-11-02, from the roadmap. The 2026-10-29 calibration applies one factor per resource group, but small tasks use a larger share of their estimate than large ones. A dry run over the three estimate baselines on 2026-11-02 found 39 clean agent tasks, and every size band now reaches the minimum sample of 8: up to 2 agent hours 9 tasks with a median ratio of 0.5, up to 4 hours 18 tasks with 0.20, above 4 hours 12 tasks with 0.16. Let a calibration opt in to one factor per size band (estimate calibrate --by-size), recorded and sealed in the record. A band below the minimum sample falls back to the overall factor. The band of open work is chosen from the task's planned amount in the scope, as for the sample. Apply it the same way in estimate apply, in the calibrated value next to a new demand, in replan next, in estimate list/show and in report estimates. Existing calibrations keep their single factor and their seal."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-02",
+        "dueDate": "2026-11-02",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2297"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2298,
+        "subject": "Baseline new tasks before they start so calibration can learn from them",
+        "description": {
+          "raw": "Found on 2026-11-02 while preparing the size-band calibration: of 164 baselined tasks, 116 are excluded from calibration as estimated_after_start, because tasks planned after 2026-10-29 were started without a baseline taken first; their original estimates live only in evidence notes, which calibration does not read. Keep new tasks calibratable: decide with the operator between a baseline limited to the given tasks (baseline create --task), taken when a task is planned, and a periodic full baseline; who approves it under the human-approval rule; and add the step to the backlog operating convention."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-03",
+        "dueDate": "2026-11-03",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2298"
+          },
+          "status": {
+            "title": "New"
           },
           "assignee": {
             "href": "/api/v3/users/101",
