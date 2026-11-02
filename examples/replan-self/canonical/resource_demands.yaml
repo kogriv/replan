@@ -11214,13 +11214,13 @@ resource_demands:
       criticality: required
       status: active
       overrun_review:
-          acknowledged_forecast: 0.30000000000000004
+          acknowledged_forecast: 0.31000000000000005
           unit: agent_hours
           reason: 'Real overrun: three tests read the live self plan (smoke week, dashboard window, old calibration apply); each failed only in CI.'
           reviewed_by:
               kind: actor
               id: actor.ai.agent.executor
-          reviewed_at: "2026-11-02T19:52:55+07:00"
+          reviewed_at: "2026-11-02T19:56:40+07:00"
           evidence_refs:
               - kind: evidence
                 id: evidence.self.smoke-dashboard-week-follows-status-date-calibration-test
