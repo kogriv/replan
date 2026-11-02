@@ -100,3 +100,14 @@ evidence:
       targets:
         - kind: task
           id: task.self.keep-new-tasks-calibratable
+    - id: evidence.self.smoke-dashboard-week-follows-status-date-calibration-test
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-02T19:52:55+07:00"
+      summary: 'A third test of the same kind failed in CI run 41447861399 after task 670 closed the last open agent demands: TestCommittedSingleFactorCalibrationStillVerifiesAndApplies (added with task 669) applied the old calibration to the live self plan. It now copies the plan, adds one open 4-hour agent demand and expects 0.75. cmd/replan tests and lint pass (commit 6e54ff9).'
+      targets:
+        - kind: task
+          id: task.self.smoke-dashboard-week-follows-status-date
