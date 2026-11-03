@@ -192,3 +192,45 @@ actuals:
         - kind: evidence
           id: evidence.self.smoke-dashboard-week-follows-status-date-calibration-test
       reason: The start was guessed as 19:52:30; measured from the end of CI run 41447861399 (19:51:34) to 19:52:55.
+    - id: actual.self-keep-new-tasks-calibratable.ci-github-actions.20261103T0736080700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.keep-new-tasks-calibratable
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.keep-new-tasks-calibratable.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-11-03T07:36:08+07:00"
+      status_date: "2026-11-03"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-keep-new-tasks-calibratable
+    - id: actual.self-smoke-dashboard-week-follows-status-date.ci-github-actions.20261103T0736530700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.smoke-dashboard-week-follows-status-date
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.smoke-dashboard-week-follows-status-date.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-11-03T07:36:53+07:00"
+      status_date: "2026-11-03"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-smoke-dashboard-week-follows-status-date

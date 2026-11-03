@@ -111,3 +111,29 @@ evidence:
       targets:
         - kind: task
           id: task.self.smoke-dashboard-week-follows-status-date
+    - id: evidence.self.accept-keep-new-tasks-calibratable
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-03T07:36:08+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-03: limited baselines (baseline create --task), estimate calibrate --all-baselines and the convention step.'
+      targets:
+        - kind: task
+          id: task.self.keep-new-tasks-calibratable
+    - id: evidence.self.accept-smoke-dashboard-week-follows-status-date
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-03T07:36:53+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-03: smoke and two tests no longer depend on the live self-plan status week or open work.'
+      targets:
+        - kind: task
+          id: task.self.smoke-dashboard-week-follows-status-date
