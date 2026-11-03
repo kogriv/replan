@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 199,
-  "count": 199,
+  "total": 201,
+  "count": 201,
   "_embedded": {
     "elements": [
       {
@@ -5765,6 +5765,64 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2299"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2300,
+        "subject": "Remove superseded agent kits from the pilot wiki page",
+        "description": {
+          "raw": "The pilot wiki page still carries the two agent kits that v0.3.0 replaced (attachments of 28 and 29 October with their checksums) and a table row that lists them. Delete those four attachments through the reviewed wiki helper (dry run first, then REPLAN_APPLY=1), remove the row from the page text with a lock-version check, and keep the current kit and the plan snapshot the page instructions still use. Approved by the operator on 2026-11-03."
+        },
+        "status": {
+          "name": "Rejected"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-03",
+        "dueDate": "2026-11-03",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2300"
+          },
+          "status": {
+            "title": "Rejected"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2301,
+        "subject": "Write the file format compatibility rules and guard them in tests",
+        "description": {
+          "raw": "Before outside users keep real plans in RePlan files, state and check what a release may change. Write the compatibility rules for project format 1: which changes are additive (new optional fields omitted when empty, new optional files, new enum values behind validation) and which need a format bump with a project migrate step; how older and newer binaries treat unknown fields; and that sealed baselines and calibrations must keep verifying. Add frozen fixture projects taken from an earlier release that every build must load, validate and report on without errors, so a breaking change fails CI. The ROADMAP item stays open until outside users have data; this task makes the promise checkable."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-03",
+        "dueDate": "2026-11-03",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2301"
           },
           "status": {
             "title": "New"

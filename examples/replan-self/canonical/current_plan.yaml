@@ -396,6 +396,10 @@ current_plan:
     - kind: task
       id: task.self.smoke-dashboard-week-follows-status-date
     - kind: task
+      id: task.self.remove-superseded-pilot-kits
+    - kind: task
+      id: task.self.format-compatibility-guard
+    - kind: task
       id: task.self.fix-first-project-defects
     - kind: task
       id: task.self.implement-replan-init-and-resource-commands

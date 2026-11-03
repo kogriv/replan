@@ -443,6 +443,18 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2299"
         url: https://op.example.internal/work_packages/2299
+    - replan_task_id: task.self.remove-superseded-pilot-kits
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2300"
+        url: https://op.example.internal/work_packages/2300
+    - replan_task_id: task.self.format-compatibility-guard
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2301"
+        url: https://op.example.internal/work_packages/2301
     - replan_task_id: task.self.fix-first-project-defects
       source_ref:
         source: openproject
