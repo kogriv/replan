@@ -385,7 +385,7 @@ def main():
     actions = []
     bindings = []
     errors = []
-    warnings = []
+    warnings = list(plan.get("warnings") or [])
     dated_items = [item for item in planned if item.get("start_date") or item.get("due_date")]
     working_by_day = None
     if dated_items:

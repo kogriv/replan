@@ -49,6 +49,7 @@ func runInit(args []string, stdout, stderr *os.File) int {
 	ownerName := fs.String("owner", "", "required owner display name")
 	id := fs.String("id", "", "optional project id; default project.<directory slug>")
 	timezone := fs.String("timezone", "", "optional IANA time zone; required when the machine zone cannot be detected")
+	openProjectProjectID := fs.String("openproject-project-id", "", "optional OpenProject project identifier")
 	format := fs.String("format", "json", "output format: json, text")
 	writeFlags := addCanonicalWriteFlags(fs)
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
@@ -101,6 +102,15 @@ func runInit(args []string, stdout, stderr *os.File) int {
 	ownerSlug := app.Slug(*ownerName)
 	actorID, resourceID := "actor.human."+ownerSlug, "resource.human."+ownerSlug
 	project := domain.Project{ID: projectID, Name: *name, FormatVersion: domain.CurrentProjectFormatVersion, Timezone: zone, PolicyRef: domain.Ref{Kind: "policy", ID: "policy.local-trusted"}}
+	if openProjectID := strings.TrimSpace(*openProjectProjectID); openProjectID != "" {
+		project.SourceProfiles = []domain.SourceProfile{{
+			ID:        "openproject." + openProjectID,
+			Source:    "openproject",
+			BaseURL:   "https://op.example.internal",
+			ProjectID: openProjectID,
+			TokenEnv:  "OPENPROJECT_TOKEN",
+		}}
+	}
 	owner := domain.Actor{ID: actorID, Kind: "human", DisplayName: *ownerName, TrustLevel: "owner", ResourceRef: domain.Ref{Kind: "resource", ID: resourceID}}
 	resource := domain.Resource{ID: resourceID, Class: "human", Name: *ownerName, ActorRef: domain.Ref{Kind: "actor", ID: actorID}}
 	occurredAt := time.Now().Format(time.RFC3339)

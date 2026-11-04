@@ -75,6 +75,7 @@ openproject_import_failure.py
 openproject_live_overlay.py
 openproject_operator_report.py
 openproject_rescheduling.py
+openproject_source_profile.py
 openproject_status_map.json
 openproject_status_map.py
 openproject_working_days.py

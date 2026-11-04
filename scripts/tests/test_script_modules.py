@@ -290,7 +290,11 @@ class LiveOverlayTest(unittest.TestCase):
             project = os.path.join(tmp, "project")
             output = os.path.join(tmp, "outside", "dashboard")
             os.makedirs(os.path.join(project, "canonical"))
+            os.makedirs(os.path.join(project, ".replan"))
             os.makedirs(os.path.join(output, "raw"))
+            dump_yaml(os.path.join(project, ".replan", "project.yaml"), {"project": {"source_profiles": [{
+                "id": "openproject.demo", "source": "openproject", "project_id": "demo",
+            }]}})
             dump_yaml(os.path.join(project, "canonical", "tasks.yaml"), {"tasks": [{"id": "t1"}]})
             bindings = os.path.join(tmp, "bindings.yaml")
             dump_yaml(bindings, {"openproject_private_bindings": {"tasks": [{
@@ -301,7 +305,7 @@ class LiveOverlayTest(unittest.TestCase):
                 json.dump({"work_package_count": 1, "linked_task_count": 1, "missing_link_count": 0}, fh)
             completed = subprocess.CompletedProcess([], 0, stdout="{}", stderr="")
             with mock.patch.object(openproject_live_overlay.subprocess, "run", return_value=completed) as run:
-                result = openproject_live_overlay.build("/bin/replan", project, bindings, output, "2026-W44")
+                result = openproject_live_overlay.build("/bin/replan", project, "demo", bindings, output, "2026-W44")
         self.assertTrue(result["ok"])
         self.assertEqual(run.call_args.args[0], [
             "/bin/replan", "report", "dashboard", "--project", project,
@@ -312,6 +316,10 @@ class LiveOverlayTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             project = os.path.join(tmp, "project")
             os.makedirs(os.path.join(project, "canonical"))
+            os.makedirs(os.path.join(project, ".replan"))
+            dump_yaml(os.path.join(project, ".replan", "project.yaml"), {"project": {"source_profiles": [{
+                "id": "openproject.demo", "source": "openproject", "project_id": "demo",
+            }]}})
             dump_yaml(os.path.join(project, "canonical", "tasks.yaml"), {"tasks": [{"id": "t1"}]})
             bindings = os.path.join(tmp, "bindings.yaml")
             dump_yaml(bindings, {"openproject_private_bindings": {"tasks": [], "dependencies": [], "resources": []}})
@@ -320,7 +328,7 @@ class LiveOverlayTest(unittest.TestCase):
                                                  "severity": "error"}]}
             completed = subprocess.CompletedProcess([], 8, stdout=json.dumps(envelope), stderr="")
             with mock.patch.object(openproject_live_overlay.subprocess, "run", return_value=completed):
-                result = openproject_live_overlay.build("/bin/replan", project, bindings,
+                result = openproject_live_overlay.build("/bin/replan", project, "demo", bindings,
                                                         os.path.join(project, "reports", "overlay"))
         self.assertFalse(result["ok"])
         self.assertEqual([e["code"] for e in result["errors"]],

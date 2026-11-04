@@ -224,6 +224,15 @@ class ExitCodeFromOkTest(unittest.TestCase):
 
     def project(self, tmp, tasks):
         os.makedirs(os.path.join(tmp, "canonical"))
+        os.makedirs(os.path.join(tmp, ".replan"))
+        with open(os.path.join(tmp, ".replan", "project.yaml"), "w") as fh:
+            yaml.safe_dump({"project": {"source_profiles": [{
+                "id": "openproject.demo",
+                "source": "openproject",
+                "base_url": "https://op.example.internal",
+                "project_id": "demo",
+                "token_env": "OPENPROJECT_TOKEN",
+            }]}}, fh)
         with open(os.path.join(tmp, "canonical", "tasks.yaml"), "w") as fh:
             yaml.safe_dump({"tasks": tasks}, fh)
         with open(os.path.join(tmp, "canonical", "dependencies.yaml"), "w") as fh:

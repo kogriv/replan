@@ -276,7 +276,8 @@ own work, create a project and fill it with commands; each write takes
 `--apply` and is audited:
 
 ```sh
-bin/replan init ~/plans/website --name "Website relaunch" --owner "Anna Lee" --apply
+bin/replan init ~/plans/website --name "Website relaunch" --owner "Anna Lee" \
+  --openproject-project-id website --apply
 bin/replan resource add --project ~/plans/website --id resource.ai.coder \
   --class ai_agent --name "Coding agent" --with-actor limited \
   --actor actor.human.anna-lee --apply
@@ -448,6 +449,26 @@ Put a new plan into OpenProject, then its relations:
 scripts/apply-openproject-bootstrap.sh    # work packages, then the bindings file
 scripts/apply-openproject-relations.sh    # dependencies as relations
 ```
+
+The plan needs an OpenProject source profile whose `project_id` matches
+`REPLAN_OPENPROJECT_PROJECT_ID`. Bootstrap warns early if it is missing or
+different; overlay build refuses before writing. For a new plan, create it
+with `init --openproject-project-id <id>`. For an existing plan, add this under
+`project.source_profiles` in `.replan/project.yaml`:
+
+```yaml
+- id: openproject.website
+  source: openproject
+  base_url: https://op.example.internal
+  project_id: website
+  token_env: OPENPROJECT_TOKEN
+```
+
+`https://op.example.internal` is a placeholder. The helpers take the
+address from their own settings (`REPLAN_OPENPROJECT_BASE_URL`) and ignore
+it. `bin/replan import openproject --profile <id>` reads the profile, so
+before you import by profile, set `base_url` to your OpenProject address,
+or pass `--base-url`, which wins over the profile.
 
 Only `finish_to_start`, `blocks` and `relates` dependencies become
 OpenProject relations; the other types stay in the plan. Each other

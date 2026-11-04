@@ -154,7 +154,7 @@ func printUsage(out *os.File) {
 	fmt.Fprintln(out, "Usage:")
 	fmt.Fprintln(out, "  Workspace-loading commands accept [--bindings <path>] (or REPLAN_OPENPROJECT_BINDINGS_LAYER; flag wins).")
 	fmt.Fprintln(out, "  replan version [--format text|json]")
-	fmt.Fprintln(out, "  replan init <dir> --name <name> --owner <display-name> [--id <project-id>] [--timezone <IANA-zone>] (--dry-run|--apply) [--format json|text]")
+	fmt.Fprintln(out, "  replan init <dir> --name <name> --owner <display-name> [--id <project-id>] [--timezone <IANA-zone>] [--openproject-project-id <identifier>] (--dry-run|--apply) [--format json|text]")
 	fmt.Fprintln(out, "  replan validate [project-path] [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan workload --project <path> [--week <YYYY-Www>] [--resource <id>] [--resource-class <class>] [--unit <unit>] [--scenario <id>] [--demands] [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan report weekly --project <path> --week <YYYY-Www> [--format json|markdown|csv|html] [--write]")

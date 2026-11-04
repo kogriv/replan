@@ -12,6 +12,7 @@ carries counts only, no private ids or URLs.
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 
@@ -20,6 +21,7 @@ import yaml
 import helper_envelope
 import openproject_bindings
 from openproject_http import Settings
+import openproject_source_profile
 
 
 def load_bindings(path):
@@ -58,7 +60,7 @@ def cli_errors(stdout):
     return errors
 
 
-def build(replan_bin, project_path, bindings_path, output_dir, week=""):
+def build(replan_bin, project_path, target_project_id, bindings_path, output_dir, week=""):
     result = {
         "ok": False,
         "command": "build-openproject-live-overlay",
@@ -69,6 +71,10 @@ def build(replan_bin, project_path, bindings_path, output_dir, week=""):
         "counts": {},
         "errors": [],
     }
+    _, source_profile_warning = openproject_source_profile.check(project_path, target_project_id)
+    if source_profile_warning:
+        result["errors"].append({**source_profile_warning, "severity": "error"})
+        return result
     if not os.path.exists(bindings_path):
         result["errors"].append({"code": "bindings_missing", "message": "private binding file not found"})
         return result
@@ -123,7 +129,33 @@ def main(argv):
     replan_bin, project_path = args.replan_bin, settings.project_path
     bindings_path, output_dir = settings.bindings_path, args.output_dir
     week = os.environ.get("REPLAN_WEEK", "")
-    result = build(replan_bin, project_path, bindings_path, output_dir, week)
+    _, source_profile_warning = openproject_source_profile.check(
+        project_path, settings.target_project_id
+    )
+    if source_profile_warning:
+        result = {
+            "ok": False,
+            "command": "build-openproject-live-overlay",
+            "mode": "read_only",
+            "scope": "local_build_only",
+            "publishes": False,
+            "bindings_loaded": False,
+            "counts": {},
+            "errors": [{**source_profile_warning, "severity": "error"}],
+        }
+        print(helper_envelope.dumps(result, sort_keys=True))
+        return helper_envelope.exit_code_for(helper_envelope.normalize(result))
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    os.makedirs(output_dir, exist_ok=True)
+    result = build(
+        replan_bin,
+        project_path,
+        settings.target_project_id,
+        bindings_path,
+        output_dir,
+        week,
+    )
     print(helper_envelope.dumps(result, sort_keys=True))
     return helper_envelope.exit_code_for(helper_envelope.normalize(result))
 

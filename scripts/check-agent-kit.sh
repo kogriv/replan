@@ -133,12 +133,13 @@ json_true "$WORK_DIR/validate.json" "d['ok'] and not d.get('errors')" || fail "s
 
 # A plan of one's own starts from the kit's binary alone.
 check
-kit bin/replan init "$WORK_DIR/own-plan" --name "Own plan" --owner "Kit User" --timezone UTC --apply --format json > "$WORK_DIR/init.json" || fail "replan init failed"
+kit bin/replan init "$WORK_DIR/own-plan" --name "Own plan" --owner "Kit User" --timezone UTC \
+  --openproject-project-id own-plan --apply --format json > "$WORK_DIR/init.json" || fail "replan init failed"
 kit bin/replan validate "$WORK_DIR/own-plan" --format json > "$WORK_DIR/init-validate.json" || fail "the new plan does not validate"
 json_true "$WORK_DIR/init-validate.json" "d['ok'] and not d.get('errors') and not d.get('warnings')" || fail "the new plan has errors or warnings"
 
 check
-kit env REPLAN_PROJECT="$KIT/examples/small-team" REPLAN_OPENPROJECT_PROJECT_ID=sample \
+kit env REPLAN_PROJECT="$KIT/examples/small-team" REPLAN_OPENPROJECT_PROJECT_ID=demo \
   scripts/plan-openproject-bootstrap.sh > "$WORK_DIR/plan.json" || fail "bootstrap plan failed"
 json_true "$WORK_DIR/plan.json" "d['ok'] and d['counts']['planned_work_packages'] == 2" || fail "bootstrap plan is not the sample's two work packages"
 

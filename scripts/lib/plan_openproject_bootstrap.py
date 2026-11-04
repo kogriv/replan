@@ -6,6 +6,7 @@ import sys
 import yaml
 import helper_envelope
 from openproject_http import Settings
+import openproject_source_profile
 from openproject_status_map import TRACKING_TO_OPENPROJECT_STATUS
 
 helper_envelope.internal_parser("plan-openproject-bootstrap").parse_args()
@@ -42,7 +43,8 @@ ordered_ids.extend(remaining_ids)
 
 status_map = TRACKING_TO_OPENPROJECT_STATUS
 
-warnings = []
+_, source_profile_warning = openproject_source_profile.check(project_path, target_project_id)
+warnings = [source_profile_warning] if source_profile_warning else []
 work_packages = []
 for index, task_id in enumerate(ordered_ids, start=1):
     task = tasks_by_id[task_id]

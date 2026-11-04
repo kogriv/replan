@@ -41,10 +41,55 @@ func TestInitDryRunApplyValidateAndProjectExists(t *testing.T) {
 	if err != nil || string(data) != "capacities: []\n" {
 		t.Fatalf("owner should have no initial capacity: %q, %v", data, err)
 	}
+	projectData, err := os.ReadFile(filepath.Join(project, ".replan", "project.yaml"))
+	if err != nil || strings.Contains(string(projectData), "source_profiles:") {
+		t.Fatalf("init without OpenProject flag changed: %v\n%s", err, projectData)
+	}
 
 	code, stdout, _ = runOnboardingCLI(t, "init", project, "--name", "Again", "--owner", "Ada", "--timezone", "UTC", "--apply", "--format", "json")
 	if code != exitValidationFailed || !strings.Contains(stdout, `"project_exists"`) {
 		t.Fatalf("second init exit=%d stdout=%s", code, stdout)
+	}
+}
+
+func TestInitWithOpenProjectProjectIDWritesValidProfile(t *testing.T) {
+	project := filepath.Join(t.TempDir(), "openproject-plan")
+	code, stdout, stderr := runOnboardingCLI(t, "init", project,
+		"--name", "OpenProject plan", "--owner", "Ada Lovelace", "--timezone", "UTC",
+		"--openproject-project-id", "website", "--apply", "--format", "json")
+	if code != exitSuccess || stderr != "" {
+		t.Fatalf("init exit=%d stdout=%s stderr=%s", code, stdout, stderr)
+	}
+	projectData, err := os.ReadFile(filepath.Join(project, ".replan", "project.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var document struct {
+		Project domain.Project `yaml:"project"`
+	}
+	if err := yaml.Unmarshal(projectData, &document); err != nil {
+		t.Fatal(err)
+	}
+	if len(document.Project.SourceProfiles) != 1 {
+		t.Fatalf("source profiles = %#v", document.Project.SourceProfiles)
+	}
+	profile := document.Project.SourceProfiles[0]
+	if profile.ID != "openproject.website" || profile.Source != "openproject" ||
+		profile.ProjectID != "website" || profile.TokenEnv != "OPENPROJECT_TOKEN" ||
+		profile.BaseURL != "https://op.example.internal" {
+		t.Fatalf("profile = %#v", profile)
+	}
+
+	code, stdout, stderr = runOnboardingCLI(t, "validate", project, "--format", "json")
+	if code != exitSuccess || stderr != "" {
+		t.Fatalf("validate exit=%d stdout=%s stderr=%s", code, stdout, stderr)
+	}
+	var validated struct {
+		Result app.ValidateResult `json:"result"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &validated); err != nil ||
+		!validated.Result.Valid || len(validated.Result.Warnings) != 0 {
+		t.Fatalf("validate result=%#v err=%v", validated, err)
 	}
 }
 

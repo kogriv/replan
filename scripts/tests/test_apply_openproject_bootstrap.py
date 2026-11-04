@@ -196,6 +196,25 @@ class BootstrapBindingsTest(unittest.TestCase):
                 "dependency_bindings": 2, "resource_bindings": 1,
             })
 
+    def test_plan_source_profile_warning_is_preserved(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bindings = os.path.join(tmp, "bindings.yaml")
+            plan = self.write_plan(tmp, [])
+            with open(plan, encoding="utf-8") as handle:
+                document = json.load(handle)
+            document["warnings"] = [{
+                "code": "openproject_source_profile_missing",
+                "message": "add the matching profile",
+                "severity": "warning",
+            }]
+            with open(plan, "w", encoding="utf-8") as handle:
+                json.dump(document, handle)
+
+            proc, out = self.run_bootstrap(plan, bindings, apply="")
+
+            self.assertEqual(proc.returncode, 0, out)
+            self.assertIn("openproject_source_profile_missing", out["warning_codes"])
+
     def test_existing_work_package_on_third_page_is_reused(self):
         with tempfile.TemporaryDirectory() as tmp:
             bindings = os.path.join(tmp, "bindings.yaml")

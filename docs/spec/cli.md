@@ -778,11 +778,15 @@ lists every file; apply creates the directory when needed and writes the
 project, local policy, owner actor/resource, empty canonical collections,
 empty current plan and `project_init` audit record. Initialization refuses an
 existing `.replan/` directory or canonical file with `project_exists`.
+`--openproject-project-id` optionally adds a validating OpenProject source
+profile. The profile uses `https://op.example.internal` as a non-private
+placeholder URL and `OPENPROJECT_TOKEN`; configure the helpers with the real
+connection settings. Without the flag, initialization is unchanged.
 
 Implemented command flags:
 
 ```text
-replan init <dir> --name --owner --id --timezone --dry-run --apply --format --bindings
+replan init <dir> --name --owner --id --timezone --openproject-project-id --dry-run --apply --format --bindings
 ```
 
 ## `replan resource add` and `replan resource list`

@@ -29,7 +29,8 @@ project's audit log.
 
 ```sh
 replan init website --name "Website relaunch" --owner "Anna Lee" \
-  --timezone Europe/Berlin --apply --format text
+  --timezone Europe/Berlin --openproject-project-id website \
+  --apply --format text
 cd website
 ```
 
@@ -37,6 +38,10 @@ This makes `website/` a RePlan project: `.replan/` holds the project and
 its policy, `canonical/` the plan as YAML files you can keep in Git, and
 Anna Lee is the owner, both a person who acts (`actor.human.anna-lee`) and a
 resource whose time can be planned (`resource.human.anna-lee`).
+The OpenProject project id adds a source profile for later bootstrap and
+overlay publishing. Its URL is a safe placeholder; live helpers take the real
+URL and token from their settings. Leave the flag out when OpenProject is not
+part of the plan.
 
 ## 2. Add an agent and set capacities
 

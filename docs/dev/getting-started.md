@@ -171,6 +171,8 @@ Implemented command families as of 2026-10-30:
   text line;
 - `init`, which creates the smallest valid project with an owner actor and
   resource, local policy, empty canonical state and an initialization audit;
+  optional `--openproject-project-id <id>` adds the OpenProject source profile
+  needed by the bootstrap and overlay helpers;
 - `validate`;
 - `next`, the short view of what waits on a person and what an agent can
   prepare;
