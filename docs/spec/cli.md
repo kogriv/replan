@@ -664,6 +664,8 @@ project migrate
 project recover
 project set-status-date
 evidence add
+resource set-name
+actor set-name
 task add
 task set-dates
 task record-actual-window
@@ -789,7 +791,7 @@ Implemented command flags:
 replan init <dir> --name --owner --id --timezone --openproject-project-id --dry-run --apply --format --bindings
 ```
 
-## `replan resource add` and `replan resource list`
+## `replan resource add`, `replan resource list` and name changes
 
 Add and inspect canonical resources. `--with-actor` is limited to `human` and
 `ai_agent` resources and creates cross-references in both records. Evidence is
@@ -800,7 +802,17 @@ Implemented command flags:
 ```text
 replan resource add --project --id --class --name --capability --with-actor --actor --evidence --dry-run --apply --format --bindings
 replan resource list --project --format --bindings
+replan resource set-name --project --resource --name --reason --actor --evidence --occurred-at --dry-run --apply --format --bindings
+replan actor set-name --project --actor-id --name --reason --actor --evidence --occurred-at --dry-run --apply --format --bindings
 ```
+
+`resource set-name` changes only `resource.name`. `actor set-name` changes only
+`actor.display_name`; `--actor-id` identifies the target while `--actor`
+identifies the acting actor. Both require a non-empty name, reason, existing
+actor and existing evidence. An unknown target returns the matching
+`resource_not_found` or `actor_not_found` error. An unchanged name is a
+successful no-op. A change is spliced into the canonical YAML, audited with the
+old and new name, validated and then committed. The ids never change.
 
 ## `replan capacity set`
 

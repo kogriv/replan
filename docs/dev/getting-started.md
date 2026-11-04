@@ -196,7 +196,7 @@ Implemented command families as of 2026-10-30:
 - `actual list`, `add-consumption`, `correct`, `set-remaining`, `close-demand`,
   `reopen-demand`, `acknowledge-overrun`, `add-status`;
 - `resource add`, with optional actor creation for human and AI-agent
-  resources, and `resource list`;
+  resources, `resource list`, `resource set-name`, and `actor set-name`;
 - `capacity set`, which adds dated weekly capacity periods and closes the
   preceding period without rewriting its history;
 - `task add`, `task set-dates`, `task record-actual-window`, `task set-title`;

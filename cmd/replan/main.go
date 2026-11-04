@@ -130,6 +130,8 @@ func runCommand(args []string, stdout, stderr *os.File) int {
 		return runTask(args[1:], stdout, stderr)
 	case "resource":
 		return runResource(args[1:], stdout, stderr)
+	case "actor":
+		return runActor(args[1:], stdout, stderr)
 	case "capacity":
 		return runCapacity(args[1:], stdout, stderr)
 	case "import":
@@ -182,6 +184,8 @@ func printUsage(out *os.File) {
 	fmt.Fprintln(out, "  replan evidence add --project <path> --id <id> --type <type> [--subtype <subtype>] [--source <source>] [--url <url>] --actor <id> --observed-at <RFC3339> [--confidence <confidence>] --summary <text> --target <kind:id> [--target <kind:id> ...] (--dry-run|--apply) [--format json|text]")
 	fmt.Fprintln(out, "  replan resource add --project <path> --id <resource-id> --class <class> --name <name> [--capability <name> ...] [--with-actor <trust-level>] --actor <id> [--evidence <id>] (--dry-run|--apply) [--format json|text]")
 	fmt.Fprintln(out, "  replan resource list --project <path> [--format json|markdown|text]")
+	fmt.Fprintln(out, "  replan resource set-name --project <path> --resource <resource-id> --name <name> --reason <text> --actor <id> --evidence <id> [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text]")
+	fmt.Fprintln(out, "  replan actor set-name --project <path> --actor-id <actor-id> --name <name> --reason <text> --actor <id> --evidence <id> [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text]")
 	fmt.Fprintln(out, "  replan capacity set --project <path> --resource <resource-id> --unit <unit> --amount <n> [--period week] [--effective-from <YYYY-MM-DD>] --actor <id> [--evidence <id>] (--dry-run|--apply) [--format json|text]")
 	fmt.Fprintln(out, "  replan task add --project <path> --id <task-id> --title <title> [--description <text>] [--type <type>] [--planned-start <YYYY-MM-DD>] [--planned-finish <YYYY-MM-DD>] [--tag <tag> ...] [--assignee <resource-id>] [--after <task-id>] --demand <SUFFIX=RESOURCE_ID:AMOUNT:UNIT[:ROLE]> [--demand ...] --actor <id> --evidence <id> [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text] (does not create an OpenProject work package; next use scripts/apply-openproject-bootstrap.sh or toolkit work-package create + bind)")
 	fmt.Fprintln(out, "  replan task set-dates --project <path> --task <task-id> [--planned-start <YYYY-MM-DD>] [--planned-finish <YYYY-MM-DD>] --reason <text> --actor <id> --evidence <id> [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text] (push to OpenProject separately with scripts/push-openproject-date-drift.sh)")

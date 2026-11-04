@@ -37,6 +37,8 @@ var canonicalWriteCommands = []string{
 	"proposal accept",
 	"proposal reject",
 	"resource add",
+	"resource set-name",
+	"actor set-name",
 	"scenario apply",
 	"task add",
 	"task record-actual-window",

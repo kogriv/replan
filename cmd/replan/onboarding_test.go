@@ -349,6 +349,50 @@ func TestResourceClassesActorsDuplicatesAndCapacityPeriods(t *testing.T) {
 	}
 }
 
+func TestResourceAndActorSetNameCLIFlagsAndText(t *testing.T) {
+	project := copyCmdProjectFixture(t)
+
+	code, stdout, stderr := runOnboardingCLI(t, "resource", "set-name", "--project", project,
+		"--resource", "resource.human.ivan", "--name", "Ivan Petrov",
+		"--reason", "Role changed", "--actor", "actor.human.operator",
+		"--evidence", "evidence.github.pr.45", "--occurred-at", "2026-10-28T15:00:00+07:00",
+		"--dry-run", "--format", "text")
+	if code != exitSuccess || stderr != "" || !strings.Contains(stdout, `Dry run: resource resource.human.ivan name "Ivan" -> "Ivan Petrov"`) {
+		t.Fatalf("resource dry run exit=%d stdout=%s stderr=%s", code, stdout, stderr)
+	}
+	resourcesBefore, err := os.ReadFile(filepath.Join(project, "canonical", "resources.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(resourcesBefore), "Ivan Petrov") {
+		t.Fatal("resource dry run wrote the new name")
+	}
+
+	code, stdout, stderr = runOnboardingCLI(t, "resource", "set-name", "--project", project,
+		"--resource", "resource.human.ivan", "--name", "Ivan Petrov",
+		"--reason", "Role changed", "--actor", "actor.human.operator",
+		"--evidence", "evidence.github.pr.45", "--apply", "--format", "text")
+	if code != exitSuccess || stderr != "" || !strings.Contains(stdout, `Applied: resource resource.human.ivan name "Ivan" -> "Ivan Petrov"`) {
+		t.Fatalf("resource apply exit=%d stdout=%s stderr=%s", code, stdout, stderr)
+	}
+
+	code, stdout, stderr = runOnboardingCLI(t, "actor", "set-name", "--project", project,
+		"--actor-id", "actor.human.ivan", "--name", "Ivan Petrov",
+		"--reason", "Role changed", "--actor", "actor.human.operator",
+		"--evidence", "evidence.github.pr.45", "--apply", "--format", "text")
+	if code != exitSuccess || stderr != "" || !strings.Contains(stdout, `Applied: actor actor.human.ivan display name "Ivan" -> "Ivan Petrov"`) {
+		t.Fatalf("actor apply exit=%d stdout=%s stderr=%s", code, stdout, stderr)
+	}
+
+	code, stdout, stderr = runOnboardingCLI(t, "actor", "set-name", "--project", project,
+		"--actor-id", "actor.human.ivan", "--name", "Ivan Petrov",
+		"--reason", "Role changed", "--actor", "actor.human.operator",
+		"--evidence", "evidence.github.pr.45", "--dry-run", "--format", "text")
+	if code != exitSuccess || stderr != "" || !strings.Contains(stdout, `No change: actor actor.human.ivan is already named "Ivan Petrov"`) {
+		t.Fatalf("actor no-op exit=%d stdout=%s stderr=%s", code, stdout, stderr)
+	}
+}
+
 func TestOnboardingEndToEndWorkloadUsesCapacityAndOverloads(t *testing.T) {
 	project := initOnboardingProject(t)
 	commands := [][]string{

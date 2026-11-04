@@ -143,5 +143,6 @@ workload.html
   [agent kit](agent-kit/README.md); it also covers OpenProject write-back.
 
 The full command list is in [`docs/dev/getting-started.md`](dev/getting-started.md).
-Not yet commands: availability windows, resource pools, renaming or
-removing a resource; edit their YAML files and run `replan validate`.
+Rename a resource with `replan resource set-name` and rename an actor with
+`replan actor set-name`. Availability windows, resource pools and removing a
+resource still require a YAML edit followed by `replan validate`.

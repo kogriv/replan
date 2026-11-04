@@ -774,6 +774,12 @@ func TestWorkspaceLoadingCommandsReportMissingProject(t *testing.T) {
 		{name: "evidence add", text: true, args: func(path string) []string {
 			return []string{"evidence", "add", "--project", path, "--id", "evidence.test", "--type", "observation", "--actor", "actor.test", "--observed-at", "2026-10-27T12:00:00Z", "--summary", "test", "--target", "task:task.test", "--apply"}
 		}},
+		{name: "resource set-name", text: true, args: func(path string) []string {
+			return []string{"resource", "set-name", "--project", path, "--resource", "resource.test", "--name", "Test", "--reason", "test", "--actor", "actor.test", "--evidence", "evidence.test", "--apply"}
+		}},
+		{name: "actor set-name", text: true, args: func(path string) []string {
+			return []string{"actor", "set-name", "--project", path, "--actor-id", "actor.test", "--name", "Test", "--reason", "test", "--actor", "actor.test", "--evidence", "evidence.test", "--apply"}
+		}},
 		{name: "task add", text: true, args: func(path string) []string {
 			return []string{"task", "add", "--project", path, "--id", "task.test", "--title", "Test", "--demand", "implementer=resource.test:1:hours", "--actor", "actor.test", "--evidence", "evidence.test", "--apply"}
 		}},

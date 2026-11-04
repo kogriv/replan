@@ -305,6 +305,8 @@ func runResource(args []string, stdout, stderr *os.File) int {
 		return runResourceAdd(args[1:], stdout, stderr)
 	case "list":
 		return runResourceList(args[1:], stdout, stderr)
+	case "set-name":
+		return runResourceSetName(args[1:], stdout, stderr)
 	case "-h", "--help":
 		printUsage(stdout)
 		return exitSuccess
@@ -313,6 +315,102 @@ func runResource(args []string, stdout, stderr *os.File) int {
 		printUsage(stderr)
 		return exitInvalidUsage
 	}
+}
+
+func runResourceSetName(args []string, stdout, stderr *os.File) int {
+	return runSetName("resource set-name", "resource", "required target resource id", "resource", "name", args, stdout, stderr,
+		func(flags setNameFlags) (app.SetNameResult, error) {
+			result, err := app.NewResourceService(newStore(flags.project)).SetName(context.Background(), app.ResourceSetNameRequest{ResourceID: flags.targetID, Name: flags.name, Reason: flags.reason, ActorID: flags.actorID, EvidenceID: flags.evidenceID, OccurredAt: flags.occurredAt, DryRun: flags.dryRun})
+			return result.SetNameResult, err
+		}, func(result app.SetNameResult, flags setNameFlags) any {
+			return app.ResourceSetNameResult{SetNameResult: result, ResourceID: flags.targetID}
+		})
+}
+
+func runActor(args []string, stdout, stderr *os.File) int {
+	if len(args) == 0 {
+		fmt.Fprintln(stderr, "missing actor subcommand")
+		printUsage(stderr)
+		return exitInvalidUsage
+	}
+	switch args[0] {
+	case "set-name":
+		return runActorSetName(args[1:], stdout, stderr)
+	case "-h", "--help":
+		printUsage(stdout)
+		return exitSuccess
+	default:
+		fmt.Fprintf(stderr, "unknown actor subcommand: %s\n", args[0])
+		printUsage(stderr)
+		return exitInvalidUsage
+	}
+}
+
+func runActorSetName(args []string, stdout, stderr *os.File) int {
+	return runSetName("actor set-name", "actor-id", "required target actor id", "actor", "display name", args, stdout, stderr,
+		func(flags setNameFlags) (app.SetNameResult, error) {
+			result, err := app.NewActorService(newStore(flags.project)).SetName(context.Background(), app.ActorSetNameRequest{TargetActorID: flags.targetID, Name: flags.name, Reason: flags.reason, ActorID: flags.actorID, EvidenceID: flags.evidenceID, OccurredAt: flags.occurredAt, DryRun: flags.dryRun})
+			return result.SetNameResult, err
+		}, func(result app.SetNameResult, flags setNameFlags) any {
+			return app.ActorSetNameResult{SetNameResult: result, ActorID: flags.targetID}
+		})
+}
+
+// runSetName parses the shared set-name flags, calls one rename service and
+// prints its result; resource and actor differ only in the target and label.
+func runSetName(command, targetFlag, targetUsage, kind, field string, args []string, stdout, stderr *os.File,
+	call func(setNameFlags) (app.SetNameResult, error), wrap func(app.SetNameResult, setNameFlags) any) int {
+	flags, code, done := parseSetNameFlags(command, targetFlag, targetUsage, args, stdout, stderr)
+	if done {
+		return code
+	}
+	result, err := call(flags)
+	if flags.format == "text" && err == nil {
+		return printSetNameText(stdout, kind, field, flags.targetID, result.PreviousName, result.NewName, result.NoOp, result.Applied)
+	}
+	return printScenarioEnvelope(stdout, stderr, flags.format, envelope{OK: err == nil, Command: command, ProjectPath: flags.project, Result: wrap(result, flags), Warnings: result.Warnings, Errors: result.Errors}, err)
+}
+
+type setNameFlags struct {
+	project, targetID, name, reason, actorID, evidenceID, occurredAt, format string
+	dryRun                                                                   bool
+}
+
+func parseSetNameFlags(command, targetFlag, targetHelp string, args []string, stdout, stderr *os.File) (setNameFlags, int, bool) {
+	fs := newCLIFlagSet(command)
+	project := fs.String("project", ".", "path to RePlan project")
+	targetID := fs.String(targetFlag, "", targetHelp)
+	name := fs.String("name", "", "required new name")
+	reason := fs.String("reason", "", "required reason for the change")
+	actorID := fs.String("actor", "", "required existing audit actor id")
+	evidenceID := fs.String("evidence", "", "required existing evidence id")
+	occurredAt := fs.String("occurred-at", "", "optional RFC3339 occurrence time")
+	format := fs.String("format", "json", "output format: json, text")
+	writeFlags := addCanonicalWriteFlags(fs)
+	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+		return setNameFlags{}, code, true
+	}
+	if *format != "json" && *format != "text" {
+		return setNameFlags{}, printTaskFormatError(command, *project, stdout, stderr), true
+	}
+	dryRun, code, done := requireCanonicalWriteChoice(command, *project, *format, writeFlags, stdout, stderr)
+	if done {
+		return setNameFlags{}, code, true
+	}
+	return setNameFlags{project: *project, targetID: *targetID, name: *name, reason: *reason, actorID: *actorID, evidenceID: *evidenceID, occurredAt: *occurredAt, format: *format, dryRun: dryRun}, exitSuccess, false
+}
+
+func printSetNameText(out *os.File, kind, field, id, oldName, newName string, noOp, applied bool) int {
+	if noOp {
+		fmt.Fprintf(out, "No change: %s %s is already named %q\n", kind, id, newName)
+		return exitSuccess
+	}
+	mode := "Dry run"
+	if applied {
+		mode = "Applied"
+	}
+	fmt.Fprintf(out, "%s: %s %s %s %q -> %q\n", mode, kind, id, field, oldName, newName)
+	return exitSuccess
 }
 
 func runResourceAdd(args []string, stdout, stderr *os.File) int {

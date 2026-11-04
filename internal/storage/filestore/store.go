@@ -145,6 +145,10 @@ type resourcesDoc struct {
 	Resources []domain.Resource `yaml:"resources"`
 }
 
+type actorsDoc struct {
+	Actors []domain.Actor `yaml:"actors"`
+}
+
 type actualsDoc struct {
 	Actuals []domain.Actual `yaml:"actuals"`
 }
@@ -518,6 +522,32 @@ func (s Store) SetTaskTitle(taskID, title string) (string, error) {
 		return nil
 	})
 	return tasksRel, err
+}
+
+func (s Store) SetResourceName(resourceID, name string) (string, error) {
+	err := updateYAML(s, resourcesRel, false, func(doc *resourcesDoc) error {
+		for i := range doc.Resources {
+			if doc.Resources[i].ID == resourceID {
+				doc.Resources[i].Name = name
+				return nil
+			}
+		}
+		return fmt.Errorf("resource %s not found", resourceID)
+	})
+	return resourcesRel, err
+}
+
+func (s Store) SetActorDisplayName(actorID, name string) (string, error) {
+	err := updateYAML(s, actorsRel, false, func(doc *actorsDoc) error {
+		for i := range doc.Actors {
+			if doc.Actors[i].ID == actorID {
+				doc.Actors[i].DisplayName = name
+				return nil
+			}
+		}
+		return fmt.Errorf("actor %s not found", actorID)
+	})
+	return actorsRel, err
 }
 
 const projectRel = ".replan/project.yaml"
