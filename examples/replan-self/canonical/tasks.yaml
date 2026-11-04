@@ -6259,7 +6259,7 @@ tasks:
       title: Check the OpenProject source profile before the last step
       description: 'publish-openproject-overlay refused with overlay_other_project because .replan/project.yaml had no source profile with project_id; init does not write one and bootstrap and relations work without it, so the gap shows only at the end. Have bootstrap write or require the profile, or check it in the first helper, and document it in Set up.'
       type: implementation
-      tracking_status: not_started
+      tracking_status: in_progress
       planned_start: "2026-11-04"
       planned_finish: "2026-11-04"
       assignee_hint:
@@ -6268,6 +6268,8 @@ tasks:
       resource_demands:
         - kind: resource_demand
           id: resource_demand.source-profile-checked-early.agent
+        - kind: resource_demand
+          id: resource_demand.source-profile-checked-early.codex
         - kind: resource_demand
           id: resource_demand.source-profile-checked-early.maintainer
         - kind: resource_demand

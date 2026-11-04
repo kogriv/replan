@@ -297,3 +297,14 @@ evidence:
       targets:
         - kind: task
           id: task.self.overlay-build-surfaces-cause
+    - id: evidence.self.start-source-profile-checked-early
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T13:57:11+07:00"
+      summary: Started on 2026-11-04; estimate 2 agent hours frozen in baseline.2026-11-04.consumer-feedback, split into agent 0.5 and Codex 1.5.
+      targets:
+        - kind: task
+          id: task.self.source-profile-checked-early
