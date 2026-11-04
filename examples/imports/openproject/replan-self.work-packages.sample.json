@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 201,
-  "count": 201,
+  "total": 212,
+  "count": 212,
   "_embedded": {
     "elements": [
       {
@@ -5823,6 +5823,325 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2301"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2302,
+        "subject": "Tell new users how to spot an outdated replan binary",
+        "description": {
+          "raw": "A new consumer first ran an old replan from PATH that has no init, task, baseline or version commands and answers version with unknown command. Old binaries cannot be changed, so the quickstart, getting-started and agent kit README say first: run replan version; if it says unknown command, the binary predates v0.1.0, remove or reinstall it."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-04",
+        "dueDate": "2026-11-04",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2302"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2303,
+        "subject": "Give init an explicit owner id and warn when a name yields no id",
+        "description": {
+          "raw": "replan init --owner with a Cyrillic name produced actor.human.project and resource.human.project because every character fell out of the slug. Add --owner-id, and when the slug from --owner is empty or falls back, refuse or warn with a clear code and the suggested flag."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-04",
+        "dueDate": "2026-11-04",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2303"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2304,
+        "subject": "Make the dependency type list in the spec match what validate accepts",
+        "description": {
+          "raw": "docs/spec/canonical-model.md lists start_to_start, finish_to_finish and others first; validate accepts only finish_to_start, blocks, relates, requires_input_from, requires_resource_from and external_dependency, so a consumer got invalid_dependency_type. Put the accepted list first, mark the rest as not supported, name which types are exported to OpenProject (finish_to_start, blocks, relates) and record start_to_start as a candidate with its scheduling cost."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-04",
+        "dueDate": "2026-11-04",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2304"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2305,
+        "subject": "Add dependency add and deadline add commands",
+        "description": {
+          "raw": "Dependencies and deadlines can be written only by editing YAML; task add --after only orders current_plan and reads like a dependency. Add replan dependency add (type, predecessor, successor, criticality) and replan deadline add/list with dry run, apply and audit like other writes, and say in task add help that --after is plan order, not a dependency."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-04",
+        "dueDate": "2026-11-04",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2305"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2306,
+        "subject": "Stop warning about every open dependency of an undated successor",
+        "description": {
+          "raw": "In a fresh plan validate printed required_dependency_unresolved for all 27 open dependencies: the warning fires when the successor has no planned start. Warn only when the successor has started or is planned to start by the status date; report undated successors once as a separate, quieter diagnostic."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-04",
+        "dueDate": "2026-11-04",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2306"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2307,
+        "subject": "Decide how estimate hours and real agent hours relate",
+        "description": {
+          "raw": "A consumer writes estimates in human-equivalent hours and has to set agent capacity in the same units (100 and 50 per week) to avoid false overload, while real agent time is about 0.2 of that; OpenProject estimated hours include only hours-unit demands, so agent work is invisible there. Write a short design: options (pace per resource, calibrated capacity, separate estimate and actual units, export of agent hours to OpenProject), a recommendation and the operator's decision."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-04",
+        "dueDate": "2026-11-04",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2307"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2308,
+        "subject": "Show in next what people are planned to do this week",
+        "description": {
+          "raw": "next lists actions (accept, review, decide) but not planned work: decision tasks of a customer planned for this week did not appear under Waiting on a person. Add a section of tasks with human demands whose planned dates fall in the week and that are not done."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-04",
+        "dueDate": "2026-11-04",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2308"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2309,
+        "subject": "Report unsupported relation types in apply-openproject-relations errors",
+        "description": {
+          "raw": "apply-openproject-relations returned ok false with counts.errors 6 but empty errors and error_codes for requires_input_from dependencies; the reason unsupported_dependency_type was visible only in code. Put each refusal into errors with the dependency id and the supported types."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-04",
+        "dueDate": "2026-11-04",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2309"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2310,
+        "subject": "Surface the real cause when the overlay build fails",
+        "description": {
+          "raw": "build-openproject-live-overlay with an output directory inside the plan failed with dashboard_failed while the cause bindings_layer_output_in_project was nested JSON inside message. Lift the inner error codes into the envelope and say in the agent kit README where the output directory may live."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-04",
+        "dueDate": "2026-11-04",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2310"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2311,
+        "subject": "Check the OpenProject source profile before the last step",
+        "description": {
+          "raw": "publish-openproject-overlay refused with overlay_other_project because .replan/project.yaml had no source profile with project_id; init does not write one and bootstrap and relations work without it, so the gap shows only at the end. Have bootstrap write or require the profile, or check it in the first helper, and document it in Set up."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-04",
+        "dueDate": "2026-11-04",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2311"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2312,
+        "subject": "Let helpers read an explicit settings file instead of the repository one",
+        "description": {
+          "raw": "Helpers load .env.local from their own root. A consumer who runs them from the RePlan repository gets that repository's settings for every variable missing from the environment, which can point at another project. Add REPLAN_ENV_FILE, refuse a write when the loaded file's project id differs from REPLAN_OPENPROJECT_PROJECT_ID set elsewhere, and say in the kit README to unpack a kit per project."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-04",
+        "dueDate": "2026-11-04",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2312"
           },
           "status": {
             "title": "New"

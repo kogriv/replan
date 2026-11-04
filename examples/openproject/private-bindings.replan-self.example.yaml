@@ -455,6 +455,72 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2301"
         url: https://op.example.internal/work_packages/2301
+    - replan_task_id: task.self.warn-about-outdated-binary
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2302"
+        url: https://op.example.internal/work_packages/2302
+    - replan_task_id: task.self.init-owner-id-for-non-ascii-names
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2303"
+        url: https://op.example.internal/work_packages/2303
+    - replan_task_id: task.self.align-dependency-types-with-spec
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2304"
+        url: https://op.example.internal/work_packages/2304
+    - replan_task_id: task.self.dependency-and-deadline-commands
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2305"
+        url: https://op.example.internal/work_packages/2305
+    - replan_task_id: task.self.quiet-unresolved-dependency-on-undated-successor
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2306"
+        url: https://op.example.internal/work_packages/2306
+    - replan_task_id: task.self.agent-effort-units-design
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2307"
+        url: https://op.example.internal/work_packages/2307
+    - replan_task_id: task.self.next-shows-people-work-this-week
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2308"
+        url: https://op.example.internal/work_packages/2308
+    - replan_task_id: task.self.relations-apply-reports-unsupported-type
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2309"
+        url: https://op.example.internal/work_packages/2309
+    - replan_task_id: task.self.overlay-build-surfaces-cause
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2310"
+        url: https://op.example.internal/work_packages/2310
+    - replan_task_id: task.self.source-profile-checked-early
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2311"
+        url: https://op.example.internal/work_packages/2311
+    - replan_task_id: task.self.explicit-env-file-for-helpers
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2312"
+        url: https://op.example.internal/work_packages/2312
     - replan_task_id: task.self.fix-first-project-defects
       source_ref:
         source: openproject

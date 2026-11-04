@@ -6003,3 +6003,311 @@ tasks:
           object_type: work_package
           object_id: "2301"
           url: https://op.example.internal/work_packages/2301
+    - id: task.self.warn-about-outdated-binary
+      title: Tell new users how to spot an outdated replan binary
+      description: 'A new consumer first ran an old replan from PATH that has no init, task, baseline or version commands and answers version with unknown command. Old binaries cannot be changed, so the quickstart, getting-started and agent kit README say first: run replan version; if it says unknown command, the binary predates v0.1.0, remove or reinstall it.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-11-04"
+      planned_finish: "2026-11-04"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.warn-about-outdated-binary.agent
+        - kind: resource_demand
+          id: resource_demand.warn-about-outdated-binary.maintainer
+        - kind: resource_demand
+          id: resource_demand.warn-about-outdated-binary.local-dev
+        - kind: resource_demand
+          id: resource_demand.warn-about-outdated-binary.ci
+      tags:
+        - docs
+        - onboarding
+        - consumer-feedback
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2302"
+          url: https://op.example.internal/work_packages/2302
+    - id: task.self.init-owner-id-for-non-ascii-names
+      title: Give init an explicit owner id and warn when a name yields no id
+      description: 'replan init --owner with a Cyrillic name produced actor.human.project and resource.human.project because every character fell out of the slug. Add --owner-id, and when the slug from --owner is empty or falls back, refuse or warn with a clear code and the suggested flag.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-11-04"
+      planned_finish: "2026-11-04"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.init-owner-id-for-non-ascii-names.agent
+        - kind: resource_demand
+          id: resource_demand.init-owner-id-for-non-ascii-names.maintainer
+        - kind: resource_demand
+          id: resource_demand.init-owner-id-for-non-ascii-names.local-dev
+        - kind: resource_demand
+          id: resource_demand.init-owner-id-for-non-ascii-names.ci
+      tags:
+        - cli
+        - onboarding
+        - consumer-feedback
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2303"
+          url: https://op.example.internal/work_packages/2303
+    - id: task.self.align-dependency-types-with-spec
+      title: Make the dependency type list in the spec match what validate accepts
+      description: 'docs/spec/canonical-model.md lists start_to_start, finish_to_finish and others first; validate accepts only finish_to_start, blocks, relates, requires_input_from, requires_resource_from and external_dependency, so a consumer got invalid_dependency_type. Put the accepted list first, mark the rest as not supported, name which types are exported to OpenProject (finish_to_start, blocks, relates) and record start_to_start as a candidate with its scheduling cost.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-11-04"
+      planned_finish: "2026-11-04"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.align-dependency-types-with-spec.agent
+        - kind: resource_demand
+          id: resource_demand.align-dependency-types-with-spec.maintainer
+        - kind: resource_demand
+          id: resource_demand.align-dependency-types-with-spec.local-dev
+        - kind: resource_demand
+          id: resource_demand.align-dependency-types-with-spec.ci
+      tags:
+        - docs
+        - dependencies
+        - consumer-feedback
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2304"
+          url: https://op.example.internal/work_packages/2304
+    - id: task.self.dependency-and-deadline-commands
+      title: Add dependency add and deadline add commands
+      description: 'Dependencies and deadlines can be written only by editing YAML; task add --after only orders current_plan and reads like a dependency. Add replan dependency add (type, predecessor, successor, criticality) and replan deadline add/list with dry run, apply and audit like other writes, and say in task add help that --after is plan order, not a dependency.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-11-04"
+      planned_finish: "2026-11-04"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.dependency-and-deadline-commands.agent
+        - kind: resource_demand
+          id: resource_demand.dependency-and-deadline-commands.maintainer
+        - kind: resource_demand
+          id: resource_demand.dependency-and-deadline-commands.local-dev
+        - kind: resource_demand
+          id: resource_demand.dependency-and-deadline-commands.ci
+      tags:
+        - cli
+        - dependencies
+        - consumer-feedback
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2305"
+          url: https://op.example.internal/work_packages/2305
+    - id: task.self.quiet-unresolved-dependency-on-undated-successor
+      title: Stop warning about every open dependency of an undated successor
+      description: 'In a fresh plan validate printed required_dependency_unresolved for all 27 open dependencies: the warning fires when the successor has no planned start. Warn only when the successor has started or is planned to start by the status date; report undated successors once as a separate, quieter diagnostic.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-11-04"
+      planned_finish: "2026-11-04"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.quiet-unresolved-dependency-on-undated-successor.agent
+        - kind: resource_demand
+          id: resource_demand.quiet-unresolved-dependency-on-undated-successor.maintainer
+        - kind: resource_demand
+          id: resource_demand.quiet-unresolved-dependency-on-undated-successor.local-dev
+        - kind: resource_demand
+          id: resource_demand.quiet-unresolved-dependency-on-undated-successor.ci
+      tags:
+        - validate
+        - dependencies
+        - consumer-feedback
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2306"
+          url: https://op.example.internal/work_packages/2306
+    - id: task.self.agent-effort-units-design
+      title: Decide how estimate hours and real agent hours relate
+      description: 'A consumer writes estimates in human-equivalent hours and has to set agent capacity in the same units (100 and 50 per week) to avoid false overload, while real agent time is about 0.2 of that; OpenProject estimated hours include only hours-unit demands, so agent work is invisible there. Write a short design: options (pace per resource, calibrated capacity, separate estimate and actual units, export of agent hours to OpenProject), a recommendation and the operator''s decision.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-11-04"
+      planned_finish: "2026-11-04"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.agent-effort-units-design.agent
+        - kind: resource_demand
+          id: resource_demand.agent-effort-units-design.maintainer
+        - kind: resource_demand
+          id: resource_demand.agent-effort-units-design.local-dev
+        - kind: resource_demand
+          id: resource_demand.agent-effort-units-design.ci
+      tags:
+        - design
+        - estimates
+        - consumer-feedback
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2307"
+          url: https://op.example.internal/work_packages/2307
+    - id: task.self.next-shows-people-work-this-week
+      title: Show in next what people are planned to do this week
+      description: 'next lists actions (accept, review, decide) but not planned work: decision tasks of a customer planned for this week did not appear under Waiting on a person. Add a section of tasks with human demands whose planned dates fall in the week and that are not done.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-11-04"
+      planned_finish: "2026-11-04"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.next-shows-people-work-this-week.agent
+        - kind: resource_demand
+          id: resource_demand.next-shows-people-work-this-week.maintainer
+        - kind: resource_demand
+          id: resource_demand.next-shows-people-work-this-week.local-dev
+        - kind: resource_demand
+          id: resource_demand.next-shows-people-work-this-week.ci
+      tags:
+        - cli
+        - next
+        - consumer-feedback
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2308"
+          url: https://op.example.internal/work_packages/2308
+    - id: task.self.relations-apply-reports-unsupported-type
+      title: Report unsupported relation types in apply-openproject-relations errors
+      description: 'apply-openproject-relations returned ok false with counts.errors 6 but empty errors and error_codes for requires_input_from dependencies; the reason unsupported_dependency_type was visible only in code. Put each refusal into errors with the dependency id and the supported types.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-11-04"
+      planned_finish: "2026-11-04"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.relations-apply-reports-unsupported-type.agent
+        - kind: resource_demand
+          id: resource_demand.relations-apply-reports-unsupported-type.maintainer
+        - kind: resource_demand
+          id: resource_demand.relations-apply-reports-unsupported-type.local-dev
+        - kind: resource_demand
+          id: resource_demand.relations-apply-reports-unsupported-type.ci
+      tags:
+        - helpers
+        - dependencies
+        - consumer-feedback
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2309"
+          url: https://op.example.internal/work_packages/2309
+    - id: task.self.overlay-build-surfaces-cause
+      title: Surface the real cause when the overlay build fails
+      description: 'build-openproject-live-overlay with an output directory inside the plan failed with dashboard_failed while the cause bindings_layer_output_in_project was nested JSON inside message. Lift the inner error codes into the envelope and say in the agent kit README where the output directory may live.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-11-04"
+      planned_finish: "2026-11-04"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.overlay-build-surfaces-cause.agent
+        - kind: resource_demand
+          id: resource_demand.overlay-build-surfaces-cause.maintainer
+        - kind: resource_demand
+          id: resource_demand.overlay-build-surfaces-cause.local-dev
+        - kind: resource_demand
+          id: resource_demand.overlay-build-surfaces-cause.ci
+      tags:
+        - helpers
+        - overlay
+        - consumer-feedback
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2310"
+          url: https://op.example.internal/work_packages/2310
+    - id: task.self.source-profile-checked-early
+      title: Check the OpenProject source profile before the last step
+      description: 'publish-openproject-overlay refused with overlay_other_project because .replan/project.yaml had no source profile with project_id; init does not write one and bootstrap and relations work without it, so the gap shows only at the end. Have bootstrap write or require the profile, or check it in the first helper, and document it in Set up.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-11-04"
+      planned_finish: "2026-11-04"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.source-profile-checked-early.agent
+        - kind: resource_demand
+          id: resource_demand.source-profile-checked-early.maintainer
+        - kind: resource_demand
+          id: resource_demand.source-profile-checked-early.local-dev
+        - kind: resource_demand
+          id: resource_demand.source-profile-checked-early.ci
+      tags:
+        - helpers
+        - onboarding
+        - consumer-feedback
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2311"
+          url: https://op.example.internal/work_packages/2311
+    - id: task.self.explicit-env-file-for-helpers
+      title: Let helpers read an explicit settings file instead of the repository one
+      description: 'Helpers load .env.local from their own root. A consumer who runs them from the RePlan repository gets that repository''s settings for every variable missing from the environment, which can point at another project. Add REPLAN_ENV_FILE, refuse a write when the loaded file''s project id differs from REPLAN_OPENPROJECT_PROJECT_ID set elsewhere, and say in the kit README to unpack a kit per project.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-11-04"
+      planned_finish: "2026-11-04"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.explicit-env-file-for-helpers.agent
+        - kind: resource_demand
+          id: resource_demand.explicit-env-file-for-helpers.maintainer
+        - kind: resource_demand
+          id: resource_demand.explicit-env-file-for-helpers.local-dev
+        - kind: resource_demand
+          id: resource_demand.explicit-env-file-for-helpers.ci
+      tags:
+        - helpers
+        - safety
+        - consumer-feedback
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2312"
+          url: https://op.example.internal/work_packages/2312

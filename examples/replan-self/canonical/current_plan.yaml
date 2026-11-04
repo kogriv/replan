@@ -400,6 +400,28 @@ current_plan:
     - kind: task
       id: task.self.format-compatibility-guard
     - kind: task
+      id: task.self.warn-about-outdated-binary
+    - kind: task
+      id: task.self.init-owner-id-for-non-ascii-names
+    - kind: task
+      id: task.self.align-dependency-types-with-spec
+    - kind: task
+      id: task.self.dependency-and-deadline-commands
+    - kind: task
+      id: task.self.quiet-unresolved-dependency-on-undated-successor
+    - kind: task
+      id: task.self.agent-effort-units-design
+    - kind: task
+      id: task.self.next-shows-people-work-this-week
+    - kind: task
+      id: task.self.relations-apply-reports-unsupported-type
+    - kind: task
+      id: task.self.overlay-build-surfaces-cause
+    - kind: task
+      id: task.self.source-profile-checked-early
+    - kind: task
+      id: task.self.explicit-env-file-for-helpers
+    - kind: task
       id: task.self.fix-first-project-defects
     - kind: task
       id: task.self.implement-replan-init-and-resource-commands
