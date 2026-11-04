@@ -547,3 +547,14 @@ evidence:
       targets:
         - kind: task
           id: task.self.calibrated-agent-load
+    - id: evidence.self.start-calibration-starting-factor
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T18:16:36+07:00"
+      summary: Started on 2026-11-04; estimate 2 agent hours frozen in baseline.2026-11-04.calibrated-agent-load, split into agent 0.5 and Codex 1.5.
+      targets:
+        - kind: task
+          id: task.self.calibration-starting-factor
