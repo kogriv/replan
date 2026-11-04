@@ -205,3 +205,25 @@ evidence:
       targets:
         - kind: task
           id: task.self.explicit-env-file-for-helpers
+    - id: evidence.self.start-agent-effort-units-design
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T12:55:16+07:00"
+      summary: Started on 2026-11-04; estimate 2 agent hours frozen in baseline.2026-11-04.consumer-feedback; the executor writes the design without Codex.
+      targets:
+        - kind: task
+          id: task.self.agent-effort-units-design
+    - id: evidence.self.agent-effort-units-design
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T12:58:38+07:00"
+      summary: 'Design commit ddc523f: docs/dev/agent-effort-units-design.md with options A-D (convention, calibrated load, pace per resource, applying the calibration to the plan) and OpenProject visibility; recommends calibrated load with a sealed starting factor and an Agent hours line on the RePlan tab, in three steps. Executor 12:55:16-12:59. The decision waits on the operator.'
+      targets:
+        - kind: task
+          id: task.self.agent-effort-units-design
