@@ -109,7 +109,8 @@ Build it in three steps, each its own task:
 
 1. **Done 2026-11-04:** calibrated load in `workload` and the reports,
    labelled, with `--raw`;
-2. `estimate calibrate --prior` and the `next` suggestion to replace it;
+2. **Done 2026-11-04:** `estimate calibrate --prior` and the `next`
+   suggestion to replace it;
 3. the same calibrated amounts in the TaskJuggler export and drafted
    dates, and the "Agent hours" line on the RePlan tab.
 

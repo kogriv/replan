@@ -310,13 +310,14 @@ type CalibrationExclusion struct {
 }
 
 type CalibrationResult struct {
-	Method     string                `json:"method,omitempty" yaml:"method,omitempty"`
-	Factor     float64               `json:"factor" yaml:"factor"`
-	TotalRatio float64               `json:"total_ratio" yaml:"total_ratio"`
-	P25        float64               `json:"p25" yaml:"p25"`
-	P75        float64               `json:"p75" yaml:"p75"`
-	Count      int                   `json:"count" yaml:"count"`
-	SizeBands  []CalibrationSizeBand `json:"size_bands" yaml:"size_bands"`
+	Method      string                `json:"method,omitempty" yaml:"method,omitempty"`
+	PriorSource string                `json:"prior_source,omitempty" yaml:"prior_source,omitempty"`
+	Factor      float64               `json:"factor" yaml:"factor"`
+	TotalRatio  float64               `json:"total_ratio" yaml:"total_ratio"`
+	P25         float64               `json:"p25" yaml:"p25"`
+	P75         float64               `json:"p75" yaml:"p75"`
+	Count       int                   `json:"count" yaml:"count"`
+	SizeBands   []CalibrationSizeBand `json:"size_bands" yaml:"size_bands"`
 }
 
 type CalibrationSizeBand struct {

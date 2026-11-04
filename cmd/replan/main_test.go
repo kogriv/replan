@@ -308,6 +308,45 @@ func TestEstimateCalibrationAllBaselinesCLI(t *testing.T) {
 	}
 }
 
+func TestEstimatePriorCalibrationCLIFlagsAndText(t *testing.T) {
+	projectPath := copyCmdProjectFixtureFrom(t, "../../examples/estimate-calibration", "estimate-prior")
+	args := []string{
+		"estimate", "calibrate", "--project", projectPath,
+		"--prior", "0.21", "--source", "replan-self, 39 tasks, 2026-11-02",
+		"--resource", "resource.ai.executor", "--unit", "agent_hours", "--tag", "calibration",
+		"--id", "calibration.cli.prior", "--name", "Starting factor", "--approved-by", "actor.human.operator",
+		"--occurred-at", "2026-11-04T10:00:00Z", "--apply", "--format", "markdown",
+	}
+	stdout, stderr := tempOutputFiles(t)
+	if code := run(args, stdout, stderr); code != exitSuccess {
+		t.Fatalf("prior calibrate exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	output := readFileString(t, stdout.Name())
+	if !strings.Contains(output, "Method: `prior`") || !strings.Contains(output, "Source: replan-self, 39 tasks, 2026-11-02") || !strings.Contains(output, "Count: 0") {
+		t.Fatalf("prior markdown output=%s", output)
+	}
+	for _, command := range [][]string{
+		{"estimate", "list", "--project", projectPath, "--format", "text"},
+		{"estimate", "show", "--project", projectPath, "calibration.cli.prior", "--format", "text"},
+	} {
+		stdout, stderr = tempOutputFiles(t)
+		if code := run(command, stdout, stderr); code != exitSuccess {
+			t.Fatalf("%v exit=%d stdout=%s stderr=%s", command, code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+		}
+		output = readFileString(t, stdout.Name())
+		if !strings.Contains(output, "prior") || !strings.Contains(output, "replan-self, 39 tasks, 2026-11-02") {
+			t.Fatalf("%v output=%s", command, output)
+		}
+	}
+	stdout, stderr = tempOutputFiles(t)
+	if code := run([]string{"estimate", "show", "--project", projectPath, "calibration.cli.prior", "--format", "json"}, stdout, stderr); code != exitSuccess {
+		t.Fatalf("show json exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	if output = readFileString(t, stdout.Name()); !strings.Contains(output, `"prior_source": "replan-self, 39 tasks, 2026-11-02"`) || !strings.Contains(output, `"seal_status": "verified"`) {
+		t.Fatalf("prior json output=%s", output)
+	}
+}
+
 func TestNextIncludesPlannedForPeopleInTextAndJSON(t *testing.T) {
 	projectPath := copyCmdProjectFixture(t)
 	stdout, stderr := tempOutputFiles(t)

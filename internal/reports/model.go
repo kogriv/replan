@@ -236,6 +236,7 @@ type DashboardEstimatesPage struct {
 type DashboardEstimatesData struct {
 	Baselines        []DashboardEstimateBaseline        `json:"baselines"`
 	LimitedBaselines []DashboardEstimateLimitedBaseline `json:"limited_baselines"`
+	StartingFactors  []DashboardEstimateCalibration     `json:"starting_factors,omitempty"`
 }
 
 type DashboardEstimateLimitedBaseline struct {
@@ -297,15 +298,16 @@ type DashboardEstimateTotal struct {
 }
 
 type DashboardEstimateCalibration struct {
-	ID         string                         `json:"id"`
-	Name       string                         `json:"name"`
-	Resources  []string                       `json:"resources"`
-	Unit       string                         `json:"unit"`
-	Factor     float64                        `json:"factor"`
-	TotalRatio float64                        `json:"total_ratio"`
-	Count      int                            `json:"count"`
-	Method     string                         `json:"method,omitempty"`
-	SizeBands  []DashboardCalibrationSizeBand `json:"size_bands,omitempty"`
+	ID          string                         `json:"id"`
+	Name        string                         `json:"name"`
+	Resources   []string                       `json:"resources"`
+	Unit        string                         `json:"unit"`
+	Factor      float64                        `json:"factor"`
+	TotalRatio  float64                        `json:"total_ratio"`
+	Count       int                            `json:"count"`
+	Method      string                         `json:"method,omitempty"`
+	PriorSource string                         `json:"prior_source,omitempty"`
+	SizeBands   []DashboardCalibrationSizeBand `json:"size_bands,omitempty"`
 }
 
 type DashboardCalibrationSizeBand struct {

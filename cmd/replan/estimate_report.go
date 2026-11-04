@@ -75,6 +75,11 @@ func writeEstimateCalibrationsMarkdown(out io.Writer, calibrations []app.Calibra
 		if _, err := fmt.Fprintf(out, "- `%s`: factor %s, total ratio %s, p25/p75 %s/%s, %d tasks%s, seal %s\n", calibration.ID, estimateNumber(calibration.Factor), estimateNumber(calibration.TotalRatio), estimateNumber(calibration.P25), estimateNumber(calibration.P75), calibration.Count, method, calibration.SealStatus); err != nil {
 			return err
 		}
+		if calibration.PriorSource != "" {
+			if _, err := fmt.Fprintf(out, "  - Source: %s\n", calibration.PriorSource); err != nil {
+				return err
+			}
+		}
 		for _, band := range calibration.SizeBands {
 			label := "above 4"
 			if band.UpTo != nil {

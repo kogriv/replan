@@ -20,6 +20,8 @@ type CalibrationService struct{ loader WorkspaceLoader }
 type CalibrationCalibrateRequest struct {
 	BaselineIDs  []string
 	AllBaselines bool
+	Prior        *float64
+	PriorSource  string
 	ResourceIDs  []string
 	Unit         string
 	Tag          string
@@ -46,20 +48,21 @@ type CalibrationCalibrateResult struct {
 }
 
 type CalibrationSummary struct {
-	ID         string                       `json:"id"`
-	Name       string                       `json:"name"`
-	ApprovedAt string                       `json:"approved_at"`
-	Resources  []string                     `json:"resources"`
-	Unit       string                       `json:"unit"`
-	Tag        string                       `json:"tag,omitempty"`
-	Factor     float64                      `json:"factor"`
-	Method     string                       `json:"method,omitempty"`
-	TotalRatio float64                      `json:"total_ratio"`
-	P25        float64                      `json:"p25"`
-	P75        float64                      `json:"p75"`
-	Count      int                          `json:"count"`
-	SizeBands  []domain.CalibrationSizeBand `json:"size_bands"`
-	SealStatus string                       `json:"seal_status"`
+	ID          string                       `json:"id"`
+	Name        string                       `json:"name"`
+	ApprovedAt  string                       `json:"approved_at"`
+	Resources   []string                     `json:"resources"`
+	Unit        string                       `json:"unit"`
+	Tag         string                       `json:"tag,omitempty"`
+	Factor      float64                      `json:"factor"`
+	Method      string                       `json:"method,omitempty"`
+	PriorSource string                       `json:"prior_source,omitempty"`
+	TotalRatio  float64                      `json:"total_ratio"`
+	P25         float64                      `json:"p25"`
+	P75         float64                      `json:"p75"`
+	Count       int                          `json:"count"`
+	SizeBands   []domain.CalibrationSizeBand `json:"size_bands"`
+	SealStatus  string                       `json:"seal_status"`
 }
 
 type CalibrationListResult struct {
@@ -103,11 +106,13 @@ type CalibrationApplyResult struct {
 }
 
 type CalibrationSuggestion struct {
-	BaselineID   string
-	AllBaselines bool
-	Resources    []string
-	Unit         string
-	Count        int
+	BaselineID      string
+	AllBaselines    bool
+	Resources       []string
+	Unit            string
+	Tag             string
+	Count           int
+	ReplacesPriorID string
 }
 
 type CalibratedDemandValue struct {
@@ -160,7 +165,7 @@ func (s CalibrationService) Calibrate(ctx context.Context, req CalibrationCalibr
 		approvedAt = time.Now().Format(time.RFC3339)
 	}
 	calibration := buildCalibration(ws, baselines, req, approvedAt)
-	if calibration.Result.Count < CalibrationMinimumSample {
+	if req.Prior == nil && calibration.Result.Count < CalibrationMinimumSample {
 		result.Calibration = calibration
 		result.Errors = append(result.Errors, Diagnostic{
 			Code: "calibration_sample_too_small", Message: fmt.Sprintf("calibration %s has %d clean tasks; at least %d are required", req.ID, calibration.Result.Count, CalibrationMinimumSample),
@@ -196,9 +201,15 @@ func (s CalibrationService) Calibrate(ctx context.Context, req CalibrationCalibr
 		ActorRef: domain.Ref{Kind: "actor", ID: req.ApprovedBy}, Operation: "estimate_calibrate", TargetRef: domain.Ref{Kind: "calibration", ID: req.ID},
 		Result: "success", Reason: fmt.Sprintf("Approved estimate calibration from %d clean tasks.", calibration.Result.Count),
 	}
+	if req.Prior != nil {
+		audit.Reason = fmt.Sprintf("Approved starting estimate factor from %s.", calibration.Result.PriorSource)
+	}
 	if req.DryRun {
 		audit.Result = "dry_run"
 		audit.Reason = fmt.Sprintf("Preview estimate calibration from %d clean tasks.", calibration.Result.Count)
+		if req.Prior != nil {
+			audit.Reason = fmt.Sprintf("Preview starting estimate factor from %s.", calibration.Result.PriorSource)
+		}
 	}
 	result.FilePath, result.AuditRecordPreview = path, audit
 	result.PlannedWrites = []PlannedWrite{{Path: path, Action: "create", Format: "yaml", Content: string(data)}, auditPlannedWrite(audit)}
@@ -242,7 +253,8 @@ func validateCalibrationRequest(errors *[]Diagnostic, ws domain.Workspace, req C
 	if req.Name == "" {
 		add("missing_calibration_name", "calibration name is required", "calibration", req.ID)
 	}
-	if len(req.BaselineIDs) == 0 {
+	validateCalibrationPriorRequest(errors, req)
+	if len(req.BaselineIDs) == 0 && req.Prior == nil {
 		if !req.AllBaselines {
 			add("missing_baseline_id", "at least one baseline is required", "baseline", "")
 		}
@@ -311,6 +323,24 @@ func validateCalibrationRequest(errors *[]Diagnostic, ws domain.Workspace, req C
 	return baselines
 }
 
+func validateCalibrationPriorRequest(errors *[]Diagnostic, req CalibrationCalibrateRequest) {
+	if req.Prior == nil {
+		return
+	}
+	add := func(code, message string) {
+		*errors = append(*errors, Diagnostic{Code: code, Message: message, Severity: "error", Target: Target{Kind: "calibration", ID: req.ID}})
+	}
+	if math.IsNaN(*req.Prior) || math.IsInf(*req.Prior, 0) || *req.Prior <= 0 || *req.Prior > 10 {
+		add("calibration_prior_factor_invalid", "--prior must be greater than 0 and at most 10")
+	}
+	if strings.TrimSpace(req.PriorSource) == "" {
+		add("calibration_prior_source_required", "--source is required with --prior")
+	}
+	if len(req.BaselineIDs) > 0 || req.AllBaselines || req.BySize || len(req.Exclusions) > 0 {
+		add("calibration_prior_flags_conflict", "--prior cannot be combined with --baseline, --all-baselines, --by-size or --exclude")
+	}
+}
+
 type calibrationObservation struct {
 	taskID                  string
 	baseline, actual, ratio float64
@@ -320,9 +350,16 @@ func buildCalibration(ws domain.Workspace, baselines []domain.Baseline, req Cali
 	resources := uniqueSorted(req.ResourceIDs)
 	calibration := domain.Calibration{
 		ID: req.ID, Name: req.Name, ApprovedBy: domain.Ref{Kind: "actor", ID: req.ApprovedBy}, ApprovedAt: approvedAt,
-		Scope:  domain.CalibrationScope{Resources: resources, Unit: req.Unit, Tag: req.Tag},
-		Sample: domain.CalibrationSample{Tasks: []string{}, Excluded: []domain.CalibrationExclusion{}},
-		Result: domain.CalibrationResult{SizeBands: []domain.CalibrationSizeBand{}},
+		SourceBaselines: []domain.CalibrationSourceBaseline{},
+		Scope:           domain.CalibrationScope{Resources: resources, Unit: req.Unit, Tag: req.Tag},
+		Sample:          domain.CalibrationSample{Tasks: []string{}, Excluded: []domain.CalibrationExclusion{}},
+		Result:          domain.CalibrationResult{SizeBands: []domain.CalibrationSizeBand{}},
+	}
+	if req.Prior != nil {
+		calibration.Result.Method = "prior"
+		calibration.Result.PriorSource = strings.TrimSpace(req.PriorSource)
+		calibration.Result.Factor = *req.Prior
+		return calibration
 	}
 	for _, baseline := range baselines {
 		calibration.SourceBaselines = append(calibration.SourceBaselines, domain.CalibrationSourceBaseline{ID: baseline.ID, SealSHA256: baseline.Seal.Digest})
@@ -538,6 +575,9 @@ func calibrationBandIndex(amount float64) int {
 // the calibration scope. Old records and incomplete band records use the
 // overall factor.
 func CalibrationFactor(calibration domain.Calibration, taskScopeAmount float64) (float64, string) {
+	if calibration.Result.Method == "prior" {
+		return calibration.Result.Factor, ""
+	}
 	if calibration.Result.Method != "size_bands" {
 		return calibration.Result.Factor, ""
 	}
@@ -742,7 +782,7 @@ func RoundCalibrationAmount(value float64) float64 {
 }
 
 func calibrationSummary(calibration domain.Calibration) CalibrationSummary {
-	return CalibrationSummary{ID: calibration.ID, Name: calibration.Name, ApprovedAt: calibration.ApprovedAt, Resources: append([]string(nil), calibration.Scope.Resources...), Unit: calibration.Scope.Unit, Tag: calibration.Scope.Tag, Method: calibration.Result.Method, Factor: calibration.Result.Factor, TotalRatio: calibration.Result.TotalRatio, P25: calibration.Result.P25, P75: calibration.Result.P75, Count: calibration.Result.Count, SizeBands: append([]domain.CalibrationSizeBand(nil), calibration.Result.SizeBands...), SealStatus: calibrationSealStatus(calibration)}
+	return CalibrationSummary{ID: calibration.ID, Name: calibration.Name, ApprovedAt: calibration.ApprovedAt, Resources: append([]string(nil), calibration.Scope.Resources...), Unit: calibration.Scope.Unit, Tag: calibration.Scope.Tag, Method: calibration.Result.Method, PriorSource: calibration.Result.PriorSource, Factor: calibration.Result.Factor, TotalRatio: calibration.Result.TotalRatio, P25: calibration.Result.P25, P75: calibration.Result.P75, Count: calibration.Result.Count, SizeBands: append([]domain.CalibrationSizeBand(nil), calibration.Result.SizeBands...), SealStatus: calibrationSealStatus(calibration)}
 }
 
 func calibrationSealStatus(calibration domain.Calibration) string {
@@ -994,14 +1034,73 @@ func CalibrationSuggestions(ws domain.Workspace) []CalibrationSuggestion {
 	unique := result[:0]
 	seenScopes := map[string]bool{}
 	for _, suggestion := range result {
-		scope := suggestion.Unit + "\x00" + strings.Join(suggestion.Resources, "\x00")
+		scope := suggestion.Unit + "\x00" + suggestion.Tag + "\x00" + strings.Join(suggestion.Resources, "\x00")
 		if seenScopes[scope] {
 			continue
 		}
 		seenScopes[scope] = true
+		if latest, ok := latestCalibrationForScope(ws.Calibrations, suggestion.Resources, suggestion.Unit, suggestion.Tag); ok && latest.Result.Method == "prior" {
+			suggestion.ReplacesPriorID = latest.ID
+		}
 		unique = append(unique, suggestion)
 	}
+	unique = appendPriorReplacementSuggestions(unique, ws)
+	sort.Slice(unique, func(i, j int) bool {
+		left := unique[i].Unit + "\x00" + unique[i].Tag + "\x00" + strings.Join(unique[i].Resources, "\x00")
+		right := unique[j].Unit + "\x00" + unique[j].Tag + "\x00" + strings.Join(unique[j].Resources, "\x00")
+		return left < right
+	})
 	return unique
+}
+
+func latestCalibrationForScope(calibrations []domain.Calibration, resources []string, unit, tag string) (domain.Calibration, bool) {
+	var latest domain.Calibration
+	found := false
+	for _, calibration := range calibrations {
+		if calibrationSealStatus(calibration) != "verified" || calibration.Scope.Unit != unit || (calibration.Scope.Tag != "" && calibration.Scope.Tag != tag) || !resourceSuperset(calibration.Scope.Resources, resources) {
+			continue
+		}
+		if !found || calibrationApprovedAfter(calibration, latest) {
+			latest, found = calibration, true
+		}
+	}
+	return latest, found
+}
+
+func appendPriorReplacementSuggestions(suggestions []CalibrationSuggestion, ws domain.Workspace) []CalibrationSuggestion {
+	baselines := make([]domain.Baseline, 0, len(ws.Baselines))
+	for _, baseline := range ws.Baselines {
+		if domain.BaselineCarriesEstimates(baseline) && baselineSealStatus(baseline) == "verified" {
+			baselines = append(baselines, baseline)
+		}
+	}
+	for _, prior := range ws.Calibrations {
+		if prior.Result.Method != "prior" || calibrationSealStatus(prior) != "verified" {
+			continue
+		}
+		latest, ok := latestCalibrationForScope(ws.Calibrations, prior.Scope.Resources, prior.Scope.Unit, prior.Scope.Tag)
+		if !ok || latest.ID != prior.ID {
+			continue
+		}
+		resources := uniqueSorted(prior.Scope.Resources)
+		observations, _ := calibrationObservations(ws, baselines, prior.Scope, nil)
+		if len(observations) < CalibrationMinimumSample {
+			continue
+		}
+		filtered := suggestions[:0]
+		for _, suggestion := range suggestions {
+			sameResources := strings.Join(uniqueSorted(suggestion.Resources), "\x00") == strings.Join(resources, "\x00")
+			sameScope := suggestion.Unit == prior.Scope.Unit && suggestion.Tag == prior.Scope.Tag && sameResources
+			untaggedDuplicate := prior.Scope.Tag != "" && suggestion.Unit == prior.Scope.Unit && suggestion.Tag == "" && sameResources
+			if sameScope || untaggedDuplicate {
+				continue
+			}
+			filtered = append(filtered, suggestion)
+		}
+		suggestions = filtered
+		suggestions = append(suggestions, CalibrationSuggestion{AllBaselines: true, Resources: resources, Unit: prior.Scope.Unit, Tag: prior.Scope.Tag, Count: len(observations), ReplacesPriorID: prior.ID})
+	}
+	return suggestions
 }
 
 func addAllBaselineSuggestions(candidates map[calibrationSuggestionKey]CalibrationSuggestion, ws domain.Workspace, baselines []domain.Baseline) {

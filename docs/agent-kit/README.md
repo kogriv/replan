@@ -314,6 +314,19 @@ resource capacity in real units. Add `--raw` to `workload`, `report weekly`,
 `report state` or `report dashboard` only when you need to compare with the
 typed, uncalibrated estimates. Actuals are unchanged.
 
+For a new project with no clean sample, preview a cited starting factor:
+
+```sh
+bin/replan estimate calibrate --project "$REPLAN_PROJECT" --prior 0.21 \
+  --source "replan-self, 39 tasks, 2026-11-02" \
+  --resource resource.ai.agent --unit agent_hours \
+  --id calibration.start --name "Starting agent factor" \
+  --approved-by actor.human.operator --dry-run --format markdown
+```
+
+Review it, then use `--apply`. `next` names it when eight clean project tasks
+are ready to replace it with a measured calibration.
+
 `next` separates actions waiting on a person, preparation an agent can do, and
 tasks with human or human-pool hours planned in the selected week.
 
@@ -343,7 +356,7 @@ to its root. A write to OpenProject or the bindings file is a dry run unless
 | Create a RePlan task | `bin/replan task add ... --dry-run` | Creates the task, demands and current-plan reference together; review, then use `--apply`. It does not create the OpenProject work package. |
 | Seal a planning baseline | `bin/replan baseline create ... [--task <id> ...] --dry-run` | Snapshots current task dates and planned demand amounts. Use repeatable `--task` for newly planned work; review, then use `--apply`. Use `baseline list` or `show` to verify the seal. |
 | Compare estimates with actuals | `bin/replan report estimates --project "$REPLAN_PROJECT" --baseline <id>` | Read-only resource and split-group summary followed by baseline-task demand, split and schedule detail; resources without counted actuals are explicit. JSON is available with `--format json`. |
-| Calibrate estimates | `bin/replan estimate calibrate ... [--all-baselines] [--by-size] --dry-run` | Builds a sealed calibration from at least eight clean finished tasks. `--all-baselines` combines verified estimate baselines. `--by-size` applies qualified band medians and falls back to the overall factor for smaller bands. Review explicit exclusions and factors, then replace `--dry-run` with `--apply`; the approver must be human. |
+| Calibrate estimates | `bin/replan estimate calibrate ... [--all-baselines] [--by-size] --dry-run` | Builds a sealed calibration from at least eight clean finished tasks. For a new project, use `--prior 0.21 --source "replan-self, 39 tasks, 2026-11-02"`. Review the source, exclusions and factors, then replace `--dry-run` with `--apply`; the approver must be human. |
 | Apply a calibration as a what-if | `bin/replan estimate apply --calibration <id> --scenario-id <id> --actor <id> --dry-run` | Creates one calibration-linked scenario on apply. Inspect it with `scenario diff`, then use the existing reviewed `scenario apply` flow. |
 | Create or bind a work package | `scripts/apply-openproject-bootstrap.sh` | Creates missing work packages and bindings. For one item, toolkit `work-package create` or `bind`; use `backlog reconcile` to rebuild bindings. |
 | Relations | `scripts/apply-openproject-relations.sh` | Applies canonical dependencies as OpenProject relations. The toolkit can list or delete a single relation. |

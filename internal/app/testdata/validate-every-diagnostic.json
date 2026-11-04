@@ -1018,6 +1018,24 @@
       }
     },
     {
+      "code": "calibration_prior_source_required",
+      "message": "prior calibration must cite a source",
+      "severity": "error",
+      "target": {
+        "kind": "calibration",
+        "id": "calibration.prior-without-source"
+      }
+    },
+    {
+      "code": "missing_calibration_seal",
+      "message": "calibration seal_sha256 is required",
+      "severity": "error",
+      "target": {
+        "kind": "calibration",
+        "id": "calibration.prior-without-source"
+      }
+    },
+    {
       "code": "invalid_scenario_status",
       "message": "invalid scenario status \"pending\"",
       "severity": "error",

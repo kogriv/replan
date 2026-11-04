@@ -1455,16 +1455,24 @@ func dashboardNextActions(ws domain.Workspace, overview reports.DashboardOvervie
 		for _, resourceID := range suggestion.Resources {
 			resourceFlags += " --resource " + resourceID
 		}
+		tagFlag := ""
+		if suggestion.Tag != "" {
+			tagFlag = " --tag " + suggestion.Tag
+		}
 		baselineFlag := " --all-baselines"
 		targetBaseline := "all-baselines"
 		if !suggestion.AllBaselines {
 			baselineFlag = " --baseline " + suggestion.BaselineID
 			targetBaseline = suggestion.BaselineID
 		}
+		label := fmt.Sprintf("%d clean finished tasks can calibrate this estimate scope.", suggestion.Count)
+		if suggestion.ReplacesPriorID != "" {
+			label = fmt.Sprintf("%d clean finished tasks can replace prior calibration %s with a measured calibration.", suggestion.Count, suggestion.ReplacesPriorID)
+		}
 		actions = append(actions, reports.DashboardNextAction{
-			Code: "suggest_calibration", Label: fmt.Sprintf("%d clean finished tasks can calibrate this estimate scope.", suggestion.Count),
-			Target:  targetBaseline + ":" + strings.Join(suggestion.Resources, ",") + ":" + suggestion.Unit,
-			Command: fmt.Sprintf("replan estimate calibrate --project %s%s%s --unit %s --id <id> --name <name> --approved-by <human-actor-id> --dry-run --format markdown", overview.ProjectPath, baselineFlag, resourceFlags, suggestion.Unit),
+			Code: "suggest_calibration", Label: label,
+			Target:  targetBaseline + ":" + strings.Join(suggestion.Resources, ",") + ":" + suggestion.Unit + ":" + suggestion.Tag,
+			Command: fmt.Sprintf("replan estimate calibrate --project %s%s%s --unit %s%s --id <id> --name <name> --approved-by <human-actor-id> --dry-run --format markdown", overview.ProjectPath, baselineFlag, resourceFlags, suggestion.Unit, tagFlag),
 			Actor:   reports.NextActionActorAgent,
 		})
 	}

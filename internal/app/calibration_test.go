@@ -213,6 +213,37 @@ func TestCalibrationApproverMustBeHuman(t *testing.T) {
 	}
 }
 
+func TestPriorCalibrationRefusals(t *testing.T) {
+	valid := .21
+	ws := domain.Workspace{
+		Actors:    []domain.Actor{{ID: "actor.operator", Kind: "human"}},
+		Resources: []domain.Resource{{ID: "resource.agent"}},
+	}
+	tests := []struct {
+		name   string
+		change func(*CalibrationCalibrateRequest)
+		code   string
+	}{
+		{name: "zero factor", change: func(req *CalibrationCalibrateRequest) { zero := 0.0; req.Prior = &zero }, code: "calibration_prior_factor_invalid"},
+		{name: "factor above ten", change: func(req *CalibrationCalibrateRequest) { high := 10.01; req.Prior = &high }, code: "calibration_prior_factor_invalid"},
+		{name: "empty source", change: func(req *CalibrationCalibrateRequest) { req.PriorSource = "  " }, code: "calibration_prior_source_required"},
+		{name: "baseline conflict", change: func(req *CalibrationCalibrateRequest) { req.BaselineIDs = []string{"baseline.test"} }, code: "calibration_prior_flags_conflict"},
+		{name: "all baselines conflict", change: func(req *CalibrationCalibrateRequest) { req.AllBaselines = true }, code: "calibration_prior_flags_conflict"},
+		{name: "by size conflict", change: func(req *CalibrationCalibrateRequest) { req.BySize = true }, code: "calibration_prior_flags_conflict"},
+		{name: "exclude conflict", change: func(req *CalibrationCalibrateRequest) { req.Exclusions = map[string]string{"task.test": "judged"} }, code: "calibration_prior_flags_conflict"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			req := CalibrationCalibrateRequest{Prior: &valid, PriorSource: "other project", ResourceIDs: []string{"resource.agent"}, Unit: "hours", ID: "calibration.prior", Name: "Prior", ApprovedBy: "actor.operator", DryRun: true}
+			test.change(&req)
+			result, err := NewCalibrationService(calibrationTestLoader{ws: ws}).Calibrate(context.Background(), req)
+			if err == nil || !hasDiagnosticCode(result.Errors, test.code) {
+				t.Fatalf("err=%v errors=%#v, want %s", err, result.Errors, test.code)
+			}
+		})
+	}
+}
+
 func TestCalibrationApplySkipsAndBuildsScenario(t *testing.T) {
 	calibration := domain.Calibration{ID: "calibration.test", Name: "Test", Scope: domain.CalibrationScope{Resources: []string{"resource.agent"}, Unit: "hours"}, Result: domain.CalibrationResult{Factor: .5}}
 	if err := domain.SealCalibration(&calibration); err != nil {
@@ -377,6 +408,53 @@ func TestNextSuggestsAllLimitedBaselinesTogether(t *testing.T) {
 	if len(suggestions) != 1 || !strings.Contains(suggestions[0].Command, "--all-baselines") || strings.Contains(suggestions[0].Command, "--baseline ") {
 		t.Fatalf("suggestions=%#v", suggestions)
 	}
+}
+
+func TestNextSuggestsReplacingLatestPriorOnceSampleIsLargeEnough(t *testing.T) {
+	ws := limitedCalibrationWorkspace(t)
+	for index := range ws.Tasks {
+		ws.Tasks[index].Tags = []string{"calibration"}
+	}
+	prior := domain.Calibration{
+		ID: "calibration.prior", ApprovedAt: "2026-01-03T00:00:00Z",
+		Scope:  domain.CalibrationScope{Resources: []string{"resource.executor"}, Unit: "hours", Tag: "calibration"},
+		Result: domain.CalibrationResult{Method: "prior", PriorSource: "another project", Factor: .21},
+	}
+	if err := domain.SealCalibration(&prior); err != nil {
+		t.Fatal(err)
+	}
+	ws.Calibrations = []domain.Calibration{prior}
+	ws.Actuals = ws.Actuals[:7]
+	if actions := dashboardNextActions(ws, reports.DashboardOverview{ProjectPath: "fixture"}); countNextActions(actions, "suggest_calibration") != 0 {
+		t.Fatalf("suggested before minimum: %#v", actions)
+	}
+	ws = limitedCalibrationWorkspace(t)
+	for index := range ws.Tasks {
+		ws.Tasks[index].Tags = []string{"calibration"}
+	}
+	ws.Calibrations = []domain.Calibration{prior}
+	actions := dashboardNextActions(ws, reports.DashboardOverview{ProjectPath: "fixture"})
+	if countNextActions(actions, "suggest_calibration") != 1 {
+		t.Fatalf("replacement suggestions=%#v", actions)
+	}
+	for _, action := range actions {
+		if action.Code == "suggest_calibration" && !strings.Contains(action.Label, "replace prior calibration calibration.prior") {
+			t.Fatalf("replacement label=%q", action.Label)
+		}
+		if action.Code == "suggest_calibration" && !strings.Contains(action.Command, "--tag calibration") {
+			t.Fatalf("replacement command=%q", action.Command)
+		}
+	}
+}
+
+func countNextActions(actions []reports.DashboardNextAction, code string) int {
+	count := 0
+	for _, action := range actions {
+		if action.Code == code {
+			count++
+		}
+	}
+	return count
 }
 
 func TestCalibrationOpenDemandGroupsAggregateAndHideUsedCalibration(t *testing.T) {

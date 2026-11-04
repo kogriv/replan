@@ -244,7 +244,16 @@ func dashboardProposalsPage(ws domain.Workspace, metadata reports.DashboardPageM
 }
 
 func (s ReportService) dashboardEstimatesPage(ctx context.Context, ws domain.Workspace, metadata reports.DashboardPageMetadata) reports.DashboardEstimatesPage {
-	page := reports.DashboardEstimatesPage{DashboardPageMetadata: metadata, Data: reports.DashboardEstimatesData{Baselines: []reports.DashboardEstimateBaseline{}, LimitedBaselines: []reports.DashboardEstimateLimitedBaseline{}}}
+	page := reports.DashboardEstimatesPage{DashboardPageMetadata: metadata, Data: reports.DashboardEstimatesData{Baselines: []reports.DashboardEstimateBaseline{}, LimitedBaselines: []reports.DashboardEstimateLimitedBaseline{}, StartingFactors: []reports.DashboardEstimateCalibration{}}}
+	for _, calibration := range ws.Calibrations {
+		if calibration.Result.Method != "prior" {
+			continue
+		}
+		page.Data.StartingFactors = append(page.Data.StartingFactors, reports.DashboardEstimateCalibration{
+			ID: calibration.ID, Name: calibration.Name, Resources: calibration.Scope.Resources, Unit: calibration.Scope.Unit,
+			Factor: calibration.Result.Factor, Count: calibration.Result.Count, Method: calibration.Result.Method, PriorSource: calibration.Result.PriorSource,
+		})
+	}
 	for _, baseline := range ws.Baselines {
 		if baseline.Seal == nil || !domain.BaselineCarriesEstimates(baseline) {
 			continue
@@ -269,7 +278,7 @@ func (s ReportService) dashboardEstimatesPage(ctx context.Context, ws domain.Wor
 			item.Tasks = append(item.Tasks, row)
 		}
 		for _, calibration := range report.Calibrations {
-			row := reports.DashboardEstimateCalibration{ID: calibration.ID, Name: calibration.Name, Resources: calibration.Resources, Unit: calibration.Unit, Factor: calibration.Factor, TotalRatio: calibration.TotalRatio, Count: calibration.Count, Method: calibration.Method, SizeBands: []reports.DashboardCalibrationSizeBand{}}
+			row := reports.DashboardEstimateCalibration{ID: calibration.ID, Name: calibration.Name, Resources: calibration.Resources, Unit: calibration.Unit, Factor: calibration.Factor, TotalRatio: calibration.TotalRatio, Count: calibration.Count, Method: calibration.Method, PriorSource: calibration.PriorSource, SizeBands: []reports.DashboardCalibrationSizeBand{}}
 			for _, band := range calibration.SizeBands {
 				label := "above 4"
 				if band.UpTo != nil {
@@ -283,6 +292,7 @@ func (s ReportService) dashboardEstimatesPage(ctx context.Context, ws domain.Wor
 	}
 	sort.Slice(page.Data.Baselines, func(i, j int) bool { return page.Data.Baselines[i].ID < page.Data.Baselines[j].ID })
 	sort.Slice(page.Data.LimitedBaselines, func(i, j int) bool { return page.Data.LimitedBaselines[i].ID < page.Data.LimitedBaselines[j].ID })
+	sort.Slice(page.Data.StartingFactors, func(i, j int) bool { return page.Data.StartingFactors[i].ID < page.Data.StartingFactors[j].ID })
 	return page
 }
 

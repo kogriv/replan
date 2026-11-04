@@ -480,8 +480,11 @@ func (v *workspaceValidator) calibrations(calibrations []domain.Calibration, bas
 	}
 	for _, calibration := range calibrations {
 		v.register("calibration", calibration.ID)
-		if calibration.Result.Method != "" && calibration.Result.Method != "size_bands" {
+		if calibration.Result.Method != "" && calibration.Result.Method != "size_bands" && calibration.Result.Method != "prior" {
 			v.errorf("calibration_method_unknown", "calibration", calibration.ID, "calibration method %q is unknown", calibration.Result.Method)
+		}
+		if calibration.Result.Method == "prior" && strings.TrimSpace(calibration.Result.PriorSource) == "" {
+			v.errorf("calibration_prior_source_required", "calibration", calibration.ID, "prior calibration must cite a source")
 		}
 		if calibration.Result.Method == "size_bands" {
 			missingFactor := len(calibration.Result.SizeBands) != 3

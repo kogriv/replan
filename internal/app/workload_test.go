@@ -120,6 +120,39 @@ func TestWorkloadUsesApprovedCalibrationSelection(t *testing.T) {
 	}
 }
 
+func TestPriorCalibrationWritesReloadsAndScalesLoad(t *testing.T) {
+	projectDir := copyProjectFixture(t)
+	store := filestore.New(projectDir)
+	factor := .21
+	result, err := app.NewCalibrationService(store).Calibrate(context.Background(), app.CalibrationCalibrateRequest{
+		Prior: &factor, PriorSource: "replan-self, 39 tasks, 2026-11-02",
+		ResourceIDs: []string{"resource.ai.codex.local"}, Unit: "agent_hours",
+		ID: "calibration.prior", Name: "Starting factor", ApprovedBy: "actor.human.operator",
+		OccurredAt: "2026-11-04T10:00:00Z",
+	})
+	if err != nil || !result.Applied || result.Calibration.Result.Method != "prior" || result.Calibration.Result.Count != 0 || len(result.Calibration.Sample.Tasks) != 0 || len(result.Calibration.SourceBaselines) != 0 {
+		t.Fatalf("calibrate err=%v result=%#v", err, result)
+	}
+	workspace, diagnostics := store.Load(context.Background())
+	if len(diagnostics) != 0 || len(workspace.Calibrations) != 1 {
+		t.Fatalf("reload diagnostics=%#v calibrations=%#v", diagnostics, workspace.Calibrations)
+	}
+	loaded := workspace.Calibrations[0]
+	digest, err := domain.CalibrationDigest(loaded)
+	if err != nil || digest != loaded.SealSHA256 {
+		t.Fatalf("seal digest=%q want=%q err=%v", digest, loaded.SealSHA256, err)
+	}
+	load, err := app.NewWorkloadService(store).Calculate(context.Background(), app.WorkloadRequest{Week: "2026-W28"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range load.Resources {
+		if row.ResourceID == "resource.ai.codex.local" && (row.Planned != .5 || !reflect.DeepEqual(row.CalibrationIDs, []string{"calibration.prior"})) {
+			t.Fatalf("prior-calibrated load=%#v", row)
+		}
+	}
+}
+
 func TestWorkloadCalibrationSelectionExclusionsAndLatest(t *testing.T) {
 	tests := []struct {
 		name   string

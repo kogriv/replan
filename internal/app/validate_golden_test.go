@@ -104,6 +104,7 @@ func everyDiagnosticWorkspace() domain.Workspace {
 			{ID: "calibration.modified", ApprovedBy: ref("actor", "actor.ok"), SourceBaselines: []domain.CalibrationSourceBaseline{{ID: "baseline.modified", SealSHA256: "other"}}, SealSHA256: "bad"},
 			{ID: "calibration.unknown-method", ApprovedBy: ref("actor", "actor.ok"), Result: domain.CalibrationResult{Method: "mystery"}},
 			{ID: "calibration.missing-band-factor", ApprovedBy: ref("actor", "actor.ok"), Result: domain.CalibrationResult{Method: "size_bands", SizeBands: []domain.CalibrationSizeBand{{Count: 1}}}},
+			{ID: "calibration.prior-without-source", ApprovedBy: ref("actor", "actor.ok"), Result: domain.CalibrationResult{Method: "prior", Factor: .2}},
 		},
 		Actuals: []domain.Actual{
 			{ID: "actual.bad", Amount: 1},

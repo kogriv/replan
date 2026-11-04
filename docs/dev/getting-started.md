@@ -84,6 +84,7 @@ go run ./cmd/replan report dashboard --project examples/small-team --week 2026-W
 go run ./cmd/replan report estimates --project examples/replan-self --baseline baseline.2026-10-15.tooling-consolidation --format markdown
 go run ./cmd/replan estimate calibrate --project examples/estimate-calibration --baseline baseline.fixture.original --resource resource.ai.executor --resource resource.ai.codex --unit agent_hours --tag calibration --by-size --exclude task.cal.09=actuals_judged --id calibration.fixture.agents --name "Fixture agent calibration" --approved-by actor.human.operator --dry-run --format markdown
 go run ./cmd/replan estimate calibrate --project examples/estimate-calibration --all-baselines --resource resource.ai.executor --resource resource.ai.codex --unit agent_hours --tag calibration --exclude task.cal.09=actuals_judged --id calibration.fixture.all --name "All baseline calibration" --approved-by actor.human.operator --dry-run --format markdown
+go run ./cmd/replan estimate calibrate --project /path/to/new-project --prior 0.21 --source "replan-self, 39 tasks, 2026-11-02" --resource resource.ai.agent --unit agent_hours --id calibration.start --name "Starting agent factor" --approved-by actor.human.operator --dry-run --format markdown
 ```
 
 `report dashboard --output` writes the static overview and Gantt plus the
@@ -190,8 +191,9 @@ Implemented command families as of 2026-10-30:
 - `proposal list`, `show`, `suggest-dependencies`, `accept`, `reject`;
 - `dependency list`;
 - `baseline create`, `list`, `show`;
-- `estimate calibrate`, `list`, `show`, `apply` for sealed estimate
-  calibrations and calibration-linked scenarios;
+- `estimate calibrate`, including a cited `--prior` starting factor, plus
+  `list`, `show`, `apply` for sealed calibrations and calibration-linked
+  scenarios;
 - `audit list`, `verify`;
 - `actual list`, `add-consumption`, `correct`, `set-remaining`, `close-demand`,
   `reopen-demand`, `acknowledge-overrun`, `add-status`;

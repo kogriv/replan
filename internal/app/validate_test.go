@@ -122,6 +122,22 @@ func TestValidateRejectsMissingCurrentPlanBaseline(t *testing.T) {
 	}
 }
 
+func TestValidateRejectsPriorCalibrationWithoutSource(t *testing.T) {
+	calibration := domain.Calibration{
+		ID: "calibration.prior", ApprovedBy: domain.Ref{Kind: "actor", ID: "actor.operator"},
+		Result: domain.CalibrationResult{Method: "prior", Factor: .21},
+	}
+	if err := domain.SealCalibration(&calibration); err != nil {
+		t.Fatal(err)
+	}
+	result, err := app.NewValidateService(stubLoader{ws: domain.Workspace{
+		Actors: []domain.Actor{{ID: "actor.operator", Kind: "human"}}, Calibrations: []domain.Calibration{calibration},
+	}}).Validate(context.Background(), app.ValidateRequest{})
+	if !errors.Is(err, app.ErrValidationFailed) || !hasDiagnostic(result.Errors, "calibration_prior_source_required") {
+		t.Fatalf("Validate error=%v errors=%#v", err, result.Errors)
+	}
+}
+
 func TestValidateRejectsSecretLikeOpenProjectTokenEnv(t *testing.T) {
 	service := app.NewValidateService(stubLoader{ws: domain.Workspace{
 		Project: domain.Project{

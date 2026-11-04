@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"os"
 	"strings"
@@ -42,6 +43,8 @@ func runEstimateCalibrate(args []string, stdout, stderr *os.File) int {
 	var baselines, resources, exclusions repeatedStringFlag
 	fs.Var(&baselines, "baseline", "repeatable source baseline id; required unless --all-baselines")
 	allBaselines := fs.Bool("all-baselines", false, "use every verified baseline with estimates")
+	prior := fs.Float64("prior", 0, "starting factor supplied by a person")
+	priorSource := fs.String("source", "", "cited source for --prior")
 	fs.Var(&resources, "resource", "required repeatable resource id; multiple resources form one split group")
 	fs.Var(&exclusions, "exclude", "optional repeatable task-id=reason exclusion")
 	unit := fs.String("unit", "", "required calibration unit")
@@ -55,6 +58,12 @@ func runEstimateCalibrate(args []string, stdout, stderr *os.File) int {
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
 	}
+	var priorValue *float64
+	fs.Visit(func(item *flag.Flag) {
+		if item.Name == "prior" {
+			priorValue = prior
+		}
+	})
 	*format = strings.ToLower(*format)
 	if *format != "json" && *format != "markdown" {
 		return printTaskFormatError("estimate calibrate", *projectPath, stdout, stderr)
@@ -69,7 +78,7 @@ func runEstimateCalibrate(args []string, stdout, stderr *os.File) int {
 		return code
 	}
 	result, err := app.NewCalibrationService(newStore(*projectPath)).Calibrate(context.Background(), app.CalibrationCalibrateRequest{
-		BaselineIDs: baselines, AllBaselines: *allBaselines, ResourceIDs: resources, Unit: *unit, Tag: *tag, Exclusions: excluded,
+		BaselineIDs: baselines, AllBaselines: *allBaselines, Prior: priorValue, PriorSource: *priorSource, ResourceIDs: resources, Unit: *unit, Tag: *tag, Exclusions: excluded,
 		ID: *id, Name: *name, ApprovedBy: *approvedBy, OccurredAt: *occurredAt, DryRun: dryRun, BySize: *bySize,
 	})
 	env := envelope{OK: err == nil && len(result.Errors) == 0, Command: "estimate calibrate", ProjectPath: *projectPath, Result: result, Warnings: result.Warnings, Errors: result.Errors}
@@ -95,6 +104,9 @@ func runEstimateList(args []string, stdout, stderr *os.File) int {
 				method = ", method " + row.Method
 			}
 			fmt.Fprintf(stdout, "- `%s`: factor %.6g, %d tasks, %s%s (%s)\n", row.ID, row.Factor, row.Count, row.Unit, method, row.SealStatus)
+			if row.PriorSource != "" {
+				fmt.Fprintf(stdout, "  - Source: %s\n", row.PriorSource)
+			}
 			if row.Method == "size_bands" {
 				for _, band := range row.SizeBands {
 					label := "above 4"
@@ -183,8 +195,13 @@ func writeCalibrationMarkdown(out *os.File, calibration domain.Calibration) {
 	if calibration.Result.Method != "" {
 		fmt.Fprintf(out, "- Method: `%s`\n", calibration.Result.Method)
 	}
+	if calibration.Result.PriorSource != "" {
+		fmt.Fprintf(out, "- Source: %s\n", calibration.Result.PriorSource)
+	}
 	fmt.Fprintln(out)
-	fmt.Fprintln(out, "## Size bands")
+	if len(calibration.Result.SizeBands) > 0 {
+		fmt.Fprintln(out, "## Size bands")
+	}
 	for _, band := range calibration.Result.SizeBands {
 		label := "above 4"
 		if band.UpTo != nil {

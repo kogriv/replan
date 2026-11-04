@@ -1627,7 +1627,7 @@ samples.
 Implemented command flags:
 
 ```text
-replan estimate calibrate --project -p --bindings --format --baseline --all-baselines --resource --unit --tag --by-size --exclude --id --name --approved-by --occurred-at --dry-run --apply
+replan estimate calibrate --project -p --bindings --format --baseline --all-baselines --prior --source --resource --unit --tag --by-size --exclude --id --name --approved-by --occurred-at --dry-run --apply
 replan estimate list --project -p --bindings --format
 replan estimate show --project -p --bindings --format
 replan estimate apply --project -p --bindings --format --calibration --scenario-id --actor --occurred-at --dry-run --apply
@@ -1648,6 +1648,13 @@ approving actor.
 silently skips baselines without estimates. It cannot be combined with
 `--baseline`. The calibration records only the baselines it used.
 
+`--prior <factor> --source <text>` creates a sealed starting calibration when
+the project has no clean sample yet. The factor must be in `(0, 10]`. The
+record uses `result.method: prior`, stores the citation in
+`result.prior_source`, and has count zero, an empty sample and no source
+baselines. `--prior` cannot be combined with `--baseline`, `--all-baselines`,
+`--by-size` or `--exclude`. A prior without a source is invalid.
+
 `estimate apply` creates one ordinary scenario linked by `calibration_ref`.
 It does not yet skip demands whose amount was set by a person after the calibration date because the current audit and demand history do not reliably identify that edit.
 It scales open in-scope planned and recorded remaining amounts, rounds to the
@@ -1660,7 +1667,8 @@ demand without changing the stored amount. `next` emits one actionable
 `estimate apply` item per calibration with per-demand values in JSON, hides it
 after a scenario references the calibration, and suggests `estimate calibrate`
 only for maximal scopes with at least eight clean finished tasks not used by a
-same-unit calibration over a resource superset.
+same-unit calibration over a resource superset. When the latest calibration
+for that scope is a prior, the suggestion names the prior to replace.
 
 ## `replan baseline`
 

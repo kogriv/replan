@@ -952,24 +952,17 @@ func WriteDashboardEstimatesHTML(w io.Writer, page DashboardEstimatesPage) error
 	if err := writeDashboardPageStart(w, "RePlan Estimates: "+page.ProjectName, "RePlan Estimates: "+page.ProjectName, page.ProjectID, page.StatusDate, page.GeneratedAt, "estimates.json"); err != nil {
 		return err
 	}
-	if len(page.Data.Baselines) == 0 && len(page.Data.LimitedBaselines) == 0 {
+	if len(page.Data.Baselines) == 0 && len(page.Data.LimitedBaselines) == 0 && len(page.Data.StartingFactors) == 0 {
 		if _, err := fmt.Fprint(w, "<section><h2>Estimate accuracy</h2><p class=\"muted\">No sealed estimate baselines.</p></section>\n"); err != nil {
 			return err
 		}
 		return writeDashboardPageEnd(w)
 	}
-	if len(page.Data.LimitedBaselines) > 0 {
-		if _, err := fmt.Fprint(w, "<section><h2>Task-limited baselines</h2><table><thead><tr><th scope=\"col\">Baseline</th><th scope=\"col\">Approved at</th><th scope=\"col\" class=\"num\">Tasks</th></tr></thead><tbody>"); err != nil {
-			return err
-		}
-		for _, baseline := range page.Data.LimitedBaselines {
-			if _, err := fmt.Fprintf(w, "<tr><td class=\"code\">%s</td><td>%s</td><td class=\"num\">%d</td></tr>", html.EscapeString(baseline.ID), html.EscapeString(baseline.ApprovedAt), baseline.Tasks); err != nil {
-				return err
-			}
-		}
-		if _, err := fmt.Fprint(w, "</tbody></table></section>\n"); err != nil {
-			return err
-		}
+	if err := writeDashboardStartingFactors(w, page.Data.StartingFactors); err != nil {
+		return err
+	}
+	if err := writeDashboardLimitedBaselines(w, page.Data.LimitedBaselines); err != nil {
+		return err
 	}
 	for _, baseline := range page.Data.Baselines {
 		if _, err := fmt.Fprintf(w, "<section><h2>%s</h2><p><span class=\"code\">%s</span> · seal %s</p><table><thead><tr><th scope=\"col\">Resource</th><th scope=\"col\">Unit</th><th scope=\"col\" class=\"num\">Baseline</th><th scope=\"col\" class=\"num\">Actual</th><th scope=\"col\" class=\"num\">Actual / baseline</th></tr></thead><tbody>", html.EscapeString(baseline.Name), html.EscapeString(baseline.ID), html.EscapeString(baseline.SealStatus)); err != nil {
@@ -1005,6 +998,9 @@ func WriteDashboardEstimatesHTML(w io.Writer, page DashboardEstimatesPage) error
 				if calibration.Method != "" {
 					method = " · " + html.EscapeString(calibration.Method)
 				}
+				if calibration.PriorSource != "" {
+					method += " · source " + html.EscapeString(calibration.PriorSource)
+				}
 				bands := ""
 				for _, band := range calibration.SizeBands {
 					factor := ""
@@ -1026,6 +1022,38 @@ func WriteDashboardEstimatesHTML(w io.Writer, page DashboardEstimatesPage) error
 		}
 	}
 	return writeDashboardPageEnd(w)
+}
+
+func writeDashboardStartingFactors(w io.Writer, calibrations []DashboardEstimateCalibration) error {
+	if len(calibrations) == 0 {
+		return nil
+	}
+	if _, err := fmt.Fprint(w, "<section><h2>Starting factors</h2><table><thead><tr><th scope=\"col\">Calibration</th><th scope=\"col\">Scope</th><th scope=\"col\" class=\"num\">Factor</th><th scope=\"col\">Source</th></tr></thead><tbody>"); err != nil {
+		return err
+	}
+	for _, calibration := range calibrations {
+		if _, err := fmt.Fprintf(w, "<tr><td><span class=\"code\">%s</span><br>%s · %s</td><td>%s · %s</td><td class=\"num\">%s</td><td>%s</td></tr>", html.EscapeString(calibration.ID), html.EscapeString(calibration.Name), html.EscapeString(calibration.Method), html.EscapeString(strings.Join(calibration.Resources, ", ")), html.EscapeString(calibration.Unit), formatAmount(calibration.Factor), html.EscapeString(calibration.PriorSource)); err != nil {
+			return err
+		}
+	}
+	_, err := fmt.Fprint(w, "</tbody></table></section>\n")
+	return err
+}
+
+func writeDashboardLimitedBaselines(w io.Writer, baselines []DashboardEstimateLimitedBaseline) error {
+	if len(baselines) == 0 {
+		return nil
+	}
+	if _, err := fmt.Fprint(w, "<section><h2>Task-limited baselines</h2><table><thead><tr><th scope=\"col\">Baseline</th><th scope=\"col\">Approved at</th><th scope=\"col\" class=\"num\">Tasks</th></tr></thead><tbody>"); err != nil {
+		return err
+	}
+	for _, baseline := range baselines {
+		if _, err := fmt.Fprintf(w, "<tr><td class=\"code\">%s</td><td>%s</td><td class=\"num\">%d</td></tr>", html.EscapeString(baseline.ID), html.EscapeString(baseline.ApprovedAt), baseline.Tasks); err != nil {
+			return err
+		}
+	}
+	_, err := fmt.Fprint(w, "</tbody></table></section>\n")
+	return err
 }
 
 func estimateResourceRatioLabel(resource DashboardEstimateResource) string {

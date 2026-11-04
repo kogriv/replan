@@ -41,6 +41,22 @@ func TestDashboardRawJSONContracts(t *testing.T) {
 	}
 }
 
+func TestDashboardEstimatesShowsPriorSourceWithoutBaselines(t *testing.T) {
+	page := reports.DashboardEstimatesPage{Data: reports.DashboardEstimatesData{StartingFactors: []reports.DashboardEstimateCalibration{{
+		ID: "calibration.prior", Name: "Starting factor", Resources: []string{"resource.agent"}, Unit: "agent_hours",
+		Factor: .21, Method: "prior", PriorSource: "replan-self, 39 tasks, 2026-11-02",
+	}}}}
+	var output bytes.Buffer
+	if err := reports.WriteDashboardEstimatesHTML(&output, page); err != nil {
+		t.Fatal(err)
+	}
+	for _, text := range []string{"Starting factors", "calibration.prior", "prior", "replan-self, 39 tasks, 2026-11-02"} {
+		if !strings.Contains(output.String(), text) {
+			t.Fatalf("dashboard omitted %q: %s", text, output.String())
+		}
+	}
+}
+
 // htmlGoldenFixture merges the dashboard and Gantt fixtures and adds what
 // neither reaches: every tracking status, a task without a work-package URL,
 // an open-proposal badge, unscheduled tasks, a resource without a name, a

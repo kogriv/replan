@@ -187,6 +187,25 @@ estimates.
   in a maximal scope have clean samples that no same-unit calibration with a
   resource superset has used yet.
 
+### Starting factor
+
+A project without eight clean tasks can start with a factor approved by a
+person and cited from another sample:
+
+```sh
+replan estimate calibrate --prior 0.21 \
+  --source "replan-self, 39 tasks, 2026-11-02" \
+  --resource resource.ai.agent --unit agent_hours \
+  --id calibration.start --name "Starting agent factor" \
+  --approved-by actor.human.operator --dry-run
+```
+
+The sealed record has `result.method: prior`, `result.prior_source`, factor,
+count zero, an empty sample and no source baselines. A prior factor must be
+greater than zero and no more than 10. It cannot use baseline, size-band or
+exclusion flags. `replan next` names the prior to replace when the same scope
+has eight clean project tasks.
+
 ## Commands
 
 ```text
