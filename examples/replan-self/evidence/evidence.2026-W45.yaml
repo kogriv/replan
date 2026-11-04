@@ -729,3 +729,14 @@ evidence:
           id: task.self.dependency-and-deadline-commands
         - kind: task
           id: task.self.demand-add-set-move-commands
+    - id: evidence.self.start-bootstrap-matches-by-binding
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-05T06:41:40+07:00"
+      summary: Started on 2026-11-05; estimate 2 agent hours frozen in baseline.2026-11-05.consumer-feedback-sync, split into agent 0.5 and Codex 1.5.
+      targets:
+        - kind: task
+          id: task.self.bootstrap-matches-by-binding
