@@ -6231,7 +6231,7 @@ tasks:
       title: Surface the real cause when the overlay build fails
       description: 'build-openproject-live-overlay with an output directory inside the plan failed with dashboard_failed while the cause bindings_layer_output_in_project was nested JSON inside message. Lift the inner error codes into the envelope and say in the agent kit README where the output directory may live.'
       type: implementation
-      tracking_status: not_started
+      tracking_status: review_ready
       planned_start: "2026-11-04"
       planned_finish: "2026-11-04"
       assignee_hint:

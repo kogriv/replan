@@ -275,3 +275,25 @@ evidence:
       targets:
         - kind: task
           id: task.self.relations-apply-reports-unsupported-type
+    - id: evidence.self.start-overlay-build-surfaces-cause
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T13:45:55+07:00"
+      summary: Started on 2026-11-04; estimate 1 agent hour frozen in baseline.2026-11-04.consumer-feedback; the executor fixes it without Codex.
+      targets:
+        - kind: task
+          id: task.self.overlay-build-surfaces-cause
+    - id: evidence.self.overlay-build-surfaces-cause
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T13:52:19+07:00"
+      summary: 'Fix: build-openproject-live-overlay lifts the coded errors of the replan envelope next to dashboard_failed; live check with an output dir inside the plan gives error_codes bindings_layer_output_in_project and dashboard_failed and writes nothing; README says the output dir must be outside the plan. 192 helper tests, kit check, smoke green. Executor 13:45:55-13:52:19, 0.11 h.'
+      targets:
+        - kind: task
+          id: task.self.overlay-build-surfaces-cause
