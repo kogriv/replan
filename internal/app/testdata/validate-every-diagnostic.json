@@ -48,6 +48,15 @@
       }
     },
     {
+      "code": "task_without_resource_demands",
+      "message": "task has no resource demands",
+      "severity": "warning",
+      "target": {
+        "kind": "task",
+        "id": "task.e"
+      }
+    },
+    {
       "code": "unresolved_resource",
       "message": "resource demand has no resource_ref or resource_pool_ref",
       "severity": "warning",
@@ -162,6 +171,14 @@
       "target": {
         "kind": "dependency",
         "id": "dependency.blocks"
+      }
+    },
+    {
+      "code": "required_dependencies_undated",
+      "message": "1 open required dependency leads to a task without a planned start; it is checked once the task has dates",
+      "severity": "warning",
+      "target": {
+        "kind": "project"
       }
     },
     {

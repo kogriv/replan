@@ -700,9 +700,14 @@ func dependencyPlanningDiagnostics(ws domain.Workspace) []Diagnostic {
 		taskByID[task.ID] = task
 	}
 	var diagnostics []Diagnostic
+	undated, withoutStatusDate := 0, 0
 	for _, dependency := range ws.Dependencies {
 		if dependency.Type != "relates" && dependency.Criticality == "required" && dependency.Status != "resolved" && dependency.Status != "cancelled" {
-			if reason, due := unresolvedDependencyReason(dependency, taskByID, ws.Project.DefaultStatusDate); due {
+			if undatedSuccessor(dependency, taskByID) {
+				undated++
+			} else if ws.Project.DefaultStatusDate == "" && plannedAheadSuccessor(dependency, taskByID) {
+				withoutStatusDate++
+			} else if reason, due := unresolvedDependencyReason(dependency, taskByID, ws.Project.DefaultStatusDate); due {
 				diagnostics = append(diagnostics, Diagnostic{
 					Code:     "required_dependency_unresolved",
 					Message:  fmt.Sprintf("required dependency %s is %s%s", dependency.ID, dependency.Status, reason),
@@ -754,15 +759,69 @@ func dependencyPlanningDiagnostics(ws domain.Workspace) []Diagnostic {
 			}
 		}
 	}
+	if withoutStatusDate > 0 {
+		diagnostics = append(diagnostics, Diagnostic{
+			Code:     "required_dependencies_without_status_date",
+			Message:  fmt.Sprintf("the project has no default_status_date, so %d open required dependencies of tasks not yet started cannot be checked; set it with replan project set-status-date", withoutStatusDate),
+			Severity: "warning",
+			Target:   Target{Kind: "project", ID: ws.Project.ID},
+		})
+	}
+	if undated > 0 {
+		diagnostics = append(diagnostics, Diagnostic{
+			Code:     "required_dependencies_undated",
+			Message:  undatedDependenciesMessage(undated),
+			Severity: "warning",
+			Target:   Target{Kind: "project", ID: ws.Project.ID},
+		})
+	}
 	return diagnostics
+}
+
+func undatedDependenciesMessage(count int) string {
+	if count == 1 {
+		return "1 open required dependency leads to a task without a planned start; it is checked once the task has dates"
+	}
+	return fmt.Sprintf("%d open required dependencies lead to tasks without a planned start; they are checked once those tasks have dates", count)
+}
+
+// plannedAheadSuccessor reports an open dependency whose dated successor has
+// not been taken up and whose predecessor is not done.
+func plannedAheadSuccessor(dependency domain.Dependency, taskByID map[string]domain.Task) bool {
+	if dependency.Status != "open" || dependency.SuccessorRef.Kind != "task" || predecessorSatisfiesDependency(dependency, taskByID) {
+		return false
+	}
+	successor, ok := taskByID[dependency.SuccessorRef.ID]
+	return ok && successor.PlannedStart != "" && plannedAhead(successor.TrackingStatus)
+}
+
+// undatedSuccessor reports an open dependency whose successor task has not
+// been taken up and has no planned start yet, while its predecessor is not done:
+// a fresh plan has many of these, and one warning for all of them is enough.
+// Such a dependency gets no required_dependency_unresolved of its own.
+func undatedSuccessor(dependency domain.Dependency, taskByID map[string]domain.Task) bool {
+	// A finish_to_start dependency already names the undated successor in
+	// dependency_successor_start_unknown.
+	if dependency.Type == "finish_to_start" || dependency.Status != "open" || dependency.SuccessorRef.Kind != "task" || predecessorSatisfiesDependency(dependency, taskByID) {
+		return false
+	}
+	successor, ok := taskByID[dependency.SuccessorRef.ID]
+	return ok && successor.PlannedStart == "" && plannedAhead(successor.TrackingStatus)
+}
+
+// plannedAhead is a task status of work not yet taken up: not started, or no
+// status at all. A ready, blocked or started task is current work.
+func plannedAhead(status string) bool {
+	return status == "" || status == "not_started"
 }
 
 // unresolvedDependencyReason decides whether an unresolved required
 // dependency is worth a warning now. An open dependency whose successor is a
 // task that has not started and is planned after the status date is the
 // normal state of a plan made ahead, so it is quiet until then. Any other
-// status, a stale record, a started or due successor, or a missing date or
-// status date still warns.
+// status, a stale record, a started or due successor, or a missing status
+// date still warns. A successor without a planned start is counted once by
+// required_dependencies_undated.
 func unresolvedDependencyReason(dependency domain.Dependency, taskByID map[string]domain.Task, statusDate string) (string, bool) {
 	if predecessorSatisfiesDependency(dependency, taskByID) {
 		return ": the predecessor is done, record the dependency as resolved", true
@@ -778,8 +837,14 @@ func unresolvedDependencyReason(dependency domain.Dependency, taskByID map[strin
 	case "in_progress", "review_ready", "done", "accepted":
 		return fmt.Sprintf(" while successor task %s is %s", successor.ID, successor.TrackingStatus), true
 	}
-	if successor.PlannedStart == "" || statusDate == "" {
-		return "", true
+	if successor.PlannedStart == "" {
+		// Work planned ahead without dates is not due yet; validate counts
+		// such dependencies once in required_dependencies_undated.
+		return "", !plannedAhead(successor.TrackingStatus)
+	}
+	if statusDate == "" {
+		// Counted once by required_dependencies_without_status_date.
+		return "", !plannedAhead(successor.TrackingStatus)
 	}
 	if successor.PlannedStart <= statusDate {
 		return fmt.Sprintf(" and successor task %s is planned to start on %s", successor.ID, successor.PlannedStart), true

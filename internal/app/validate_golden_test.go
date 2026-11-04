@@ -55,6 +55,7 @@ func everyDiagnosticWorkspace() domain.Workspace {
 				ResourceDemands: []domain.Ref{ref("resource_demand", "demand.b")}},
 			{ID: "task.d", Title: "D", TrackingStatus: "not_started",
 				ResourceDemands: []domain.Ref{ref("resource_demand", "demand.c")}},
+			{ID: "task.e", Title: "E", TrackingStatus: "not_started", PlannedStart: "2026-10-20", PlannedFinish: "2026-10-21"},
 		},
 		ResourceDemands: []domain.ResourceDemand{
 			{ID: "demand.a", TaskRef: ref("task", "task.a"), ResourceRef: ref("resource", "resource.ok"), ResourceClass: "human", Unit: "hours", PlannedAmount: 2,
@@ -76,6 +77,8 @@ func everyDiagnosticWorkspace() domain.Workspace {
 			{ID: "dependency.blocks", Type: "blocks", Status: "open", Criticality: "optional", PredecessorRef: ref("task", "task.a"), SuccessorRef: ref("task", "task.c")},
 			{ID: "dependency.no-pred", Type: "finish_to_start", Status: "open", Criticality: "optional", PredecessorRef: ref("task", "task.missing")},
 			{ID: "dependency.no-pred-id", Type: "finish_to_start", Status: "open", Criticality: "optional", SuccessorRef: ref("task", "task.c")},
+			{ID: "dependency.ahead", Type: "requires_input_from", Status: "open", Criticality: "required", PredecessorRef: ref("task", "task.c"), SuccessorRef: ref("task", "task.e")},
+			{ID: "dependency.undated", Type: "requires_input_from", Status: "open", Criticality: "required", PredecessorRef: ref("task", "task.c"), SuccessorRef: ref("task", "task.d")},
 		},
 		Capacities: []domain.Capacity{
 			{ID: "capacity.bad", ResourceRef: ref("resource", "resource.missing"), EffectiveFrom: "2026-10-10", EffectiveTo: "2026-10-01"},
@@ -163,10 +166,16 @@ func TestValidateFixtureTriggersEveryDiagnosticCode(t *testing.T) {
 	for _, m := range regexp.MustCompile(`(?:add(?:Error|Warning)\(result, |v\.(?:errorf|warn)\(|Code:\s*)"([a-z_]+)"`).FindAllSubmatch(source, -1) {
 		all[string(m[1])] = true
 	}
-	result := validateForGolden(everyDiagnosticWorkspace())
+	// A few codes need a project without a status date, so the same
+	// workspace is validated once more without one.
+	withoutStatusDate := everyDiagnosticWorkspace()
+	withoutStatusDate.Project.DefaultStatusDate = ""
 	seen := map[string]bool{}
-	for _, d := range append(append([]Diagnostic{}, result.Errors...), result.Warnings...) {
-		seen[d.Code] = true
+	for _, ws := range []domain.Workspace{everyDiagnosticWorkspace(), withoutStatusDate} {
+		result := validateForGolden(ws)
+		for _, d := range append(append([]Diagnostic{}, result.Errors...), result.Warnings...) {
+			seen[d.Code] = true
+		}
 	}
 	var missing []string
 	for code := range all {

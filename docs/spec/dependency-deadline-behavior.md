@@ -772,6 +772,8 @@ dependency_predecessor_finish_unknown
 dependency_successor_start_unknown
 dependency_successor_starts_before_predecessor_finish
 dependency_blocks_active_successor
+required_dependencies_undated
+required_dependencies_without_status_date
 ```
 
 `required_dependency_unresolved` warns only when the dependency matters at
@@ -782,8 +784,18 @@ state of a plan made ahead and does not warn. It warns when:
 - the predecessor already reached the required state, so the record is stale;
 - the successor is `in_progress`, `review_ready`, `done` or `accepted`;
 - the successor's planned start is on or before the status date;
-- the successor has no planned start, the project has no status date, the
-  successor is not a task, or the dependency is `blocked` or `unknown`.
+- the successor has no planned start or the project has no status date,
+  and the successor is already taken up (`ready`, `blocked` or later);
+- the successor is not a task, or the dependency is `blocked` or `unknown`.
+
+A fresh plan has many open dependencies of work not yet started (status
+`not_started` or none). When such a successor has no planned start, or the
+project has no status date, the dependency gets no warning of its own:
+`required_dependencies_undated` and `required_dependencies_without_status_date`
+count them in one project warning each, and the second one says to set the
+status date with `replan project set-status-date`. A `finish_to_start`
+dependency with an undated successor is named by
+`dependency_successor_start_unknown` instead and is not counted again.
 
 The message names the reason. Next actions for open dependencies are not
 affected by this rule.
