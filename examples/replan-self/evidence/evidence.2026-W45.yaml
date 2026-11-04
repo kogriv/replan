@@ -481,3 +481,25 @@ evidence:
       targets:
         - kind: task
           id: task.self.rename-resource-and-actor
+    - id: evidence.self.start-init-owner-id-for-non-ascii-names
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T16:22:27+07:00"
+      summary: Started on 2026-11-04; estimate 1.5 agent hours frozen in baseline.2026-11-04.consumer-feedback; the executor implements it.
+      targets:
+        - kind: task
+          id: task.self.init-owner-id-for-non-ascii-names
+    - id: evidence.self.init-owner-id-for-non-ascii-names
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T16:28:00+07:00"
+      summary: 'Feature commit 9daec34: init --owner-id; Cyrillic owner names transliterated (Исполнитель (оператор) gives ispolnitel-operator); owner_id_required instead of the project fallback; CLI spec, usage and agent kit README. go test, lint, smoke, kit check green. Executor 16:22:27-16:28:00, 0.09 h.'
+      targets:
+        - kind: task
+          id: task.self.init-owner-id-for-non-ascii-names

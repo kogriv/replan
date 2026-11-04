@@ -6035,7 +6035,7 @@ tasks:
       title: Give init an explicit owner id and warn when a name yields no id
       description: 'replan init --owner with a Cyrillic name produced actor.human.project and resource.human.project because every character fell out of the slug. Add --owner-id, and when the slug from --owner is empty or falls back, refuse or warn with a clear code and the suggested flag.'
       type: implementation
-      tracking_status: not_started
+      tracking_status: review_ready
       planned_start: "2026-11-04"
       planned_finish: "2026-11-04"
       assignee_hint:

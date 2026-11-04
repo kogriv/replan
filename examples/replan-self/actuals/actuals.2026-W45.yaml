@@ -742,3 +742,24 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.rename-resource-and-actor
+    - id: actual.self-init-owner-id-for-non-ascii-names.ai-agent-executor.20261104T1628000700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.init-owner-id-for-non-ascii-names
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.init-owner-id-for-non-ascii-names.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.09
+      unit: agent_hours
+      occurred_at: "2026-11-04T16:28:00+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.init-owner-id-for-non-ascii-names
