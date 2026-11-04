@@ -6379,7 +6379,7 @@ tasks:
       title: Use calibrated amounts for drafted dates and show agent hours on the RePlan tab
       description: 'Decided on 2026-11-04 (agent effort units design, option B, step 3). The TaskJuggler export and drafted dates use the same calibrated agent amounts as the load views, so dates and load agree, with the calibration named. The work package RePlan tab in OpenProject shows an Agent hours line: planned and calibrated. estimatedTime stays hours of people only.'
       type: implementation
-      tracking_status: in_progress
+      tracking_status: review_ready
       planned_start: "2026-11-04"
       planned_finish: "2026-11-04"
       assignee_hint:

@@ -684,3 +684,14 @@ evidence:
       targets:
         - kind: task
           id: task.self.calibrated-dates-and-agent-hours-tab
+    - id: evidence.self.calibrated-dates-and-agent-hours-tab
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T22:18:51+07:00"
+      summary: 'Feature commit 5d77203: TaskJuggler export schedules agent_hours demands with the approved calibration (task comment and JSON calibrations; --raw keeps the former output), the import repeats the calibrations from the run manifest, overlay demand rows carry calibrated amounts, and the RePlan tab shows an Agent hours line. Plugin image 5d77203 deployed after a pg_dumpall backup; switch 22:15:45-22:17:11, web healthy after 45 s, no load errors. Live overlay check: this task shows planned 3 h, calibrated 0.75 h. Gate green incl. 79 live kit checks; plugin Ruby tests pass in the image. Codex 21:33:32-21:55:54; executor 21:29:32-21:33:39 and review, deploy 21:55:54-22:18:51; brief writing during the acceptance run not timed.'
+      targets:
+        - kind: task
+          id: task.self.calibrated-dates-and-agent-hours-tab

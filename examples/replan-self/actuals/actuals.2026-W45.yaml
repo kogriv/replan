@@ -1057,3 +1057,45 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.accept-calibration-starting-factor
+    - id: actual.self-calibrated-dates-and-agent-hours-tab.ai-codex-local.20261104T2218510700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.calibrated-dates-and-agent-hours-tab
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.calibrated-dates-and-agent-hours-tab.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.37
+      unit: agent_hours
+      occurred_at: "2026-11-04T22:18:51+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.calibrated-dates-and-agent-hours-tab
+    - id: actual.self-calibrated-dates-and-agent-hours-tab.ai-agent-executor.20261104T2218510700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.calibrated-dates-and-agent-hours-tab
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.calibrated-dates-and-agent-hours-tab.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.45
+      unit: agent_hours
+      occurred_at: "2026-11-04T22:18:51+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.calibrated-dates-and-agent-hours-tab
