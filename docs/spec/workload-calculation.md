@@ -38,6 +38,11 @@ them with capacity, incorporates actuals, calculates forecast and variance
 where possible, and emits warnings.
 ```
 
+A demand with status `cancelled`, `superseded` or `released` contributes no
+planned, remaining or reserved load. The demand stays visible as history, but
+cancelled work and work moved to another demand must not consume capacity;
+actual consumption remains a separate fact and continues to count.
+
 It must not silently change the plan.
 
 It must not automatically level resources.

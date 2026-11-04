@@ -50,6 +50,72 @@ func TestWorkloadUsesCorrectedActualAmount(t *testing.T) {
 	assertWorkloadWithActual(t, result, "resource.agent", "agent_hours", 0, 0, corrected, 0, 0)
 }
 
+func TestWorkloadDemandStatusLoadRule(t *testing.T) {
+	statuses := []string{"", "draft", "active", "planned", "requested", "reserved", "partially_consumed", "consumed", "released", "cancelled", "blocked", "superseded"}
+	for _, status := range statuses {
+		status := status
+		name := status
+		if name == "" {
+			name = "empty"
+		}
+		t.Run(name, func(t *testing.T) {
+			ws := domain.Workspace{
+				Resources: []domain.Resource{{ID: "resource.test", Class: "human"}},
+				ResourceDemands: []domain.ResourceDemand{{
+					ID: "demand.test", ResourceRef: domain.Ref{ID: "resource.test"}, Unit: "hours", Status: status,
+					PlannedAmount: 6, RemainingAmount: domain.Amount(5), ReservedAmount: 4, ActualAmount: 3,
+				}},
+				Capacities: []domain.Capacity{{ResourceRef: domain.Ref{ID: "resource.test"}, Unit: "hours", Amount: 10, Period: "week"}},
+			}
+			result, err := app.NewWorkloadService(staticWorkspaceLoader{workspace: ws}).Calculate(context.Background(), app.WorkloadRequest{WithDemands: true})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(result.Resources) != 1 || len(result.Resources[0].Demands) != 1 {
+				t.Fatalf("result = %#v", result)
+			}
+			wantPlanned, wantRemaining, wantReserved := 6.0, 5.0, 4.0
+			if !domain.DemandLoads(status) {
+				wantPlanned, wantRemaining, wantReserved = 0, 0, 0
+			}
+			row := result.Resources[0]
+			if row.Planned != wantPlanned || row.Remaining != wantRemaining || row.Reserved != wantReserved || row.Actual != 3 {
+				t.Fatalf("row for status %q = %#v, want planned/remaining/reserved/actual %g/%g/%g/3", status, row, wantPlanned, wantRemaining, wantReserved)
+			}
+			share := row.Demands[0]
+			if share.Status != status || share.Planned != wantPlanned || share.Remaining != wantRemaining || share.Reserved != wantReserved {
+				t.Fatalf("demand share for status %q = %#v", status, share)
+			}
+		})
+	}
+}
+
+func TestWorkloadClosedDemandDoesNotAffectConcurrentPeak(t *testing.T) {
+	ws := domain.Workspace{
+		Resources: []domain.Resource{{ID: "resource.environment", Class: "environment"}},
+		Tasks:     []domain.Task{{ID: "task.old", PlannedStart: "2026-09-28", PlannedFinish: "2026-09-28"}, {ID: "task.new", PlannedStart: "2026-09-28", PlannedFinish: "2026-09-28"}},
+		ResourceDemands: []domain.ResourceDemand{
+			{ID: "demand.old", TaskRef: domain.Ref{ID: "task.old"}, ResourceRef: domain.Ref{ID: "resource.environment"}, Unit: "concurrent_slots", Status: "superseded", PlannedAmount: 2, RemainingAmount: domain.Amount(2), ReservedAmount: 2},
+			{ID: "demand.new", TaskRef: domain.Ref{ID: "task.new"}, ResourceRef: domain.Ref{ID: "resource.environment"}, Unit: "concurrent_slots", Status: "active", PlannedAmount: 1, RemainingAmount: domain.Amount(1), ReservedAmount: 1},
+		},
+		Capacities: []domain.Capacity{{ResourceRef: domain.Ref{ID: "resource.environment"}, Type: "concurrent", Unit: "concurrent_slots", Amount: 1, Period: "instant"}},
+	}
+	result, err := app.NewWorkloadService(staticWorkspaceLoader{workspace: ws}).Calculate(context.Background(), app.WorkloadRequest{Week: "2026-W40", WithDemands: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Resources) != 1 {
+		t.Fatalf("resources = %#v", result.Resources)
+	}
+	row := result.Resources[0]
+	if row.Planned != 1 || row.Remaining != 1 || row.Reserved != 1 || row.Overload != 0 {
+		t.Fatalf("concurrent row = %#v", row)
+	}
+	if len(row.Demands) != 2 || row.Demands[0].ResourceDemandID != "demand.new" || row.Demands[1].ResourceDemandID != "demand.old" || row.Demands[1].Planned != 0 || row.Demands[1].Remaining != 0 || row.Demands[1].Reserved != 0 {
+		t.Fatalf("concurrent demand shares = %#v", row.Demands)
+	}
+}
+
 func TestWorkloadAppliesRemainingAmountScenario(t *testing.T) {
 	store := filestore.New("../../examples/small-team")
 	service := app.NewWorkloadService(store)

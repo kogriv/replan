@@ -393,8 +393,8 @@ func dashboardDemandTracking(demand domain.ResourceDemand, actuals []domain.Actu
 	if actualAmount > demand.PlannedAmount && demand.PlannedAmount > 0 {
 		flags = append(flags, "over_consumed")
 	}
-	if demand.Status == "cancelled" {
-		flags = append(flags, "cancelled")
+	if !domain.DemandLoads(demand.Status) {
+		flags = append(flags, demand.Status)
 	}
 	if variance > 0 {
 		flags = append(flags, "forecast_over_plan")
@@ -838,15 +838,6 @@ func expectsActuals(row reports.DashboardTrackingRow) bool {
 	return false
 }
 
-func firstNonZero(values ...float64) float64 {
-	for _, value := range values {
-		if value != 0 {
-			return value
-		}
-	}
-	return 0
-}
-
 func dashboardGanttView(ws domain.Workspace, overview reports.DashboardOverview, workload []reports.ResourceRow, warnings []reports.ReportIssue, proposals []reports.ProposalRow) reports.DashboardGanttView {
 	view := reports.DashboardGanttView{
 		SchemaVersion: 1,
@@ -980,7 +971,7 @@ func dashboardGanttTask(
 			continue
 		}
 		resourceSet[resourceID] = true
-		if overloadedResources[resourceID] {
+		if domain.DemandLoads(demand.Status) && overloadedResources[resourceID] {
 			overloadedSet[resourceID] = true
 		}
 	}
@@ -1050,13 +1041,19 @@ func dashboardGanttAllocations(ws domain.Workspace, task domain.Task, demandsByI
 			duration = 1
 		}
 		amountPerDay := 0.0
+		plannedAmount := demand.PlannedAmount
+		remainingAmount := demand.Remaining()
+		if !domain.DemandLoads(demand.Status) {
+			plannedAmount = 0
+			remainingAmount = 0
+		}
 		switch {
-		case demand.PlannedAmount <= 0:
+		case plannedAmount <= 0:
 		case isConcurrentResourceUnit(ws.Capacities, resourceID, demand.Unit):
-			amountPerDay = demand.PlannedAmount
+			amountPerDay = plannedAmount
 		default:
 			spread := spreadDays(demandSpan{start: start, finish: finish, dated: true}, days[resourceID])
-			amountPerDay = demand.PlannedAmount / float64(len(spread))
+			amountPerDay = plannedAmount / float64(len(spread))
 		}
 		weeklyCapacity := capacityByResourceUnit[resourceUnitKey(resourceID, demand.Unit)]
 		windowCapacity := 0.0
@@ -1069,7 +1066,7 @@ func dashboardGanttAllocations(ws domain.Workspace, task domain.Task, demandsByI
 			}
 			windowCapacity = weeklyCapacity * windowWeeks
 			if windowCapacity > 0 {
-				intensityRatio = demand.PlannedAmount / windowCapacity
+				intensityRatio = plannedAmount / windowCapacity
 			}
 		}
 		allocations = append(allocations, reports.DashboardGanttResourceAllocation{
@@ -1078,8 +1075,8 @@ func dashboardGanttAllocations(ws domain.Workspace, task domain.Task, demandsByI
 			ResourceClass:             demand.ResourceClass,
 			Role:                      demand.Role,
 			Unit:                      demand.Unit,
-			PlannedAmount:             demand.PlannedAmount,
-			RemainingAmount:           demand.Remaining(),
+			PlannedAmount:             plannedAmount,
+			RemainingAmount:           remainingAmount,
 			StartDate:                 startDate,
 			FinishDate:                finishDate,
 			StartOffsetDays:           int(start.Sub(minStart).Hours() / 24),
@@ -1090,7 +1087,7 @@ func dashboardGanttAllocations(ws domain.Workspace, task domain.Task, demandsByI
 			IntensityPercent:          roundDashboardFloat(intensityRatio * 100),
 			CapacityKnown:             capacityKnown,
 			AmountPerDay:              amountPerDay,
-			Overloaded:                overloadedResources[resourceID],
+			Overloaded:                domain.DemandLoads(demand.Status) && overloadedResources[resourceID],
 			OverCapacity:              intensityRatio > 1,
 		})
 	}
@@ -1504,6 +1501,9 @@ func onlyHumanWorkRemains(demands []domain.ResourceDemand) bool {
 // demandHasWorkLeft treats a demand without a remaining estimate as not
 // started: its planned amount is still ahead.
 func demandHasWorkLeft(demand domain.ResourceDemand) bool {
+	if !domain.DemandLoads(demand.Status) {
+		return false
+	}
 	if demand.HasRemaining() {
 		return demand.Remaining() > 0
 	}

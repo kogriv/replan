@@ -302,6 +302,9 @@ func orOpen(date string) string {
 }
 
 func mapTaskJugglerDemand(demand domain.ResourceDemand, resourceIDs map[string]struct{}, warnings *[]Diagnostic) (taskJugglerDemand, bool) {
+	if !domain.DemandLoads(demand.Status) {
+		return taskJugglerDemand{}, false
+	}
 	if !isTaskJugglerEffortUnit(demand.Unit) {
 		*warnings = append(*warnings, Diagnostic{
 			Code:     "taskjuggler_unsupported_demand_unit",

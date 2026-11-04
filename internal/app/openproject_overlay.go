@@ -497,9 +497,9 @@ func dashboardOpenProjectOverlayDemands(allocations []reports.DashboardGanttReso
 			ResourceClass:             firstNonEmpty(allocation.ResourceClass, demandTracking.ResourceClass),
 			Role:                      firstNonEmpty(allocation.Role, demandTracking.Role),
 			Unit:                      firstNonEmpty(allocation.Unit, demandTracking.Unit),
-			PlannedAmount:             firstNonZero(allocation.PlannedAmount, demandTracking.Planned),
+			PlannedAmount:             allocation.PlannedAmount,
 			ActualAmount:              demandTracking.Actual,
-			RemainingAmount:           firstNonZero(allocation.RemainingAmount, demandTracking.Remaining),
+			RemainingAmount:           allocation.RemainingAmount,
 			ForecastAmount:            demandTracking.Forecast,
 			VarianceAmount:            demandTracking.Variance,
 			EvidenceCount:             demandTracking.EvidenceCount,
@@ -523,15 +523,19 @@ func dashboardOpenProjectOverlayDemands(allocations []reports.DashboardGanttReso
 		if seen[demandTracking.DemandID] {
 			continue
 		}
+		plannedAmount, remainingAmount := demandTracking.Planned, demandTracking.Remaining
+		if closedDemandFlags(demandTracking.Flags) {
+			plannedAmount, remainingAmount = 0, 0
+		}
 		result = append(result, reports.DashboardOpenProjectOverlayResourceDemand{
 			DemandID:        demandTracking.DemandID,
 			ResourceID:      demandTracking.ResourceID,
 			ResourceClass:   demandTracking.ResourceClass,
 			Role:            demandTracking.Role,
 			Unit:            demandTracking.Unit,
-			PlannedAmount:   demandTracking.Planned,
+			PlannedAmount:   plannedAmount,
 			ActualAmount:    demandTracking.Actual,
-			RemainingAmount: demandTracking.Remaining,
+			RemainingAmount: remainingAmount,
 			ForecastAmount:  demandTracking.Forecast,
 			VarianceAmount:  demandTracking.Variance,
 			EvidenceCount:   demandTracking.EvidenceCount,
@@ -545,4 +549,14 @@ func dashboardOpenProjectOverlayDemands(allocations []reports.DashboardGanttReso
 		return result[i].ResourceID < result[j].ResourceID
 	})
 	return result
+}
+
+func closedDemandFlags(flags []string) bool {
+	for _, flag := range flags {
+		switch flag {
+		case "cancelled", "superseded", "released":
+			return true
+		}
+	}
+	return false
 }

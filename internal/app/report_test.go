@@ -60,6 +60,33 @@ func TestWeeklyReportSelfFixtureUsesCurrentPlanBaseline(t *testing.T) {
 	}
 }
 
+func TestWeeklyReportSupersededDemandMovedToAnotherResource(t *testing.T) {
+	ws := domain.Workspace{
+		Project:   domain.Project{ID: "project.test", Name: "Test"},
+		Resources: []domain.Resource{{ID: "resource.old", Class: "human"}, {ID: "resource.new", Class: "human"}},
+		Tasks:     []domain.Task{{ID: "task.test", PlannedStart: "2026-10-26", PlannedFinish: "2026-10-30"}},
+		ResourceDemands: []domain.ResourceDemand{
+			{ID: "demand.old", TaskRef: domain.Ref{ID: "task.test"}, ResourceRef: domain.Ref{ID: "resource.old"}, ResourceClass: "human", Unit: "hours", PlannedAmount: 2, RemainingAmount: domain.Amount(2), Status: "superseded"},
+			{ID: "demand.new", TaskRef: domain.Ref{ID: "task.test"}, ResourceRef: domain.Ref{ID: "resource.new"}, ResourceClass: "human", Unit: "hours", PlannedAmount: 2, RemainingAmount: domain.Amount(2), Status: "active"},
+		},
+		Capacities: []domain.Capacity{
+			{ResourceRef: domain.Ref{ID: "resource.old"}, Unit: "hours", Amount: 10, Period: "week"},
+			{ResourceRef: domain.Ref{ID: "resource.new"}, Unit: "hours", Amount: 10, Period: "week"},
+		},
+	}
+	report, err := app.NewReportService(stubLoader{ws: ws}).Weekly(context.Background(), app.WeeklyReportRequest{Week: "2026-W44"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	loads := map[string]float64{}
+	for _, row := range report.Resources {
+		loads[row.ResourceID] = row.Remaining
+	}
+	if loads["resource.old"] != 0 || loads["resource.new"] != 2 {
+		t.Fatalf("remaining loads = %#v", loads)
+	}
+}
+
 func TestReportBaselineUsesCurrentPlanPin(t *testing.T) {
 	ws := domain.Workspace{
 		Project:     domain.Project{ID: "project.test", Name: "Test"},

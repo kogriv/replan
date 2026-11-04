@@ -36,6 +36,19 @@ func ValidResourceDemandStatus(status string) bool {
 	}
 }
 
+// DemandLoads reports whether a resource demand contributes planned,
+// remaining, or reserved load. Closed demands remain part of plan history,
+// but work that was cancelled, replaced, or released no longer consumes
+// resource capacity.
+func DemandLoads(status string) bool {
+	switch status {
+	case "cancelled", "superseded", "released":
+		return false
+	default:
+		return true
+	}
+}
+
 func ValidDependencyType(dependencyType string) bool {
 	switch dependencyType {
 	case "finish_to_start", "blocks", "relates", "requires_input_from", "requires_resource_from", "external_dependency":

@@ -150,6 +150,30 @@ func TestExportTaskJugglerAppliesScenarioRemainingAmountOverlay(t *testing.T) {
 	assertContains(t, result.Content, `allocate resource_human_ivan`)
 }
 
+func TestExportTaskJugglerSkipsClosedDemandEffort(t *testing.T) {
+	for _, status := range []string{"cancelled", "superseded", "released"} {
+		t.Run(status, func(t *testing.T) {
+			ws := taskJugglerWorkspaceWithDemandStatus(status)
+			result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{Now: time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC)})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if strings.Contains(result.Content, "effort 8.00h") || strings.Contains(result.Content, "allocate resource_human_ivan") {
+				t.Fatalf("closed demand exported for status %q:\n%s", status, result.Content)
+			}
+		})
+	}
+}
+
+func taskJugglerWorkspaceWithDemandStatus(status string) domain.Workspace {
+	return domain.Workspace{
+		Project:         domain.Project{ID: "project.test", Name: "Test project", Timezone: "UTC", DefaultStatusDate: "2026-07-06"},
+		Resources:       []domain.Resource{{ID: "resource.human.ivan", Class: "human", Name: "Ivan"}},
+		Tasks:           []domain.Task{{ID: "task.test", Title: "Test task"}},
+		ResourceDemands: []domain.ResourceDemand{{ID: "demand.test", TaskRef: domain.Ref{ID: "task.test"}, ResourceRef: domain.Ref{ID: "resource.human.ivan"}, ResourceClass: "human", Unit: "hours", PlannedAmount: 8, RemainingAmount: domain.Amount(8), Status: status}},
+	}
+}
+
 func TestExportTaskJugglerAppliesScenarioPlannedAmountOverlayAsFallbackEffort(t *testing.T) {
 	service := app.NewExportService(staticWorkspaceLoader{
 		projectPath: "test-project",

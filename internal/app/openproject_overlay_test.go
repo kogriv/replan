@@ -197,3 +197,26 @@ func TestOverlayVersion2LaneCapacity(t *testing.T) {
 		t.Errorf("task.b lane %+v", got)
 	}
 }
+
+func TestOverlayClosedDemandLaneStaysVisibleWithoutLoad(t *testing.T) {
+	ws := overlayWorkspace()
+	for i := range ws.ResourceDemands {
+		if ws.ResourceDemands[i].ID == "resource_demand.b" {
+			ws.ResourceDemands[i].Status = "superseded"
+			ws.ResourceDemands[i].PlannedAmount = 3
+			ws.ResourceDemands[i].RemainingAmount = domain.Amount(2)
+			ws.ResourceDemands[i].ReservedAmount = 1
+		}
+	}
+	row := overlayRow(t, overlayFor(t, ws), "task.b")
+	if len(row.ResourceDemands) != 1 {
+		t.Fatalf("task.b demands = %#v", row.ResourceDemands)
+	}
+	demand := row.ResourceDemands[0]
+	if demand.PlannedAmount != 0 || demand.RemainingAmount != 0 || demand.AmountPerDay != 0 || demand.IntensityRatio != 0 || demand.IntensityPercent != 0 || demand.OverCapacity || demand.Overloaded {
+		t.Fatalf("superseded demand still loads its lane: %#v", demand)
+	}
+	if len(demand.Flags) == 0 || demand.Flags[len(demand.Flags)-1] != "superseded" {
+		t.Fatalf("superseded demand lost its status history: %#v", demand.Flags)
+	}
+}

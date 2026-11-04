@@ -226,30 +226,34 @@ func (c *workloadCalculation) addDemand(demand domain.ResourceDemand) {
 		return
 	}
 	row := c.rowFor(targetID, demand.Unit)
+	loadScale := 1.0
+	if !domain.DemandLoads(demand.Status) {
+		loadScale = 0
+	}
 	share := 1.0
 	if c.hasWeekFilter {
 		share = spanShare(span, c.days[targetID], c.weekStart, c.weekEnd)
 	}
 	if isConcurrentResourceUnit(c.workspace.Capacities, targetID, demand.Unit) {
 		key := targetID + "\x00" + demand.Unit
-		c.concurrent[key] = append(c.concurrent[key], concurrentUse{span: span, planned: demand.PlannedAmount, remaining: demand.Remaining(), reserved: demand.ReservedAmount})
+		c.concurrent[key] = append(c.concurrent[key], concurrentUse{span: span, planned: demand.PlannedAmount * loadScale, remaining: demand.Remaining() * loadScale, reserved: demand.ReservedAmount * loadScale})
 		if !c.actualDemandIDs[demand.ID] {
 			row.Actual += demand.ActualAmount
 		}
 		if c.req.WithDemands {
-			row.Demands = append(row.Demands, demandShare(demand, share, 1, true))
+			row.Demands = append(row.Demands, demandShare(demand, share, loadScale, true))
 		}
 		return
 	}
 	if c.req.WithDemands {
-		row.Demands = append(row.Demands, demandShare(demand, share, share, false))
+		row.Demands = append(row.Demands, demandShare(demand, share, share*loadScale, false))
 	}
-	row.Planned += demand.PlannedAmount * share
-	row.Reserved += demand.ReservedAmount * share
+	row.Planned += demand.PlannedAmount * share * loadScale
+	row.Reserved += demand.ReservedAmount * share * loadScale
 	if !c.actualDemandIDs[demand.ID] {
 		row.Actual += demand.ActualAmount * share
 	}
-	row.Remaining += demand.Remaining() * share
+	row.Remaining += demand.Remaining() * share * loadScale
 }
 
 func (c *workloadCalculation) finishRows() {
