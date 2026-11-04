@@ -12340,8 +12340,22 @@ resource_demands:
       resource_class: ai_agent
       role: implementation_agent
       unit: agent_hours
-      planned_amount: 1.5
-      remaining_amount: 1.5
+      planned_amount: 0.5
+      remaining_amount: 0.5
+      criticality: required
+      status: active
+    - id: resource_demand.rename-resource-and-actor.codex
+      task_ref:
+        kind: task
+        id: task.self.rename-resource-and-actor
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 1
+      remaining_amount: 1
       criticality: required
       status: active
     - id: resource_demand.rename-resource-and-actor.maintainer

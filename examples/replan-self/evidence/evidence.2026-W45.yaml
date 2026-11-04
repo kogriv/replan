@@ -437,3 +437,14 @@ evidence:
       targets:
         - kind: task
           id: task.self.workload-skips-closed-demands
+    - id: evidence.self.start-rename-resource-and-actor
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T15:41:19+07:00"
+      summary: Started on 2026-11-04; estimate 1.5 agent hours frozen in baseline.2026-11-04.consumer-feedback-roles, split into agent 0.5 and Codex 1.
+      targets:
+        - kind: task
+          id: task.self.rename-resource-and-actor
