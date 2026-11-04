@@ -11627,7 +11627,7 @@ resource_demands:
       role: implementation_agent
       unit: agent_hours
       planned_amount: 1.5
-      remaining_amount: 1.5
+      remaining_amount: 0
       criticality: required
       status: active
     - id: resource_demand.quiet-unresolved-dependency-on-undated-successor.maintainer
@@ -12341,7 +12341,7 @@ resource_demands:
       role: implementation_agent
       unit: agent_hours
       planned_amount: 0.5
-      remaining_amount: 0.5
+      remaining_amount: 0
       criticality: required
       status: active
     - id: resource_demand.rename-resource-and-actor.codex
@@ -12355,7 +12355,7 @@ resource_demands:
       role: implementation_agent
       unit: agent_hours
       planned_amount: 1
-      remaining_amount: 1
+      remaining_amount: 0
       criticality: required
       status: active
     - id: resource_demand.rename-resource-and-actor.maintainer

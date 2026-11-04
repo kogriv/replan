@@ -448,3 +448,36 @@ evidence:
       targets:
         - kind: task
           id: task.self.rename-resource-and-actor
+    - id: evidence.self.start-quiet-unresolved-dependency-on-undated-successor
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T15:45:12+07:00"
+      summary: Started on 2026-11-04; estimate 1.5 agent hours frozen in baseline.2026-11-04.consumer-feedback; the executor implements it while Codex works on another task.
+      targets:
+        - kind: task
+          id: task.self.quiet-unresolved-dependency-on-undated-successor
+    - id: evidence.self.quiet-unresolved-dependency-on-undated-successor
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T15:57:10+07:00"
+      summary: 'Fix commit ed23719: open required dependencies of work not yet started are counted once (required_dependencies_undated, required_dependencies_without_status_date) instead of one warning each; ready/blocked/started successors still warn; review proposals follow; finish_to_start undated successors stay named by dependency_successor_start_unknown. A copy of the consumer''s plan: 23 warnings to 1. go test, lint, smoke green. Executor 15:45:12-15:57:00.'
+      targets:
+        - kind: task
+          id: task.self.quiet-unresolved-dependency-on-undated-successor
+    - id: evidence.self.rename-resource-and-actor
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T16:14:54+07:00"
+      summary: 'Feature commit: resource set-name and actor set-name (--actor-id for the target), one-line splice, audit with old and new name. Checked on a copy of small-team: two one-line diffs, plan valid. Executor review merged the two CLI handlers into runSetName after lint flagged duplication. Gate green incl. 79 live kit checks. Codex 15:44:52-15:56:04; executor brief 15:41:10-15:44:52 (writing before not timed) and review 15:57:17-16:14:54, shared with finishing another task 15:57-15:58.'
+      targets:
+        - kind: task
+          id: task.self.rename-resource-and-actor

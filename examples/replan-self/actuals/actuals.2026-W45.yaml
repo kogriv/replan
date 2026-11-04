@@ -679,3 +679,66 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.workload-skips-closed-demands
+    - id: actual.self-quiet-unresolved-dependency-on-undated-successor.ai-agent-executor.20261104T1557100700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.quiet-unresolved-dependency-on-undated-successor
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.quiet-unresolved-dependency-on-undated-successor.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.2
+      unit: agent_hours
+      occurred_at: "2026-11-04T15:57:10+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.quiet-unresolved-dependency-on-undated-successor
+    - id: actual.self-rename-resource-and-actor.ai-codex-local.20261104T1614540700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.rename-resource-and-actor
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.rename-resource-and-actor.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.19
+      unit: agent_hours
+      occurred_at: "2026-11-04T16:14:54+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.rename-resource-and-actor
+    - id: actual.self-rename-resource-and-actor.ai-agent-executor.20261104T1614540700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.rename-resource-and-actor
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.rename-resource-and-actor.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.36
+      unit: agent_hours
+      occurred_at: "2026-11-04T16:14:54+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.rename-resource-and-actor
