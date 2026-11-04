@@ -422,6 +422,12 @@ current_plan:
     - kind: task
       id: task.self.explicit-env-file-for-helpers
     - kind: task
+      id: task.self.calibrated-agent-load
+    - kind: task
+      id: task.self.calibration-starting-factor
+    - kind: task
+      id: task.self.calibrated-dates-and-agent-hours-tab
+    - kind: task
       id: task.self.fix-first-project-defects
     - kind: task
       id: task.self.implement-replan-init-and-resource-commands

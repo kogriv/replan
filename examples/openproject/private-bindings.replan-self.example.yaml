@@ -521,6 +521,24 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2312"
         url: https://op.example.internal/work_packages/2312
+    - replan_task_id: task.self.calibrated-agent-load
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2313"
+        url: https://op.example.internal/work_packages/2313
+    - replan_task_id: task.self.calibration-starting-factor
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2314"
+        url: https://op.example.internal/work_packages/2314
+    - replan_task_id: task.self.calibrated-dates-and-agent-hours-tab
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2315"
+        url: https://op.example.internal/work_packages/2315
     - replan_task_id: task.self.fix-first-project-defects
       source_ref:
         source: openproject

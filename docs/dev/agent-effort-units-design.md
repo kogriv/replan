@@ -1,6 +1,6 @@
 # Estimate hours and real agent hours
 
-Status: proposal, 2026-11-04. Waits on the maintainer's decision.
+Status: decided on 2026-11-04: option B.
 
 ## The problem
 
@@ -117,4 +117,6 @@ its plan README.
 
 ## Decision
 
-Pending. The maintainer picks an option; the chosen steps become tasks.
+On 2026-11-04 the maintainer chose option B, as recommended. The three
+steps above are planned as separate tasks: calibrated load, a starting
+factor, and calibrated dates with the agent hours line in OpenProject.

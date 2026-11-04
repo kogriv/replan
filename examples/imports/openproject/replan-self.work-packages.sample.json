@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 212,
-  "count": 212,
+  "total": 215,
+  "count": 215,
   "_embedded": {
     "elements": [
       {
@@ -6142,6 +6142,93 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2312"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2313,
+        "subject": "Show agent load with the approved calibration applied",
+        "description": {
+          "raw": "Decided on 2026-11-04 (agent effort units design, option B, step 1). workload, report weekly, report state and the dashboard compare calibrated open demand of an agent resource with its real capacity, using CalibrationFactor per size band of an approved sealed calibration whose scope covers the resource and unit. Every row names the calibration applied; --raw and a raw column in JSON keep the uncalibrated load. Without a matching calibration nothing changes. Planned amounts are not rewritten."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-04",
+        "dueDate": "2026-11-04",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2313"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2314,
+        "subject": "Allow a sealed starting factor for a project without a sample",
+        "description": {
+          "raw": "Decided on 2026-11-04 (agent effort units design, option B, step 2). replan estimate calibrate --prior FACTOR --source TEXT writes a sealed, approved calibration with method prior, the cited source and no sample, refused without a human approver. replan next suggests replacing it once the project's own clean sample reaches the minimum. Validate checks the new method."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-04",
+        "dueDate": "2026-11-04",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2314"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2315,
+        "subject": "Use calibrated amounts for drafted dates and show agent hours on the RePlan tab",
+        "description": {
+          "raw": "Decided on 2026-11-04 (agent effort units design, option B, step 3). The TaskJuggler export and drafted dates use the same calibrated agent amounts as the load views, so dates and load agree, with the calibration named. The work package RePlan tab in OpenProject shows an Agent hours line: planned and calibrated. estimatedTime stays hours of people only."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-04",
+        "dueDate": "2026-11-04",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2315"
           },
           "status": {
             "title": "New"

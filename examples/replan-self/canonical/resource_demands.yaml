@@ -11685,7 +11685,7 @@ resource_demands:
       planned_amount: 2
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.agent-effort-units-design.maintainer
       task_ref:
         kind: task
@@ -11697,9 +11697,9 @@ resource_demands:
       role: maintainer
       unit: hours
       planned_amount: 0.25
-      remaining_amount: 0.25
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.agent-effort-units-design.local-dev
       task_ref:
         kind: task
@@ -11711,9 +11711,9 @@ resource_demands:
       role: development_environment
       unit: concurrent_slots
       planned_amount: 1
-      remaining_amount: 1
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.agent-effort-units-design.ci
       task_ref:
         kind: task
@@ -11725,9 +11725,9 @@ resource_demands:
       role: ci_runtime
       unit: ci_minutes
       planned_amount: 10
-      remaining_amount: 10
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.next-shows-people-work-this-week.agent
       task_ref:
         kind: task
@@ -11965,7 +11965,7 @@ resource_demands:
       planned_amount: 0.5
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.explicit-env-file-for-helpers.codex
       task_ref:
         kind: task
@@ -11979,7 +11979,7 @@ resource_demands:
       planned_amount: 1.5
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.explicit-env-file-for-helpers.maintainer
       task_ref:
         kind: task
@@ -11991,9 +11991,9 @@ resource_demands:
       role: maintainer
       unit: hours
       planned_amount: 0.25
-      remaining_amount: 0.25
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.explicit-env-file-for-helpers.local-dev
       task_ref:
         kind: task
@@ -12005,13 +12005,181 @@ resource_demands:
       role: development_environment
       unit: concurrent_slots
       planned_amount: 1
-      remaining_amount: 1
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.explicit-env-file-for-helpers.ci
       task_ref:
         kind: task
         id: task.self.explicit-env-file-for-helpers
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      resource_class: service_quota
+      role: ci_runtime
+      unit: ci_minutes
+      planned_amount: 10
+      remaining_amount: 0
+      criticality: required
+      status: consumed
+    - id: resource_demand.calibrated-agent-load.agent
+      task_ref:
+        kind: task
+        id: task.self.calibrated-agent-load
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 3
+      remaining_amount: 3
+      criticality: required
+      status: active
+    - id: resource_demand.calibrated-agent-load.maintainer
+      task_ref:
+        kind: task
+        id: task.self.calibrated-agent-load
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      resource_class: human
+      role: maintainer
+      unit: hours
+      planned_amount: 0.25
+      remaining_amount: 0.25
+      criticality: required
+      status: active
+    - id: resource_demand.calibrated-agent-load.local-dev
+      task_ref:
+        kind: task
+        id: task.self.calibrated-agent-load
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      resource_class: environment
+      role: development_environment
+      unit: concurrent_slots
+      planned_amount: 1
+      remaining_amount: 1
+      criticality: required
+      status: active
+    - id: resource_demand.calibrated-agent-load.ci
+      task_ref:
+        kind: task
+        id: task.self.calibrated-agent-load
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      resource_class: service_quota
+      role: ci_runtime
+      unit: ci_minutes
+      planned_amount: 10
+      remaining_amount: 10
+      criticality: required
+      status: active
+    - id: resource_demand.calibration-starting-factor.agent
+      task_ref:
+        kind: task
+        id: task.self.calibration-starting-factor
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 2
+      remaining_amount: 2
+      criticality: required
+      status: active
+    - id: resource_demand.calibration-starting-factor.maintainer
+      task_ref:
+        kind: task
+        id: task.self.calibration-starting-factor
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      resource_class: human
+      role: maintainer
+      unit: hours
+      planned_amount: 0.25
+      remaining_amount: 0.25
+      criticality: required
+      status: active
+    - id: resource_demand.calibration-starting-factor.local-dev
+      task_ref:
+        kind: task
+        id: task.self.calibration-starting-factor
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      resource_class: environment
+      role: development_environment
+      unit: concurrent_slots
+      planned_amount: 1
+      remaining_amount: 1
+      criticality: required
+      status: active
+    - id: resource_demand.calibration-starting-factor.ci
+      task_ref:
+        kind: task
+        id: task.self.calibration-starting-factor
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      resource_class: service_quota
+      role: ci_runtime
+      unit: ci_minutes
+      planned_amount: 10
+      remaining_amount: 10
+      criticality: required
+      status: active
+    - id: resource_demand.calibrated-dates-and-agent-hours-tab.agent
+      task_ref:
+        kind: task
+        id: task.self.calibrated-dates-and-agent-hours-tab
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 3
+      remaining_amount: 3
+      criticality: required
+      status: active
+    - id: resource_demand.calibrated-dates-and-agent-hours-tab.maintainer
+      task_ref:
+        kind: task
+        id: task.self.calibrated-dates-and-agent-hours-tab
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      resource_class: human
+      role: maintainer
+      unit: hours
+      planned_amount: 0.25
+      remaining_amount: 0.25
+      criticality: required
+      status: active
+    - id: resource_demand.calibrated-dates-and-agent-hours-tab.local-dev
+      task_ref:
+        kind: task
+        id: task.self.calibrated-dates-and-agent-hours-tab
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      resource_class: environment
+      role: development_environment
+      unit: concurrent_slots
+      planned_amount: 1
+      remaining_amount: 1
+      criticality: required
+      status: active
+    - id: resource_demand.calibrated-dates-and-agent-hours-tab.ci
+      task_ref:
+        kind: task
+        id: task.self.calibrated-dates-and-agent-hours-tab
       resource_ref:
         kind: resource
         id: resource.ci.github-actions

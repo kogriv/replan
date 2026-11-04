@@ -227,3 +227,29 @@ evidence:
       targets:
         - kind: task
           id: task.self.agent-effort-units-design
+    - id: evidence.self.accept-explicit-env-file-for-helpers
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-04T13:13:21+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-04: REPLAN_ENV_FILE and the mixed_project_settings refusal.'
+      targets:
+        - kind: task
+          id: task.self.explicit-env-file-for-helpers
+    - id: evidence.self.accept-agent-effort-units-design
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-04T13:14:18+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-04: option B (calibrated load with a starting factor and agent hours on the RePlan tab), planned as three tasks.'
+      targets:
+        - kind: task
+          id: task.self.agent-effort-units-design
