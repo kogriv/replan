@@ -503,3 +503,14 @@ evidence:
       targets:
         - kind: task
           id: task.self.init-owner-id-for-non-ascii-names
+    - id: evidence.self.start-next-shows-people-work-this-week
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T16:35:21+07:00"
+      summary: Started on 2026-11-04; estimate 2.5 agent hours frozen in baseline.2026-11-04.consumer-feedback, split into agent 0.5 and Codex 2.
+      targets:
+        - kind: task
+          id: task.self.next-shows-people-work-this-week
