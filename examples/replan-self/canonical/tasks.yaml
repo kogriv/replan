@@ -6287,7 +6287,7 @@ tasks:
       title: Let helpers read an explicit settings file instead of the repository one
       description: 'Helpers load .env.local from their own root. A consumer who runs them from the RePlan repository gets that repository''s settings for every variable missing from the environment, which can point at another project. Add REPLAN_ENV_FILE, refuse a write when the loaded file''s project id differs from REPLAN_OPENPROJECT_PROJECT_ID set elsewhere, and say in the kit README to unpack a kit per project.'
       type: implementation
-      tracking_status: in_progress
+      tracking_status: review_ready
       planned_start: "2026-11-04"
       planned_finish: "2026-11-04"
       assignee_hint:

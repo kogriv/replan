@@ -194,3 +194,14 @@ evidence:
       targets:
         - kind: task
           id: task.self.explicit-env-file-for-helpers
+    - id: evidence.self.explicit-env-file-for-helpers
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T12:48:25+07:00"
+      summary: 'Feature commit 61c9a47: REPLAN_ENV_FILE (environment-only), mixed_project_settings refusal for plan-bound helpers, connection-only commands unchanged, agent kit README one kit per project; the live link check now sets its own settings and reads an empty settings file (it had silently used the repository plan). Live: drift check with a foreign project id refused, wiki read still works. Gate green incl. 79 live kit checks. Codex 12:05:44-12:28:29; executor brief 12:00:44-12:05:49 and review 12:29:02-12:48:09.'
+      targets:
+        - kind: task
+          id: task.self.explicit-env-file-for-helpers

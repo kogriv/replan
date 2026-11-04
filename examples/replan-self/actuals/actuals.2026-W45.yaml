@@ -297,3 +297,45 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.accept-format-compatibility-guard
+    - id: actual.self-explicit-env-file-for-helpers.ai-codex-local.20261104T1248250700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.explicit-env-file-for-helpers
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.explicit-env-file-for-helpers.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.38
+      unit: agent_hours
+      occurred_at: "2026-11-04T12:48:25+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.explicit-env-file-for-helpers
+    - id: actual.self-explicit-env-file-for-helpers.ai-agent-executor.20261104T1248250700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.explicit-env-file-for-helpers
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.explicit-env-file-for-helpers.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.4
+      unit: agent_hours
+      occurred_at: "2026-11-04T12:48:25+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.explicit-env-file-for-helpers
