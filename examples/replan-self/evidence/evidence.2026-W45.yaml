@@ -308,3 +308,25 @@ evidence:
       targets:
         - kind: task
           id: task.self.source-profile-checked-early
+    - id: evidence.self.start-align-dependency-types-with-spec
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T14:01:10+07:00"
+      summary: Started on 2026-11-04; estimate 1 agent hour frozen in baseline.2026-11-04.consumer-feedback; documentation, by the executor.
+      targets:
+        - kind: task
+          id: task.self.align-dependency-types-with-spec
+    - id: evidence.self.align-dependency-types-with-spec
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T14:01:42+07:00"
+      summary: 'docs/spec/canonical-model.md: the six types validate accepts, the three exported to OpenProject, the unsupported names, requires_input_from or relates for parallel streams, and what start_to_start would take (readiness rules, drafted dates, TaskJuggler, no OpenProject relation). dependency-deadline-behavior.md already matched. Executor 14:01:10-14:01:42, 0.01 h.'
+      targets:
+        - kind: task
+          id: task.self.align-dependency-types-with-spec

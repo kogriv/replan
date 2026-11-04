@@ -6063,7 +6063,7 @@ tasks:
       title: Make the dependency type list in the spec match what validate accepts
       description: 'docs/spec/canonical-model.md lists start_to_start, finish_to_finish and others first; validate accepts only finish_to_start, blocks, relates, requires_input_from, requires_resource_from and external_dependency, so a consumer got invalid_dependency_type. Put the accepted list first, mark the rest as not supported, name which types are exported to OpenProject (finish_to_start, blocks, relates) and record start_to_start as a candidate with its scheduling cost.'
       type: implementation
-      tracking_status: not_started
+      tracking_status: review_ready
       planned_start: "2026-11-04"
       planned_finish: "2026-11-04"
       assignee_hint:
