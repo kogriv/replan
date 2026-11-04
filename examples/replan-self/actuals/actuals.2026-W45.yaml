@@ -763,3 +763,45 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.init-owner-id-for-non-ascii-names
+    - id: actual.self-next-shows-people-work-this-week.ai-codex-local.20261104T1714060700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.next-shows-people-work-this-week
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.next-shows-people-work-this-week.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.27
+      unit: agent_hours
+      occurred_at: "2026-11-04T17:14:06+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.next-shows-people-work-this-week
+    - id: actual.self-next-shows-people-work-this-week.ai-agent-executor.20261104T1714060700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.next-shows-people-work-this-week
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.next-shows-people-work-this-week.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.36
+      unit: agent_hours
+      occurred_at: "2026-11-04T17:14:06+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.next-shows-people-work-this-week

@@ -6175,7 +6175,7 @@ tasks:
       title: Show in next what people are planned to do this week
       description: 'next lists actions (accept, review, decide) but not planned work: decision tasks of a customer planned for this week did not appear under Waiting on a person. Add a section of tasks with human demands whose planned dates fall in the week and that are not done.'
       type: implementation
-      tracking_status: in_progress
+      tracking_status: review_ready
       planned_start: "2026-11-04"
       planned_finish: "2026-11-04"
       assignee_hint:

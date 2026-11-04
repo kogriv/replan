@@ -514,3 +514,14 @@ evidence:
       targets:
         - kind: task
           id: task.self.next-shows-people-work-this-week
+    - id: evidence.self.next-shows-people-work-this-week
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T17:14:06+07:00"
+      summary: 'Feature commit: next shows Planned for people this week (planned_for_people). Executor review added the unit per person (review_hours was shown as hours) and rounding in text. A copy of the consumer''s plan lists 13 tasks of people for W45, including the customer''s decisions. Gate green incl. 79 live kit checks. Codex 16:41:06-16:57:32; executor start and a failed launch (k99 GitHub key missing, fetch moved to https) 16:35:21-16:41:06, review 16:58:06-17:14.'
+      targets:
+        - kind: task
+          id: task.self.next-shows-people-work-this-week
