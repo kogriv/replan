@@ -889,3 +889,171 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.calibration-starting-factor
+    - id: actual.self-source-profile-checked-early.ci-github-actions.20261104T2108500700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.source-profile-checked-early
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.source-profile-checked-early.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-11-04T21:08:50+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-source-profile-checked-early
+    - id: actual.self-workload-skips-closed-demands.ci-github-actions.20261104T2109440700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.workload-skips-closed-demands
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.workload-skips-closed-demands.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-11-04T21:09:44+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-workload-skips-closed-demands
+    - id: actual.self-quiet-unresolved-dependency-on-undated-successor.ci-github-actions.20261104T2110290700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.quiet-unresolved-dependency-on-undated-successor
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.quiet-unresolved-dependency-on-undated-successor.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-11-04T21:10:29+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-quiet-unresolved-dependency-on-undated-successor
+    - id: actual.self-rename-resource-and-actor.ci-github-actions.20261104T2111010700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.rename-resource-and-actor
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.rename-resource-and-actor.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-11-04T21:11:01+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-rename-resource-and-actor
+    - id: actual.self-init-owner-id-for-non-ascii-names.ci-github-actions.20261104T2111350700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.init-owner-id-for-non-ascii-names
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.init-owner-id-for-non-ascii-names.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-11-04T21:11:35+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-init-owner-id-for-non-ascii-names
+    - id: actual.self-next-shows-people-work-this-week.ci-github-actions.20261104T2112120700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.next-shows-people-work-this-week
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.next-shows-people-work-this-week.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-11-04T21:12:12+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-next-shows-people-work-this-week
+    - id: actual.self-calibrated-agent-load.ci-github-actions.20261104T2112480700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.calibrated-agent-load
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.calibrated-agent-load.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-11-04T21:12:48+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-calibrated-agent-load
+    - id: actual.self-calibration-starting-factor.ci-github-actions.20261104T2113230700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.calibration-starting-factor
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.calibration-starting-factor.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-11-04T21:13:23+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-calibration-starting-factor

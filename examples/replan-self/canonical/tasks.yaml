@@ -6035,7 +6035,7 @@ tasks:
       title: Give init an explicit owner id and warn when a name yields no id
       description: 'replan init --owner with a Cyrillic name produced actor.human.project and resource.human.project because every character fell out of the slug. Add --owner-id, and when the slug from --owner is empty or falls back, refuse or warn with a clear code and the suggested flag.'
       type: implementation
-      tracking_status: review_ready
+      tracking_status: accepted
       planned_start: "2026-11-04"
       planned_finish: "2026-11-04"
       assignee_hint:
@@ -6119,7 +6119,7 @@ tasks:
       title: Stop warning about every open dependency of an undated successor
       description: 'In a fresh plan validate printed required_dependency_unresolved for all 27 open dependencies: the warning fires when the successor has no planned start. Warn only when the successor has started or is planned to start by the status date; report undated successors once as a separate, quieter diagnostic.'
       type: implementation
-      tracking_status: review_ready
+      tracking_status: accepted
       planned_start: "2026-11-04"
       planned_finish: "2026-11-04"
       assignee_hint:
@@ -6175,7 +6175,7 @@ tasks:
       title: Show in next what people are planned to do this week
       description: 'next lists actions (accept, review, decide) but not planned work: decision tasks of a customer planned for this week did not appear under Waiting on a person. Add a section of tasks with human demands whose planned dates fall in the week and that are not done.'
       type: implementation
-      tracking_status: review_ready
+      tracking_status: accepted
       planned_start: "2026-11-04"
       planned_finish: "2026-11-04"
       assignee_hint:
@@ -6261,7 +6261,7 @@ tasks:
       title: Check the OpenProject source profile before the last step
       description: 'publish-openproject-overlay refused with overlay_other_project because .replan/project.yaml had no source profile with project_id; init does not write one and bootstrap and relations work without it, so the gap shows only at the end. Have bootstrap write or require the profile, or check it in the first helper, and document it in Set up.'
       type: implementation
-      tracking_status: review_ready
+      tracking_status: accepted
       planned_start: "2026-11-04"
       planned_finish: "2026-11-04"
       assignee_hint:
@@ -6321,7 +6321,7 @@ tasks:
       title: Show agent load with the approved calibration applied
       description: 'Decided on 2026-11-04 (agent effort units design, option B, step 1). workload, report weekly, report state and the dashboard compare calibrated open demand of an agent resource with its real capacity, using CalibrationFactor per size band of an approved sealed calibration whose scope covers the resource and unit. Every row names the calibration applied; --raw and a raw column in JSON keep the uncalibrated load. Without a matching calibration nothing changes. Planned amounts are not rewritten.'
       type: implementation
-      tracking_status: review_ready
+      tracking_status: accepted
       planned_start: "2026-11-04"
       planned_finish: "2026-11-04"
       assignee_hint:
@@ -6350,7 +6350,7 @@ tasks:
       title: Allow a sealed starting factor for a project without a sample
       description: 'Decided on 2026-11-04 (agent effort units design, option B, step 2). replan estimate calibrate --prior FACTOR --source TEXT writes a sealed, approved calibration with method prior, the cited source and no sample, refused without a human approver. replan next suggests replacing it once the project''s own clean sample reaches the minimum. Validate checks the new method.'
       type: implementation
-      tracking_status: review_ready
+      tracking_status: accepted
       planned_start: "2026-11-04"
       planned_finish: "2026-11-04"
       assignee_hint:
@@ -6406,7 +6406,7 @@ tasks:
       title: Leave cancelled and superseded demands out of load
       description: 'workload and report weekly add the planned_amount of every demand whatever its status, so a demand moved to another person (status superseded) still loads the old resource; a consumer had to set planned_amount 0, and could not delete the demand because a baseline refers to it. Cancelled and superseded demands must not count in planned or remaining load (consumed ones keep their actuals); the dashboard and the overlay follow the same rule; tests for each status.'
       type: implementation
-      tracking_status: review_ready
+      tracking_status: accepted
       planned_start: "2026-11-04"
       planned_finish: "2026-11-04"
       assignee_hint:
@@ -6462,7 +6462,7 @@ tasks:
       title: Add a command to rename a resource or an actor
       description: 'Display names of resources and actors can be changed only in YAML, the first thing needed when roles change. Add replan resource set-name and actor set-name (display name only, ids unchanged), with dry run, apply and audit, and update the quickstart note that says it is not possible.'
       type: implementation
-      tracking_status: review_ready
+      tracking_status: accepted
       planned_start: "2026-11-04"
       planned_finish: "2026-11-04"
       assignee_hint:

@@ -569,3 +569,107 @@ evidence:
       targets:
         - kind: task
           id: task.self.calibration-starting-factor
+    - id: evidence.self.accept-source-profile-checked-early
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-04T21:08:50+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-04: the source profile is checked before the overlay build.'
+      targets:
+        - kind: task
+          id: task.self.source-profile-checked-early
+    - id: evidence.self.accept-workload-skips-closed-demands
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-04T21:09:44+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-04: workload skips cancelled, superseded and released demands.'
+      targets:
+        - kind: task
+          id: task.self.workload-skips-closed-demands
+    - id: evidence.self.accept-quiet-unresolved-dependency-on-undated-successor
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-04T21:10:29+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-04: validate stays quiet about dependencies of undated planned-ahead successors.'
+      targets:
+        - kind: task
+          id: task.self.quiet-unresolved-dependency-on-undated-successor
+    - id: evidence.self.accept-rename-resource-and-actor
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-04T21:11:01+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-04: resource set-name and actor set-name.'
+      targets:
+        - kind: task
+          id: task.self.rename-resource-and-actor
+    - id: evidence.self.accept-init-owner-id-for-non-ascii-names
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-04T21:11:35+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-04: init derives an owner id from non-ASCII names and takes --owner-id.'
+      targets:
+        - kind: task
+          id: task.self.init-owner-id-for-non-ascii-names
+    - id: evidence.self.accept-next-shows-people-work-this-week
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-04T21:12:12+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-04: next shows planned work for people this week.'
+      targets:
+        - kind: task
+          id: task.self.next-shows-people-work-this-week
+    - id: evidence.self.accept-calibrated-agent-load
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-04T21:12:48+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-04: agent load uses the approved calibration.'
+      targets:
+        - kind: task
+          id: task.self.calibrated-agent-load
+    - id: evidence.self.accept-calibration-starting-factor
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-04T21:13:23+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-04: a sealed starting calibration factor.'
+      targets:
+        - kind: task
+          id: task.self.calibration-starting-factor
