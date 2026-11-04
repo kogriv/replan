@@ -159,3 +159,14 @@ evidence:
       targets:
         - kind: task
           id: task.self.format-compatibility-guard
+    - id: evidence.self.format-compatibility-guard
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T11:15:17+07:00"
+      summary: 'Feature commit ac3c461: docs/spec/file-format-compatibility.md, frozen small-team fixtures from v0.1.0 and v0.3.0 under internal/app/testdata/format-v1 (byte-identical to the tags), and a guard test (strict field decode, load, validate, workload, report state, migrate dry run, seals; unknown task field survives a splice). Gate green: vet, lint, shellcheck, go test, kit, py, smoke, iso, live throwaway. Codex 09:44:21-09:58:45 on 2026-11-03; executor brief 09:40:52-09:44:26 and review 10:59-11:15 on 2026-11-04.'
+      targets:
+        - kind: task
+          id: task.self.format-compatibility-guard
