@@ -29,10 +29,14 @@ a days, weeks or months scale, jumps, a time slider, foldable controls, full
 screen, and up to five task pages kept open as tabs. A task's page shows
 the task with its resource lanes on a Gantt axis of its own, warnings and
 proposals in words, what was done, planned, booked and remaining amounts,
-time booked by date, and what it depends on and what waits on it, each a link
+agent hours as planned and calibrated amounts, time booked by date, and what
+it depends on and what waits on it, each a link
 to its own page. All colours come from OpenProject's
 Primer variables. The design is in
 `docs/dev/openproject-plugin-redesign-design.md`.
+
+Agent hours are read only from RePlan resource demands. OpenProject
+`estimatedTime` remains people's hours and is not changed by this plugin.
 
 Tests: `ruby -Ilib test/overlay_presenter_test.rb` and
 `ruby -Ilib test/gantt_presenter_test.rb`,

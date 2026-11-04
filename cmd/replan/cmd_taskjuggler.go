@@ -29,6 +29,7 @@ type TaskJugglerRunResult struct {
 	ID                     string   `json:"id"`
 	ProjectPath            string   `json:"project_path"`
 	ScenarioID             string   `json:"scenario_id,omitempty"`
+	Calibrations           []string `json:"calibrations,omitempty"`
 	OutputDir              string   `json:"output_dir"`
 	TaskJugglerPath        string   `json:"taskjuggler_path,omitempty"`
 	TaskJugglerVersion     string   `json:"taskjuggler_version,omitempty"`
@@ -55,6 +56,7 @@ type TaskJugglerRunManifest struct {
 	Command                  string                         `json:"command"`
 	ProjectPath              string                         `json:"project_path"`
 	ScenarioID               string                         `json:"scenario_id,omitempty"`
+	Calibrations             []string                       `json:"calibrations,omitempty"`
 	OutputDir                string                         `json:"output_dir"`
 	TaskJugglerPath          string                         `json:"taskjuggler_path"`
 	TaskJugglerVersion       string                         `json:"taskjuggler_version,omitempty"`
@@ -340,6 +342,7 @@ func runTaskJugglerRunArtifacts(ctx context.Context, req taskJugglerRunRequest) 
 	})
 	warnings = append(warnings, exportResult.Warnings...)
 	errorsOut = append(errorsOut, exportResult.Errors...)
+	result.Calibrations = append([]string(nil), exportResult.Calibrations...)
 	if exportErr != nil {
 		return result, warnings, errorsOut, exportErr
 	}
@@ -493,6 +496,7 @@ func runTaskJugglerRunArtifacts(ctx context.Context, req taskJugglerRunRequest) 
 		Command:                  "taskjuggler run",
 		ProjectPath:              req.ProjectPath,
 		ScenarioID:               req.ScenarioID,
+		Calibrations:             append([]string(nil), exportResult.Calibrations...),
 		OutputDir:                outputDir,
 		TaskJugglerPath:          taskJugglerPath,
 		TaskJugglerVersion:       result.TaskJugglerVersion,
@@ -702,6 +706,7 @@ func runExportTaskJuggler(args []string, stdout, stderr *os.File) int {
 	manifest := fs.String("manifest", "", "path to write export manifest JSON; used only with --output")
 	format := fs.String("format", "text", "output format: text or json")
 	scenarioID := fs.String("scenario", "", "scenario id to apply as an in-memory overlay")
+	raw := fs.Bool("raw", false, "export raw demand effort without estimate calibration")
 	unrepresentedAssumptions := fs.String("unrepresented-assumptions", "warn", "how to handle scenario assumptions not represented in TaskJuggler .tjp: warn or error")
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
@@ -756,6 +761,7 @@ func runExportTaskJuggler(args []string, stdout, stderr *os.File) int {
 	result, err := app.NewExportService(newStore(*projectPath)).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{
 		ScenarioID:                   *scenarioID,
 		UnrepresentedAssumptionsMode: *unrepresentedAssumptions,
+		Raw:                          *raw,
 	})
 	if err != nil && diagnosticsContainNotFound(result.Errors) {
 		env := envelope{OK: false, Command: "export taskjuggler", ProjectPath: *projectPath, Result: result, Warnings: result.Warnings, Errors: result.Errors}
@@ -810,12 +816,13 @@ func runExportTaskJuggler(args []string, stdout, stderr *os.File) int {
 }
 
 type exportTaskJugglerCLIResult struct {
-	Metadata   app.ExportMetadata `json:"metadata"`
-	Scenario   string             `json:"scenario,omitempty"`
-	Content    string             `json:"content,omitempty"`
-	OutputPath string             `json:"output_path,omitempty"`
-	Warnings   []app.Diagnostic   `json:"warnings"`
-	Errors     []app.Diagnostic   `json:"errors"`
+	Metadata     app.ExportMetadata `json:"metadata"`
+	Scenario     string             `json:"scenario,omitempty"`
+	Calibrations []string           `json:"calibrations,omitempty"`
+	Content      string             `json:"content,omitempty"`
+	OutputPath   string             `json:"output_path,omitempty"`
+	Warnings     []app.Diagnostic   `json:"warnings"`
+	Errors       []app.Diagnostic   `json:"errors"`
 }
 
 func printExportTaskJugglerJSON(stdout *os.File, result app.ExportTaskJugglerResult, outputPath string) error {
@@ -826,11 +833,12 @@ func printExportTaskJugglerJSON(stdout *os.File, result app.ExportTaskJugglerRes
 	enc := json.NewEncoder(stdout)
 	enc.SetIndent("", "  ")
 	return enc.Encode(exportTaskJugglerCLIResult{
-		Metadata:   result.Metadata,
-		Scenario:   result.Scenario,
-		Content:    content,
-		OutputPath: outputPath,
-		Warnings:   result.Warnings,
-		Errors:     result.Errors,
+		Metadata:     result.Metadata,
+		Scenario:     result.Scenario,
+		Calibrations: result.Calibrations,
+		Content:      content,
+		OutputPath:   outputPath,
+		Warnings:     result.Warnings,
+		Errors:       result.Errors,
 	})
 }

@@ -50,6 +50,7 @@ func TestWeeklyReportSmallTeamFixture(t *testing.T) {
 func TestWeeklyAndDashboardUseCalibratedLoad(t *testing.T) {
 	calibration := sealedWorkloadCalibration(t, "calibration.agent", "2026-11-01T10:00:00Z", "", .2, nil, nil, nil)
 	ws := calibratedWorkloadWorkspace(calibration)
+	ws.Tasks[0].SourceRefs = []domain.SourceRef{{Source: "openproject", ObjectType: "work_package", ObjectID: "7"}}
 	service := app.NewReportService(staticWorkspaceLoader{workspace: ws})
 
 	weekly, err := service.Weekly(context.Background(), app.WeeklyReportRequest{Week: "2026-W45"})
@@ -70,6 +71,13 @@ func TestWeeklyAndDashboardUseCalibratedLoad(t *testing.T) {
 	if len(dashboard.Gantt.ResourceLoads) != 1 || len(dashboard.Gantt.ResourceLoads[0].DailyAmounts) == 0 {
 		t.Fatalf("dashboard resource loads = %#v", dashboard.Gantt.ResourceLoads)
 	}
+	if len(dashboard.OpenProjectOverlay.WorkPackages) != 1 || len(dashboard.OpenProjectOverlay.WorkPackages[0].ResourceDemands) != 1 {
+		t.Fatalf("overlay work packages = %#v", dashboard.OpenProjectOverlay.WorkPackages)
+	}
+	overlayDemand := dashboard.OpenProjectOverlay.WorkPackages[0].ResourceDemands[0]
+	if overlayDemand.PlannedAmount != 6 || overlayDemand.RemainingAmount != 5 || overlayDemand.CalibratedPlannedAmount == nil || *overlayDemand.CalibratedPlannedAmount != 1.25 || overlayDemand.CalibratedRemainingAmount == nil || *overlayDemand.CalibratedRemainingAmount != 1 || overlayDemand.CalibrationID != "calibration.agent" {
+		t.Fatalf("calibrated overlay demand = %#v", overlayDemand)
+	}
 
 	raw, err := service.Dashboard(context.Background(), app.DashboardReportRequest{Week: "2026-W45", Raw: true})
 	if err != nil {
@@ -77,6 +85,10 @@ func TestWeeklyAndDashboardUseCalibratedLoad(t *testing.T) {
 	}
 	if raw.Workload[0].Planned != 6 || raw.Gantt.Tasks[0].Allocations[0].PlannedAmount != 6 {
 		t.Fatalf("raw dashboard = workload %#v allocations %#v", raw.Workload, raw.Gantt.Tasks[0].Allocations)
+	}
+	rawDemand := raw.OpenProjectOverlay.WorkPackages[0].ResourceDemands[0]
+	if rawDemand.CalibratedPlannedAmount != nil || rawDemand.CalibratedRemainingAmount != nil || rawDemand.CalibrationID != "" {
+		t.Fatalf("raw overlay demand has calibration fields: %#v", rawDemand)
 	}
 }
 

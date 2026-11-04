@@ -2488,6 +2488,9 @@ func TestImportTaskJugglerResultWriteCandidateWritesScenarioAndProposal(t *testi
 	if result.PreviewOnly {
 		t.Fatalf("PreviewOnly = true, want false")
 	}
+	if len(result.Calibrations) != 1 || result.Calibrations[0] != "calibration.agent" {
+		t.Fatalf("Calibrations = %#v", result.Calibrations)
+	}
 	if len(result.WrittenFiles) != 2 {
 		t.Fatalf("WrittenFiles len = %d, want 2: %#v", len(result.WrittenFiles), result.WrittenFiles)
 	}
@@ -2777,8 +2780,9 @@ func writeTaskJugglerImportFixture(t *testing.T, runDir, report string) {
 		t.Fatalf("mkdir reports: %v", err)
 	}
 	if err := writeJSONFile(filepath.Join(runDir, "run.manifest.json"), TaskJugglerRunManifest{
-		ID:          "taskjuggler.run.20260713T120000Z",
-		MappingPath: filepath.Join(runDir, "taskjuggler.mapping.json"),
+		ID:           "taskjuggler.run.20260713T120000Z",
+		Calibrations: []string{"calibration.agent"},
+		MappingPath:  filepath.Join(runDir, "taskjuggler.mapping.json"),
 		Reports: []TaskJugglerRunReportArtifact{{
 			Kind: "taskjuggler_task_schedule_csv",
 			Path: filepath.Join("reports", "replan-task-schedule.csv"),

@@ -25,7 +25,7 @@ func dashboardOpenProjectOverlay(ws domain.Workspace, overview reports.Dashboard
 	for _, row := range overview.Tracking {
 		trackingByTaskID[row.TaskID] = row
 	}
-	index := newOverlayIndex(ws, overview)
+	index := newOverlayIndex(ws, overview, raw)
 
 	overlay := reports.DashboardOpenProjectOverlay{
 		SchemaVersion:        overlaySchemaVersion,
@@ -77,7 +77,7 @@ func dashboardOpenProjectOverlay(ws domain.Workspace, overview reports.Dashboard
 			DurationDays:          ganttTask.DurationDays,
 			ResourceIDs:           append([]string{}, ganttTask.ResourceIDs...),
 			OverloadedResourceIDs: append([]string{}, ganttTask.OverloadedResourceIDs...),
-			ResourceDemands:       dashboardOpenProjectOverlayDemands(ganttTask.Allocations, tracking.Demands),
+			ResourceDemands:       dashboardOpenProjectOverlayDemands(ganttTask.Allocations, tracking.Demands, index),
 			WarningCodes:          append([]string{}, ganttTask.WarningCodes...),
 			DependencyCount:       ganttTask.DependencyCount,
 			OpenDependencyCount:   ganttTask.OpenDependencyCount,
@@ -116,11 +116,12 @@ type overlayIndex struct {
 	warnings          map[string][]reports.ReportIssue
 	proposals         map[string][]reports.DashboardOpenProjectOverlayProposal
 	dependencies      map[string][]reports.DashboardOpenProjectOverlayDependency
+	calibrations      map[string]DemandCalibration
 	demandTaskIDs     map[string]string
 	dependencyTaskIDs map[string]string
 }
 
-func newOverlayIndex(ws domain.Workspace, overview reports.DashboardOverview) overlayIndex {
+func newOverlayIndex(ws domain.Workspace, overview reports.DashboardOverview, raw bool) overlayIndex {
 	index := overlayIndex{
 		ws:                ws,
 		tasks:             map[string]domain.Task{},
@@ -133,8 +134,12 @@ func newOverlayIndex(ws domain.Workspace, overview reports.DashboardOverview) ov
 		warnings:          map[string][]reports.ReportIssue{},
 		proposals:         map[string][]reports.DashboardOpenProjectOverlayProposal{},
 		dependencies:      map[string][]reports.DashboardOpenProjectOverlayDependency{},
+		calibrations:      map[string]DemandCalibration{},
 		demandTaskIDs:     map[string]string{},
 		dependencyTaskIDs: map[string]string{},
+	}
+	if !raw {
+		index.calibrations = ApplicableDemandCalibrations(calibrationSelectionWorkspace(ws, overview.ScenarioID))
 	}
 	for _, task := range ws.Tasks {
 		index.tasks[task.ID] = task
@@ -483,7 +488,7 @@ func dashboardGanttTasksByID(gantt reports.DashboardGanttView) map[string]report
 	return result
 }
 
-func dashboardOpenProjectOverlayDemands(allocations []reports.DashboardGanttResourceAllocation, tracking []reports.DashboardDemandTracking) []reports.DashboardOpenProjectOverlayResourceDemand {
+func dashboardOpenProjectOverlayDemands(allocations []reports.DashboardGanttResourceAllocation, tracking []reports.DashboardDemandTracking, index overlayIndex) []reports.DashboardOpenProjectOverlayResourceDemand {
 	trackingByDemandID := map[string]reports.DashboardDemandTracking{}
 	for _, demand := range tracking {
 		trackingByDemandID[demand.DemandID] = demand
@@ -492,7 +497,7 @@ func dashboardOpenProjectOverlayDemands(allocations []reports.DashboardGanttReso
 	result := []reports.DashboardOpenProjectOverlayResourceDemand{}
 	for _, allocation := range allocations {
 		demandTracking := trackingByDemandID[allocation.DemandID]
-		result = append(result, reports.DashboardOpenProjectOverlayResourceDemand{
+		view := reports.DashboardOpenProjectOverlayResourceDemand{
 			DemandID:                  allocation.DemandID,
 			ResourceID:                firstNonEmpty(allocation.ResourceID, demandTracking.ResourceID),
 			ResourceClass:             firstNonEmpty(allocation.ResourceClass, demandTracking.ResourceClass),
@@ -517,7 +522,9 @@ func dashboardOpenProjectOverlayDemands(allocations []reports.DashboardGanttReso
 			Overloaded:                allocation.Overloaded,
 			OverCapacity:              allocation.OverCapacity,
 			Flags:                     append([]string{}, demandTracking.Flags...),
-		})
+		}
+		applyOverlayDemandCalibration(&view, index)
+		result = append(result, view)
 		seen[allocation.DemandID] = true
 	}
 	for _, demandTracking := range tracking {
@@ -528,7 +535,7 @@ func dashboardOpenProjectOverlayDemands(allocations []reports.DashboardGanttReso
 		if closedDemandFlags(demandTracking.Flags) {
 			plannedAmount, remainingAmount = 0, 0
 		}
-		result = append(result, reports.DashboardOpenProjectOverlayResourceDemand{
+		view := reports.DashboardOpenProjectOverlayResourceDemand{
 			DemandID:        demandTracking.DemandID,
 			ResourceID:      demandTracking.ResourceID,
 			ResourceClass:   demandTracking.ResourceClass,
@@ -541,7 +548,9 @@ func dashboardOpenProjectOverlayDemands(allocations []reports.DashboardGanttReso
 			VarianceAmount:  demandTracking.Variance,
 			EvidenceCount:   demandTracking.EvidenceCount,
 			Flags:           append([]string{}, demandTracking.Flags...),
-		})
+		}
+		applyOverlayDemandCalibration(&view, index)
+		result = append(result, view)
 	}
 	sort.Slice(result, func(i, j int) bool {
 		if result[i].ResourceID == result[j].ResourceID {
@@ -550,6 +559,21 @@ func dashboardOpenProjectOverlayDemands(allocations []reports.DashboardGanttReso
 		return result[i].ResourceID < result[j].ResourceID
 	})
 	return result
+}
+
+func applyOverlayDemandCalibration(view *reports.DashboardOpenProjectOverlayResourceDemand, index overlayIndex) {
+	calibration, ok := index.calibrations[view.DemandID]
+	if !ok {
+		return
+	}
+	demand := index.demands[view.DemandID]
+	calibratedPlanned := calibratedLoadAmount(demand.PlannedAmount, calibration.Factor)
+	calibratedRemaining := calibratedLoadAmount(demand.Remaining(), calibration.Factor)
+	view.PlannedAmount = demand.PlannedAmount
+	view.RemainingAmount = demand.Remaining()
+	view.CalibratedPlannedAmount = &calibratedPlanned
+	view.CalibratedRemainingAmount = &calibratedRemaining
+	view.CalibrationID = calibration.Calibration.ID
 }
 
 func closedDemandFlags(flags []string) bool {

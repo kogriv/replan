@@ -147,7 +147,7 @@ Supported RePlan capacity shape:
 ```text
 capacity.type == periodic_capacity
 capacity.resource_class in [human, ai_agent]
-capacity.unit in [hour, hours, h]
+capacity.unit in [hour, hours, h, agent_hours]
 capacity.period == week
 ```
 
@@ -162,6 +162,8 @@ resource resource_human_ivan "Ivan" {
 Rules:
 
 - multiple matching weekly hour capacities for the same resource are summed;
+- `agent_hours` is mapped by the calibrated default export; `--raw` keeps the
+  former export byte-compatible and leaves it unsupported;
 - zero capacity is still represented as `weeklymax 0.00h`;
 - the mapping is emitted on the resource block;
 - a scenario change to such a capacity is considered represented in `.tjp`;
@@ -176,7 +178,6 @@ periodic human hours per month
 periodic AI-agent hours per day
 periodic AI-agent hours per month
 review_hours
-agent_hours
 effective date ranges
 availability-window to shift conversion
 reduced-capacity exception to limit conversion

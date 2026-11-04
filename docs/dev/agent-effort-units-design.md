@@ -111,8 +111,8 @@ Build it in three steps, each its own task:
    labelled, with `--raw`;
 2. **Done 2026-11-04:** `estimate calibrate --prior` and the `next`
    suggestion to replace it;
-3. the same calibrated amounts in the TaskJuggler export and drafted
-   dates, and the "Agent hours" line on the RePlan tab.
+3. **Done 2026-11-04:** the same calibrated amounts in the TaskJuggler export
+   and drafted dates, and the "Agent hours" line on the RePlan tab.
 
 Until then a project can use option A as a stopgap, but should say so in
 its plan README.

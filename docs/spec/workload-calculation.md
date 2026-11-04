@@ -105,6 +105,13 @@ both typed and calibrated demand amounts. Pass `--raw` to `workload`, `report
 weekly`, `report state` or `report dashboard` to turn calibration off for that
 run.
 
+TaskJuggler export follows the same rule for remaining effort, or planned
+effort when remaining is absent. Its task comments and JSON result name the
+calibrations used. Pass `replan export taskjuggler --raw` to schedule the raw
+amounts with the former export's supported units. TaskJuggler calculates the
+dates from that effort; importing its CSV reads those scheduled start and
+finish dates and does not recalculate effort.
+
 ## Inputs
 
 Workload calculation uses:

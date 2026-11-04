@@ -560,8 +560,11 @@ type DashboardOpenProjectOverlayResourceDemand struct {
 	Role                      string   `json:"role,omitempty"`
 	Unit                      string   `json:"unit,omitempty"`
 	PlannedAmount             float64  `json:"planned_amount,omitempty"`
+	CalibratedPlannedAmount   *float64 `json:"calibrated_planned_amount,omitempty"`
 	ActualAmount              float64  `json:"actual_amount,omitempty"`
 	RemainingAmount           float64  `json:"remaining_amount,omitempty"`
+	CalibratedRemainingAmount *float64 `json:"calibrated_remaining_amount,omitempty"`
+	CalibrationID             string   `json:"calibration_id,omitempty"`
 	ForecastAmount            float64  `json:"forecast_amount,omitempty"`
 	VarianceAmount            float64  `json:"variance_amount,omitempty"`
 	EvidenceCount             int      `json:"evidence_count,omitempty"`

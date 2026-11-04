@@ -59,6 +59,26 @@ class TaskPresenterTest < Minitest::Test
                  task.demands.map { |demand| demand.values_at("resource", "planned", "actual", "remaining", "window") }
   end
 
+  def test_agent_hours_are_absent_without_agent_demands
+    assert_nil task.agent_hours
+  end
+
+  def test_agent_hours_show_planned_only_without_calibration
+    agent = { "demand_id" => "demand.agent", "resource_id" => "resource.agent", "resource_class" => "ai_agent",
+              "unit" => "hours", "planned_amount" => 4 }
+    assert_equal "Agent hours: planned 4 h", task("resource_demands" => [agent]).agent_hours
+  end
+
+  def test_agent_hours_show_planned_and_calibrated_totals
+    calibrated = { "demand_id" => "demand.agent.one", "resource_id" => "resource.agent", "resource_class" => "ai_agent",
+                   "unit" => "agent_hours", "planned_amount" => 4, "calibrated_planned_amount" => 0.84 }
+    raw = { "demand_id" => "demand.agent.two", "resource_id" => "resource.agent", "resource_class" => "ai_agent",
+            "unit" => "hours", "planned_amount" => 1 }
+    presenter = task("resource_demands" => [calibrated, raw])
+    assert_equal "Agent hours: planned 5 h, calibrated 1.84 h", presenter.agent_hours
+    assert_equal "4 agent h (calibrated 0.84 agent h)", presenter.demands.first["planned"]
+  end
+
   def test_signals_are_words
     assert_equal ["Demand has no capacity.", "Open proposal: Move it a week.", "Overloaded: Person"], task.signals.map { |signal| signal["text"] }
   end

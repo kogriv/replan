@@ -14,16 +14,18 @@ import (
 type ExportTaskJugglerRequest struct {
 	ScenarioID                   string
 	UnrepresentedAssumptionsMode string
+	Raw                          bool
 	Now                          time.Time
 }
 
 type ExportTaskJugglerResult struct {
-	Metadata ExportMetadata           `json:"metadata"`
-	Scenario string                   `json:"scenario,omitempty"`
-	Content  string                   `json:"content,omitempty"`
-	Mapping  TaskJugglerExportMapping `json:"mapping"`
-	Warnings []Diagnostic             `json:"warnings"`
-	Errors   []Diagnostic             `json:"errors"`
+	Metadata     ExportMetadata           `json:"metadata"`
+	Scenario     string                   `json:"scenario,omitempty"`
+	Calibrations []string                 `json:"calibrations,omitempty"`
+	Content      string                   `json:"content,omitempty"`
+	Mapping      TaskJugglerExportMapping `json:"mapping"`
+	Warnings     []Diagnostic             `json:"warnings"`
+	Errors       []Diagnostic             `json:"errors"`
 }
 
 type TaskJugglerExportMapping struct {
@@ -45,8 +47,10 @@ type TaskJugglerResourceIDMapping struct {
 }
 
 type taskJugglerDemand struct {
-	resourceID string
-	effort     float64
+	resourceID    string
+	effort        float64
+	rawEffort     float64
+	calibrationID string
 }
 
 type taskJugglerResourceLimit struct {
@@ -78,7 +82,7 @@ func (s ExportService) TaskJuggler(ctx context.Context, req ExportTaskJugglerReq
 		if len(overlay.Errors) == 0 {
 			ws = overlay.Workspace
 			result.Scenario = overlay.Scenario.ID
-			appendTaskJugglerUnrepresentedCapacityDiagnostics(overlay.Workspace, overlay.Scenario, req.UnrepresentedAssumptionsMode, &result.Warnings, &result.Errors)
+			appendTaskJugglerUnrepresentedCapacityDiagnostics(overlay.Workspace, overlay.Scenario, req.UnrepresentedAssumptionsMode, !req.Raw, &result.Warnings, &result.Errors)
 		}
 	}
 	if len(result.Errors) > 0 {
@@ -88,7 +92,11 @@ func (s ExportService) TaskJuggler(ctx context.Context, req ExportTaskJugglerReq
 	if len(result.Errors) > 0 {
 		return result, ErrValidationFailed
 	}
-	result.Content = buildTaskJugglerContent(ws, result.Metadata, result.Scenario, result.Mapping, &result.Warnings)
+	calibrations := map[string]DemandCalibration{}
+	if !req.Raw {
+		calibrations = ApplicableDemandCalibrations(calibrationSelectionWorkspace(ws, result.Scenario))
+	}
+	result.Content, result.Calibrations = buildTaskJugglerContent(ws, result.Metadata, result.Scenario, result.Mapping, calibrations, !req.Raw, &result.Warnings)
 	return result, nil
 }
 
@@ -139,7 +147,7 @@ func buildTaskJugglerExportMapping(ws domain.Workspace, projectPath, scenarioID 
 	return mapping
 }
 
-func appendTaskJugglerUnrepresentedCapacityDiagnostics(ws domain.Workspace, scenario domain.Scenario, mode string, warnings, errors *[]Diagnostic) {
+func appendTaskJugglerUnrepresentedCapacityDiagnostics(ws domain.Workspace, scenario domain.Scenario, mode string, includeAgentHours bool, warnings, errors *[]Diagnostic) {
 	capacities := make(map[string]domain.Capacity, len(ws.Capacities))
 	for _, capacity := range ws.Capacities {
 		capacities[capacity.ID] = capacity
@@ -162,7 +170,7 @@ func appendTaskJugglerUnrepresentedCapacityDiagnostics(ws domain.Workspace, scen
 		if !ok {
 			continue
 		}
-		if isTaskJugglerWeeklyHourCapacity(capacity) {
+		if isTaskJugglerWeeklyHourCapacity(capacity, includeAgentHours) {
 			continue
 		}
 		*target = append(*target, Diagnostic{
@@ -174,13 +182,13 @@ func appendTaskJugglerUnrepresentedCapacityDiagnostics(ws domain.Workspace, scen
 	}
 }
 
-func isTaskJugglerWeeklyHourCapacity(capacity domain.Capacity) bool {
+func isTaskJugglerWeeklyHourCapacity(capacity domain.Capacity, includeAgentHours bool) bool {
 	capacityType := strings.ToLower(strings.TrimSpace(capacity.Type))
 	resourceClass := strings.ToLower(strings.TrimSpace(capacity.ResourceClass))
 	period := strings.ToLower(strings.TrimSpace(capacity.Period))
 	return capacityType == "periodic_capacity" &&
 		(resourceClass == "human" || resourceClass == "ai_agent") &&
-		isTaskJugglerEffortUnit(capacity.Unit) &&
+		isTaskJugglerEffortUnit(capacity.Unit, includeAgentHours) &&
 		period == "week"
 }
 
@@ -204,7 +212,7 @@ func taskJugglerCapacityChangeWarningMessage(scenarioID string, capacity domain.
 	return strings.Join(details, ", ") + "; this RePlan capacity amount is applied by workload reports but is not represented in the generated TaskJuggler .tjp export"
 }
 
-func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scenarioID string, mapping TaskJugglerExportMapping, warnings *[]Diagnostic) string {
+func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scenarioID string, mapping TaskJugglerExportMapping, calibrations map[string]DemandCalibration, includeAgentHours bool, warnings *[]Diagnostic) (string, []string) {
 	resourceIDs := make(map[string]struct{}, len(ws.Resources))
 	for _, resource := range ws.Resources {
 		resourceIDs[resource.ID] = struct{}{}
@@ -218,12 +226,16 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 		taskJugglerResourceIDs[entry.RePlanResourceID] = entry.TaskJugglerResourceID
 	}
 	vacationsByResource := taskJugglerVacationsByResource(ws.Availabilities)
-	limitsByResource := taskJugglerLimitsByResource(ws.Capacities, ws.Project.DefaultStatusDate, warnings)
+	limitsByResource := taskJugglerLimitsByResource(ws.Capacities, ws.Project.DefaultStatusDate, includeAgentHours, warnings)
 	demandsByTask := make(map[string][]taskJugglerDemand)
+	usedCalibrations := map[string]bool{}
 	for _, demand := range ws.ResourceDemands {
-		mapped, ok := mapTaskJugglerDemand(demand, resourceIDs, warnings)
+		mapped, ok := mapTaskJugglerDemand(demand, resourceIDs, calibrations[demand.ID], includeAgentHours, warnings)
 		if ok {
 			demandsByTask[demand.TaskRef.ID] = append(demandsByTask[demand.TaskRef.ID], mapped)
+			if mapped.calibrationID != "" {
+				usedCalibrations[mapped.calibrationID] = true
+			}
 		}
 	}
 
@@ -260,17 +272,22 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 	}
 	writeTaskJugglerParseableTaskReport(&b)
 
-	return b.String()
+	calibrationIDs := make([]string, 0, len(usedCalibrations))
+	for calibrationID := range usedCalibrations {
+		calibrationIDs = append(calibrationIDs, calibrationID)
+	}
+	sort.Strings(calibrationIDs)
+	return b.String(), calibrationIDs
 }
 
 // taskJugglerLimitsByResource maps weekly hour capacities to weeklymax. The
 // export has one limit per resource, so a capacity with effective dates
 // contributes only if it is in effect on the status date, with a warning that
 // the change over time is not exported.
-func taskJugglerLimitsByResource(capacities []domain.Capacity, statusDate string, warnings *[]Diagnostic) map[string]taskJugglerResourceLimit {
+func taskJugglerLimitsByResource(capacities []domain.Capacity, statusDate string, includeAgentHours bool, warnings *[]Diagnostic) map[string]taskJugglerResourceLimit {
 	out := map[string]taskJugglerResourceLimit{}
 	for _, capacity := range capacities {
-		if !isTaskJugglerWeeklyHourCapacity(capacity) || capacity.ResourceRef.ID == "" {
+		if !isTaskJugglerWeeklyHourCapacity(capacity, includeAgentHours) || capacity.ResourceRef.ID == "" {
 			continue
 		}
 		amount := capacityOnDate(capacity, statusDate)
@@ -301,11 +318,11 @@ func orOpen(date string) string {
 	return date
 }
 
-func mapTaskJugglerDemand(demand domain.ResourceDemand, resourceIDs map[string]struct{}, warnings *[]Diagnostic) (taskJugglerDemand, bool) {
+func mapTaskJugglerDemand(demand domain.ResourceDemand, resourceIDs map[string]struct{}, calibration DemandCalibration, includeAgentHours bool, warnings *[]Diagnostic) (taskJugglerDemand, bool) {
 	if !domain.DemandLoads(demand.Status) {
 		return taskJugglerDemand{}, false
 	}
-	if !isTaskJugglerEffortUnit(demand.Unit) {
+	if !isTaskJugglerEffortUnit(demand.Unit, includeAgentHours) {
 		*warnings = append(*warnings, Diagnostic{
 			Code:     "taskjuggler_unsupported_demand_unit",
 			Message:  fmt.Sprintf("resource demand %s uses unit %q, which cannot be represented as TaskJuggler effort in this export slice", demand.ID, demand.Unit),
@@ -350,9 +367,20 @@ func mapTaskJugglerDemand(demand domain.ResourceDemand, resourceIDs map[string]s
 		})
 		return taskJugglerDemand{}, false
 	}
+	rawEffort := effort
+	calibrationID := ""
+	if calibration.Calibration.ID != "" {
+		effort = calibratedLoadAmount(effort, calibration.Factor)
+		calibrationID = calibration.Calibration.ID
+	}
+	if effort <= 0 {
+		return taskJugglerDemand{}, false
+	}
 	return taskJugglerDemand{
-		resourceID: demand.ResourceRef.ID,
-		effort:     effort,
+		resourceID:    demand.ResourceRef.ID,
+		effort:        effort,
+		rawEffort:     rawEffort,
+		calibrationID: calibrationID,
 	}, true
 }
 
@@ -375,6 +403,9 @@ func writeTaskJugglerTask(b *strings.Builder, task domain.Task, taskJugglerTaskI
 	totalEffort := 0.0
 	allocated := map[string]struct{}{}
 	for _, demand := range demands {
+		if demand.calibrationID != "" {
+			fmt.Fprintf(b, "  # calibrated by %s: %.2fh -> %.2fh\n", demand.calibrationID, demand.rawEffort, demand.effort)
+		}
 		totalEffort += demand.effort
 		allocated[demand.resourceID] = struct{}{}
 	}
@@ -408,10 +439,12 @@ func writeTaskJugglerParseableTaskReport(b *strings.Builder) {
 	fmt.Fprintf(b, "}\n")
 }
 
-func isTaskJugglerEffortUnit(unit string) bool {
+func isTaskJugglerEffortUnit(unit string, includeAgentHours bool) bool {
 	switch strings.ToLower(strings.TrimSpace(unit)) {
 	case "hour", "hours", "h":
 		return true
+	case "agent_hours":
+		return includeAgentHours
 	default:
 		return false
 	}

@@ -35,7 +35,24 @@ module OpenProject
         facts << "planned #{window}" unless window.empty?
         booked = window_label(row["first_actual_date"], row["last_actual_date"])
         facts << "time booked #{booked}" unless booked.empty?
+        hours = agent_hours
+        facts << hours if hours
         facts.reject(&:empty?)
+      end
+
+      def agent_hours
+        demands = Array(row["resource_demands"]).select do |demand|
+          demand["resource_class"] == "ai_agent" && hour_unit?(demand["unit"])
+        end
+        return nil if demands.empty?
+
+        planned = demands.sum { |demand| numeric_amount(demand["planned_amount"]) }
+        calibrated = demands.sum do |demand|
+          numeric_amount(demand.key?("calibrated_planned_amount") ? demand["calibrated_planned_amount"] : demand["planned_amount"])
+        end
+        label = "Agent hours: planned #{amount_number(planned)} h"
+        label += ", calibrated #{amount_number(calibrated)} h" if demands.any? { |demand| demand.key?("calibrated_planned_amount") }
+        label
       end
 
       # The task and its lanes on an axis around the task window.
@@ -96,7 +113,7 @@ module OpenProject
             "resource" => demand["resource_name"].to_s.empty? ? resource_name(demand["resource_id"]) : demand["resource_name"].to_s,
             "resource_id" => demand["resource_id"].to_s,
             "demand_id" => demand["demand_id"].to_s,
-            "planned" => amount(demand["planned_amount"], unit),
+            "planned" => calibrated_amount(demand, unit),
             "actual" => amount(demand["actual_amount"], unit),
             "remaining" => amount(demand["remaining_amount"], unit),
             "window" => window_label(demand["start_date"], demand["finish_date"])
@@ -115,6 +132,28 @@ module OpenProject
       end
 
       private
+
+      def calibrated_amount(demand, unit)
+        planned = amount(demand["planned_amount"], unit)
+        return planned unless demand.key?("calibrated_planned_amount")
+
+        "#{planned} (calibrated #{amount(demand['calibrated_planned_amount'], unit)})"
+      end
+
+      def hour_unit?(unit)
+        %w[h hour hours agent_hours].include?(unit.to_s.downcase)
+      end
+
+      def numeric_amount(value)
+        Float(value || 0)
+      rescue ArgumentError, TypeError
+        0.0
+      end
+
+      def amount_number(value)
+        rounded = value.round(2)
+        rounded == rounded.to_i ? rounded.to_i : rounded
+      end
 
       def dependencies(direction)
         Array(row["dependencies"]).select { |dependency| dependency["direction"] == direction }.map do |dependency|

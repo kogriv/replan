@@ -2457,7 +2457,7 @@ Implemented command flags:
 
 ```text
 replan export json --project -p --bindings --format --manifest --output
-replan export taskjuggler --project -p --bindings --format --manifest --output --scenario --unrepresented-assumptions
+replan export taskjuggler --project -p --bindings --format --manifest --output --raw --scenario --unrepresented-assumptions
 replan export csv --project -p --bindings --manifest --output --report --scenario --week
 ```
 
@@ -2511,7 +2511,8 @@ Implemented TaskJuggler proof-of-concept:
   amount change that is applied by RePlan workload but not encoded in `.tjp`;
 - map narrow weekly hour capacities to TaskJuggler `limits { weeklymax ... }`
   when capacity type is `periodic_capacity`, resource class is `human` or
-  `ai_agent`, unit is `hour`, `hours` or `h`, and period is `week`;
+  `ai_agent`, unit is `hour`, `hours`, `h` or `agent_hours`, and period is
+  `week`;
 - treat mapped weekly hour capacity scenario changes as represented in `.tjp`;
 - support `--unrepresented-assumptions warn|error` for TaskJuggler export;
 - default `--unrepresented-assumptions` mode is `warn`;
@@ -2520,6 +2521,11 @@ Implemented TaskJuggler proof-of-concept:
   successful `.tjp` generation;
 - use `remaining_amount` for TaskJuggler `effort` when present, with
   `planned_amount` as fallback;
+- calibrate that effort by default with the workload selection rule, add a
+  task comment naming each calibration, and list used ids in the JSON
+  `calibrations` field;
+- use `--raw` to export the former uncalibrated `.tjp` output, including its
+  former unsupported handling of `agent_hours`;
 - use overlaid `resource_ref` for TaskJuggler `allocate`;
 - do not invoke TaskJuggler;
 - do not import TaskJuggler results;
@@ -2533,7 +2539,7 @@ Current TaskJuggler scenario overlay limitation:
   the shared overlay;
 - only narrow human or AI-agent weekly hour capacity amount changes are mapped
   into TaskJuggler `.tjp` as `limits { weeklymax ... }`;
-- quota, budget, rate-limit, subscription, stock, review-hour, agent-hour,
+- quota, budget, rate-limit, subscription, stock, review-hour,
   day-capacity, month-capacity and effective-range capacity changes are not
   mapped into TaskJuggler `.tjp` yet, and must be surfaced as explicit warnings
   or strict errors instead of being silently lost;
@@ -2716,6 +2722,9 @@ Current import-result rules:
   artifact;
 - command returns preview-only scenario candidate changes for task planned
   start and planned finish;
+- command reads those dates from TaskJuggler and does not recalculate effort;
+- when the run manifest names calibrations, the import result repeats them in
+  `calibrations`;
 - `--write-candidate` writes only reviewable `scenarios/*.yaml` and
   `proposals/open/*.yaml` files;
 - command does not mutate canonical task/resource/current-plan state;

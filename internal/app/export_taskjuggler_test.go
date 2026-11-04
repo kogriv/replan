@@ -30,8 +30,9 @@ func TestExportTaskJugglerSmallTeamFixture(t *testing.T) {
 	assertContains(t, result.Content, `limits { weeklymax 32.00h }`)
 	assertNotContains(t, result.Content, `note "RePlan class: human"`)
 	assertContains(t, result.Content, `task task_op_1234 "Implement validation command"`)
-	assertContains(t, result.Content, `effort 8.00h`)
+	assertContains(t, result.Content, `effort 10.00h`)
 	assertContains(t, result.Content, `allocate resource_human_ivan`)
+	assertContains(t, result.Content, `allocate resource_ai_codex_local`)
 	assertContains(t, result.Content, `taskreport replan_task_schedule "reports/replan-task-schedule"`)
 	assertContains(t, result.Content, `columns id, name, start, end, effort, effortleft, resources, status`)
 	if !hasTaskJugglerTaskMapping(result.Mapping, "task.op.1234", "task_op_1234") {
@@ -45,6 +46,115 @@ func TestExportTaskJugglerSmallTeamFixture(t *testing.T) {
 	}
 	if !hasDiagnosticCode(result.Warnings, "taskjuggler_unsupported_demand_unit") {
 		t.Fatalf("expected unsupported demand unit warning, got %#v", result.Warnings)
+	}
+}
+
+func TestExportTaskJugglerRawKeepsFormerAgentHoursBehavior(t *testing.T) {
+	result, err := app.NewExportService(filestore.New("../../examples/small-team")).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{
+		Raw: true,
+		Now: time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, result.Content, `effort 8.00h`)
+	assertNotContains(t, result.Content, `allocate resource_ai_codex_local`)
+	assertNotContains(t, result.Content, `limits { weeklymax 20.00h }`)
+}
+
+func TestExportTaskJugglerUsesCalibratedEffortAndNamesCalibration(t *testing.T) {
+	ws := calibratedTaskJugglerWorkspace(t)
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{
+		Now: time.Date(2026, 11, 4, 12, 0, 0, 0, time.UTC),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, result.Content, `# calibrated by calibration.agent: 4.00h -> 0.75h`)
+	assertContains(t, result.Content, `effort 0.75h`)
+	assertContains(t, result.Content, `limits { weeklymax 10.00h }`)
+	if len(result.Calibrations) != 1 || result.Calibrations[0] != "calibration.agent" {
+		t.Fatalf("calibrations = %#v", result.Calibrations)
+	}
+}
+
+func TestExportTaskJugglerRawRestoresUncalibratedOutput(t *testing.T) {
+	ws := calibratedTaskJugglerWorkspace(t)
+	ws.ResourceDemands[0].Unit = "hours"
+	ws.Capacities[0].Unit = "hours"
+	ws.Calibrations[0].Scope.Unit = "hours"
+	if err := domain.SealCalibration(&ws.Calibrations[0]); err != nil {
+		t.Fatal(err)
+	}
+	withoutCalibration := ws
+	withoutCalibration.Calibrations = nil
+	now := time.Date(2026, 11, 4, 12, 0, 0, 0, time.UTC)
+	raw, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{Raw: true, Now: now})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want, err := app.NewExportService(staticWorkspaceLoader{workspace: withoutCalibration}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{Now: now})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if raw.Content != want.Content {
+		t.Fatalf("raw export changed output\nraw:\n%s\nwant:\n%s", raw.Content, want.Content)
+	}
+	assertContains(t, raw.Content, `effort 4.00h`)
+	assertNotContains(t, raw.Content, `# calibrated by`)
+	if len(raw.Calibrations) != 0 {
+		t.Fatalf("raw calibrations = %#v", raw.Calibrations)
+	}
+}
+
+func TestExportTaskJugglerDoesNotReapplyScenarioAppliedCalibration(t *testing.T) {
+	ws := calibratedTaskJugglerWorkspace(t)
+	ws.Scenarios = []domain.Scenario{{
+		ID: "scenario.calibrated", CalibrationRef: domain.Ref{ID: "calibration.agent"},
+		Changes: []domain.ScenarioChange{{Op: "replace", Path: "resource_demands.demand.agent.remaining_amount", Value: .75}},
+	}}
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{ScenarioID: "scenario.calibrated"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, result.Content, `effort 0.75h`)
+	assertNotContains(t, result.Content, `# calibrated by`)
+	if len(result.Calibrations) != 0 {
+		t.Fatalf("calibrations = %#v", result.Calibrations)
+	}
+}
+
+func TestExportTaskJugglerClosedDemandIsNotCalibratedOrScheduled(t *testing.T) {
+	ws := calibratedTaskJugglerWorkspace(t)
+	ws.ResourceDemands[0].Status = "closed"
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertNotContains(t, result.Content, `# calibrated by`)
+	assertNotContains(t, result.Content, `effort 0.75h`)
+	if len(result.Calibrations) != 0 {
+		t.Fatalf("calibrations = %#v", result.Calibrations)
+	}
+}
+
+func calibratedTaskJugglerWorkspace(t *testing.T) domain.Workspace {
+	t.Helper()
+	calibration := domain.Calibration{
+		ID: "calibration.agent", ApprovedAt: "2026-11-04T10:00:00Z",
+		Scope:  domain.CalibrationScope{Resources: []string{"resource.agent"}, Unit: "agent_hours"},
+		Result: domain.CalibrationResult{Factor: .21},
+	}
+	if err := domain.SealCalibration(&calibration); err != nil {
+		t.Fatal(err)
+	}
+	return domain.Workspace{
+		Project:         domain.Project{ID: "project.test", Name: "Test", Timezone: "UTC", DefaultStatusDate: "2026-11-04"},
+		Resources:       []domain.Resource{{ID: "resource.agent", Class: "ai_agent", Name: "Agent"}},
+		Tasks:           []domain.Task{{ID: "task.agent", Title: "Agent task", ResourceDemands: []domain.Ref{{ID: "demand.agent"}}}},
+		ResourceDemands: []domain.ResourceDemand{{ID: "demand.agent", TaskRef: domain.Ref{ID: "task.agent"}, ResourceRef: domain.Ref{ID: "resource.agent"}, ResourceClass: "ai_agent", Unit: "agent_hours", PlannedAmount: 4, RemainingAmount: domain.Amount(4), Status: "active"}},
+		Calibrations:    []domain.Calibration{calibration},
+		Capacities:      []domain.Capacity{{ID: "capacity.agent", ResourceRef: domain.Ref{ID: "resource.agent"}, ResourceClass: "ai_agent", Type: "periodic_capacity", Unit: "agent_hours", Amount: 10, Period: "week"}},
 	}
 }
 
