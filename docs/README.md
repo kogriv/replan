@@ -31,6 +31,9 @@ Project-level entry points:
 - [`spec/storage-layout.md`](spec/storage-layout.md) — approved implementation
   specification for local-first file storage, canonical state, imports,
   exports, reports, audit, Git use and future SQLite/server migration path.
+- [`spec/file-format-compatibility.md`](spec/file-format-compatibility.md) —
+  format-1 additive-change rules, migration boundary, seal rule and frozen
+  release-fixture guard.
 - [`spec/cli.md`](spec/cli.md) — approved implementation specification for the
   `replan` command-line interface, global flags, output envelope, exit codes,
   command families, mutation rules and AI CLI safety.

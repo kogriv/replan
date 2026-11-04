@@ -1,0 +1,100 @@
+resource_demands:
+  - id: resource_demand.repair-pump.budget
+    task_ref:
+      kind: task
+      id: task.offline.repair-pump
+    resource_ref:
+      kind: resource
+      id: resource.project.budget
+    resource_class: budget
+    role: budget
+    unit: rub
+    planned_amount: 12000
+    remaining_amount: 12000
+    criticality: required
+    status: active
+  - id: resource_demand.repair-pump.operator
+    task_ref:
+      kind: task
+      id: task.offline.repair-pump
+    resource_ref:
+      kind: resource
+      id: resource.human.petr
+    resource_class: human
+    role: operator
+    unit: hours
+    planned_amount: 4
+    remaining_amount: 2
+    actual_amount: 2
+    criticality: required
+    status: partially_consumed
+  - id: resource_demand.task-op-1234.ai-agent
+    task_ref:
+      kind: task
+      id: task.op.1234
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    resource_class: ai_agent
+    role: ai_coding_agent
+    unit: agent_hours
+    planned_amount: 2
+    remaining_amount: 2
+    criticality: preferred
+    status: active
+  - id: resource_demand.task-op-1234.implementer
+    task_ref:
+      kind: task
+      id: task.op.1234
+    resource_ref:
+      kind: resource
+      id: resource.human.ivan
+    resource_class: human
+    role: implementer
+    unit: hours
+    planned_amount: 8
+    remaining_amount: 8
+    criticality: required
+    status: active
+  - id: resource_demand.task-op-1234.openai-quota
+    task_ref:
+      kind: task
+      id: task.op.1234
+    resource_ref:
+      kind: resource
+      id: resource.service.openai.tokens
+    resource_class: service_quota
+    role: api_provider
+    unit: tokens
+    planned_amount: 500000
+    remaining_amount: 500000
+    criticality: required
+    status: active
+  - id: resource_demand.task-op-1234.review
+    task_ref:
+      kind: task
+      id: task.op.1234
+    resource_pool_ref:
+      kind: resource_pool
+      id: resource_pool.reviewers
+    resource_class: human
+    role: reviewer
+    unit: review_hours
+    planned_amount: 2
+    remaining_amount: 2
+    criticality: required
+    status: active
+  - id: resource_demand.task-op-1234.staging
+    task_ref:
+      kind: task
+      id: task.op.1234
+    resource_ref:
+      kind: resource
+      id: resource.environment.staging
+    resource_class: environment
+    role: environment
+    unit: concurrent_slots
+    planned_amount: 1
+    remaining_amount: 1
+    criticality: required
+    status: active

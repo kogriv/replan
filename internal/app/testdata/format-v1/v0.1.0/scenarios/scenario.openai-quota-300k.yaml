@@ -1,0 +1,15 @@
+scenario:
+  id: scenario.openai-quota-300k
+  name: OpenAI token quota is three hundred thousand
+  status: draft
+  base_ref:
+    kind: current_plan
+    id: current
+  created_at: "2026-07-06T18:40:00+07:00"
+  created_by:
+    kind: actor
+    id: actor.human.operator
+  changes:
+    - op: set
+      path: capacities.capacity.openai.tokens.monthly.amount
+      value: 300000

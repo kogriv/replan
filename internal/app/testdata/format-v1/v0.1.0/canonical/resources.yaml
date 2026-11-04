@@ -1,0 +1,47 @@
+resources:
+  - id: resource.ai.codex.local
+    class: ai_agent
+    name: Codex local agent
+    capabilities:
+      - coding
+      - documentation
+    actor_ref:
+      kind: actor
+      id: actor.ai.codex.local
+  - id: resource.environment.staging
+    class: environment
+    name: Staging environment
+  - id: resource.human.ivan
+    class: human
+    name: Ivan
+    capabilities:
+      - backend
+      - code_review
+    actor_ref:
+      kind: actor
+      id: actor.human.ivan
+  - id: resource.human.operator
+    class: human
+    name: Operator
+    capabilities:
+      - architecture
+      - review
+      - operations
+    actor_ref:
+      kind: actor
+      id: actor.human.operator
+  - id: resource.human.petr
+    class: human
+    name: Petr
+    capabilities:
+      - frontend
+      - testing
+    actor_ref:
+      kind: actor
+      id: actor.human.petr
+  - id: resource.project.budget
+    class: budget
+    name: RePlan MVP project budget
+  - id: resource.service.openai.tokens
+    class: service_quota
+    name: OpenAI project token quota

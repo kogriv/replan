@@ -1,0 +1,50 @@
+availability:
+  - id: availability.ai-codex.default
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    timezone: Asia/Novosibirsk
+    windows:
+      - days: [monday, tuesday, wednesday, thursday, friday]
+        start_time: "00:00"
+        end_time: "23:59"
+  - id: availability.human-ivan.default
+    resource_ref:
+      kind: resource
+      id: resource.human.ivan
+    timezone: Asia/Novosibirsk
+    windows:
+      - days: [monday, tuesday, wednesday, thursday]
+        start_time: "10:00"
+        end_time: "18:00"
+    exceptions:
+      - date: "2026-07-08"
+        type: reduced_capacity
+        reason: half-day meeting
+  - id: availability.human-operator.default
+    resource_ref:
+      kind: resource
+      id: resource.human.operator
+    timezone: Asia/Novosibirsk
+    windows:
+      - days: [monday, tuesday, wednesday, thursday, friday]
+        start_time: "11:00"
+        end_time: "18:00"
+  - id: availability.human-petr.default
+    resource_ref:
+      kind: resource
+      id: resource.human.petr
+    timezone: Asia/Novosibirsk
+    windows:
+      - days: [monday, wednesday, friday]
+        start_time: "09:00"
+        end_time: "15:00"
+  - id: availability.staging.default
+    resource_ref:
+      kind: resource
+      id: resource.environment.staging
+    timezone: Asia/Novosibirsk
+    windows:
+      - days: [monday, tuesday, wednesday, thursday, friday]
+        start_time: "09:00"
+        end_time: "21:00"

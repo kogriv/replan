@@ -1,0 +1,21 @@
+scenario:
+  id: scenario.ivan-unavailable-week-28
+  name: Ivan unavailable in week 28
+  status: draft
+  base_ref:
+    kind: current_plan
+    id: current
+  created_at: "2026-07-06T17:00:00+07:00"
+  created_by:
+    kind: actor
+    id: actor.human.operator
+  changes:
+    - op: add
+      path: availability.exceptions
+      value:
+        resource_ref:
+          kind: resource
+          id: resource.human.ivan
+        date: "2026-07-09"
+        type: unavailable
+        reason: scenario assumption

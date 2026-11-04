@@ -192,6 +192,10 @@ scenario, proposal, actual, evidence and related files loaded with it. The
 current format is `1`. A missing field means format `1`, so projects created
 before versioning load without a warning.
 
+The additive-change rules, migration boundary, unknown-field behavior and
+release fixture guard are in
+[`file-format-compatibility.md`](file-format-compatibility.md).
+
 A binary stops after reading `project.yaml` when the value is zero, negative,
 not an integer, or newer than it supports. It reports the single
 `project_format_unsupported` validation error and does not load other project

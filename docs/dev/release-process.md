@@ -30,8 +30,14 @@ git show --stat "$version"
 ```
 
 Do not create the tag until the release commit has been reviewed and its CI
-run has passed. The
-default build version is the exact tag at `HEAD`; an untagged commit is
+run has passed.
+
+- Confirm changes to persisted project data follow
+  [`file-format-compatibility.md`](../spec/file-format-compatibility.md), and
+  add a frozen tagged fixture when the compatibility guard needs another
+  release sample.
+
+The default build version is the exact tag at `HEAD`; an untagged commit is
 refused. `REPLAN_RELEASE_VERSION` is available for an explicit local preview.
 
 ## Build the archives locally

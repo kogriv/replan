@@ -1,0 +1,22 @@
+baseline:
+  id: baseline.2026-07-06.initial
+  name: Initial MVP baseline
+  created_at: "2026-07-06T12:00:00+07:00"
+  approved_at: "2026-07-06T12:30:00+07:00"
+  approved_by:
+    kind: actor
+    id: actor.human.operator
+  status_date: "2026-07-06"
+  included_tasks:
+    - kind: task
+      id: task.offline.repair-pump
+    - kind: task
+      id: task.op.1234
+  included_demands:
+    - kind: resource_demand
+      id: resource_demand.repair-pump.operator
+    - kind: resource_demand
+      id: resource_demand.task-op-1234.implementer
+  assumptions:
+    - Ivan is available 32 hours per week.
+    - OpenProject import is not part of the first validation fixture.

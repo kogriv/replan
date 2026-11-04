@@ -1,0 +1,20 @@
+proposal:
+  id: proposal.adjust-remaining-task-op-1234.20260706
+  type: update_remaining_work
+  status: open
+  created_at: "2026-07-06T15:10:00+07:00"
+  created_by:
+    kind: actor
+    id: actor.ai.codex.local
+  target_ref:
+    kind: resource_demand
+    id: resource_demand.task-op-1234.implementer
+  suggested_change:
+    op: set
+    path: remaining_amount
+    value: 5
+  evidence_refs:
+    - kind: evidence
+      id: evidence.github.pr.45
+  rationale: Pull request exists, but review is not complete.
+  requires_confirmation: true

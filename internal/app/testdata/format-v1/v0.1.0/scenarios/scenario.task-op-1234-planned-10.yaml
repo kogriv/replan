@@ -1,0 +1,15 @@
+scenario:
+  id: scenario.task-op-1234-planned-10
+  name: Task OP-1234 planned effort is ten hours
+  status: draft
+  base_ref:
+    kind: current_plan
+    id: current
+  created_at: "2026-07-06T18:10:00+07:00"
+  created_by:
+    kind: actor
+    id: actor.human.operator
+  changes:
+    - op: set
+      path: resource_demands.resource_demand.task-op-1234.implementer.planned_amount
+      value: 10

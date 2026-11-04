@@ -1,0 +1,15 @@
+current_plan:
+  id: current
+  version: 1
+  updated_at: "2026-07-06T12:00:00+07:00"
+  updated_by:
+    kind: actor
+    id: actor.human.operator
+  based_on_baseline:
+    kind: baseline
+    id: baseline.2026-07-06.initial
+  included_tasks:
+    - kind: task
+      id: task.offline.repair-pump
+    - kind: task
+      id: task.op.1234

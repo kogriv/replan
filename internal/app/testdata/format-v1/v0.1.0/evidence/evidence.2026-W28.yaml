@@ -1,0 +1,32 @@
+evidence:
+  - id: evidence.github.pr.45
+    type: git_event
+    subtype: pull_request_opened
+    source: github
+    source_ref:
+      source: github
+      object_type: pull_request
+      object_id: "45"
+      url: "https://github.com/example/replan/pull/45"
+    actor_ref:
+      kind: actor
+      id: actor.human.ivan
+    observed_at: "2026-07-06T15:00:00+07:00"
+    confidence: observed
+    summary: Pull request opened for validation command.
+    targets:
+      - kind: task
+        id: task.op.1234
+  - id: evidence.offline.repair-pump.photo.20260706
+    type: offline_artifact
+    subtype: photo
+    source: manual
+    actor_ref:
+      kind: actor
+      id: actor.human.petr
+    observed_at: "2026-07-06T14:20:00+07:00"
+    confidence: reported
+    summary: Pump partially replaced and old coupling removed.
+    targets:
+      - kind: task
+        id: task.offline.repair-pump

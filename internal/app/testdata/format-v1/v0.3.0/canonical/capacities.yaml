@@ -1,0 +1,78 @@
+capacities:
+  - id: capacity.ai-codex.agent-hours.weekly
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    resource_class: ai_agent
+    type: periodic_capacity
+    unit: agent_hours
+    amount: 20
+    period: week
+    effective_from: "2026-07-06"
+    timezone: Asia/Novosibirsk
+  - id: capacity.human-ivan.hours.weekly
+    resource_ref:
+      kind: resource
+      id: resource.human.ivan
+    resource_class: human
+    type: periodic_capacity
+    unit: hours
+    amount: 32
+    period: week
+    effective_from: "2026-07-06"
+    timezone: Asia/Novosibirsk
+  - id: capacity.human-operator.review.weekly
+    resource_ref:
+      kind: resource
+      id: resource.human.operator
+    resource_class: human
+    type: periodic_capacity
+    unit: review_hours
+    amount: 8
+    period: week
+    effective_from: "2026-07-06"
+    timezone: Asia/Novosibirsk
+  - id: capacity.human-petr.hours.weekly
+    resource_ref:
+      kind: resource
+      id: resource.human.petr
+    resource_class: human
+    type: periodic_capacity
+    unit: hours
+    amount: 24
+    period: week
+    effective_from: "2026-07-06"
+    timezone: Asia/Novosibirsk
+  - id: capacity.project-budget.monthly
+    resource_ref:
+      kind: resource
+      id: resource.project.budget
+    resource_class: budget
+    type: budget_capacity
+    unit: rub
+    amount: 250000
+    period: month
+    effective_from: "2026-07-01"
+    timezone: Asia/Novosibirsk
+  - id: capacity.openai.tokens.monthly
+    resource_ref:
+      kind: resource
+      id: resource.service.openai.tokens
+    resource_class: service_quota
+    type: quota_capacity
+    unit: tokens
+    amount: 10000000
+    period: month
+    effective_from: "2026-07-01"
+    timezone: Asia/Novosibirsk
+  - id: capacity.staging.concurrent
+    resource_ref:
+      kind: resource
+      id: resource.environment.staging
+    resource_class: environment
+    type: concurrent_capacity
+    unit: concurrent_slots
+    amount: 1
+    period: concurrent
+    effective_from: "2026-07-06"
+    timezone: Asia/Novosibirsk

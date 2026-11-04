@@ -56,7 +56,8 @@ before work starts.
 
 - **A stable file format.** The project format is versioned and
   `replan project migrate` exists; the format becomes stable once outside
-  users have data in it.
+  users have data in it. The compatibility rules are written in the file
+  format spec, and frozen fixtures from earlier releases guard them in CI.
 - **GitHub Projects fields over the API.** Dates and estimates from GitHub
   Projects are read from an exported file today; the live import needs the
   GraphQL API for them.
