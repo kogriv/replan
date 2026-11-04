@@ -539,6 +539,24 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2315"
         url: https://op.example.internal/work_packages/2315
+    - replan_task_id: task.self.workload-skips-closed-demands
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2316"
+        url: https://op.example.internal/work_packages/2316
+    - replan_task_id: task.self.demand-add-set-move-commands
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2317"
+        url: https://op.example.internal/work_packages/2317
+    - replan_task_id: task.self.rename-resource-and-actor
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2318"
+        url: https://op.example.internal/work_packages/2318
     - replan_task_id: task.self.fix-first-project-defects
       source_ref:
         source: openproject

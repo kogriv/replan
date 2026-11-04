@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 215,
-  "count": 215,
+  "total": 218,
+  "count": 218,
   "_embedded": {
     "elements": [
       {
@@ -6229,6 +6229,93 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2315"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2316,
+        "subject": "Leave cancelled and superseded demands out of load",
+        "description": {
+          "raw": "workload and report weekly add the planned_amount of every demand whatever its status, so a demand moved to another person (status superseded) still loads the old resource; a consumer had to set planned_amount 0, and could not delete the demand because a baseline refers to it. Cancelled and superseded demands must not count in planned or remaining load (consumed ones keep their actuals); the dashboard and the overlay follow the same rule; tests for each status."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-04",
+        "dueDate": "2026-11-04",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2316"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2317,
+        "subject": "Add commands to add, change and move resource demands",
+        "description": {
+          "raw": "Changing a demand means editing two files by hand: resource_demands.yaml and the task's resource_demands list in tasks.yaml; forgetting the second leaves an orphan demand and validate says nothing. Add replan demand add (to an existing task), demand set (amount, unit, role, window) and demand move (to another resource: the old demand becomes superseded with a reference to the new one), with dry run, apply and audit; and a validate warning for a demand whose task does not list it."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-04",
+        "dueDate": "2026-11-04",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2317"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2318,
+        "subject": "Add a command to rename a resource or an actor",
+        "description": {
+          "raw": "Display names of resources and actors can be changed only in YAML, the first thing needed when roles change. Add replan resource set-name and actor set-name (display name only, ids unchanged), with dry run, apply and audit, and update the quickstart note that says it is not possible."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-04",
+        "dueDate": "2026-11-04",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2318"
           },
           "status": {
             "title": "New"

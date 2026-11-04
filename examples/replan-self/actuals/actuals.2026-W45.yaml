@@ -511,3 +511,129 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.warn-about-outdated-binary
+    - id: actual.self-source-profile-checked-early.ai-codex-local.20261104T1441040700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.source-profile-checked-early
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.source-profile-checked-early.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.29
+      unit: agent_hours
+      occurred_at: "2026-11-04T14:41:04+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.source-profile-checked-early
+    - id: actual.self-source-profile-checked-early.ai-agent-executor.20261104T1441040700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.source-profile-checked-early
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.source-profile-checked-early.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.41
+      unit: agent_hours
+      occurred_at: "2026-11-04T14:41:04+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.source-profile-checked-early
+    - id: actual.self-relations-apply-reports-unsupported-type.ci-github-actions.20261104T1441160700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.relations-apply-reports-unsupported-type
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.relations-apply-reports-unsupported-type.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-11-04T14:41:16+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-relations-apply-reports-unsupported-type
+    - id: actual.self-overlay-build-surfaces-cause.ci-github-actions.20261104T1441500700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.overlay-build-surfaces-cause
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.overlay-build-surfaces-cause.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-11-04T14:41:50+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-overlay-build-surfaces-cause
+    - id: actual.self-align-dependency-types-with-spec.ci-github-actions.20261104T1442230700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.align-dependency-types-with-spec
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.align-dependency-types-with-spec.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-11-04T14:42:23+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-align-dependency-types-with-spec
+    - id: actual.self-warn-about-outdated-binary.ci-github-actions.20261104T1442550700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.warn-about-outdated-binary
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.warn-about-outdated-binary.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-11-04T14:42:55+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-warn-about-outdated-binary

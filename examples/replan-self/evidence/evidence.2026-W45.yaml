@@ -352,3 +352,66 @@ evidence:
       targets:
         - kind: task
           id: task.self.warn-about-outdated-binary
+    - id: evidence.self.source-profile-checked-early
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T14:41:04+07:00"
+      summary: 'Feature commit e255a19: init --openproject-project-id, openproject_source_profile_missing/_mismatch warned by bootstrap and refused by the overlay build before writing; README note on the placeholder base_url (operator chose the documented placeholder). Live: overlay build and bootstrap plan clean on the self plan; an init project validates without warnings. Gate green incl. 79 live kit checks after updating the self sample for three newly planned tasks. Codex 14:00:50-14:17:58; executor brief 13:56:59-14:00:55 and review 14:20:26-14:40:45.'
+      targets:
+        - kind: task
+          id: task.self.source-profile-checked-early
+    - id: evidence.self.accept-relations-apply-reports-unsupported-type
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-04T14:41:16+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-04: apply-openproject-relations names refused dependencies in errors.'
+      targets:
+        - kind: task
+          id: task.self.relations-apply-reports-unsupported-type
+    - id: evidence.self.accept-overlay-build-surfaces-cause
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-04T14:41:50+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-04: the overlay build reports the CLI''s own error code.'
+      targets:
+        - kind: task
+          id: task.self.overlay-build-surfaces-cause
+    - id: evidence.self.accept-align-dependency-types-with-spec
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-04T14:42:23+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-04: the dependency type list in the spec matches validate.'
+      targets:
+        - kind: task
+          id: task.self.align-dependency-types-with-spec
+    - id: evidence.self.accept-warn-about-outdated-binary
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-04T14:42:55+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-04: docs tell how to spot an outdated replan binary.'
+      targets:
+        - kind: task
+          id: task.self.warn-about-outdated-binary
