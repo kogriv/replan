@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -47,6 +48,7 @@ func runInit(args []string, stdout, stderr *os.File) int {
 	fs := newCLIFlagSet("init")
 	name := fs.String("name", "", "required project name")
 	ownerName := fs.String("owner", "", "required owner display name")
+	ownerID := fs.String("owner-id", "", "optional owner id component, letters, digits and dashes; default from --owner")
 	id := fs.String("id", "", "optional project id; default project.<directory slug>")
 	timezone := fs.String("timezone", "", "optional IANA time zone; required when the machine zone cannot be detected")
 	openProjectProjectID := fs.String("openproject-project-id", "", "optional OpenProject project identifier")
@@ -99,7 +101,16 @@ func runInit(args []string, stdout, stderr *os.File) int {
 	if projectID == "" {
 		projectID = "project." + app.Slug(filepath.Base(absolute))
 	}
-	ownerSlug := app.Slug(*ownerName)
+	ownerSlug, ok := app.SlugOK(*ownerName)
+	if explicit := strings.TrimSpace(*ownerID); explicit != "" {
+		if !ownerIDPattern.MatchString(explicit) {
+			return printInitUsageError("--owner-id must be lowercase letters, digits and single dashes, for example anna-lee", projectPath, *format, stdout, stderr)
+		}
+		ownerSlug, ok = explicit, true
+	}
+	if !ok {
+		return printInitError(projectPath, *format, "owner_id_required", fmt.Sprintf("no id can be made from --owner %q; pass --owner-id, for example --owner-id operator", *ownerName), exitInvalidUsage, stdout, stderr)
+	}
 	actorID, resourceID := "actor.human."+ownerSlug, "resource.human."+ownerSlug
 	project := domain.Project{ID: projectID, Name: *name, FormatVersion: domain.CurrentProjectFormatVersion, Timezone: zone, PolicyRef: domain.Ref{Kind: "policy", ID: "policy.local-trusted"}}
 	if openProjectID := strings.TrimSpace(*openProjectProjectID); openProjectID != "" {
@@ -538,3 +549,5 @@ func runCapacitySet(args []string, stdout, stderr *os.File) int {
 	}
 	return printScenarioEnvelope(stdout, stderr, *format, envelope{OK: err == nil, Command: "capacity set", ProjectPath: *project, Result: result, Warnings: result.Warnings, Errors: result.Errors}, err)
 }
+
+var ownerIDPattern = regexp.MustCompile(`^[a-z0-9]+(-[a-z0-9]+)*$`)

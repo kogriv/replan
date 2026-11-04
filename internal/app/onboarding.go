@@ -350,14 +350,45 @@ func capacitySetPlannedWrites(capacity domain.Capacity, previous *domain.Capacit
 }
 
 // Slug converts a display/path component to a stable lowercase id component.
+// Cyrillic letters are transliterated; a value with no letter or digit left
+// becomes "project" (see SlugOK).
 func Slug(value string) string {
-	value = strings.ToLower(strings.TrimSpace(value))
-	value = regexp.MustCompile(`[^a-z0-9]+`).ReplaceAllString(value, "-")
-	value = strings.Trim(value, "-")
-	if value == "" {
-		return "project"
+	if slug, ok := SlugOK(value); ok {
+		return slug
 	}
-	return value
+	return "project"
+}
+
+// SlugOK returns the id component of value and whether value had any letter
+// or digit to build it from.
+func SlugOK(value string) (string, bool) {
+	value = transliterate(strings.ToLower(strings.TrimSpace(value)))
+	value = slugSeparators.ReplaceAllString(value, "-")
+	value = strings.Trim(value, "-")
+	return value, value != ""
+}
+
+var slugSeparators = regexp.MustCompile(`[^a-z0-9]+`)
+
+// cyrillicLatin is a plain transliteration of the Russian alphabet for ids.
+var cyrillicLatin = map[rune]string{
+	'а': "a", 'б': "b", 'в': "v", 'г': "g", 'д': "d", 'е': "e", 'ё': "e", 'ж': "zh",
+	'з': "z", 'и': "i", 'й': "y", 'к': "k", 'л': "l", 'м': "m", 'н': "n", 'о': "o",
+	'п': "p", 'р': "r", 'с': "s", 'т': "t", 'у': "u", 'ф': "f", 'х': "kh", 'ц': "ts",
+	'ч': "ch", 'ш': "sh", 'щ': "shch", 'ъ': "", 'ы': "y", 'ь': "", 'э': "e", 'ю': "yu",
+	'я': "ya",
+}
+
+func transliterate(value string) string {
+	var b strings.Builder
+	for _, r := range value {
+		if latin, ok := cyrillicLatin[r]; ok {
+			b.WriteString(latin)
+			continue
+		}
+		b.WriteRune(r)
+	}
+	return b.String()
 }
 
 // AuditJSONLine renders an audit record for project initialization previews.

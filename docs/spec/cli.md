@@ -785,10 +785,17 @@ profile. The profile uses `https://op.example.internal` as a non-private
 placeholder URL and `OPENPROJECT_TOKEN`; configure the helpers with the real
 connection settings. Without the flag, initialization is unchanged.
 
+The owner's actor and resource ids are `actor.human.<id>` and
+`resource.human.<id>`. The id comes from `--owner`, with Cyrillic letters
+transliterated (`Исполнитель` becomes `ispolnitel`), or from `--owner-id`
+(lowercase letters, digits and single dashes). When `--owner` leaves no
+letter or digit and `--owner-id` is not given, init refuses with
+`owner_id_required`.
+
 Implemented command flags:
 
 ```text
-replan init <dir> --name --owner --id --timezone --openproject-project-id --dry-run --apply --format --bindings
+replan init <dir> --name --owner --owner-id --id --timezone --openproject-project-id --dry-run --apply --format --bindings
 ```
 
 ## `replan resource add`, `replan resource list` and name changes

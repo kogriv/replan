@@ -285,6 +285,10 @@ bin/replan capacity set --project ~/plans/website --resource resource.human.anna
   --unit hours --amount 30 --actor actor.human.anna-lee --apply
 ```
 
+The owner's ids come from `--owner` (`Anna Lee` gives `actor.human.anna-lee`;
+Cyrillic letters are transliterated). Pass `--owner-id` to choose the id
+yourself, for example `--owner-id operator`.
+
 Then point `REPLAN_PROJECT` at it. Tasks come from `bin/replan task add` or
 from an import of your tracker (`bin/replan import openproject|github`, then
 `import accept`). The RePlan repository's `docs/quickstart.md` walks the same

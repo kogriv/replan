@@ -478,3 +478,31 @@ func runOnboardingCLI(t *testing.T, args ...string) (int, string, string) {
 	_ = stderr.Close()
 	return code, out, errOut
 }
+
+func TestInitOwnerIDs(t *testing.T) {
+	for _, tc := range []struct {
+		name, owner, ownerID, wantActor, wantCode string
+	}{
+		{name: "cyrillic name is transliterated", owner: "Исполнитель (оператор)", wantActor: "actor.human.ispolnitel-operator"},
+		{name: "explicit owner id wins", owner: "Исполнитель", ownerID: "operator", wantActor: "actor.human.operator"},
+		{name: "no letters left", owner: "**", wantCode: "owner_id_required"},
+		{name: "bad owner id", owner: "Ada", ownerID: "Ada Lee", wantCode: "invalid_usage"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			args := []string{"init", filepath.Join(t.TempDir(), "plan"), "--name", "Plan", "--owner", tc.owner, "--timezone", "UTC", "--dry-run", "--format", "json"}
+			if tc.ownerID != "" {
+				args = append(args, "--owner-id", tc.ownerID)
+			}
+			code, stdout, _ := runOnboardingCLI(t, args...)
+			if tc.wantCode != "" {
+				if code == exitSuccess || !strings.Contains(stdout, tc.wantCode) {
+					t.Fatalf("exit=%d stdout=%s, want %s", code, stdout, tc.wantCode)
+				}
+				return
+			}
+			if code != exitSuccess || !strings.Contains(stdout, `"id": "`+tc.wantActor+`"`) {
+				t.Fatalf("exit=%d stdout=%s, want %s", code, stdout, tc.wantActor)
+			}
+		})
+	}
+}
