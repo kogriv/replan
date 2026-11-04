@@ -309,6 +309,9 @@ bin/replan evidence add --project "$REPLAN_PROJECT" --id evidence.example \
   --target task:task.example --dry-run --format json
 ```
 
+`next` separates actions waiting on a person, preparation an agent can do, and
+tasks with human or human-pool hours planned in the selected week.
+
 `report weekly`, `report state` and `report dashboard` accept `--scenario` for
 an in-memory what-if. Their JSON carries `scenario_id`, and rendered views say
 that the result is not the plan. A scenario weekly report cannot use `--write`;

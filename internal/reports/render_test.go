@@ -639,12 +639,19 @@ func TestNextBriefTextGolden(t *testing.T) {
 	if len(brief.WaitingOnPerson) != 2 || len(brief.AgentCanPrepare) != 2 {
 		t.Fatalf("brief groups = %d person, %d agent; want 2 and 2 (inspect_project dropped)", len(brief.WaitingOnPerson), len(brief.AgentCanPrepare))
 	}
+	briefJSON, err := json.Marshal(brief)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(briefJSON), `"planned_for_people":[]`) {
+		t.Fatalf("empty planned_for_people must be an array: %s", briefJSON)
+	}
 	var text bytes.Buffer
 	if err := reports.WriteNextBriefText(&text, brief); err != nil {
 		t.Fatalf("WriteNextBriefText returned error: %v", err)
 	}
 	path := filepath.Join("testdata", "next_brief.golden.txt")
-	if *updateGolden {
+	if *updateGolden || os.Getenv("REPLAN_UPDATE_GOLDEN") == "1" {
 		if err := os.WriteFile(path, text.Bytes(), 0o644); err != nil {
 			t.Fatal(err)
 		}

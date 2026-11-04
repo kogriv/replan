@@ -254,11 +254,115 @@ func (s ReportService) Dashboard(ctx context.Context, req DashboardReportRequest
 	overview.Health.WarningCount = len(overview.Warnings)
 	overview.Health.ErrorCount = len(overview.Errors)
 	overview.NextActions = dashboardNextActions(ws, overview)
+	overview.PlannedForPeople = plannedForPeopleThisWeek(ws, week)
 	overview.WorkloadPage, overview.ScenariosPage, overview.ProposalsPage, overview.EstimatesPage = s.dashboardPages(ctx, canonicalWS, overview)
 	// The overlay comes last: it carries the final warnings and the person
 	// actions to the OpenProject plugin.
 	overview.OpenProjectOverlay = dashboardOpenProjectOverlay(ws, overview)
 	return overview, err
+}
+
+func plannedForPeopleThisWeek(ws domain.Workspace, week string) []reports.NextPlannedTask {
+	weekStart, weekEnd, ok := workloadWeekRange(week)
+	if !ok {
+		return []reports.NextPlannedTask{}
+	}
+	tasks := make(map[string]domain.Task, len(ws.Tasks))
+	for _, task := range ws.Tasks {
+		tasks[task.ID] = task
+	}
+	resources := make(map[string]domain.Resource, len(ws.Resources))
+	for _, resource := range ws.Resources {
+		resources[resource.ID] = resource
+	}
+	pools := make(map[string]domain.ResourcePool, len(ws.ResourcePools))
+	for _, pool := range ws.ResourcePools {
+		pools[pool.ID] = pool
+	}
+	days := workingDays(ws.Availabilities)
+	loadsByTask := map[string]map[string]reports.NextPlannedPersonLoad{}
+	for _, demand := range ws.ResourceDemands {
+		if !domain.DemandLoads(demand.Status) {
+			continue
+		}
+		task, found := tasks[demand.TaskRef.ID]
+		if !found || task.TrackingStatus == "done" || task.TrackingStatus == "accepted" || task.TrackingStatus == "cancelled" {
+			continue
+		}
+		span := demandWindow(demand, tasks)
+		if !span.intersects(weekStart, weekEnd) {
+			continue
+		}
+		resourceID, resourceName, human := plannedHumanTarget(demand, resources, pools)
+		if !human {
+			continue
+		}
+		if loadsByTask[task.ID] == nil {
+			loadsByTask[task.ID] = map[string]reports.NextPlannedPersonLoad{}
+		}
+		key := resourceID + "\x00" + demand.Unit
+		load := loadsByTask[task.ID][key]
+		load.ResourceID, load.ResourceName, load.Unit = resourceID, resourceName, demand.Unit
+		load.Amount += demand.PlannedAmount * spanShare(span, days[resourceID], weekStart, weekEnd)
+		load.Amount = roundDashboardFloat(load.Amount)
+		loadsByTask[task.ID][key] = load
+	}
+
+	planned := make([]reports.NextPlannedTask, 0, len(loadsByTask))
+	for taskID, loads := range loadsByTask {
+		task := tasks[taskID]
+		item := reports.NextPlannedTask{
+			TaskID: task.ID, Title: task.Title, TrackingStatus: task.TrackingStatus,
+			PlannedStart: task.PlannedStart, PlannedFinish: task.PlannedFinish,
+			People: []reports.NextPlannedPersonLoad{},
+		}
+		for _, load := range loads {
+			item.People = append(item.People, load)
+		}
+		sort.Slice(item.People, func(i, j int) bool {
+			if item.People[i].ResourceName != item.People[j].ResourceName {
+				return item.People[i].ResourceName < item.People[j].ResourceName
+			}
+			return item.People[i].ResourceID < item.People[j].ResourceID
+		})
+		planned = append(planned, item)
+	}
+	sort.Slice(planned, func(i, j int) bool {
+		if planned[i].PlannedStart != planned[j].PlannedStart {
+			if planned[i].PlannedStart == "" || planned[j].PlannedStart == "" {
+				return planned[j].PlannedStart == ""
+			}
+			return planned[i].PlannedStart < planned[j].PlannedStart
+		}
+		if planned[i].Title != planned[j].Title {
+			return planned[i].Title < planned[j].Title
+		}
+		return planned[i].TaskID < planned[j].TaskID
+	})
+	return planned
+}
+
+func plannedHumanTarget(demand domain.ResourceDemand, resources map[string]domain.Resource, pools map[string]domain.ResourcePool) (string, string, bool) {
+	if demand.ResourceRef.ID != "" {
+		resource, ok := resources[demand.ResourceRef.ID]
+		if !ok || resource.Class != "human" {
+			return "", "", false
+		}
+		name := resource.Name
+		if name == "" {
+			name = resource.ID
+		}
+		return resource.ID, name, true
+	}
+	pool, ok := pools[demand.ResourcePoolRef.ID]
+	if !ok || pool.ResourceClass != "human" {
+		return "", "", false
+	}
+	name := pool.Name
+	if name == "" {
+		name = pool.ID
+	}
+	return pool.ID, name, true
 }
 
 func dashboardTrackingRows(ws domain.Workspace) []reports.DashboardTrackingRow {

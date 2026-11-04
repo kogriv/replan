@@ -3,20 +3,23 @@ package reports
 import (
 	"fmt"
 	"io"
+	"math"
 	"strings"
 )
 
 // NextBrief is the short operator view of a project-state overview: what
-// waits on a person, what an agent can prepare, and one health line. It is
-// built from the same DashboardOverview as the full state report.
+// waits on a person, what an agent can prepare, planned human work, and one
+// health line. It is built from the same DashboardOverview as the full state
+// report.
 type NextBrief struct {
-	ProjectID       string          `json:"project_id"`
-	ProjectName     string          `json:"project_name"`
-	StatusDate      string          `json:"status_date,omitempty"`
-	Week            string          `json:"week,omitempty"`
-	WaitingOnPerson []NextBriefItem `json:"waiting_on_person"`
-	AgentCanPrepare []NextBriefItem `json:"agent_can_prepare"`
-	Health          NextBriefHealth `json:"health"`
+	ProjectID        string            `json:"project_id"`
+	ProjectName      string            `json:"project_name"`
+	StatusDate       string            `json:"status_date,omitempty"`
+	Week             string            `json:"week,omitempty"`
+	WaitingOnPerson  []NextBriefItem   `json:"waiting_on_person"`
+	AgentCanPrepare  []NextBriefItem   `json:"agent_can_prepare"`
+	PlannedForPeople []NextPlannedTask `json:"planned_for_people"`
+	Health           NextBriefHealth   `json:"health"`
 }
 
 type NextBriefItem struct {
@@ -57,12 +60,13 @@ func BuildNextBrief(overview DashboardOverview) NextBrief {
 		titles[task.ID] = task.Title
 	}
 	brief := NextBrief{
-		ProjectID:       overview.ProjectID,
-		ProjectName:     overview.ProjectName,
-		StatusDate:      overview.StatusDate,
-		Week:            overview.Week,
-		WaitingOnPerson: []NextBriefItem{},
-		AgentCanPrepare: []NextBriefItem{},
+		ProjectID:        overview.ProjectID,
+		ProjectName:      overview.ProjectName,
+		StatusDate:       overview.StatusDate,
+		Week:             overview.Week,
+		WaitingOnPerson:  []NextBriefItem{},
+		AgentCanPrepare:  []NextBriefItem{},
+		PlannedForPeople: append([]NextPlannedTask{}, overview.PlannedForPeople...),
 		Health: NextBriefHealth{
 			Tasks:               overview.Health.TaskCount,
 			ActiveTasks:         overview.Health.ActiveTasks,
@@ -114,11 +118,32 @@ func WriteNextBriefText(w io.Writer, brief NextBrief) error {
 	b.WriteString("\n")
 	writeNextBriefGroup(&b, "Waiting on a person", brief.WaitingOnPerson)
 	writeNextBriefGroup(&b, "An agent can prepare", brief.AgentCanPrepare)
+	writeNextPlannedForPeople(&b, brief.PlannedForPeople)
 	h := brief.Health
 	fmt.Fprintf(&b, "\nHealth: %d tasks, %d active, %d overloaded resources, %d open proposals, %d warnings, %d errors\n",
 		h.Tasks, h.ActiveTasks, h.OverloadedResources, h.OpenProposals, h.Warnings, h.Errors)
 	_, err := io.WriteString(w, b.String())
 	return err
+}
+
+func writeNextPlannedForPeople(b *strings.Builder, tasks []NextPlannedTask) {
+	fmt.Fprintf(b, "\nPlanned for people this week (%d)\n", len(tasks))
+	if len(tasks) == 0 {
+		b.WriteString("  Nothing planned for people this week.\n")
+		return
+	}
+	for i, task := range tasks {
+		fmt.Fprintf(b, "  %d. %s\n", i+1, task.Title)
+		parts := []string{task.TaskID}
+		for _, person := range task.People {
+			parts = append(parts, fmt.Sprintf("%s: %s %s", person.ResourceName, formatAmount(math.Round(person.Amount*100)/100), person.Unit))
+		}
+		parts = append(parts, task.TrackingStatus)
+		if task.PlannedStart != "" || task.PlannedFinish != "" {
+			parts = append(parts, task.PlannedStart+".."+task.PlannedFinish)
+		}
+		fmt.Fprintf(b, "     %s\n", strings.Join(parts, " | "))
+	}
 }
 
 func writeNextBriefGroup(b *strings.Builder, title string, items []NextBriefItem) {

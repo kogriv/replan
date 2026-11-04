@@ -1242,11 +1242,14 @@ Implemented project-state report slice:
   actor;
 - `replan next --project <path> [--week <YYYY-Www>] [--format text|json]` is
   the short view of the same overview for a person at a terminal: the project
-  line, "Waiting on a person" and "An agent can prepare" with task titles
-  instead of ids where there is a title, and one health line. No tables. JSON
-  returns `waiting_on_person`, `agent_can_prepare` and `health` in the standard
+  line, "Waiting on a person", "An agent can prepare", "Planned for people
+  this week", and one health line. The planned group includes each open task
+  with human or human-pool demand overlapping the selected week, the weekly
+  share of its amount per person and unit, tracking status and planned
+  dates. Pooled demand uses the pool name. JSON returns `waiting_on_person`, `agent_can_prepare`,
+  `planned_for_people` (an array even when empty) and `health` in the standard
   envelope. Text is the default format. `inspect_project` is not listed: an
-  empty group reads "nothing";
+  empty action group reads "nothing";
 - the report is local, read-only and does not mutate canonical planning state;
 - the report does not require a daemon, server, browser, custom authentication,
   full role-based access control or live OpenProject access.

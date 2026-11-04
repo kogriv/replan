@@ -445,6 +445,59 @@ func TestDashboardNextActionsWaitOnPersonFirst(t *testing.T) {
 	}
 }
 
+func TestDashboardPlannedForPeopleThisWeek(t *testing.T) {
+	task := func(id, title, status, start, finish string) domain.Task {
+		return domain.Task{ID: id, Title: title, Type: "decision", TrackingStatus: status, PlannedStart: start, PlannedFinish: finish}
+	}
+	demand := func(id, taskID, resourceID, poolID, status string, hours float64) domain.ResourceDemand {
+		return domain.ResourceDemand{
+			ID: id, TaskRef: domain.Ref{Kind: "task", ID: taskID},
+			ResourceRef: domain.Ref{Kind: "resource", ID: resourceID}, ResourcePoolRef: domain.Ref{Kind: "resource_pool", ID: poolID},
+			ResourceClass: "human", Unit: "hours", PlannedAmount: hours, Status: status,
+		}
+	}
+	ws := domain.Workspace{
+		Project: domain.Project{ID: "project.test", Name: "Test", DefaultStatusDate: "2026-11-04"},
+		Resources: []domain.Resource{
+			{ID: "resource.human.ana", Class: "human", Name: "Ana"},
+			{ID: "resource.human.ben", Class: "human", Name: "Ben"},
+		},
+		ResourcePools: []domain.ResourcePool{{
+			ID: "pool.reviewers", Name: "Reviewers", ResourceClass: "human",
+			Members: []domain.Ref{{Kind: "resource", ID: "resource.human.ben"}},
+		}},
+		Tasks: []domain.Task{
+			task("task.this-week", "Choose this week", "ready", "2026-10-26", "2026-11-08"),
+			task("task.pool", "Pool decision", "not_started", "2026-11-03", "2026-11-04"),
+			task("task.next-week", "Choose next week", "ready", "2026-11-09", "2026-11-13"),
+			task("task.done", "Already done", "done", "2026-11-02", "2026-11-06"),
+			task("task.cancelled-demand", "Cancelled demand", "ready", "2026-11-02", "2026-11-06"),
+		},
+		ResourceDemands: []domain.ResourceDemand{
+			demand("demand.this-week", "task.this-week", "resource.human.ana", "", "active", 14),
+			demand("demand.pool", "task.pool", "", "pool.reviewers", "active", 3),
+			demand("demand.next-week", "task.next-week", "resource.human.ana", "", "active", 5),
+			demand("demand.done", "task.done", "resource.human.ana", "", "active", 2),
+			demand("demand.cancelled", "task.cancelled-demand", "resource.human.ana", "", "cancelled", 2),
+		},
+	}
+
+	overview, err := app.NewReportService(stubLoader{ws: ws}).Dashboard(context.Background(), app.DashboardReportRequest{ProjectPath: "stub", Week: "2026-W45"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(overview.PlannedForPeople) != 2 {
+		t.Fatalf("planned tasks = %#v, want this-week and pool tasks", overview.PlannedForPeople)
+	}
+	first, second := overview.PlannedForPeople[0], overview.PlannedForPeople[1]
+	if first.TaskID != "task.this-week" || len(first.People) != 1 || first.People[0].ResourceName != "Ana" || first.People[0].Amount != 7 || first.People[0].Unit != "hours" {
+		t.Fatalf("first planned task = %#v", first)
+	}
+	if second.TaskID != "task.pool" || len(second.People) != 1 || second.People[0].ResourceName != "Reviewers" || second.People[0].Amount != 3 {
+		t.Fatalf("pooled planned task = %#v; pooled demand should use the pool name", second)
+	}
+}
+
 func TestDashboardTreatsRelatesAsLinkNotBlockingWork(t *testing.T) {
 	ws := domain.Workspace{
 		Project: domain.Project{ID: "project.test", Name: "Test", DefaultStatusDate: "2026-09-24"},

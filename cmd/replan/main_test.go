@@ -270,6 +270,35 @@ func TestEstimateCalibrationAllBaselinesCLI(t *testing.T) {
 	}
 }
 
+func TestNextIncludesPlannedForPeopleInTextAndJSON(t *testing.T) {
+	projectPath := copyCmdProjectFixture(t)
+	stdout, stderr := tempOutputFiles(t)
+	if code := run([]string{"next", "--project", projectPath, "--week", "2026-W28", "--format", "text"}, stdout, stderr); code != exitSuccess {
+		t.Fatalf("next text exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	textOutput := readFileString(t, stdout.Name())
+	if !strings.Contains(textOutput, "Planned for people this week (2)") || !strings.Contains(textOutput, "Implement validation command") || !strings.Contains(textOutput, "Ivan: 8 hours") {
+		t.Fatalf("next text omitted planned work:\n%s", textOutput)
+	}
+
+	stdout, stderr = tempOutputFiles(t)
+	if code := run([]string{"next", "--project", projectPath, "--week", "2026-W28", "--format", "json"}, stdout, stderr); code != exitSuccess {
+		t.Fatalf("next json exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	var env cliTestEnvelope
+	if err := json.Unmarshal([]byte(readFileString(t, stdout.Name())), &env); err != nil {
+		t.Fatal(err)
+	}
+	result := resultObject(t, env)
+	planned, ok := result["planned_for_people"].([]any)
+	if !ok || len(planned) != 2 {
+		t.Fatalf("planned_for_people = %#v, want two tasks", result["planned_for_people"])
+	}
+	if !strings.Contains(string(env.Result), `"tracking_status": "ready"`) || !strings.Contains(string(env.Result), `"resource_name": "Reviewers"`) {
+		t.Fatalf("next json omitted planned task details: %s", env.Result)
+	}
+}
+
 func TestEstimateCalibrationRejectsAgentApproverWithExitThree(t *testing.T) {
 	stdout, stderr := tempOutputFiles(t)
 	args := []string{"estimate", "calibrate", "--project", "../../examples/estimate-calibration", "--baseline", "baseline.fixture.original", "--resource", "resource.ai.executor", "--unit", "agent_hours", "--id", "calibration.bad", "--name", "Bad", "--approved-by", "actor.ai.executor", "--dry-run", "--format", "json"}

@@ -87,10 +87,13 @@ type DashboardOverview struct {
 	Evidence           []EvidenceRow               `json:"evidence"`
 	Scenarios          []DashboardScenarioRow      `json:"scenarios"`
 	NextActions        []DashboardNextAction       `json:"next_actions"`
-	WorkloadPage       DashboardWorkloadPage       `json:"-"`
-	ScenariosPage      DashboardScenariosPage      `json:"-"`
-	ProposalsPage      DashboardProposalsPage      `json:"-"`
-	EstimatesPage      DashboardEstimatesPage      `json:"-"`
+	// PlannedForPeople feeds the terminal-only next brief. It is deliberately
+	// omitted from dashboard JSON and pages.
+	PlannedForPeople []NextPlannedTask      `json:"-"`
+	WorkloadPage     DashboardWorkloadPage  `json:"-"`
+	ScenariosPage    DashboardScenariosPage `json:"-"`
+	ProposalsPage    DashboardProposalsPage `json:"-"`
+	EstimatesPage    DashboardEstimatesPage `json:"-"`
 }
 
 // DashboardPageMetadata is repeated in every page-specific raw artifact so
@@ -781,6 +784,25 @@ type DashboardNextAction struct {
 	Date string `json:"date,omitempty"`
 	// Details carries machine-readable values for an aggregate action.
 	Details []CalibrationDemandDetail `json:"details,omitempty"`
+}
+
+// NextPlannedTask is human work from the plan that overlaps the selected
+// week. A pool stays one row because the plan does not allocate its demand
+// among individual members.
+type NextPlannedTask struct {
+	TaskID         string                  `json:"task_id"`
+	Title          string                  `json:"title"`
+	TrackingStatus string                  `json:"tracking_status"`
+	PlannedStart   string                  `json:"planned_start,omitempty"`
+	PlannedFinish  string                  `json:"planned_finish,omitempty"`
+	People         []NextPlannedPersonLoad `json:"people"`
+}
+
+type NextPlannedPersonLoad struct {
+	ResourceID   string  `json:"resource_id"`
+	ResourceName string  `json:"resource_name"`
+	Amount       float64 `json:"amount"`
+	Unit         string  `json:"unit"`
 }
 
 type CalibrationDemandDetail struct {
