@@ -133,6 +133,45 @@ class ReschedulingReportTest(unittest.TestCase):
                 self.assertEqual(out["actions"][0]["openproject_relation_id"], relation_id)
                 self.assertEqual(out["restored_work_packages"], [])
 
+    def test_unsupported_dependency_type_is_reported_in_errors(self):
+        class OpenProject(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                body = json.dumps({"total": 0, "pageSize": 500, "offset": 1,
+                                   "_embedded": {"elements": []}}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/hal+json")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            def do_POST(self):
+                raise AssertionError("an unsupported type must not create a relation")
+
+            def log_message(self, *_args):
+                pass
+
+        tasks = [{"id": "task.a", "title": "A"}, {"id": "task.b", "title": "B"},
+                 {"id": "task.unbound", "title": "U"}]
+        deps = [
+            {"id": "dep.input", "type": "requires_input_from",
+             "predecessor_ref": {"id": "task.a"}, "successor_ref": {"id": "task.b"}},
+            {"id": "dep.unbound", "type": "relates",
+             "predecessor_ref": {"id": "task.a"}, "successor_ref": {"id": "task.missing"}},
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            bindings = self.write_project(tmp, tasks, deps)
+            env = self.relation_env(tmp, bindings, self.start_server(OpenProject))
+            env["REPLAN_APPLY"] = ""
+            code, out = self.run_module("apply_openproject_relations", "--root-dir", ROOT, env=env)
+        self.assertNotEqual(code, 0, out)
+        self.assertFalse(out["ok"])
+        self.assertEqual(out["counts"]["errors"], 2)
+        self.assertEqual(sorted(out["error_codes"]), ["task_binding_missing", "unsupported_dependency_type"])
+        unsupported = next(e for e in out["errors"] if e["code"] == "unsupported_dependency_type")
+        self.assertEqual(unsupported["target"], {"kind": "dependency", "id": "dep.input"})
+        self.assertEqual(unsupported["supported_types"], ["finish_to_start", "blocks", "relates"])
+        self.assertIn("requires_input_from", unsupported["message"])
+
     def test_relation_pair_conflicts_are_skipped_before_post(self):
         def handler(relations):
             class OpenProject(http.server.BaseHTTPRequestHandler):

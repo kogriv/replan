@@ -445,6 +445,13 @@ scripts/apply-openproject-bootstrap.sh    # work packages, then the bindings fil
 scripts/apply-openproject-relations.sh    # dependencies as relations
 ```
 
+Only `finish_to_start`, `blocks` and `relates` dependencies become
+OpenProject relations; the other types stay in the plan. Each other
+dependency is refused as `unsupported_dependency_type`, with its id and the
+supported types, and gets no relation. While any dependency is refused, the
+other relations are still created but the private bindings file is not
+written; change the type (for example to `relates`) and run again.
+
 The relations dry run warns when planned `follows` relations may move
 successor dates. After apply, run `scripts/check-openproject-drift.sh`; if the
 reviewed RePlan dates must be restored, review

@@ -64,6 +64,10 @@ def load_yaml(path):
     with open(path) as fh:
         return yaml.safe_load(fh) or {}
 
+# RePlan dependency types that become OpenProject relations; the others stay
+# in the plan only.
+EXPORTED_DEPENDENCY_TYPES = ("finish_to_start", "blocks", "relates")
+
 def relation_tuple_for_dependency(dep, task_wp_by_id):
     dep_type = dep.get("type", "")
     predecessor_id = (dep.get("predecessor_ref") or {}).get("id", "")
@@ -72,6 +76,11 @@ def relation_tuple_for_dependency(dep, task_wp_by_id):
     successor_wp = task_wp_by_id.get(successor_id, "")
     if not predecessor_wp or not successor_wp:
         return None, {
+            **helper_envelope.diagnostic(
+                "task_binding_missing",
+                f"Dependency {dep.get('id', '')} has a task without a bound work package.",
+                kind="dependency", target_id=dep.get("id", ""),
+            ),
             "dependency_id": dep.get("id", ""),
             "reason": "task_binding_missing",
             "predecessor_task_id": predecessor_id,
@@ -104,9 +113,16 @@ def relation_tuple_for_dependency(dep, task_wp_by_id):
             "successor_task_id": successor_id,
         }, None
     return None, {
+        **helper_envelope.diagnostic(
+            "unsupported_dependency_type",
+            f"Dependency {dep.get('id', '')} has type {dep_type or 'none'}; only "
+            f"{', '.join(EXPORTED_DEPENDENCY_TYPES)} become OpenProject relations.",
+            kind="dependency", target_id=dep.get("id", ""),
+        ),
         "dependency_id": dep.get("id", ""),
         "reason": "unsupported_dependency_type",
         "dependency_type": dep_type,
+        "supported_types": list(EXPORTED_DEPENDENCY_TYPES),
     }
 
 def list_relations():
