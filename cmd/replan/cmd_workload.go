@@ -23,12 +23,14 @@ func runWorkload(args []string, stdout, stderr *os.File) int {
 		unit          string
 		scenarioID    string
 		withDemands   bool
+		raw           bool
 	)
 
 	fs.StringVar(&projectPath, "project", "", "path to RePlan project")
 	fs.StringVar(&projectPath, "p", "", "path to RePlan project")
 	fs.StringVar(&format, "format", "json", "output format: json, markdown, text")
 	fs.BoolVar(&withDemands, "demands", false, "list in every row the demands that make it up")
+	fs.BoolVar(&raw, "raw", false, "show uncalibrated demand amounts")
 	fs.StringVar(&week, "week", "", "ISO week, for example 2026-W28; without it, totals over all weeks")
 	fs.StringVar(&resourceID, "resource", "", "filter by resource id")
 	fs.StringVar(&resourceClass, "resource-class", "", "keep only rows of this resource class, for example human")
@@ -73,6 +75,7 @@ func runWorkload(args []string, stdout, stderr *os.File) int {
 		Unit:          unit,
 		ScenarioID:    scenarioID,
 		WithDemands:   withDemands,
+		Raw:           raw,
 	})
 
 	env := envelope{
@@ -130,10 +133,16 @@ func writeWorkloadMarkdown(stdout *os.File, result app.WorkloadResult) error {
 			if demand.TaskID != "" {
 				label += " (" + demand.TaskID + ")"
 			}
-			fmt.Fprintf(&b, "| `%s` | demand | %s | - | %g | - | %g | - |\n",
-				markdownCell(label), markdownCell(row.Unit), demand.Planned, demand.Remaining)
+			planned, remaining := fmt.Sprintf("%g", demand.Planned), fmt.Sprintf("%g", demand.Remaining)
+			if demand.CalibrationID != "" {
+				planned = fmt.Sprintf("%g typed; %g calibrated", *demand.RawPlanned, demand.Planned)
+				remaining = fmt.Sprintf("%g typed; %g calibrated", *demand.RawRemaining, demand.Remaining)
+			}
+			fmt.Fprintf(&b, "| `%s` | demand | %s | - | %s | - | %s | - |\n",
+				markdownCell(label), markdownCell(row.Unit), planned, remaining)
 		}
 	}
+	writeWorkloadCalibrationNotes(&b, result.Resources)
 	writeDiagnosticsMarkdown(&b, result.Warnings, result.Errors)
 	_, err := fmt.Fprint(stdout, b.String())
 	return err
@@ -169,7 +178,12 @@ func writeWorkloadText(stdout *os.File, result app.WorkloadResult) error {
 			if demand.TaskID != "" {
 				label += " (" + demand.TaskID + ")"
 			}
-			if _, err := fmt.Fprintf(tw, "%s\tdemand\t%s\t-\t%g\t-\t%g\t-\n", label, row.Unit, demand.Planned, demand.Remaining); err != nil {
+			planned, remaining := fmt.Sprintf("%g", demand.Planned), fmt.Sprintf("%g", demand.Remaining)
+			if demand.CalibrationID != "" {
+				planned = fmt.Sprintf("%g typed; %g calibrated", *demand.RawPlanned, demand.Planned)
+				remaining = fmt.Sprintf("%g typed; %g calibrated", *demand.RawRemaining, demand.Remaining)
+			}
+			if _, err := fmt.Fprintf(tw, "%s\tdemand\t%s\t-\t%s\t-\t%s\t-\n", label, row.Unit, planned, remaining); err != nil {
 				return err
 			}
 		}
@@ -177,5 +191,23 @@ func writeWorkloadText(stdout *os.File, result app.WorkloadResult) error {
 	if err := tw.Flush(); err != nil {
 		return err
 	}
+	var notes strings.Builder
+	writeWorkloadCalibrationNotes(&notes, result.Resources)
+	if _, err := fmt.Fprint(stdout, notes.String()); err != nil {
+		return err
+	}
 	return writeDiagnosticsText(stdout, result.Warnings, result.Errors)
+}
+
+func writeWorkloadCalibrationNotes(b *strings.Builder, rows []app.ResourceWorkload) {
+	for _, row := range rows {
+		if len(row.CalibrationIDs) == 0 {
+			continue
+		}
+		name := row.ResourceName
+		if name == "" {
+			name = row.ResourceID
+		}
+		fmt.Fprintf(b, "\n%s (%s): calibrated by %s; raw planned %g, raw remaining %g.\n", name, row.Unit, strings.Join(row.CalibrationIDs, ", "), *row.RawPlanned, *row.RawRemaining)
+	}
 }

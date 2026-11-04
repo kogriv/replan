@@ -47,6 +47,39 @@ func TestWeeklyReportSmallTeamFixture(t *testing.T) {
 	}
 }
 
+func TestWeeklyAndDashboardUseCalibratedLoad(t *testing.T) {
+	calibration := sealedWorkloadCalibration(t, "calibration.agent", "2026-11-01T10:00:00Z", "", .2, nil, nil, nil)
+	ws := calibratedWorkloadWorkspace(calibration)
+	service := app.NewReportService(staticWorkspaceLoader{workspace: ws})
+
+	weekly, err := service.Weekly(context.Background(), app.WeeklyReportRequest{Week: "2026-W45"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(weekly.Resources) != 1 || weekly.Resources[0].Planned != 1.25 || weekly.Resources[0].RawPlanned == nil || *weekly.Resources[0].RawPlanned != 6 {
+		t.Fatalf("weekly resources = %#v", weekly.Resources)
+	}
+
+	dashboard, err := service.Dashboard(context.Background(), app.DashboardReportRequest{Week: "2026-W45"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(dashboard.Gantt.Tasks) != 1 || len(dashboard.Gantt.Tasks[0].Allocations) != 1 || dashboard.Gantt.Tasks[0].Allocations[0].PlannedAmount != 1.25 {
+		t.Fatalf("dashboard allocations = %#v", dashboard.Gantt.Tasks)
+	}
+	if len(dashboard.Gantt.ResourceLoads) != 1 || len(dashboard.Gantt.ResourceLoads[0].DailyAmounts) == 0 {
+		t.Fatalf("dashboard resource loads = %#v", dashboard.Gantt.ResourceLoads)
+	}
+
+	raw, err := service.Dashboard(context.Background(), app.DashboardReportRequest{Week: "2026-W45", Raw: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if raw.Workload[0].Planned != 6 || raw.Gantt.Tasks[0].Allocations[0].PlannedAmount != 6 {
+		t.Fatalf("raw dashboard = workload %#v allocations %#v", raw.Workload, raw.Gantt.Tasks[0].Allocations)
+	}
+}
+
 func TestWeeklyReportSelfFixtureUsesCurrentPlanBaseline(t *testing.T) {
 	report, err := app.NewReportService(filestore.New("../../examples/replan-self")).Weekly(context.Background(), app.WeeklyReportRequest{
 		ProjectPath: "../../examples/replan-self",

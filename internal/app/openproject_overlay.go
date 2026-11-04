@@ -18,7 +18,8 @@ const overlaySchemaVersion = 2
 
 // dashboardOpenProjectOverlay builds the artifact the OpenProject plugin
 // reads. Everything in it is derived here; the plugin only lays it out.
-func dashboardOpenProjectOverlay(ws domain.Workspace, overview reports.DashboardOverview) reports.DashboardOpenProjectOverlay {
+func dashboardOpenProjectOverlay(ws domain.Workspace, overview reports.DashboardOverview, rawOption ...bool) reports.DashboardOpenProjectOverlay {
+	raw := len(rawOption) > 0 && rawOption[0]
 	taskByID := dashboardGanttTasksByID(overview.Gantt)
 	trackingByTaskID := map[string]reports.DashboardTrackingRow{}
 	for _, row := range overview.Tracking {
@@ -58,7 +59,7 @@ func dashboardOpenProjectOverlay(ws domain.Workspace, overview reports.Dashboard
 			overlay.OpenProposalCount++
 		}
 	}
-	overlay.Resources, overlay.OverloadedWeeks = overlayResources(ws, overview, index)
+	overlay.Resources, overlay.OverloadedWeeks = overlayResources(ws, overview, index, raw)
 
 	for _, link := range overview.OpenProject.Links {
 		ganttTask := taskByID[link.TaskID]
@@ -371,7 +372,7 @@ func overlayPersonActions(actions []reports.DashboardNextAction, index overlayIn
 // overlayResources lists every resource and unit the plan uses with its
 // weeks, and the overloaded resource-weeks that have not ended by the status
 // date, busiest first.
-func overlayResources(ws domain.Workspace, overview reports.DashboardOverview, index overlayIndex) ([]reports.DashboardOpenProjectOverlayResource, []reports.DashboardOpenProjectOverlayOverloadWeek) {
+func overlayResources(ws domain.Workspace, overview reports.DashboardOverview, index overlayIndex, raw bool) ([]reports.DashboardOpenProjectOverlayResource, []reports.DashboardOpenProjectOverlayOverloadWeek) {
 	classes := map[string]string{}
 	for _, resource := range ws.Resources {
 		classes[resource.ID] = resource.Class
@@ -399,13 +400,13 @@ func overlayResources(ws domain.Workspace, overview reports.DashboardOverview, i
 		}
 		resources = append(resources, resource)
 	}
-	return resources, overloadedWeeksAhead(ws, overview, index)
+	return resources, overloadedWeeksAhead(ws, overview, index, raw)
 }
 
 // overloadedWeeksAhead runs the weekly workload for every week of the plan
 // from the status week on, so the plugin's counter and `replan workload`
 // agree: done work does not count, remaining work does.
-func overloadedWeeksAhead(ws domain.Workspace, overview reports.DashboardOverview, index overlayIndex) []reports.DashboardOpenProjectOverlayOverloadWeek {
+func overloadedWeeksAhead(ws domain.Workspace, overview reports.DashboardOverview, index overlayIndex, raw bool) []reports.DashboardOpenProjectOverlayOverloadWeek {
 	weeks := map[string]bool{}
 	for _, load := range overview.Gantt.ResourceLoads {
 		for _, bucket := range load.Buckets {
@@ -422,7 +423,7 @@ func overloadedWeeksAhead(ws domain.Workspace, overview reports.DashboardOvervie
 	service := NewWorkloadService(workspaceInMemory{ws: ws})
 	result := []reports.DashboardOpenProjectOverlayOverloadWeek{}
 	for _, label := range labels {
-		workload, err := service.Calculate(context.Background(), WorkloadRequest{Week: label})
+		workload, err := service.Calculate(context.Background(), WorkloadRequest{Week: label, Raw: raw})
 		if err != nil {
 			continue
 		}

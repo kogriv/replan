@@ -11,10 +11,10 @@ import (
 	"github.com/kogriv/replan/internal/reports"
 )
 
-func (s ReportService) dashboardPages(ctx context.Context, ws domain.Workspace, overview reports.DashboardOverview) (reports.DashboardWorkloadPage, reports.DashboardScenariosPage, reports.DashboardProposalsPage, reports.DashboardEstimatesPage) {
+func (s ReportService) dashboardPages(ctx context.Context, ws domain.Workspace, overview reports.DashboardOverview, raw bool) (reports.DashboardWorkloadPage, reports.DashboardScenariosPage, reports.DashboardProposalsPage, reports.DashboardEstimatesPage) {
 	metadata := dashboardPageMetadata(overview)
 	pageService := NewReportService(workspaceInMemory{ws: ws, projectPath: s.loader.ProjectPath()})
-	return pageService.dashboardWorkloadPage(ctx, ws, overview, metadata),
+	return pageService.dashboardWorkloadPage(ctx, ws, overview, metadata, raw),
 		pageService.dashboardScenariosPage(ctx, ws, overview, metadata),
 		dashboardProposalsPage(ws, metadata),
 		pageService.dashboardEstimatesPage(ctx, ws, metadata)
@@ -28,7 +28,7 @@ func dashboardPageMetadata(overview reports.DashboardOverview) reports.Dashboard
 	}
 }
 
-func (s ReportService) dashboardWorkloadPage(ctx context.Context, ws domain.Workspace, overview reports.DashboardOverview, metadata reports.DashboardPageMetadata) reports.DashboardWorkloadPage {
+func (s ReportService) dashboardWorkloadPage(ctx context.Context, ws domain.Workspace, overview reports.DashboardOverview, metadata reports.DashboardPageMetadata, raw bool) reports.DashboardWorkloadPage {
 	weeks, windowStart, windowFinish := dashboardWorkloadWeeks(overview)
 	page := reports.DashboardWorkloadPage{DashboardPageMetadata: metadata, Data: reports.DashboardWorkloadData{
 		ScenarioID: overview.ScenarioID, WindowStart: windowStart, WindowFinish: windowFinish, Weeks: weeks, Resources: []reports.DashboardWorkloadResource{},
@@ -39,7 +39,7 @@ func (s ReportService) dashboardWorkloadPage(ctx context.Context, ws domain.Work
 		taskTitles[task.ID] = task.Title
 	}
 	for _, week := range page.Data.Weeks {
-		result, _ := NewWorkloadService(s.loader).Calculate(ctx, WorkloadRequest{Week: week, ScenarioID: overview.ScenarioID, WithDemands: true})
+		result, _ := NewWorkloadService(s.loader).Calculate(ctx, WorkloadRequest{Week: week, ScenarioID: overview.ScenarioID, WithDemands: true, Raw: raw})
 		for _, warning := range result.Warnings {
 			page.Warnings = append(page.Warnings, diagnosticToReportIssue(warning))
 		}

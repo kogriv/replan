@@ -79,6 +79,32 @@ forecast = actual + remaining
 warnings = rule-based findings
 ```
 
+## Approved estimate calibration
+
+Load uses estimate calibration by default. For each demand RePlan selects the
+latest approved calibration that has a valid seal, the same unit, the demand's
+resource in its scope, and, when the calibration names a tag, that tag on the
+task. The size-band factor is chosen from the task's total planned amount in
+that calibration scope. Amounts are rounded in the same way as `estimate
+apply`.
+
+The calibrated view changes calculated planned, remaining and reserved load.
+It does not change canonical demand amounts, capacity or actuals.
+
+Two demands stay raw:
+
+- a closed demand (`consumed`, `released`, `cancelled`, `superseded` or
+  `closed`), because it is history;
+- a demand covered by a calibration whose scenario has status `applied`,
+  because the scenario already changed the canonical amounts.
+
+`workload`, weekly and state reports, the dashboard, the OpenProject overlay
+and overload actions use calibrated load. JSON workload rows name the applied
+calibration ids and keep raw planned and remaining totals. `--demands` shows
+both typed and calibrated demand amounts. Pass `--raw` to `workload`, `report
+weekly`, `report state` or `report dashboard` to turn calibration off for that
+run.
+
 ## Inputs
 
 Workload calculation uses:

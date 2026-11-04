@@ -309,6 +309,11 @@ bin/replan evidence add --project "$REPLAN_PROJECT" --id evidence.example \
   --target task:task.example --dry-run --format json
 ```
 
+Load commands use the latest matching approved estimate calibration. Keep
+resource capacity in real units. Add `--raw` to `workload`, `report weekly`,
+`report state` or `report dashboard` only when you need to compare with the
+typed, uncalibrated estimates. Actuals are unchanged.
+
 `next` separates actions waiting on a person, preparation an agent can do, and
 tasks with human or human-pool hours planned in the selected week.
 

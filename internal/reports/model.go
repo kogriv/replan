@@ -26,16 +26,19 @@ type WeeklySummary struct {
 }
 
 type ResourceRow struct {
-	ResourceID    string  `json:"resource_id"`
-	ResourceName  string  `json:"resource_name,omitempty"`
-	ResourceClass string  `json:"resource_class,omitempty"`
-	Unit          string  `json:"unit"`
-	Capacity      float64 `json:"capacity"`
-	Planned       float64 `json:"planned"`
-	Reserved      float64 `json:"reserved"`
-	Actual        float64 `json:"actual"`
-	Remaining     float64 `json:"remaining"`
-	Overload      float64 `json:"overload"`
+	ResourceID     string   `json:"resource_id"`
+	ResourceName   string   `json:"resource_name,omitempty"`
+	ResourceClass  string   `json:"resource_class,omitempty"`
+	Unit           string   `json:"unit"`
+	Capacity       float64  `json:"capacity"`
+	Planned        float64  `json:"planned"`
+	Reserved       float64  `json:"reserved"`
+	Actual         float64  `json:"actual"`
+	Remaining      float64  `json:"remaining"`
+	Overload       float64  `json:"overload"`
+	CalibrationIDs []string `json:"calibration_ids,omitempty"`
+	RawPlanned     *float64 `json:"raw_planned,omitempty"`
+	RawRemaining   *float64 `json:"raw_remaining,omitempty"`
 }
 
 type ProposalRow struct {

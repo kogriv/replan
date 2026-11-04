@@ -76,6 +76,9 @@ func WriteWeeklyMarkdown(w io.Writer, report WeeklyReport) error {
 			return err
 		}
 	}
+	if err := writeCalibrationNotes(w, report.Resources); err != nil {
+		return err
+	}
 
 	if len(report.Warnings) > 0 {
 		if _, err := fmt.Fprintln(w, "\n## Warnings"); err != nil {
@@ -257,6 +260,32 @@ func writeStateResourcePressure(b *strings.Builder, workload []ResourceRow) {
 	if overloaded == 0 {
 		b.WriteString("| none |  |  |  |  |  | 0 |\n")
 	}
+	for _, row := range workload {
+		if len(row.CalibrationIDs) == 0 {
+			continue
+		}
+		name := row.ResourceName
+		if name == "" {
+			name = row.ResourceID
+		}
+		fmt.Fprintf(b, "\n%s (%s): calibrated by %s; raw planned %s, raw remaining %s.\n", name, row.Unit, strings.Join(row.CalibrationIDs, ", "), formatAmount(*row.RawPlanned), formatAmount(*row.RawRemaining))
+	}
+}
+
+func writeCalibrationNotes(w io.Writer, rows []ResourceRow) error {
+	for _, row := range rows {
+		if len(row.CalibrationIDs) == 0 {
+			continue
+		}
+		name := row.ResourceName
+		if name == "" {
+			name = row.ResourceID
+		}
+		if _, err := fmt.Fprintf(w, "\n%s (%s): calibrated by %s; raw planned %s, raw remaining %s.\n", name, row.Unit, strings.Join(row.CalibrationIDs, ", "), formatAmount(*row.RawPlanned), formatAmount(*row.RawRemaining)); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func writeStateWarnings(b *strings.Builder, warnings []ReportIssue) {

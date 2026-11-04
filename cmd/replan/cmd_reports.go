@@ -113,6 +113,7 @@ func runReportState(args []string, stdout, stderr *os.File) int {
 		format      string
 		week        string
 		scenarioID  string
+		raw         bool
 	)
 
 	fs.StringVar(&projectPath, "project", "", "path to RePlan project")
@@ -120,6 +121,7 @@ func runReportState(args []string, stdout, stderr *os.File) int {
 	fs.StringVar(&format, "format", "markdown", "output format: json, markdown or text")
 	fs.StringVar(&week, "week", "", "ISO week, for example 2026-W31")
 	fs.StringVar(&scenarioID, "scenario", "", "scenario id to apply as an in-memory overlay")
+	fs.BoolVar(&raw, "raw", false, "show uncalibrated demand amounts")
 
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
@@ -156,6 +158,7 @@ func runReportState(args []string, stdout, stderr *os.File) int {
 		GeneratedAt: time.Now(),
 		Command:     "report state",
 		ScenarioID:  scenarioID,
+		Raw:         raw,
 	})
 	env := envelope{
 		OK:          err == nil && len(overview.Errors) == 0,
@@ -280,6 +283,7 @@ func runReportDashboard(args []string, stdout, stderr *os.File) int {
 		outputDir   string
 		week        string
 		scenarioID  string
+		raw         bool
 	)
 
 	fs.StringVar(&projectPath, "project", "", "path to RePlan project")
@@ -288,6 +292,7 @@ func runReportDashboard(args []string, stdout, stderr *os.File) int {
 	fs.StringVar(&outputDir, "output", "", "directory to write generated dashboard artifacts")
 	fs.StringVar(&week, "week", "", "ISO week, for example 2026-W31")
 	fs.StringVar(&scenarioID, "scenario", "", "scenario id to apply as an in-memory overlay")
+	fs.BoolVar(&raw, "raw", false, "show uncalibrated demand amounts")
 
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
@@ -332,6 +337,7 @@ func runReportDashboard(args []string, stdout, stderr *os.File) int {
 		GeneratedAt: time.Now(),
 		Command:     "report dashboard",
 		ScenarioID:  scenarioID,
+		Raw:         raw,
 	})
 	env := envelope{
 		OK:          err == nil && len(overview.Errors) == 0,
@@ -397,6 +403,7 @@ func runReportWeekly(args []string, stdout, stderr *os.File) int {
 		week        string
 		write       bool
 		scenarioID  string
+		raw         bool
 	)
 
 	fs.StringVar(&projectPath, "project", "", "path to RePlan project")
@@ -405,6 +412,7 @@ func runReportWeekly(args []string, stdout, stderr *os.File) int {
 	fs.StringVar(&week, "week", "", "ISO week, for example 2026-W28")
 	fs.BoolVar(&write, "write", false, "write generated report artifact into the project reports directory")
 	fs.StringVar(&scenarioID, "scenario", "", "scenario id to apply as an in-memory overlay")
+	fs.BoolVar(&raw, "raw", false, "show uncalibrated demand amounts")
 
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
@@ -447,6 +455,7 @@ func runReportWeekly(args []string, stdout, stderr *os.File) int {
 		ProjectPath: projectPath,
 		Week:        week,
 		ScenarioID:  scenarioID,
+		Raw:         raw,
 	})
 	env := envelope{
 		OK:          err == nil && len(report.Errors) == 0,

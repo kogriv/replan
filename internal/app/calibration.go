@@ -125,6 +125,15 @@ type CalibrationOpenDemands struct {
 	Demands       []CalibratedDemandValue
 }
 
+// DemandCalibration is the approved calibration selected for one open demand.
+// TaskScopeAmount is the task's total planned amount in the calibration scope.
+type DemandCalibration struct {
+	Calibration     domain.Calibration
+	TaskScopeAmount float64
+	Factor          float64
+	Band            string
+}
+
 type calibrationSuggestionKey struct {
 	baseline, unit, resources string
 }
@@ -797,12 +806,34 @@ func containsString(values []string, want string) bool {
 func floatPointer(value float64) *float64 { return &value }
 
 func CalibratedDemandValues(ws domain.Workspace) []CalibratedDemandValue {
+	values := []CalibratedDemandValue{}
+	selected := ApplicableDemandCalibrations(ws)
+	for _, demand := range ws.ResourceDemands {
+		if match, ok := selected[demand.ID]; ok {
+			values = append(values, CalibratedDemandValue{DemandID: demand.ID, TypedAmount: demand.PlannedAmount, Calibrated: calibratedLoadAmount(demand.PlannedAmount, match.Factor), Unit: demand.Unit, CalibrationID: match.Calibration.ID, Factor: match.Factor, Band: match.Band})
+		}
+	}
+	sort.Slice(values, func(i, j int) bool { return values[i].DemandID < values[j].DemandID })
+	return values
+}
+
+// ApplicableDemandCalibrations applies the single selection rule used by
+// estimate hints and calculated load. Closed demands remain history, and a
+// calibration already applied to the plan through a scenario is not applied
+// a second time.
+func ApplicableDemandCalibrations(ws domain.Workspace) map[string]DemandCalibration {
 	tasks := map[string]domain.Task{}
 	for _, task := range ws.Tasks {
 		tasks[task.ID] = task
 	}
-	values := []CalibratedDemandValue{}
+	applied := map[string]bool{}
+	for _, scenario := range ws.Scenarios {
+		if scenario.Status == "applied" && scenario.CalibrationRef.ID != "" {
+			applied[scenario.CalibrationRef.ID] = true
+		}
+	}
 	amountsByCalibration := map[string]map[string]float64{}
+	result := map[string]DemandCalibration{}
 	for _, demand := range ws.ResourceDemands {
 		if calibrationDemandClosed(demand.Status) {
 			continue
@@ -810,28 +841,64 @@ func CalibratedDemandValues(ws domain.Workspace) []CalibratedDemandValue {
 		var selected *domain.Calibration
 		for i := range ws.Calibrations {
 			calibration := &ws.Calibrations[i]
-			if calibrationSealStatus(*calibration) != "verified" || calibration.Scope.Unit != demand.Unit || !containsString(calibration.Scope.Resources, demandResourceID(demand)) {
+			if applied[calibration.ID] || calibrationSealStatus(*calibration) != "verified" || calibration.Scope.Unit != demand.Unit || !containsString(calibration.Scope.Resources, demandResourceID(demand)) {
 				continue
 			}
 			if calibration.Scope.Tag != "" && !containsString(tasks[demand.TaskRef.ID].Tags, calibration.Scope.Tag) {
 				continue
 			}
-			if selected == nil || calibration.ApprovedAt > selected.ApprovedAt {
+			if selected == nil || calibrationApprovedAfter(*calibration, *selected) {
 				selected = calibration
 			}
 		}
-		if selected != nil {
-			amounts, ok := amountsByCalibration[selected.ID]
-			if !ok {
-				amounts = calibrationTaskScopeAmounts(ws.ResourceDemands, *selected)
-				amountsByCalibration[selected.ID] = amounts
-			}
-			factor, band := CalibrationFactor(*selected, amounts[demand.TaskRef.ID])
-			values = append(values, CalibratedDemandValue{DemandID: demand.ID, TypedAmount: demand.PlannedAmount, Calibrated: RoundCalibrationAmount(demand.PlannedAmount * factor), Unit: demand.Unit, CalibrationID: selected.ID, Factor: factor, Band: band})
+		if selected == nil {
+			continue
+		}
+		amounts := amountsByCalibration[selected.ID]
+		if amounts == nil {
+			amounts = calibrationTaskScopeAmounts(ws.ResourceDemands, *selected)
+			amountsByCalibration[selected.ID] = amounts
+		}
+		taskAmount := amounts[demand.TaskRef.ID]
+		factor, band := CalibrationFactor(*selected, taskAmount)
+		result[demand.ID] = DemandCalibration{Calibration: *selected, TaskScopeAmount: taskAmount, Factor: factor, Band: band}
+	}
+	return result
+}
+
+func calibrationApprovedAfter(left, right domain.Calibration) bool {
+	leftTime, leftErr := time.Parse(time.RFC3339, left.ApprovedAt)
+	rightTime, rightErr := time.Parse(time.RFC3339, right.ApprovedAt)
+	if leftErr == nil && rightErr == nil && !leftTime.Equal(rightTime) {
+		return leftTime.After(rightTime)
+	}
+	if left.ApprovedAt != right.ApprovedAt {
+		return left.ApprovedAt > right.ApprovedAt
+	}
+	return left.ID > right.ID
+}
+
+// calibrationSelectionWorkspace treats a calibration scenario selected as an
+// in-memory overlay like an applied scenario for this calculation. Its changes
+// already contain the scaled amounts and must not be scaled again.
+func calibrationSelectionWorkspace(ws domain.Workspace, scenarioID string) domain.Workspace {
+	if scenarioID == "" {
+		return ws
+	}
+	ws.Scenarios = append([]domain.Scenario(nil), ws.Scenarios...)
+	for i := range ws.Scenarios {
+		if ws.Scenarios[i].ID == scenarioID && ws.Scenarios[i].CalibrationRef.ID != "" {
+			ws.Scenarios[i].Status = "applied"
 		}
 	}
-	sort.Slice(values, func(i, j int) bool { return values[i].DemandID < values[j].DemandID })
-	return values
+	return ws
+}
+
+func calibratedLoadAmount(value, factor float64) float64 {
+	if value == 0 {
+		return 0
+	}
+	return RoundCalibrationAmount(value * factor)
 }
 
 // CalibrationOpenDemandGroups returns one application candidate per sealed

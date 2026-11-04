@@ -73,6 +73,44 @@ func TestVersionTextJSONAndGlobalFlag(t *testing.T) {
 	}
 }
 
+func TestWorkloadRawFlagDisablesCalibration(t *testing.T) {
+	read := func(extra ...string) app.WorkloadResult {
+		t.Helper()
+		stdout, stderr := tempOutputFiles(t)
+		args := []string{"workload", "--project", "../../examples/replan-self", "--format", "json"}
+		args = append(args, extra...)
+		if code := run(args, stdout, stderr); code != exitSuccess {
+			t.Fatalf("workload %v exit = %d, stderr = %s", extra, code, readFileString(t, stderr.Name()))
+		}
+		var env struct {
+			Result app.WorkloadResult `json:"result"`
+		}
+		if err := json.Unmarshal([]byte(readFileString(t, stdout.Name())), &env); err != nil {
+			t.Fatal(err)
+		}
+		return env.Result
+	}
+	find := func(result app.WorkloadResult) app.ResourceWorkload {
+		t.Helper()
+		for _, row := range result.Resources {
+			if row.ResourceID == "resource.ai.agent.executor" && row.Unit == "agent_hours" {
+				return row
+			}
+		}
+		t.Fatal("executor workload row not found")
+		return app.ResourceWorkload{}
+	}
+
+	calibrated := find(read())
+	raw := find(read("--raw"))
+	if calibrated.RawPlanned == nil || calibrated.Planned == raw.Planned || raw.RawPlanned != nil || len(raw.CalibrationIDs) != 0 {
+		t.Fatalf("calibrated=%#v raw=%#v", calibrated, raw)
+	}
+	if raw.Planned != *calibrated.RawPlanned || raw.Remaining != *calibrated.RawRemaining {
+		t.Fatalf("raw=%#v does not match calibration metadata %#v", raw, calibrated)
+	}
+}
+
 func TestVersionTextLines(t *testing.T) {
 	tests := []struct {
 		name string

@@ -907,7 +907,7 @@ Calculate resource workload, capacity usage, overloads and missing-data
 warnings.
 
 ```text
-replan workload --project <path> [--week <YYYY-Www>] [--resource <id>] [--resource-class <class>] [--unit <unit>] [--scenario <id>] [--demands] [--format json|markdown|text]
+replan workload --project <path> [--week <YYYY-Www>] [--resource <id>] [--resource-class <class>] [--unit <unit>] [--scenario <id>] [--demands] [--raw] [--format json|markdown|text]
 ```
 
 Examples:
@@ -922,7 +922,7 @@ replan workload --project examples/small-team --week 2026-W28 --scenario scenari
 Implemented command flags:
 
 ```text
-replan workload --project -p --bindings --format --demands --week --resource --resource-class --unit --scenario
+replan workload --project -p --bindings --format --demands --week --resource --resource-class --unit --scenario --raw
 ```
 
 Time selector:
@@ -978,6 +978,12 @@ Filters:
   has the same numbers as without the filter, and warnings about dropped rows
   are dropped with them;
 - `--scenario <id>` applies a scenario in memory only.
+- approved, sealed estimate calibrations apply to planned, remaining and
+  reserved load by default. The row's JSON includes `calibration_ids`,
+  `raw_planned` and `raw_remaining` only when calibration applies. With
+  `--demands`, rendered demand rows show typed and calibrated amounts;
+- `--raw` disables estimate calibration for this run. Actuals are never
+  calibrated.
 
 Demand breakdown:
 
@@ -1080,10 +1086,10 @@ replan report scenario scenario.ivan-unavailable-week-28 --against current --for
 Implemented command flags:
 
 ```text
-replan report weekly --project -p --bindings --format --week --scenario --write
+replan report weekly --project -p --bindings --format --week --scenario --raw --write
 replan report estimates --project -p --bindings --baseline --format
-replan report state --project -p --bindings --format --week --scenario
-replan report dashboard --project -p --bindings --format --output --week --scenario
+replan report state --project -p --bindings --format --week --scenario --raw
+replan report dashboard --project -p --bindings --format --output --week --scenario --raw
 replan next --project -p --bindings --format --week
 ```
 
@@ -1098,6 +1104,11 @@ Specified output flags across the wider report design:
 Implemented `report weekly` has `--write` but not `--output`; implemented
 `report dashboard` has `--output`; `report state` and `next` write only to
 stdout.
+
+Weekly, state and dashboard reports use approved calibration for load by
+default. `--raw` shows the uncalibrated demand amounts for that run. Dashboard
+resource rows, daily spread, OpenProject overlay and overload actions follow
+the same choice. Actuals remain raw.
 
 Implemented estimate-accuracy report slice:
 

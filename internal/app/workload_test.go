@@ -90,6 +90,121 @@ func TestWorkloadDemandStatusLoadRule(t *testing.T) {
 	}
 }
 
+func TestWorkloadUsesApprovedCalibrationSelection(t *testing.T) {
+	low, middle, high := .5, .25, .2
+	calibration := sealedWorkloadCalibration(t, "calibration.agent", "2026-11-01T10:00:00Z", "", high, &low, &middle, &high)
+	ws := calibratedWorkloadWorkspace(calibration)
+
+	result, err := app.NewWorkloadService(staticWorkspaceLoader{workspace: ws}).Calculate(context.Background(), app.WorkloadRequest{WithDemands: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	row := result.Resources[0]
+	if row.Planned != 1.25 || row.Remaining != 1 || row.Reserved != .75 || row.Overload != 0 {
+		t.Fatalf("calibrated row = %#v", row)
+	}
+	if !reflect.DeepEqual(row.CalibrationIDs, []string{"calibration.agent"}) || row.RawPlanned == nil || *row.RawPlanned != 6 || row.RawRemaining == nil || *row.RawRemaining != 5 {
+		t.Fatalf("calibration metadata = %#v", row)
+	}
+	if len(row.Demands) != 1 || row.Demands[0].RawPlanned == nil || *row.Demands[0].RawPlanned != 6 || row.Demands[0].Planned != 1.25 {
+		t.Fatalf("calibrated demand = %#v", row.Demands)
+	}
+
+	raw, err := app.NewWorkloadService(staticWorkspaceLoader{workspace: ws}).Calculate(context.Background(), app.WorkloadRequest{Raw: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	rawRow := raw.Resources[0]
+	if rawRow.Planned != 6 || rawRow.Remaining != 5 || rawRow.Reserved != 4 || rawRow.Overload != 2 || len(rawRow.CalibrationIDs) != 0 || rawRow.RawPlanned != nil {
+		t.Fatalf("raw row = %#v", rawRow)
+	}
+}
+
+func TestWorkloadCalibrationSelectionExclusionsAndLatest(t *testing.T) {
+	tests := []struct {
+		name   string
+		change func(*domain.Workspace)
+		want   float64
+		wantID string
+	}{
+		{name: "tag scope skips untagged task", change: func(ws *domain.Workspace) {
+			ws.Calibrations[0].Scope.Tag = "agent"
+			resealWorkloadCalibration(t, &ws.Calibrations[0])
+		}, want: 6},
+		{name: "applied scenario disables calibration", change: func(ws *domain.Workspace) {
+			ws.Scenarios = []domain.Scenario{{ID: "scenario.applied", Status: "applied", CalibrationRef: domain.Ref{ID: "calibration.agent"}}}
+		}, want: 6},
+		{name: "broken seal is ignored", change: func(ws *domain.Workspace) { ws.Calibrations[0].Result.Factor = .9 }, want: 6},
+		{name: "latest calibration wins", change: func(ws *domain.Workspace) {
+			latest := sealedWorkloadCalibration(t, "calibration.latest", "2026-11-02T10:00:00Z", "", .25, nil, nil, nil)
+			ws.Calibrations = append(ws.Calibrations, latest)
+		}, want: 1.5, wantID: "calibration.latest"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ws := calibratedWorkloadWorkspace(sealedWorkloadCalibration(t, "calibration.agent", "2026-11-01T10:00:00Z", "", .5, nil, nil, nil))
+			tt.change(&ws)
+			result, err := app.NewWorkloadService(staticWorkspaceLoader{workspace: ws}).Calculate(context.Background(), app.WorkloadRequest{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			row := result.Resources[0]
+			if row.Planned != tt.want {
+				t.Fatalf("planned = %g, want %g; row %#v", row.Planned, tt.want, row)
+			}
+			if tt.wantID != "" && !reflect.DeepEqual(row.CalibrationIDs, []string{tt.wantID}) {
+				t.Fatalf("calibration ids = %#v, want %s", row.CalibrationIDs, tt.wantID)
+			}
+		})
+	}
+}
+
+func TestConsumedDemandIsNotSelectedForCalibration(t *testing.T) {
+	ws := calibratedWorkloadWorkspace(sealedWorkloadCalibration(t, "calibration.agent", "2026-11-01T10:00:00Z", "", .2, nil, nil, nil))
+	ws.ResourceDemands[0].Status = "consumed"
+	if selected := app.ApplicableDemandCalibrations(ws); len(selected) != 0 {
+		t.Fatalf("consumed demand selected: %#v", selected)
+	}
+}
+
+func calibratedWorkloadWorkspace(calibration domain.Calibration) domain.Workspace {
+	remaining := 5.0
+	return domain.Workspace{
+		Resources:    []domain.Resource{{ID: "resource.agent", Class: "ai_agent", Name: "Agent"}},
+		Project:      domain.Project{ID: "project.test", Name: "Test", DefaultStatusDate: "2026-11-04"},
+		Tasks:        []domain.Task{{ID: "task.agent", PlannedStart: "2026-11-02", PlannedFinish: "2026-11-06", ResourceDemands: []domain.Ref{{ID: "demand.agent"}}}},
+		Calibrations: []domain.Calibration{calibration},
+		ResourceDemands: []domain.ResourceDemand{{
+			ID: "demand.agent", TaskRef: domain.Ref{ID: "task.agent"}, ResourceRef: domain.Ref{ID: "resource.agent"},
+			Unit: "agent_hours", Status: "active", PlannedAmount: 6, RemainingAmount: &remaining, ReservedAmount: 4,
+		}},
+		Capacities: []domain.Capacity{{ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "agent_hours", Amount: 2, Period: "week"}},
+	}
+}
+
+func sealedWorkloadCalibration(t *testing.T, id, approvedAt, tag string, factor float64, low, middle, high *float64) domain.Calibration {
+	t.Helper()
+	calibration := domain.Calibration{
+		ID: id, ApprovedAt: approvedAt, Scope: domain.CalibrationScope{Resources: []string{"resource.agent"}, Unit: "agent_hours", Tag: tag},
+		Result: domain.CalibrationResult{Factor: factor},
+	}
+	if low != nil {
+		two, four := 2.0, 4.0
+		calibration.Result.Method = "size_bands"
+		calibration.Result.SizeBands = []domain.CalibrationSizeBand{{UpTo: &two, Factor: low}, {UpTo: &four, Factor: middle}, {Factor: high}}
+	}
+	resealWorkloadCalibration(t, &calibration)
+	return calibration
+}
+
+func resealWorkloadCalibration(t *testing.T, calibration *domain.Calibration) {
+	t.Helper()
+	calibration.SealSHA256 = ""
+	if err := domain.SealCalibration(calibration); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestWorkloadClosedDemandDoesNotAffectConcurrentPeak(t *testing.T) {
 	ws := domain.Workspace{
 		Resources: []domain.Resource{{ID: "resource.environment", Class: "environment"}},

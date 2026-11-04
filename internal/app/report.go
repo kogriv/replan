@@ -20,6 +20,7 @@ type WeeklyReportRequest struct {
 	ProjectPath string
 	Week        string
 	ScenarioID  string
+	Raw         bool
 }
 
 type DashboardReportRequest struct {
@@ -29,6 +30,7 @@ type DashboardReportRequest struct {
 	Command      string
 	ArtifactBase string
 	ScenarioID   string
+	Raw          bool
 }
 
 func NewReportService(loader WorkspaceLoader) ReportService {
@@ -70,6 +72,7 @@ func (s ReportService) Weekly(ctx context.Context, req WeeklyReportRequest) (rep
 	workload, err := NewWorkloadService(reportLoader).Calculate(ctx, WorkloadRequest{
 		ProjectPath: req.ProjectPath,
 		Week:        req.Week,
+		Raw:         req.Raw,
 	})
 	if len(overlayErrors) > 0 {
 		err = ErrValidationFailed
@@ -81,16 +84,19 @@ func (s ReportService) Weekly(ctx context.Context, req WeeklyReportRequest) (rep
 
 	for _, row := range workload.Resources {
 		report.Resources = append(report.Resources, reports.ResourceRow{
-			ResourceID:    row.ResourceID,
-			ResourceName:  row.ResourceName,
-			ResourceClass: row.ResourceClass,
-			Unit:          row.Unit,
-			Capacity:      row.Capacity,
-			Planned:       row.Planned,
-			Reserved:      row.Reserved,
-			Actual:        row.Actual,
-			Remaining:     row.Remaining,
-			Overload:      row.Overload,
+			ResourceID:     row.ResourceID,
+			ResourceName:   row.ResourceName,
+			ResourceClass:  row.ResourceClass,
+			Unit:           row.Unit,
+			Capacity:       row.Capacity,
+			Planned:        row.Planned,
+			Reserved:       row.Reserved,
+			Actual:         row.Actual,
+			Remaining:      row.Remaining,
+			Overload:       row.Overload,
+			CalibrationIDs: append([]string(nil), row.CalibrationIDs...),
+			RawPlanned:     row.RawPlanned,
+			RawRemaining:   row.RawRemaining,
 		})
 		if row.Overload > 0 {
 			report.Summary.Overloaded++
@@ -194,6 +200,7 @@ func (s ReportService) Dashboard(ctx context.Context, req DashboardReportRequest
 		ProjectPath: req.ProjectPath,
 		Week:        week,
 		ScenarioID:  req.ScenarioID,
+		Raw:         req.Raw,
 	})
 	overview := reports.DashboardOverview{
 		SchemaVersion: 1,
@@ -231,7 +238,7 @@ func (s ReportService) Dashboard(ctx context.Context, req DashboardReportRequest
 		Scenarios:    dashboardScenarioRows(ws.Scenarios),
 	}
 	overview.TrackingLoop = dashboardTrackingProposalLoop(overview.Tracking, ws.Proposals, s.loader.ProjectPath())
-	overview.Gantt = dashboardGanttView(ws, overview, weekly.Resources, weekly.Warnings, weekly.Proposals)
+	overview.Gantt = dashboardGanttView(ws, overview, weekly.Resources, weekly.Warnings, weekly.Proposals, req.Raw)
 	overview.OpenProject = dashboardOpenProject(overview.SourceHealth, overview.Gantt)
 	for _, task := range ws.Tasks {
 		switch task.TrackingStatus {
@@ -255,10 +262,10 @@ func (s ReportService) Dashboard(ctx context.Context, req DashboardReportRequest
 	overview.Health.ErrorCount = len(overview.Errors)
 	overview.NextActions = dashboardNextActions(ws, overview)
 	overview.PlannedForPeople = plannedForPeopleThisWeek(ws, week)
-	overview.WorkloadPage, overview.ScenariosPage, overview.ProposalsPage, overview.EstimatesPage = s.dashboardPages(ctx, canonicalWS, overview)
+	overview.WorkloadPage, overview.ScenariosPage, overview.ProposalsPage, overview.EstimatesPage = s.dashboardPages(ctx, canonicalWS, overview, req.Raw)
 	// The overlay comes last: it carries the final warnings and the person
 	// actions to the OpenProject plugin.
-	overview.OpenProjectOverlay = dashboardOpenProjectOverlay(ws, overview)
+	overview.OpenProjectOverlay = dashboardOpenProjectOverlay(ws, overview, req.Raw)
 	return overview, err
 }
 
@@ -942,7 +949,7 @@ func expectsActuals(row reports.DashboardTrackingRow) bool {
 	return false
 }
 
-func dashboardGanttView(ws domain.Workspace, overview reports.DashboardOverview, workload []reports.ResourceRow, warnings []reports.ReportIssue, proposals []reports.ProposalRow) reports.DashboardGanttView {
+func dashboardGanttView(ws domain.Workspace, overview reports.DashboardOverview, workload []reports.ResourceRow, warnings []reports.ReportIssue, proposals []reports.ProposalRow, raw bool) reports.DashboardGanttView {
 	view := reports.DashboardGanttView{
 		SchemaVersion: 1,
 		ProjectID:     ws.Project.ID,
@@ -956,6 +963,10 @@ func dashboardGanttView(ws domain.Workspace, overview reports.DashboardOverview,
 	demandsByID := map[string]domain.ResourceDemand{}
 	for _, demand := range ws.ResourceDemands {
 		demandsByID[demand.ID] = demand
+	}
+	calibrations := map[string]DemandCalibration{}
+	if !raw {
+		calibrations = ApplicableDemandCalibrations(calibrationSelectionWorkspace(ws, overview.ScenarioID))
 	}
 	overloadedResources := map[string]bool{}
 	for _, row := range workload {
@@ -1038,7 +1049,7 @@ func dashboardGanttView(ws domain.Workspace, overview reports.DashboardOverview,
 		if row.DurationDays < 1 {
 			row.DurationDays = 1
 		}
-		row.Allocations = dashboardGanttAllocations(ws, item.task, demandsByID, workload, overloadedResources, minStart)
+		row.Allocations = dashboardGanttAllocations(ws, item.task, demandsByID, workload, overloadedResources, calibrations, minStart)
 		view.Tasks = append(view.Tasks, row)
 	}
 	sort.Slice(view.Unscheduled, func(i, j int) bool { return view.Unscheduled[i].ID < view.Unscheduled[j].ID })
@@ -1112,7 +1123,7 @@ func dashboardGanttTask(
 // dashboardGanttAllocations places each demand of a task on the Gantt. A
 // period demand's amount per day is spread over its working days, a
 // concurrent demand occupies its full amount every day (GAP-031).
-func dashboardGanttAllocations(ws domain.Workspace, task domain.Task, demandsByID map[string]domain.ResourceDemand, workload []reports.ResourceRow, overloadedResources map[string]bool, minStart time.Time) []reports.DashboardGanttResourceAllocation {
+func dashboardGanttAllocations(ws domain.Workspace, task domain.Task, demandsByID map[string]domain.ResourceDemand, workload []reports.ResourceRow, overloadedResources map[string]bool, calibrations map[string]DemandCalibration, minStart time.Time) []reports.DashboardGanttResourceAllocation {
 	days := workingDays(ws.Availabilities)
 	allocations := []reports.DashboardGanttResourceAllocation{}
 	capacityByResourceUnit := map[string]float64{}
@@ -1147,6 +1158,10 @@ func dashboardGanttAllocations(ws domain.Workspace, task domain.Task, demandsByI
 		amountPerDay := 0.0
 		plannedAmount := demand.PlannedAmount
 		remainingAmount := demand.Remaining()
+		if calibration, ok := calibrations[demand.ID]; ok {
+			plannedAmount = calibratedLoadAmount(plannedAmount, calibration.Factor)
+			remainingAmount = calibratedLoadAmount(remainingAmount, calibration.Factor)
+		}
 		if !domain.DemandLoads(demand.Status) {
 			plannedAmount = 0
 			remainingAmount = 0

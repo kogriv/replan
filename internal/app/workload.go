@@ -26,6 +26,8 @@ type WorkloadRequest struct {
 	ScenarioID    string
 	// WithDemands lists in every row the demands that make it up.
 	WithDemands bool
+	// Raw disables estimate calibration for this calculation.
+	Raw bool
 }
 
 type WorkloadResult struct {
@@ -38,16 +40,19 @@ type WorkloadResult struct {
 }
 
 type ResourceWorkload struct {
-	ResourceID    string  `json:"resource_id"`
-	ResourceName  string  `json:"resource_name,omitempty"`
-	ResourceClass string  `json:"resource_class,omitempty"`
-	Unit          string  `json:"unit"`
-	Capacity      float64 `json:"capacity"`
-	Planned       float64 `json:"planned"`
-	Reserved      float64 `json:"reserved"`
-	Actual        float64 `json:"actual"`
-	Remaining     float64 `json:"remaining"`
-	Overload      float64 `json:"overload"`
+	ResourceID     string   `json:"resource_id"`
+	ResourceName   string   `json:"resource_name,omitempty"`
+	ResourceClass  string   `json:"resource_class,omitempty"`
+	Unit           string   `json:"unit"`
+	Capacity       float64  `json:"capacity"`
+	Planned        float64  `json:"planned"`
+	Reserved       float64  `json:"reserved"`
+	Actual         float64  `json:"actual"`
+	Remaining      float64  `json:"remaining"`
+	Overload       float64  `json:"overload"`
+	CalibrationIDs []string `json:"calibration_ids,omitempty"`
+	RawPlanned     *float64 `json:"raw_planned,omitempty"`
+	RawRemaining   *float64 `json:"raw_remaining,omitempty"`
 	// Demands is filled only on request (WorkloadRequest.WithDemands).
 	Demands []WorkloadDemandShare `json:"demands,omitempty"`
 }
@@ -57,14 +62,17 @@ type ResourceWorkload struct {
 // A demand on a concurrent resource is not prorated: its amounts are its own,
 // and the row holds the peak of the demands active on the same day.
 type WorkloadDemandShare struct {
-	ResourceDemandID string  `json:"resource_demand_id"`
-	TaskID           string  `json:"task_id,omitempty"`
-	Status           string  `json:"status,omitempty"`
-	Concurrent       bool    `json:"concurrent,omitempty"`
-	Share            float64 `json:"share"`
-	Planned          float64 `json:"planned"`
-	Reserved         float64 `json:"reserved"`
-	Remaining        float64 `json:"remaining"`
+	ResourceDemandID string   `json:"resource_demand_id"`
+	TaskID           string   `json:"task_id,omitempty"`
+	Status           string   `json:"status,omitempty"`
+	Concurrent       bool     `json:"concurrent,omitempty"`
+	Share            float64  `json:"share"`
+	Planned          float64  `json:"planned"`
+	Reserved         float64  `json:"reserved"`
+	Remaining        float64  `json:"remaining"`
+	CalibrationID    string   `json:"calibration_id,omitempty"`
+	RawPlanned       *float64 `json:"raw_planned,omitempty"`
+	RawRemaining     *float64 `json:"raw_remaining,omitempty"`
 }
 
 func NewWorkloadService(loader WorkspaceLoader) WorkloadService {
@@ -109,6 +117,11 @@ type workloadCalculation struct {
 	actualDemandIDs        map[string]bool
 	rows                   map[string]*ResourceWorkload
 	concurrent             map[string][]concurrentUse
+	rawConcurrent          map[string][]concurrentUse
+	calibrations           map[string]DemandCalibration
+	calibrationIDs         map[string]map[string]bool
+	rawPlanned             map[string]float64
+	rawRemaining           map[string]float64
 	weekStart              time.Time
 	weekEnd                time.Time
 	hasWeekFilter          bool
@@ -119,7 +132,9 @@ func newWorkloadCalculation(req WorkloadRequest, ws domain.Workspace, result *Wo
 	return &workloadCalculation{
 		req: req, workspace: ws, result: result, resources: map[string]domain.Resource{}, pools: map[string]domain.ResourcePool{},
 		tasks: map[string]domain.Task{}, capacityByResourceUnit: map[string]float64{}, actualDemandIDs: map[string]bool{},
-		rows: map[string]*ResourceWorkload{}, concurrent: map[string][]concurrentUse{}, weekStart: start, weekEnd: end, hasWeekFilter: filtered,
+		rows: map[string]*ResourceWorkload{}, concurrent: map[string][]concurrentUse{}, rawConcurrent: map[string][]concurrentUse{},
+		calibrations: map[string]DemandCalibration{}, calibrationIDs: map[string]map[string]bool{}, rawPlanned: map[string]float64{}, rawRemaining: map[string]float64{},
+		weekStart: start, weekEnd: end, hasWeekFilter: filtered,
 	}
 }
 
@@ -139,6 +154,9 @@ func (c *workloadCalculation) applyScenario() error {
 }
 
 func (c *workloadCalculation) indexWorkspace() {
+	if !c.req.Raw {
+		c.calibrations = ApplicableDemandCalibrations(calibrationSelectionWorkspace(c.workspace, c.req.ScenarioID))
+	}
 	for _, resource := range c.workspace.Resources {
 		c.resources[resource.ID] = resource
 	}
@@ -209,6 +227,8 @@ func (c *workloadCalculation) addDemands() {
 	for key, uses := range c.concurrent {
 		row := c.rows[key]
 		row.Planned, row.Remaining, row.Reserved = peakConcurrentUse(uses, c.weekStart, c.weekEnd, c.hasWeekFilter)
+		rawPlanned, rawRemaining, _ := peakConcurrentUse(c.rawConcurrent[key], c.weekStart, c.weekEnd, c.hasWeekFilter)
+		c.rawPlanned[key], c.rawRemaining[key] = rawPlanned, rawRemaining
 	}
 }
 
@@ -226,6 +246,7 @@ func (c *workloadCalculation) addDemand(demand domain.ResourceDemand) {
 		return
 	}
 	row := c.rowFor(targetID, demand.Unit)
+	key := targetID + "\x00" + demand.Unit
 	loadScale := 1.0
 	if !domain.DemandLoads(demand.Status) {
 		loadScale = 0
@@ -234,30 +255,45 @@ func (c *workloadCalculation) addDemand(demand domain.ResourceDemand) {
 	if c.hasWeekFilter {
 		share = spanShare(span, c.days[targetID], c.weekStart, c.weekEnd)
 	}
+	planned, remaining, reserved := demand.PlannedAmount, demand.Remaining(), demand.ReservedAmount
+	calibrationID := ""
+	if match, ok := c.calibrations[demand.ID]; ok && loadScale != 0 {
+		calibrationID = match.Calibration.ID
+		planned = calibratedLoadAmount(planned, match.Factor)
+		remaining = calibratedLoadAmount(remaining, match.Factor)
+		reserved = calibratedLoadAmount(reserved, match.Factor)
+		if c.calibrationIDs[key] == nil {
+			c.calibrationIDs[key] = map[string]bool{}
+		}
+		c.calibrationIDs[key][calibrationID] = true
+	}
 	if isConcurrentResourceUnit(c.workspace.Capacities, targetID, demand.Unit) {
-		key := targetID + "\x00" + demand.Unit
-		c.concurrent[key] = append(c.concurrent[key], concurrentUse{span: span, planned: demand.PlannedAmount * loadScale, remaining: demand.Remaining() * loadScale, reserved: demand.ReservedAmount * loadScale})
+		c.concurrent[key] = append(c.concurrent[key], concurrentUse{span: span, planned: planned * loadScale, remaining: remaining * loadScale, reserved: reserved * loadScale})
+		c.rawConcurrent[key] = append(c.rawConcurrent[key], concurrentUse{span: span, planned: demand.PlannedAmount * loadScale, remaining: demand.Remaining() * loadScale, reserved: demand.ReservedAmount * loadScale})
 		if !c.actualDemandIDs[demand.ID] {
 			row.Actual += demand.ActualAmount
 		}
 		if c.req.WithDemands {
-			row.Demands = append(row.Demands, demandShare(demand, share, loadScale, true))
+			row.Demands = append(row.Demands, demandShare(demand, share, loadScale, true, planned, remaining, reserved, calibrationID))
 		}
 		return
 	}
 	if c.req.WithDemands {
-		row.Demands = append(row.Demands, demandShare(demand, share, share*loadScale, false))
+		row.Demands = append(row.Demands, demandShare(demand, share, share*loadScale, false, planned, remaining, reserved, calibrationID))
 	}
-	row.Planned += demand.PlannedAmount * share * loadScale
-	row.Reserved += demand.ReservedAmount * share * loadScale
+	row.Planned += planned * share * loadScale
+	row.Reserved += reserved * share * loadScale
+	c.rawPlanned[key] += demand.PlannedAmount * share * loadScale
+	c.rawRemaining[key] += demand.Remaining() * share * loadScale
 	if !c.actualDemandIDs[demand.ID] {
 		row.Actual += demand.ActualAmount * share
 	}
-	row.Remaining += demand.Remaining() * share * loadScale
+	row.Remaining += remaining * share * loadScale
 }
 
 func (c *workloadCalculation) finishRows() {
 	for _, row := range c.rows {
+		key := row.ResourceID + "\x00" + row.Unit
 		if (c.req.ResourceClass != "" && row.ResourceClass != c.req.ResourceClass) || (c.req.Unit != "" && row.Unit != c.req.Unit) {
 			continue
 		}
@@ -267,6 +303,11 @@ func (c *workloadCalculation) finishRows() {
 		row.Planned, row.Reserved = roundDashboardFloat(row.Planned), roundDashboardFloat(row.Reserved)
 		row.Actual, row.Remaining = roundDashboardFloat(row.Actual), roundDashboardFloat(row.Remaining)
 		row.Capacity = roundDashboardFloat(row.Capacity)
+		if ids := c.calibrationIDs[key]; len(ids) > 0 {
+			row.CalibrationIDs = sortedMapKeys(ids)
+			rawPlanned, rawRemaining := roundDashboardFloat(c.rawPlanned[key]), roundDashboardFloat(c.rawRemaining[key])
+			row.RawPlanned, row.RawRemaining = &rawPlanned, &rawRemaining
+		}
 		sort.Slice(row.Demands, func(i, j int) bool { return row.Demands[i].ResourceDemandID < row.Demands[j].ResourceDemandID })
 		load := row.Reserved
 		if load == 0 {
@@ -376,17 +417,23 @@ func workloadWeekRange(week string) (time.Time, time.Time, bool) {
 
 // demandShare describes a demand's part of a row: share is the fraction in
 // the week, scale what its amounts are multiplied by.
-func demandShare(demand domain.ResourceDemand, share, scale float64, concurrent bool) WorkloadDemandShare {
-	return WorkloadDemandShare{
+func demandShare(demand domain.ResourceDemand, share, scale float64, concurrent bool, planned, remaining, reserved float64, calibrationID string) WorkloadDemandShare {
+	result := WorkloadDemandShare{
 		ResourceDemandID: demand.ID,
 		TaskID:           demand.TaskRef.ID,
 		Status:           demand.Status,
 		Concurrent:       concurrent,
 		Share:            roundDashboardFloat(share),
-		Planned:          roundDashboardFloat(demand.PlannedAmount * scale),
-		Reserved:         roundDashboardFloat(demand.ReservedAmount * scale),
-		Remaining:        roundDashboardFloat(demand.Remaining() * scale),
+		Planned:          roundDashboardFloat(planned * scale),
+		Reserved:         roundDashboardFloat(reserved * scale),
+		Remaining:        roundDashboardFloat(remaining * scale),
+		CalibrationID:    calibrationID,
 	}
+	if calibrationID != "" {
+		rawPlanned, rawRemaining := roundDashboardFloat(demand.PlannedAmount*scale), roundDashboardFloat(demand.Remaining()*scale)
+		result.RawPlanned, result.RawRemaining = &rawPlanned, &rawRemaining
+	}
+	return result
 }
 
 func parseWorkloadDate(value string) (time.Time, bool) {
