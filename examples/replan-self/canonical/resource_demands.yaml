@@ -12200,8 +12200,22 @@ resource_demands:
       resource_class: ai_agent
       role: implementation_agent
       unit: agent_hours
-      planned_amount: 3
-      remaining_amount: 3
+      planned_amount: 0.75
+      remaining_amount: 0.75
+      criticality: required
+      status: active
+    - id: resource_demand.calibrated-dates-and-agent-hours-tab.codex
+      task_ref:
+        kind: task
+        id: task.self.calibrated-dates-and-agent-hours-tab
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 2.25
+      remaining_amount: 2.25
       criticality: required
       status: active
     - id: resource_demand.calibrated-dates-and-agent-hours-tab.maintainer
