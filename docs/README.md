@@ -196,6 +196,9 @@ Project-level entry points:
 - [`dev/estimate-calibration-design.md`](dev/estimate-calibration-design.md)
   — proposed design for turning estimate accuracy into a sealed, approved
   calibration applied to open work through a scenario.
+- [`dev/agent-effort-units-design.md`](dev/agent-effort-units-design.md) —
+  proposal for relating estimate hours to real agent hours: calibrated load,
+  a starting factor, agent hours in OpenProject.
 - [`quickstart.md`](quickstart.md) — your first project: an empty directory
   to a weekly workload report with commands only; the smoke test runs it.
 - [`dev/first-project-onboarding-design.md`](dev/first-project-onboarding-design.md)
