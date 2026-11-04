@@ -805,3 +805,45 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.next-shows-people-work-this-week
+    - id: actual.self-calibrated-agent-load.ai-codex-local.20261104T1808140700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.calibrated-agent-load
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.calibrated-agent-load.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.26
+      unit: agent_hours
+      occurred_at: "2026-11-04T18:08:14+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.calibrated-agent-load
+    - id: actual.self-calibrated-agent-load.ai-agent-executor.20261104T1808140700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.calibrated-agent-load
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.calibrated-agent-load.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.35
+      unit: agent_hours
+      occurred_at: "2026-11-04T18:08:14+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.calibrated-agent-load
