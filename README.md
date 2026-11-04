@@ -59,6 +59,10 @@ go install github.com/kogriv/replan/cmd/replan@latest
 replan --version
 ```
 
+If `replan --version` answers `unknown command`, an old binary from before
+v0.1.0 comes first on your `PATH`: find it with `which -a replan` and remove
+or reinstall it.
+
 To start a plan of your own, follow [Your first project](docs/quickstart.md):
 an empty directory to a weekly workload report in a few commands.
 

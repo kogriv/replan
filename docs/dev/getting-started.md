@@ -27,6 +27,9 @@ The detailed convention is in
 ## Requirements
 
 - Go 1.24 or newer.
+- A current `replan` on `PATH`: `replan version` prints the release. An
+  answer `unknown command: version` means an old binary from before v0.1.0;
+  rebuild it with `go install ./cmd/replan`.
 
 Tagged release builds and the public `go install` path are documented in
 [`release-process.md`](release-process.md).
