@@ -402,3 +402,49 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.accept-agent-effort-units-design
+    - id: actual.self-relations-apply-reports-unsupported-type.ai-agent-executor.20261104T1338280700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.relations-apply-reports-unsupported-type
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.relations-apply-reports-unsupported-type.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.43
+      unit: agent_hours
+      occurred_at: "2026-11-04T13:38:28+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.relations-apply-reports-unsupported-type
+    - id: actual.actual-self-relations-apply-reports-unsupported-type-ai-agent-executor-20261104t1338280700-work-consumed.correction.20261104T1338490700
+      type: correction
+      corrects_ref:
+        kind: actual
+        id: actual.self-relations-apply-reports-unsupported-type.ai-agent-executor.20261104T1338280700.work-consumed
+      corrected_amount: 0.3
+      task_ref:
+        kind: task
+        id: task.self.relations-apply-reports-unsupported-type
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.relations-apply-reports-unsupported-type.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      unit: agent_hours
+      occurred_at: "2026-11-04T13:38:49+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.human.maintainer
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.relations-apply-reports-unsupported-type
+      reason: 'The amount was not taken from the timestamps: 13:20:22 to 13:38:28 is 0.30 agent hours.'

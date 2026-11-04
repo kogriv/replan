@@ -253,3 +253,25 @@ evidence:
       targets:
         - kind: task
           id: task.self.agent-effort-units-design
+    - id: evidence.self.start-relations-apply-reports-unsupported-type
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T13:20:22+07:00"
+      summary: Started on 2026-11-04; estimate 1 agent hour frozen in baseline.2026-11-04.consumer-feedback; the executor fixes it without Codex.
+      targets:
+        - kind: task
+          id: task.self.relations-apply-reports-unsupported-type
+    - id: evidence.self.relations-apply-reports-unsupported-type
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T13:38:28+07:00"
+      summary: 'Fix commit: refused dependencies in apply-openproject-relations are diagnostics with codes (unsupported_dependency_type with supported_types, task_binding_missing), so errors and error_codes are no longer empty; test with a fake OpenProject; README names the exported types and that other relations are still created while the bindings file is not written. Gate green incl. 79 live kit checks. Executor 13:20:22-13:38:28.'
+      targets:
+        - kind: task
+          id: task.self.relations-apply-reports-unsupported-type
