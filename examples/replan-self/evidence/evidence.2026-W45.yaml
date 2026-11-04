@@ -330,3 +330,25 @@ evidence:
       targets:
         - kind: task
           id: task.self.align-dependency-types-with-spec
+    - id: evidence.self.start-warn-about-outdated-binary
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T14:08:49+07:00"
+      summary: Started on 2026-11-04; estimate 0.5 agent hours frozen in baseline.2026-11-04.consumer-feedback; documentation, by the executor.
+      targets:
+        - kind: task
+          id: task.self.warn-about-outdated-binary
+    - id: evidence.self.warn-about-outdated-binary
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T14:12:23+07:00"
+      summary: 'Quickstart, README and getting-started say: run replan version first; unknown command means a binary from before v0.1.0 first on PATH; which -a replan, remove or reinstall. Checked against the real old binary in GOPATH/bin (answers unknown command). Smoke (runs quickstart blocks) green. Executor 14:08:49-14:12:23, 0.06 h.'
+      targets:
+        - kind: task
+          id: task.self.warn-about-outdated-binary

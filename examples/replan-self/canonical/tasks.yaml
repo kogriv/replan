@@ -6007,7 +6007,7 @@ tasks:
       title: Tell new users how to spot an outdated replan binary
       description: 'A new consumer first ran an old replan from PATH that has no init, task, baseline or version commands and answers version with unknown command. Old binaries cannot be changed, so the quickstart, getting-started and agent kit README say first: run replan version; if it says unknown command, the binary predates v0.1.0, remove or reinstall it.'
       type: implementation
-      tracking_status: not_started
+      tracking_status: review_ready
       planned_start: "2026-11-04"
       planned_finish: "2026-11-04"
       assignee_hint:
