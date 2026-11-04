@@ -6400,7 +6400,7 @@ tasks:
       title: Leave cancelled and superseded demands out of load
       description: 'workload and report weekly add the planned_amount of every demand whatever its status, so a demand moved to another person (status superseded) still loads the old resource; a consumer had to set planned_amount 0, and could not delete the demand because a baseline refers to it. Cancelled and superseded demands must not count in planned or remaining load (consumed ones keep their actuals); the dashboard and the overlay follow the same rule; tests for each status.'
       type: implementation
-      tracking_status: not_started
+      tracking_status: in_progress
       planned_start: "2026-11-04"
       planned_finish: "2026-11-04"
       assignee_hint:
@@ -6409,6 +6409,8 @@ tasks:
       resource_demands:
         - kind: resource_demand
           id: resource_demand.workload-skips-closed-demands.agent
+        - kind: resource_demand
+          id: resource_demand.workload-skips-closed-demands.codex
         - kind: resource_demand
           id: resource_demand.workload-skips-closed-demands.maintainer
         - kind: resource_demand
