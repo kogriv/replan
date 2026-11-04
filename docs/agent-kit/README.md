@@ -431,7 +431,11 @@ The build uses `REPLAN_PROJECT` and `REPLAN_OPENPROJECT_PROJECT_ID`. It reads
 `REPLAN_OPENPROJECT_BINDINGS_PATH`, defaulting to
 `private/openproject/<project>-bindings.yaml` under the kit root, and writes
 `REPLAN_OVERLAY_OUTPUT_DIR`, defaulting to
-`tmp/openproject-live-overlay/latest` under the kit root. The publish helper
+`tmp/openproject-live-overlay/latest` under the kit root. The output
+directory must be outside the plan directory: the build reads the plan
+through the read-only bindings layer, and a path inside the plan is refused as
+`bindings_layer_output_in_project`, which the build reports as its own error
+code next to `dashboard_failed`. The publish helper
 requires the private `REPLAN_OVERLAY_PUBLISH_TARGET`, an rsync local path or
 `host:path` naming the OpenProject server's overlay directory, and sends only
 to `<target>/<project id>/`. Both helpers read the environment and the kit's

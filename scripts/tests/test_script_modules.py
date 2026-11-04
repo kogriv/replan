@@ -308,6 +308,26 @@ class LiveOverlayTest(unittest.TestCase):
             "--bindings", bindings, "--output", output, "--format", "json", "--week", "2026-W44",
         ])
 
+    def test_build_lifts_the_cli_error_codes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            project = os.path.join(tmp, "project")
+            os.makedirs(os.path.join(project, "canonical"))
+            dump_yaml(os.path.join(project, "canonical", "tasks.yaml"), {"tasks": [{"id": "t1"}]})
+            bindings = os.path.join(tmp, "bindings.yaml")
+            dump_yaml(bindings, {"openproject_private_bindings": {"tasks": [], "dependencies": [], "resources": []}})
+            envelope = {"ok": False, "errors": [{"code": "bindings_layer_output_in_project",
+                                                 "message": "choose an output path outside the project",
+                                                 "severity": "error"}]}
+            completed = subprocess.CompletedProcess([], 8, stdout=json.dumps(envelope), stderr="")
+            with mock.patch.object(openproject_live_overlay.subprocess, "run", return_value=completed):
+                result = openproject_live_overlay.build("/bin/replan", project, bindings,
+                                                        os.path.join(project, "reports", "overlay"))
+        self.assertFalse(result["ok"])
+        self.assertEqual([e["code"] for e in result["errors"]],
+                         ["dashboard_failed", "bindings_layer_output_in_project"])
+        self.assertEqual(result["errors"][0]["message"],
+                         "replan report dashboard failed: bindings_layer_output_in_project")
+
 
 class ModuleInventoryTest(unittest.TestCase):
     def test_every_module_compiles_and_every_helper_module_is_invoked(self):

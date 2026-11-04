@@ -41,6 +41,23 @@ def binding_counts(tasks_path, bindings):
     return bound, unbound
 
 
+def cli_errors(stdout):
+    """The coded errors of a replan JSON envelope, so the real cause of a
+    failed dashboard run is a top-level error code and not text inside a
+    message."""
+    try:
+        envelope = json.loads(stdout or "")
+    except ValueError:
+        return []
+    if not isinstance(envelope, dict):
+        return []
+    errors = []
+    for error in envelope.get("errors") or []:
+        if isinstance(error, dict) and error.get("code"):
+            errors.append({"code": error["code"], "message": error.get("message") or error["code"]})
+    return errors
+
+
 def build(replan_bin, project_path, bindings_path, output_dir, week=""):
     result = {
         "ok": False,
@@ -64,7 +81,14 @@ def build(replan_bin, project_path, bindings_path, output_dir, week=""):
         cmd += ["--week", week]
     run = subprocess.run(cmd, capture_output=True, text=True)
     if run.returncode != 0:
-        result["errors"].append({"code": "dashboard_failed", "message": (run.stderr or run.stdout)[-500:]})
+        inner = cli_errors(run.stdout)
+        codes = [error["code"] for error in inner]
+        if codes:
+            message = "replan report dashboard failed: " + ", ".join(codes)
+        else:
+            message = (run.stderr or run.stdout)[-500:]
+        result["errors"].append({"code": "dashboard_failed", "message": message})
+        result["errors"].extend(inner)
         return result
     overlay_path = os.path.join(output_dir, "raw", "openproject_overlay.json")
     with open(overlay_path, encoding="utf-8") as handle:
