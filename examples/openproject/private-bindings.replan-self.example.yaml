@@ -557,6 +557,30 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2318"
         url: https://op.example.internal/work_packages/2318
+    - replan_task_id: task.self.bootstrap-matches-by-binding
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2319"
+        url: https://op.example.internal/work_packages/2319
+    - replan_task_id: task.self.task-set-description
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2320"
+        url: https://op.example.internal/work_packages/2320
+    - replan_task_id: task.self.push-description-to-work-package
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2321"
+        url: https://op.example.internal/work_packages/2321
+    - replan_task_id: task.self.one-yaml-style-for-canonical-files
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2322"
+        url: https://op.example.internal/work_packages/2322
     - replan_task_id: task.self.fix-first-project-defects
       source_ref:
         source: openproject

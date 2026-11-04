@@ -12203,7 +12203,7 @@ resource_demands:
       planned_amount: 0.75
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.calibrated-dates-and-agent-hours-tab.codex
       task_ref:
         kind: task
@@ -12217,7 +12217,7 @@ resource_demands:
       planned_amount: 2.25
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.calibrated-dates-and-agent-hours-tab.maintainer
       task_ref:
         kind: task
@@ -12229,9 +12229,9 @@ resource_demands:
       role: maintainer
       unit: hours
       planned_amount: 0.25
-      remaining_amount: 0.25
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.calibrated-dates-and-agent-hours-tab.local-dev
       task_ref:
         kind: task
@@ -12243,9 +12243,9 @@ resource_demands:
       role: development_environment
       unit: concurrent_slots
       planned_amount: 1
-      remaining_amount: 1
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.calibrated-dates-and-agent-hours-tab.ci
       task_ref:
         kind: task
@@ -12257,9 +12257,9 @@ resource_demands:
       role: ci_runtime
       unit: ci_minutes
       planned_amount: 10
-      remaining_amount: 10
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.workload-skips-closed-demands.agent
       task_ref:
         kind: task
@@ -12456,3 +12456,227 @@ resource_demands:
       remaining_amount: 0
       criticality: required
       status: consumed
+    - id: resource_demand.bootstrap-matches-by-binding.agent
+      task_ref:
+        kind: task
+        id: task.self.bootstrap-matches-by-binding
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 2
+      remaining_amount: 2
+      criticality: required
+      status: active
+    - id: resource_demand.bootstrap-matches-by-binding.maintainer
+      task_ref:
+        kind: task
+        id: task.self.bootstrap-matches-by-binding
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      resource_class: human
+      role: maintainer
+      unit: hours
+      planned_amount: 0.25
+      remaining_amount: 0.25
+      criticality: required
+      status: active
+    - id: resource_demand.bootstrap-matches-by-binding.local-dev
+      task_ref:
+        kind: task
+        id: task.self.bootstrap-matches-by-binding
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      resource_class: environment
+      role: development_environment
+      unit: concurrent_slots
+      planned_amount: 1
+      remaining_amount: 1
+      criticality: required
+      status: active
+    - id: resource_demand.bootstrap-matches-by-binding.ci
+      task_ref:
+        kind: task
+        id: task.self.bootstrap-matches-by-binding
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      resource_class: service_quota
+      role: ci_runtime
+      unit: ci_minutes
+      planned_amount: 10
+      remaining_amount: 10
+      criticality: required
+      status: active
+    - id: resource_demand.task-set-description.agent
+      task_ref:
+        kind: task
+        id: task.self.task-set-description
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 1.5
+      remaining_amount: 1.5
+      criticality: required
+      status: active
+    - id: resource_demand.task-set-description.maintainer
+      task_ref:
+        kind: task
+        id: task.self.task-set-description
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      resource_class: human
+      role: maintainer
+      unit: hours
+      planned_amount: 0.25
+      remaining_amount: 0.25
+      criticality: required
+      status: active
+    - id: resource_demand.task-set-description.local-dev
+      task_ref:
+        kind: task
+        id: task.self.task-set-description
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      resource_class: environment
+      role: development_environment
+      unit: concurrent_slots
+      planned_amount: 1
+      remaining_amount: 1
+      criticality: required
+      status: active
+    - id: resource_demand.task-set-description.ci
+      task_ref:
+        kind: task
+        id: task.self.task-set-description
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      resource_class: service_quota
+      role: ci_runtime
+      unit: ci_minutes
+      planned_amount: 10
+      remaining_amount: 10
+      criticality: required
+      status: active
+    - id: resource_demand.push-description-to-work-package.agent
+      task_ref:
+        kind: task
+        id: task.self.push-description-to-work-package
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 2
+      remaining_amount: 2
+      criticality: required
+      status: active
+    - id: resource_demand.push-description-to-work-package.maintainer
+      task_ref:
+        kind: task
+        id: task.self.push-description-to-work-package
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      resource_class: human
+      role: maintainer
+      unit: hours
+      planned_amount: 0.25
+      remaining_amount: 0.25
+      criticality: required
+      status: active
+    - id: resource_demand.push-description-to-work-package.local-dev
+      task_ref:
+        kind: task
+        id: task.self.push-description-to-work-package
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      resource_class: environment
+      role: development_environment
+      unit: concurrent_slots
+      planned_amount: 1
+      remaining_amount: 1
+      criticality: required
+      status: active
+    - id: resource_demand.push-description-to-work-package.ci
+      task_ref:
+        kind: task
+        id: task.self.push-description-to-work-package
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      resource_class: service_quota
+      role: ci_runtime
+      unit: ci_minutes
+      planned_amount: 10
+      remaining_amount: 10
+      criticality: required
+      status: active
+    - id: resource_demand.one-yaml-style-for-canonical-files.agent
+      task_ref:
+        kind: task
+        id: task.self.one-yaml-style-for-canonical-files
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 2
+      remaining_amount: 2
+      criticality: required
+      status: active
+    - id: resource_demand.one-yaml-style-for-canonical-files.maintainer
+      task_ref:
+        kind: task
+        id: task.self.one-yaml-style-for-canonical-files
+      resource_ref:
+        kind: resource
+        id: resource.human.maintainer
+      resource_class: human
+      role: maintainer
+      unit: hours
+      planned_amount: 0.25
+      remaining_amount: 0.25
+      criticality: required
+      status: active
+    - id: resource_demand.one-yaml-style-for-canonical-files.local-dev
+      task_ref:
+        kind: task
+        id: task.self.one-yaml-style-for-canonical-files
+      resource_ref:
+        kind: resource
+        id: resource.environment.local-dev
+      resource_class: environment
+      role: development_environment
+      unit: concurrent_slots
+      planned_amount: 1
+      remaining_amount: 1
+      criticality: required
+      status: active
+    - id: resource_demand.one-yaml-style-for-canonical-files.ci
+      task_ref:
+        kind: task
+        id: task.self.one-yaml-style-for-canonical-files
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      resource_class: service_quota
+      role: ci_runtime
+      unit: ci_minutes
+      planned_amount: 10
+      remaining_amount: 10
+      criticality: required
+      status: active

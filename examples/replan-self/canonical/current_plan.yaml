@@ -434,6 +434,14 @@ current_plan:
     - kind: task
       id: task.self.rename-resource-and-actor
     - kind: task
+      id: task.self.bootstrap-matches-by-binding
+    - kind: task
+      id: task.self.task-set-description
+    - kind: task
+      id: task.self.push-description-to-work-package
+    - kind: task
+      id: task.self.one-yaml-style-for-canonical-files
+    - kind: task
       id: task.self.fix-first-project-defects
     - kind: task
       id: task.self.implement-replan-init-and-resource-commands

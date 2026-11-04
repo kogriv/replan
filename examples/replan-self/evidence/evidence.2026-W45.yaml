@@ -695,3 +695,37 @@ evidence:
       targets:
         - kind: task
           id: task.self.calibrated-dates-and-agent-hours-tab
+    - id: evidence.self.accept-calibrated-dates-and-agent-hours-tab
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-05T06:34:47+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-05: drafted dates and the RePlan tab use calibrated agent hours.'
+      targets:
+        - kind: task
+          id: task.self.calibrated-dates-and-agent-hours-tab
+    - id: evidence.self.plan-consumer-feedback-2026-11-05
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-05T06:36:17+07:00"
+      summary: 'The operator agreed on 2026-11-05 to plan four tasks from a consumer report: bootstrap matching by binding, task set-description, pushing a changed description to the work package, one YAML style. Agreement to plan approves the estimates. The not started dependency and deadline commands and demand commands move to 2026-11-05.'
+      targets:
+        - kind: task
+          id: task.self.bootstrap-matches-by-binding
+        - kind: task
+          id: task.self.task-set-description
+        - kind: task
+          id: task.self.push-description-to-work-package
+        - kind: task
+          id: task.self.one-yaml-style-for-canonical-files
+        - kind: task
+          id: task.self.dependency-and-deadline-commands
+        - kind: task
+          id: task.self.demand-add-set-move-commands

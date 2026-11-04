@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 218,
-  "count": 218,
+  "total": 222,
+  "count": 222,
   "_embedded": {
     "elements": [
       {
@@ -5934,8 +5934,8 @@
         },
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
-        "startDate": "2026-11-04",
-        "dueDate": "2026-11-04",
+        "startDate": "2026-11-05",
+        "dueDate": "2026-11-05",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2305"
@@ -6225,7 +6225,7 @@
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
         "startDate": "2026-11-04",
-        "dueDate": "2026-11-04",
+        "dueDate": "2026-11-05",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2315"
@@ -6282,8 +6282,8 @@
         },
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
-        "startDate": "2026-11-04",
-        "dueDate": "2026-11-04",
+        "startDate": "2026-11-05",
+        "dueDate": "2026-11-05",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2317"
@@ -6316,6 +6316,122 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2318"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2319,
+        "subject": "Bootstrap matches work packages by binding before subject",
+        "description": {
+          "raw": "Consumer feedback on 2026-11-04: apply-openproject-bootstrap matches tasks to work packages by subject, although private bindings hold an explicit task to work package binding. After task set-title five tasks were planned as create_work_package, which would have made duplicates. Match by binding first; when the bound work package has another subject, plan update_subject (dry run, then apply) instead of a create."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-05",
+        "dueDate": "2026-11-05",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2319"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2320,
+        "subject": "Add task set-description",
+        "description": {
+          "raw": "Consumer feedback on 2026-11-04: a task description can be changed only by editing tasks.yaml, with no audit record. Add replan task set-description with reason, actor, evidence, dry run and apply, like task set-title."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-05",
+        "dueDate": "2026-11-05",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2320"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2321,
+        "subject": "Push a changed task description to its work package",
+        "description": {
+          "raw": "Consumer feedback on 2026-11-04: neither bootstrap nor the drift helpers carry a changed task description to the bound work package, so consumers update descriptions through API v3 by hand. Add an update_description action (dry run, then REPLAN_APPLY=1) that compares the RePlan description with the work package and writes only the differing ones."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-06",
+        "dueDate": "2026-11-06",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2321"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2322,
+        "subject": "One YAML style for canonical files",
+        "description": {
+          "raw": "Consumer feedback on 2026-11-04: tasks.yaml written by task add uses a different style than the one written by seed, so a full rewrite from Python shows about 460 lines of noise. Find which writers differ, make every writer produce the renderer's style, and say in the docs which style external tools should keep."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-06",
+        "dueDate": "2026-11-06",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2322"
           },
           "status": {
             "title": "New"

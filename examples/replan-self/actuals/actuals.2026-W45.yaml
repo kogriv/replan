@@ -1099,3 +1099,24 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.calibrated-dates-and-agent-hours-tab
+    - id: actual.self-calibrated-dates-and-agent-hours-tab.ci-github-actions.20261105T0634470700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.calibrated-dates-and-agent-hours-tab
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.calibrated-dates-and-agent-hours-tab.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-11-05T06:34:47+07:00"
+      status_date: "2026-11-05"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-calibrated-dates-and-agent-hours-tab

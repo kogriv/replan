@@ -6092,8 +6092,8 @@ tasks:
       description: 'Dependencies and deadlines can be written only by editing YAML; task add --after only orders current_plan and reads like a dependency. Add replan dependency add (type, predecessor, successor, criticality) and replan deadline add/list with dry run, apply and audit like other writes, and say in task add help that --after is plan order, not a dependency.'
       type: implementation
       tracking_status: not_started
-      planned_start: "2026-11-04"
-      planned_finish: "2026-11-04"
+      planned_start: "2026-11-05"
+      planned_finish: "2026-11-05"
       assignee_hint:
         kind: resource
         id: resource.human.maintainer
@@ -6379,9 +6379,9 @@ tasks:
       title: Use calibrated amounts for drafted dates and show agent hours on the RePlan tab
       description: 'Decided on 2026-11-04 (agent effort units design, option B, step 3). The TaskJuggler export and drafted dates use the same calibrated agent amounts as the load views, so dates and load agree, with the calibration named. The work package RePlan tab in OpenProject shows an Agent hours line: planned and calibrated. estimatedTime stays hours of people only.'
       type: implementation
-      tracking_status: review_ready
+      tracking_status: accepted
       planned_start: "2026-11-04"
-      planned_finish: "2026-11-04"
+      planned_finish: "2026-11-05"
       assignee_hint:
         kind: resource
         id: resource.human.maintainer
@@ -6438,8 +6438,8 @@ tasks:
       description: 'Changing a demand means editing two files by hand: resource_demands.yaml and the task''s resource_demands list in tasks.yaml; forgetting the second leaves an orphan demand and validate says nothing. Add replan demand add (to an existing task), demand set (amount, unit, role, window) and demand move (to another resource: the old demand becomes superseded with a reference to the new one), with dry run, apply and audit; and a validate warning for a demand whose task does not list it.'
       type: implementation
       tracking_status: not_started
-      planned_start: "2026-11-04"
-      planned_finish: "2026-11-04"
+      planned_start: "2026-11-05"
+      planned_finish: "2026-11-05"
       assignee_hint:
         kind: resource
         id: resource.human.maintainer
@@ -6489,3 +6489,111 @@ tasks:
           object_type: work_package
           object_id: "2318"
           url: https://op.example.internal/work_packages/2318
+    - id: task.self.bootstrap-matches-by-binding
+      title: Bootstrap matches work packages by binding before subject
+      description: 'Consumer feedback on 2026-11-04: apply-openproject-bootstrap matches tasks to work packages by subject, although private bindings hold an explicit task to work package binding. After task set-title five tasks were planned as create_work_package, which would have made duplicates. Match by binding first; when the bound work package has another subject, plan update_subject (dry run, then apply) instead of a create.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-11-05"
+      planned_finish: "2026-11-05"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.bootstrap-matches-by-binding.agent
+        - kind: resource_demand
+          id: resource_demand.bootstrap-matches-by-binding.maintainer
+        - kind: resource_demand
+          id: resource_demand.bootstrap-matches-by-binding.local-dev
+        - kind: resource_demand
+          id: resource_demand.bootstrap-matches-by-binding.ci
+      tags:
+        - openproject
+        - consumer-feedback
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2319"
+          url: https://op.example.internal/work_packages/2319
+    - id: task.self.task-set-description
+      title: Add task set-description
+      description: 'Consumer feedback on 2026-11-04: a task description can be changed only by editing tasks.yaml, with no audit record. Add replan task set-description with reason, actor, evidence, dry run and apply, like task set-title.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-11-05"
+      planned_finish: "2026-11-05"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.task-set-description.agent
+        - kind: resource_demand
+          id: resource_demand.task-set-description.maintainer
+        - kind: resource_demand
+          id: resource_demand.task-set-description.local-dev
+        - kind: resource_demand
+          id: resource_demand.task-set-description.ci
+      tags:
+        - cli
+        - consumer-feedback
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2320"
+          url: https://op.example.internal/work_packages/2320
+    - id: task.self.push-description-to-work-package
+      title: Push a changed task description to its work package
+      description: 'Consumer feedback on 2026-11-04: neither bootstrap nor the drift helpers carry a changed task description to the bound work package, so consumers update descriptions through API v3 by hand. Add an update_description action (dry run, then REPLAN_APPLY=1) that compares the RePlan description with the work package and writes only the differing ones.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-11-06"
+      planned_finish: "2026-11-06"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.push-description-to-work-package.agent
+        - kind: resource_demand
+          id: resource_demand.push-description-to-work-package.maintainer
+        - kind: resource_demand
+          id: resource_demand.push-description-to-work-package.local-dev
+        - kind: resource_demand
+          id: resource_demand.push-description-to-work-package.ci
+      tags:
+        - openproject
+        - consumer-feedback
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2321"
+          url: https://op.example.internal/work_packages/2321
+    - id: task.self.one-yaml-style-for-canonical-files
+      title: One YAML style for canonical files
+      description: 'Consumer feedback on 2026-11-04: tasks.yaml written by task add uses a different style than the one written by seed, so a full rewrite from Python shows about 460 lines of noise. Find which writers differ, make every writer produce the renderer''s style, and say in the docs which style external tools should keep.'
+      type: implementation
+      tracking_status: not_started
+      planned_start: "2026-11-06"
+      planned_finish: "2026-11-06"
+      assignee_hint:
+        kind: resource
+        id: resource.human.maintainer
+      resource_demands:
+        - kind: resource_demand
+          id: resource_demand.one-yaml-style-for-canonical-files.agent
+        - kind: resource_demand
+          id: resource_demand.one-yaml-style-for-canonical-files.maintainer
+        - kind: resource_demand
+          id: resource_demand.one-yaml-style-for-canonical-files.local-dev
+        - kind: resource_demand
+          id: resource_demand.one-yaml-style-for-canonical-files.ci
+      tags:
+        - storage
+        - consumer-feedback
+      source_refs:
+        - source: openproject
+          object_type: work_package
+          object_id: "2322"
+          url: https://op.example.internal/work_packages/2322
