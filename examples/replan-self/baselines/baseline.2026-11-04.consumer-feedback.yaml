@@ -1,0 +1,324 @@
+baseline:
+    id: baseline.2026-11-04.consumer-feedback
+    name: Consumer feedback tasks
+    scope: tasks
+    created_at: "2026-11-04T12:01:27+07:00"
+    approved_at: "2026-11-04T12:01:27+07:00"
+    approved_by:
+        kind: actor
+        id: actor.human.maintainer
+    included_tasks:
+        - kind: task
+          id: task.self.warn-about-outdated-binary
+          planned_start: "2026-11-04"
+          planned_finish: "2026-11-04"
+        - kind: task
+          id: task.self.init-owner-id-for-non-ascii-names
+          planned_start: "2026-11-04"
+          planned_finish: "2026-11-04"
+        - kind: task
+          id: task.self.align-dependency-types-with-spec
+          planned_start: "2026-11-04"
+          planned_finish: "2026-11-04"
+        - kind: task
+          id: task.self.dependency-and-deadline-commands
+          planned_start: "2026-11-04"
+          planned_finish: "2026-11-04"
+        - kind: task
+          id: task.self.quiet-unresolved-dependency-on-undated-successor
+          planned_start: "2026-11-04"
+          planned_finish: "2026-11-04"
+        - kind: task
+          id: task.self.agent-effort-units-design
+          planned_start: "2026-11-04"
+          planned_finish: "2026-11-04"
+        - kind: task
+          id: task.self.next-shows-people-work-this-week
+          planned_start: "2026-11-04"
+          planned_finish: "2026-11-04"
+        - kind: task
+          id: task.self.relations-apply-reports-unsupported-type
+          planned_start: "2026-11-04"
+          planned_finish: "2026-11-04"
+        - kind: task
+          id: task.self.overlay-build-surfaces-cause
+          planned_start: "2026-11-04"
+          planned_finish: "2026-11-04"
+        - kind: task
+          id: task.self.source-profile-checked-early
+          planned_start: "2026-11-04"
+          planned_finish: "2026-11-04"
+        - kind: task
+          id: task.self.explicit-env-file-for-helpers
+          planned_start: "2026-11-04"
+          planned_finish: "2026-11-04"
+    included_demands:
+        - kind: resource_demand
+          id: resource_demand.warn-about-outdated-binary.agent
+          task: task.self.warn-about-outdated-binary
+          resource: resource.ai.agent.executor
+          unit: agent_hours
+          planned_amount: 0.5
+        - kind: resource_demand
+          id: resource_demand.warn-about-outdated-binary.maintainer
+          task: task.self.warn-about-outdated-binary
+          resource: resource.human.maintainer
+          unit: hours
+          planned_amount: 0.25
+        - kind: resource_demand
+          id: resource_demand.warn-about-outdated-binary.local-dev
+          task: task.self.warn-about-outdated-binary
+          resource: resource.environment.local-dev
+          unit: concurrent_slots
+          planned_amount: 1
+        - kind: resource_demand
+          id: resource_demand.warn-about-outdated-binary.ci
+          task: task.self.warn-about-outdated-binary
+          resource: resource.ci.github-actions
+          unit: ci_minutes
+          planned_amount: 10
+        - kind: resource_demand
+          id: resource_demand.init-owner-id-for-non-ascii-names.agent
+          task: task.self.init-owner-id-for-non-ascii-names
+          resource: resource.ai.agent.executor
+          unit: agent_hours
+          planned_amount: 1.5
+        - kind: resource_demand
+          id: resource_demand.init-owner-id-for-non-ascii-names.maintainer
+          task: task.self.init-owner-id-for-non-ascii-names
+          resource: resource.human.maintainer
+          unit: hours
+          planned_amount: 0.25
+        - kind: resource_demand
+          id: resource_demand.init-owner-id-for-non-ascii-names.local-dev
+          task: task.self.init-owner-id-for-non-ascii-names
+          resource: resource.environment.local-dev
+          unit: concurrent_slots
+          planned_amount: 1
+        - kind: resource_demand
+          id: resource_demand.init-owner-id-for-non-ascii-names.ci
+          task: task.self.init-owner-id-for-non-ascii-names
+          resource: resource.ci.github-actions
+          unit: ci_minutes
+          planned_amount: 10
+        - kind: resource_demand
+          id: resource_demand.align-dependency-types-with-spec.agent
+          task: task.self.align-dependency-types-with-spec
+          resource: resource.ai.agent.executor
+          unit: agent_hours
+          planned_amount: 1
+        - kind: resource_demand
+          id: resource_demand.align-dependency-types-with-spec.maintainer
+          task: task.self.align-dependency-types-with-spec
+          resource: resource.human.maintainer
+          unit: hours
+          planned_amount: 0.25
+        - kind: resource_demand
+          id: resource_demand.align-dependency-types-with-spec.local-dev
+          task: task.self.align-dependency-types-with-spec
+          resource: resource.environment.local-dev
+          unit: concurrent_slots
+          planned_amount: 1
+        - kind: resource_demand
+          id: resource_demand.align-dependency-types-with-spec.ci
+          task: task.self.align-dependency-types-with-spec
+          resource: resource.ci.github-actions
+          unit: ci_minutes
+          planned_amount: 10
+        - kind: resource_demand
+          id: resource_demand.dependency-and-deadline-commands.agent
+          task: task.self.dependency-and-deadline-commands
+          resource: resource.ai.agent.executor
+          unit: agent_hours
+          planned_amount: 4
+        - kind: resource_demand
+          id: resource_demand.dependency-and-deadline-commands.maintainer
+          task: task.self.dependency-and-deadline-commands
+          resource: resource.human.maintainer
+          unit: hours
+          planned_amount: 0.25
+        - kind: resource_demand
+          id: resource_demand.dependency-and-deadline-commands.local-dev
+          task: task.self.dependency-and-deadline-commands
+          resource: resource.environment.local-dev
+          unit: concurrent_slots
+          planned_amount: 1
+        - kind: resource_demand
+          id: resource_demand.dependency-and-deadline-commands.ci
+          task: task.self.dependency-and-deadline-commands
+          resource: resource.ci.github-actions
+          unit: ci_minutes
+          planned_amount: 10
+        - kind: resource_demand
+          id: resource_demand.quiet-unresolved-dependency-on-undated-successor.agent
+          task: task.self.quiet-unresolved-dependency-on-undated-successor
+          resource: resource.ai.agent.executor
+          unit: agent_hours
+          planned_amount: 1.5
+        - kind: resource_demand
+          id: resource_demand.quiet-unresolved-dependency-on-undated-successor.maintainer
+          task: task.self.quiet-unresolved-dependency-on-undated-successor
+          resource: resource.human.maintainer
+          unit: hours
+          planned_amount: 0.25
+        - kind: resource_demand
+          id: resource_demand.quiet-unresolved-dependency-on-undated-successor.local-dev
+          task: task.self.quiet-unresolved-dependency-on-undated-successor
+          resource: resource.environment.local-dev
+          unit: concurrent_slots
+          planned_amount: 1
+        - kind: resource_demand
+          id: resource_demand.quiet-unresolved-dependency-on-undated-successor.ci
+          task: task.self.quiet-unresolved-dependency-on-undated-successor
+          resource: resource.ci.github-actions
+          unit: ci_minutes
+          planned_amount: 10
+        - kind: resource_demand
+          id: resource_demand.agent-effort-units-design.agent
+          task: task.self.agent-effort-units-design
+          resource: resource.ai.agent.executor
+          unit: agent_hours
+          planned_amount: 2
+        - kind: resource_demand
+          id: resource_demand.agent-effort-units-design.maintainer
+          task: task.self.agent-effort-units-design
+          resource: resource.human.maintainer
+          unit: hours
+          planned_amount: 0.25
+        - kind: resource_demand
+          id: resource_demand.agent-effort-units-design.local-dev
+          task: task.self.agent-effort-units-design
+          resource: resource.environment.local-dev
+          unit: concurrent_slots
+          planned_amount: 1
+        - kind: resource_demand
+          id: resource_demand.agent-effort-units-design.ci
+          task: task.self.agent-effort-units-design
+          resource: resource.ci.github-actions
+          unit: ci_minutes
+          planned_amount: 10
+        - kind: resource_demand
+          id: resource_demand.next-shows-people-work-this-week.agent
+          task: task.self.next-shows-people-work-this-week
+          resource: resource.ai.agent.executor
+          unit: agent_hours
+          planned_amount: 2.5
+        - kind: resource_demand
+          id: resource_demand.next-shows-people-work-this-week.maintainer
+          task: task.self.next-shows-people-work-this-week
+          resource: resource.human.maintainer
+          unit: hours
+          planned_amount: 0.25
+        - kind: resource_demand
+          id: resource_demand.next-shows-people-work-this-week.local-dev
+          task: task.self.next-shows-people-work-this-week
+          resource: resource.environment.local-dev
+          unit: concurrent_slots
+          planned_amount: 1
+        - kind: resource_demand
+          id: resource_demand.next-shows-people-work-this-week.ci
+          task: task.self.next-shows-people-work-this-week
+          resource: resource.ci.github-actions
+          unit: ci_minutes
+          planned_amount: 10
+        - kind: resource_demand
+          id: resource_demand.relations-apply-reports-unsupported-type.agent
+          task: task.self.relations-apply-reports-unsupported-type
+          resource: resource.ai.agent.executor
+          unit: agent_hours
+          planned_amount: 1
+        - kind: resource_demand
+          id: resource_demand.relations-apply-reports-unsupported-type.maintainer
+          task: task.self.relations-apply-reports-unsupported-type
+          resource: resource.human.maintainer
+          unit: hours
+          planned_amount: 0.25
+        - kind: resource_demand
+          id: resource_demand.relations-apply-reports-unsupported-type.local-dev
+          task: task.self.relations-apply-reports-unsupported-type
+          resource: resource.environment.local-dev
+          unit: concurrent_slots
+          planned_amount: 1
+        - kind: resource_demand
+          id: resource_demand.relations-apply-reports-unsupported-type.ci
+          task: task.self.relations-apply-reports-unsupported-type
+          resource: resource.ci.github-actions
+          unit: ci_minutes
+          planned_amount: 10
+        - kind: resource_demand
+          id: resource_demand.overlay-build-surfaces-cause.agent
+          task: task.self.overlay-build-surfaces-cause
+          resource: resource.ai.agent.executor
+          unit: agent_hours
+          planned_amount: 1
+        - kind: resource_demand
+          id: resource_demand.overlay-build-surfaces-cause.maintainer
+          task: task.self.overlay-build-surfaces-cause
+          resource: resource.human.maintainer
+          unit: hours
+          planned_amount: 0.25
+        - kind: resource_demand
+          id: resource_demand.overlay-build-surfaces-cause.local-dev
+          task: task.self.overlay-build-surfaces-cause
+          resource: resource.environment.local-dev
+          unit: concurrent_slots
+          planned_amount: 1
+        - kind: resource_demand
+          id: resource_demand.overlay-build-surfaces-cause.ci
+          task: task.self.overlay-build-surfaces-cause
+          resource: resource.ci.github-actions
+          unit: ci_minutes
+          planned_amount: 10
+        - kind: resource_demand
+          id: resource_demand.source-profile-checked-early.agent
+          task: task.self.source-profile-checked-early
+          resource: resource.ai.agent.executor
+          unit: agent_hours
+          planned_amount: 2
+        - kind: resource_demand
+          id: resource_demand.source-profile-checked-early.maintainer
+          task: task.self.source-profile-checked-early
+          resource: resource.human.maintainer
+          unit: hours
+          planned_amount: 0.25
+        - kind: resource_demand
+          id: resource_demand.source-profile-checked-early.local-dev
+          task: task.self.source-profile-checked-early
+          resource: resource.environment.local-dev
+          unit: concurrent_slots
+          planned_amount: 1
+        - kind: resource_demand
+          id: resource_demand.source-profile-checked-early.ci
+          task: task.self.source-profile-checked-early
+          resource: resource.ci.github-actions
+          unit: ci_minutes
+          planned_amount: 10
+        - kind: resource_demand
+          id: resource_demand.explicit-env-file-for-helpers.agent
+          task: task.self.explicit-env-file-for-helpers
+          resource: resource.ai.agent.executor
+          unit: agent_hours
+          planned_amount: 2
+        - kind: resource_demand
+          id: resource_demand.explicit-env-file-for-helpers.maintainer
+          task: task.self.explicit-env-file-for-helpers
+          resource: resource.human.maintainer
+          unit: hours
+          planned_amount: 0.25
+        - kind: resource_demand
+          id: resource_demand.explicit-env-file-for-helpers.local-dev
+          task: task.self.explicit-env-file-for-helpers
+          resource: resource.environment.local-dev
+          unit: concurrent_slots
+          planned_amount: 1
+        - kind: resource_demand
+          id: resource_demand.explicit-env-file-for-helpers.ci
+          task: task.self.explicit-env-file-for-helpers
+          resource: resource.ci.github-actions
+          unit: ci_minutes
+          planned_amount: 10
+    assumptions:
+        - The operator accepted the eleven tasks and their estimates on 2026-11-04.
+    seal:
+        algorithm: sha256
+        digest: 9fc5a545ea832f0fa679cd5aecbc8e094e719282f390b003e04ccfb2fa759b89

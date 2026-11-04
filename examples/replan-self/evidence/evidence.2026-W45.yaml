@@ -170,3 +170,27 @@ evidence:
       targets:
         - kind: task
           id: task.self.format-compatibility-guard
+    - id: evidence.self.accept-format-compatibility-guard
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-04T12:00:44+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-04: format-1 compatibility rules and the frozen release fixture guard.'
+      targets:
+        - kind: task
+          id: task.self.format-compatibility-guard
+    - id: evidence.self.start-explicit-env-file-for-helpers
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T12:02:08+07:00"
+      summary: Started on 2026-11-04 after the operator accepted the consumer feedback tasks; estimate 2 agent hours frozen in baseline.2026-11-04.consumer-feedback, split into agent 0.5 and Codex 1.5.
+      targets:
+        - kind: task
+          id: task.self.explicit-env-file-for-helpers

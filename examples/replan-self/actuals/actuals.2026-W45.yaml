@@ -276,3 +276,24 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.format-compatibility-guard
+    - id: actual.self-format-compatibility-guard.ci-github-actions.20261104T1200440700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.format-compatibility-guard
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.format-compatibility-guard.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-11-04T12:00:44+07:00"
+      status_date: "2026-11-04"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-format-compatibility-guard

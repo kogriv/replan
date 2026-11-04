@@ -5978,9 +5978,9 @@ tasks:
       title: Write the file format compatibility rules and guard them in tests
       description: 'Before outside users keep real plans in RePlan files, state and check what a release may change. Write the compatibility rules for project format 1: which changes are additive (new optional fields omitted when empty, new optional files, new enum values behind validation) and which need a format bump with a project migrate step; how older and newer binaries treat unknown fields; and that sealed baselines and calibrations must keep verifying. Add frozen fixture projects taken from an earlier release that every build must load, validate and report on without errors, so a breaking change fails CI. The ROADMAP item stays open until outside users have data; this task makes the promise checkable.'
       type: implementation
-      tracking_status: review_ready
+      tracking_status: accepted
       planned_start: "2026-11-03"
-      planned_finish: "2026-11-03"
+      planned_finish: "2026-11-04"
       assignee_hint:
         kind: resource
         id: resource.human.maintainer
@@ -6287,7 +6287,7 @@ tasks:
       title: Let helpers read an explicit settings file instead of the repository one
       description: 'Helpers load .env.local from their own root. A consumer who runs them from the RePlan repository gets that repository''s settings for every variable missing from the environment, which can point at another project. Add REPLAN_ENV_FILE, refuse a write when the loaded file''s project id differs from REPLAN_OPENPROJECT_PROJECT_ID set elsewhere, and say in the kit README to unpack a kit per project.'
       type: implementation
-      tracking_status: not_started
+      tracking_status: in_progress
       planned_start: "2026-11-04"
       planned_finish: "2026-11-04"
       assignee_hint:
@@ -6296,6 +6296,8 @@ tasks:
       resource_demands:
         - kind: resource_demand
           id: resource_demand.explicit-env-file-for-helpers.agent
+        - kind: resource_demand
+          id: resource_demand.explicit-env-file-for-helpers.codex
         - kind: resource_demand
           id: resource_demand.explicit-env-file-for-helpers.maintainer
         - kind: resource_demand
