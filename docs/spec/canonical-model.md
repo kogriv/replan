@@ -1185,23 +1185,9 @@ dependency:
       object_id: "991"
 ```
 
-Dependency types:
-
-```text
-finish_to_start
-start_to_start
-finish_to_finish
-start_to_finish
-blocks
-blocked_by
-requires_resource
-requires_approval
-requires_delivery
-external
-generic
-```
-
-MVP persistence subset:
+Dependency types that `replan validate` accepts in
+`canonical/dependencies.yaml` (any other type is refused as
+`invalid_dependency_type`):
 
 ```text
 finish_to_start
@@ -1212,17 +1198,27 @@ requires_resource_from
 external_dependency
 ```
 
-The broader list above is future-compatible conceptual vocabulary. The first
-`canonical/dependencies.yaml` implementation should use the MVP subset defined
-in `docs/spec/dependency-deadline-behavior.md`.
+Their meaning is in `docs/spec/dependency-deadline-behavior.md`.
 
-OpenProject relation accept initially needs only:
+Only these become OpenProject relations (`apply-openproject-relations`);
+the others stay in the plan:
 
 ```text
 finish_to_start
 blocks
 relates
 ```
+
+Not supported: `start_to_start`, `finish_to_finish`, `start_to_finish`,
+`blocked_by`, `requires_approval`, `requires_delivery` and `generic` appear
+in early design notes but are not a file format. For two streams that run in
+parallel, use `requires_input_from` (or `relates` when only the link matters).
+
+`start_to_start` is the candidate to add first. It needs more than a new
+name: the readiness and violation rules (a successor may start once the
+predecessor has started), drafted dates and the TaskJuggler export
+(`depends` with a start-to-start gap), and the OpenProject mapping, which has
+no start-to-start relation type. It is planned only on demand.
 
 Rules:
 
