@@ -3,6 +3,7 @@
 # creates preserve instance non-working weekdays with ignoreNonWorkingDays.
 #
 # Settings:
+#   REPLAN_ENV_FILE                         default empty; environment only
 #   REPLAN_PROJECT                          required
 #   REPLAN_OPENPROJECT_BASE_URL             required
 #   REPLAN_OPENPROJECT_PROJECT_ID           required
@@ -44,6 +45,11 @@ replan_help "$0" "$@"
 replan_require_no_args_json "apply-openproject-bootstrap" "apply-openproject-bootstrap.sh" "$@"
 . "$ROOT_DIR/scripts/lib/load-dotenv.sh"
 replan_load_openproject_dotenv "$ROOT_DIR"
+replan_refuse_mixed_project_settings "apply-openproject-bootstrap" invalid \
+  REPLAN_PROJECT REPLAN_OPENPROJECT_PROJECT_NAME \
+  REPLAN_OPENPROJECT_TARGET_PROJECT_NAME \
+  REPLAN_OPENPROJECT_ASSIGNEE_USER_ID REPLAN_OPENPROJECT_ASSIGNEE_NAME \
+  REPLAN_OPENPROJECT_ASSIGNEE_RESOURCE_ID REPLAN_OPENPROJECT_BINDINGS_PATH
 replan_resolve_openproject_settings "apply-openproject-bootstrap" dry_run
 PROJECT_PATH="${REPLAN_PROJECT:-}"
 OPENPROJECT_BASE_URL="${REPLAN_OPENPROJECT_BASE_URL:-}"

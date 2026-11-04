@@ -3,6 +3,7 @@
 # Dated creates and updates preserve instance non-working weekdays.
 #
 # Settings:
+#   REPLAN_ENV_FILE                         default empty; environment only
 #   REPLAN_PROJECT                          required
 #   REPLAN_OPENPROJECT_PROJECT_ID           required
 #   REPLAN_OPENPROJECT_TARGET_PROJECT_ID    deprecated alias of REPLAN_OPENPROJECT_PROJECT_ID

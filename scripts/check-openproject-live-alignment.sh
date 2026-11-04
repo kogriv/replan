@@ -2,6 +2,7 @@
 # Check whether live OpenProject identity and sidecar bindings align.
 #
 # Settings:
+#   REPLAN_ENV_FILE                         default empty; environment only
 #   REPLAN_PROJECT                           required
 #   REPLAN_OPENPROJECT_PROFILE               default openproject.demo
 #   REPLAN_OPENPROJECT_BASE_URL              default empty
@@ -43,6 +44,8 @@ replan_help "$0" "$@"
 replan_require_no_args_json "check-openproject-live-alignment" "check-openproject-live-alignment.sh" "$@"
 . "$ROOT_DIR/scripts/lib/load-dotenv.sh"
 replan_load_openproject_dotenv "$ROOT_DIR"
+replan_refuse_mixed_project_settings "check-openproject-live-alignment" invalid \
+  REPLAN_PROJECT REPLAN_OPENPROJECT_BINDINGS_PATH
 replan_resolve_openproject_settings "check-openproject-live-alignment" invalid
 replan_require_json_format "check-openproject-live-alignment"
 replan_require_settings "check-openproject-live-alignment" REPLAN_PROJECT

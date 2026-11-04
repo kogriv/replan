@@ -1,4 +1,5 @@
-# Settings accepted from .env.local and .env by load-dotenv.sh.
+# Settings accepted from the selected dotenv file by load-dotenv.sh.
+# REPLAN_ENV_FILE is process-environment-only and must not be added here.
 REPLAN_PROJECT
 REPLAN_OPENPROJECT_TARGET_PROJECT_ID
 REPLAN_OPENPROJECT_TARGET_PROJECT_NAME

@@ -2,6 +2,7 @@
 # Validate the full RePlan sidecar loop against a configured live OpenProject.
 #
 # Settings:
+#   REPLAN_ENV_FILE                         default empty; environment only
 #   REPLAN_PROJECT                               required
 #   REPLAN_OPENPROJECT_PROFILE                   default openproject.demo
 #   REPLAN_OPENPROJECT_BASE_URL                  default empty
@@ -44,6 +45,8 @@ replan_help "$0" "$@"
 replan_require_no_args_text "validate-openproject-live.sh" "$@"
 . "$ROOT_DIR/scripts/lib/load-dotenv.sh"
 replan_load_openproject_dotenv "$ROOT_DIR"
+replan_refuse_mixed_project_settings "validate-openproject-live" invalid \
+  REPLAN_PROJECT
 replan_resolve_openproject_settings "validate-openproject-live" invalid
 PROJECT_PATH="${REPLAN_PROJECT:-}"
 OPENPROJECT_PROFILE="${REPLAN_OPENPROJECT_PROFILE:-openproject.demo}"

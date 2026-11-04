@@ -3,6 +3,7 @@
 # ignoreNonWorkingDays only when a sent date uses an instance non-working weekday.
 #
 # Settings:
+#   REPLAN_ENV_FILE                         default empty; environment only
 #   REPLAN_PROJECT                          required
 #   REPLAN_OPENPROJECT_PROFILE              default openproject.demo
 #   REPLAN_OPENPROJECT_BASE_URL             default empty
@@ -44,6 +45,8 @@ replan_help "$0" "$@"
 replan_require_no_args_json "push-openproject-date-drift" "push-openproject-date-drift.sh" "$@"
 . "$ROOT_DIR/scripts/lib/load-dotenv.sh"
 replan_load_openproject_dotenv "$ROOT_DIR"
+replan_refuse_mixed_project_settings "push-openproject-date-drift" invalid \
+  REPLAN_PROJECT REPLAN_OPENPROJECT_BINDINGS_PATH
 replan_resolve_openproject_settings "push-openproject-date-drift" invalid
 PROJECT_PATH="${REPLAN_PROJECT:-}"
 OPENPROJECT_PROFILE="${REPLAN_OPENPROJECT_PROFILE:-openproject.demo}"

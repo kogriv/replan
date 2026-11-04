@@ -3,6 +3,7 @@
 # proposals, OpenProject dates and status, and the published overlay.
 #
 # Settings:
+#   REPLAN_ENV_FILE                         default empty; environment only
 #   REPLAN_PROJECT                          required
 #   REPLAN_TASK                             required
 #   REPLAN_ACCEPTED_BY                      required
@@ -57,6 +58,9 @@ replan_help "$0" "$@"
 replan_require_no_args_json "accept-task" "accept-task.sh" "$@"
 . "$ROOT_DIR/scripts/lib/load-dotenv.sh"
 replan_load_openproject_dotenv "$ROOT_DIR"
+replan_refuse_mixed_project_settings "accept-task" invalid \
+  REPLAN_PROJECT REPLAN_OPENPROJECT_BINDINGS_PATH \
+  REPLAN_OVERLAY_OUTPUT_DIR REPLAN_OVERLAY_PUBLISH_TARGET
 replan_resolve_openproject_settings "accept-task" invalid
 replan_require_json_format "accept-task"
 for _accept_setting in REPLAN_TASK REPLAN_ACCEPTED_BY REPLAN_ACCEPT_SUMMARY; do

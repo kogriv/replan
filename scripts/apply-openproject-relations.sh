@@ -2,6 +2,7 @@
 # Plan or apply RePlan dependency relations in OpenProject.
 #
 # Settings:
+#   REPLAN_ENV_FILE                         default empty; environment only
 #   REPLAN_PROJECT                          required
 #   REPLAN_OPENPROJECT_BASE_URL             required
 #   REPLAN_OPENPROJECT_PROJECT_ID           required
@@ -38,6 +39,8 @@ replan_help "$0" "$@"
 replan_require_no_args_json "apply-openproject-relations" "apply-openproject-relations.sh" "$@"
 . "$ROOT_DIR/scripts/lib/load-dotenv.sh"
 replan_load_openproject_dotenv "$ROOT_DIR"
+replan_refuse_mixed_project_settings "apply-openproject-relations" invalid \
+  REPLAN_PROJECT REPLAN_OPENPROJECT_BINDINGS_PATH
 replan_resolve_openproject_settings "apply-openproject-relations" invalid
 OPENPROJECT_BASE_URL="${REPLAN_OPENPROJECT_BASE_URL:-}"
 OPENPROJECT_TOKEN_ENV="${REPLAN_OPENPROJECT_TOKEN_ENV:-OPENPROJECT_TOKEN}"

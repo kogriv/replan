@@ -4,6 +4,7 @@
 # does not publish; scripts/publish-openproject-overlay.sh publishes it.
 #
 # Settings:
+#   REPLAN_ENV_FILE                         default empty; environment only
 #   REPLAN_PROJECT                    required
 #   REPLAN_OPENPROJECT_PROJECT_ID     required
 #   REPLAN_OPENPROJECT_TARGET_PROJECT_ID  deprecated alias of REPLAN_OPENPROJECT_PROJECT_ID
@@ -28,6 +29,8 @@ replan_help "$0" "$@"
 replan_require_no_args_json "build-openproject-live-overlay" "build-openproject-live-overlay.sh" "$@"
 . "$ROOT_DIR/scripts/lib/load-dotenv.sh"
 replan_load_openproject_dotenv "$ROOT_DIR"
+replan_refuse_mixed_project_settings "build-openproject-live-overlay" invalid \
+  REPLAN_PROJECT REPLAN_OPENPROJECT_BINDINGS_PATH REPLAN_OVERLAY_OUTPUT_DIR
 replan_resolve_openproject_settings "build-openproject-live-overlay" invalid
 replan_require_json_format "build-openproject-live-overlay"
 OUTPUT_DIR="${REPLAN_OVERLAY_OUTPUT_DIR:-$ROOT_DIR/tmp/openproject-live-overlay/latest}"

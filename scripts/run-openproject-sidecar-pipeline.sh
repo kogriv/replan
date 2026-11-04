@@ -2,6 +2,7 @@
 # Run the fixture/live OpenProject import, accept and idempotency sidecar pipeline.
 #
 # Settings:
+#   REPLAN_ENV_FILE                         default empty; environment only
 #   REPLAN_PROJECT                               default examples/small-team
 #   REPLAN_OPENPROJECT_PROFILE                   default openproject.demo
 #   REPLAN_OPENPROJECT_BASE_URL                  default empty
@@ -50,6 +51,8 @@ replan_help "$0" "$@"
 replan_require_no_args_json "openproject-sidecar-pipeline" "run-openproject-sidecar-pipeline.sh" "$@"
 . "$ROOT_DIR/scripts/lib/load-dotenv.sh"
 replan_load_openproject_dotenv "$ROOT_DIR"
+replan_refuse_mixed_project_settings "openproject-sidecar-pipeline" invalid \
+  REPLAN_PROJECT
 replan_resolve_openproject_settings "openproject-sidecar-pipeline" invalid
 PROJECT_PATH="${REPLAN_PROJECT:-$ROOT_DIR/examples/small-team}"
 OPENPROJECT_PROFILE="${REPLAN_OPENPROJECT_PROFILE:-openproject.demo}"

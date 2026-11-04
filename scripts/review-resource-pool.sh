@@ -2,6 +2,7 @@
 # Review the project's resource pool, capacities, demand and policy decisions.
 #
 # Settings:
+#   REPLAN_ENV_FILE                         default empty; environment only
 #   REPLAN_PROJECT  required
 #   REPLAN_FORMAT   only json; any other value is refused
 #
@@ -21,6 +22,7 @@ replan_help "$0" "$@"
 replan_require_no_args_json "review-resource-pool" "review-resource-pool.sh" "$@"
 . "$ROOT_DIR/scripts/lib/load-dotenv.sh"
 replan_load_openproject_dotenv "$ROOT_DIR"
+replan_refuse_mixed_project_settings "review-resource-pool" invalid REPLAN_PROJECT
 
 replan_require_json_format "review-resource-pool"
 replan_require_settings "review-resource-pool" REPLAN_PROJECT

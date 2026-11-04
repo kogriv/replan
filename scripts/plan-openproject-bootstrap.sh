@@ -2,6 +2,7 @@
 # Plan the OpenProject work packages needed to bootstrap a RePlan project.
 #
 # Settings:
+#   REPLAN_ENV_FILE                         default empty; environment only
 #   REPLAN_PROJECT                          required
 #   REPLAN_OPENPROJECT_PROJECT_ID           required
 #   REPLAN_OPENPROJECT_TARGET_PROJECT_ID    deprecated alias of REPLAN_OPENPROJECT_PROJECT_ID
@@ -25,6 +26,9 @@ replan_help "$0" "$@"
 replan_require_no_args_json "plan-openproject-bootstrap" "plan-openproject-bootstrap.sh" "$@"
 . "$ROOT_DIR/scripts/lib/load-dotenv.sh"
 replan_load_openproject_dotenv "$ROOT_DIR"
+replan_refuse_mixed_project_settings "plan-openproject-bootstrap" invalid \
+  REPLAN_PROJECT REPLAN_OPENPROJECT_PROJECT_NAME \
+  REPLAN_OPENPROJECT_TARGET_PROJECT_NAME
 replan_resolve_openproject_settings "plan-openproject-bootstrap" dry_run
 
 replan_require_json_format "plan-openproject-bootstrap"

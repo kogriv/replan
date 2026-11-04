@@ -2,6 +2,7 @@
 # Plan or push approved RePlan tracking-status drift to OpenProject.
 #
 # Settings:
+#   REPLAN_ENV_FILE                         default empty; environment only
 #   REPLAN_PROJECT                          required
 #   REPLAN_OPENPROJECT_BASE_URL             required
 #   REPLAN_OPENPROJECT_PROJECT_ID           required
@@ -39,6 +40,8 @@ replan_help "$0" "$@"
 replan_require_no_args_json "push-openproject-status-drift" "push-openproject-status-drift.sh" "$@"
 . "$ROOT_DIR/scripts/lib/load-dotenv.sh"
 replan_load_openproject_dotenv "$ROOT_DIR"
+replan_refuse_mixed_project_settings "push-openproject-status-drift" invalid \
+  REPLAN_PROJECT REPLAN_OPENPROJECT_BINDINGS_PATH
 replan_resolve_openproject_settings "push-openproject-status-drift" invalid
 PROJECT_PATH="${REPLAN_PROJECT:-}"
 OPENPROJECT_BASE_URL="${REPLAN_OPENPROJECT_BASE_URL:-}"

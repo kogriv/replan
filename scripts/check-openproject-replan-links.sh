@@ -76,7 +76,13 @@ binding() {
   binding task.self.create-replan-self-fixture "$LINKED"
 } > "$WORK_DIR/bindings.yaml"
 
+# The check reads no settings file: every setting it needs is set here, so
+# the repository's own .env.local cannot mix another project's plan in.
+: > "$WORK_DIR/empty.env"
+
 run_links() {
+  REPLAN_ENV_FILE="$WORK_DIR/empty.env" \
+  REPLAN_PROJECT="$ROOT_DIR/examples/replan-self" \
   REPLAN_OPENPROJECT_BASE_URL="$WEB_URL" \
   REPLAN_OPENPROJECT_HOST_HEADER="$HOST" \
   REPLAN_OPENPROJECT_FORWARDED_PROTO=http \

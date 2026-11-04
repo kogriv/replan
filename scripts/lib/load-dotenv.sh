@@ -1,14 +1,41 @@
 #!/usr/bin/env sh
 
 # Load local OpenProject connection settings without executing .env as shell.
-# Precedence: already exported environment > .env.local > .env.
+# Precedence: already exported environment > REPLAN_ENV_FILE, or
+# already exported environment > .env.local > .env.
 replan_load_openproject_dotenv() {
   root_dir=$1
+  replan_settings_command=${2:-${0##*/}}
+  replan_settings_command=${replan_settings_command%.sh}
+  replan_settings_mode=${3:-invalid}
+  if [ "${REPLAN_ENV_FILE+x}" = x ] && \
+     { [ ! -f "$REPLAN_ENV_FILE" ] || [ ! -r "$REPLAN_ENV_FILE" ]; }; then
+    replan_fail_json "$replan_settings_command" "$replan_settings_mode" missing_setting \
+      "required setting could not be read: REPLAN_ENV_FILE" 8 \
+      'missing_settings=["REPLAN_ENV_FILE"]'
+  fi
   replan_settings_list_path="$root_dir/scripts/lib/settings.list"
   [ -f "$replan_settings_list_path" ] || return 0
   replan_settings_names=$(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' "$replan_settings_list_path")
-  replan_load_openproject_dotenv_file "$root_dir/.env.local"
-  replan_load_openproject_dotenv_file "$root_dir/.env"
+  replan_settings_file_project_id=""
+  replan_settings_loaded_names=":"
+  replan_settings_env_project_id=""
+  if [ -n "${REPLAN_OPENPROJECT_PROJECT_ID:-}" ]; then
+    replan_settings_env_project_id=$REPLAN_OPENPROJECT_PROJECT_ID
+  fi
+
+  if [ "${REPLAN_ENV_FILE+x}" = x ]; then
+    replan_load_openproject_dotenv_file "$REPLAN_ENV_FILE"
+  else
+    replan_load_openproject_dotenv_file "$root_dir/.env.local"
+    replan_load_openproject_dotenv_file "$root_dir/.env"
+  fi
+
+  REPLAN_INTERNAL_ENV_PROJECT_ID=$replan_settings_env_project_id
+  REPLAN_INTERNAL_FILE_PROJECT_ID=$replan_settings_file_project_id
+  REPLAN_INTERNAL_FILE_SETTINGS=$replan_settings_loaded_names
+  export REPLAN_INTERNAL_ENV_PROJECT_ID REPLAN_INTERNAL_FILE_PROJECT_ID
+  export REPLAN_INTERNAL_FILE_SETTINGS
   # A release unpacked without the Go sources carries its own binary; the
   # helpers use it instead of building one.
   if [ -z "${REPLAN_BIN:-}" ] && [ -x "$root_dir/bin/replan" ]; then
@@ -47,10 +74,6 @@ $key
       *) continue ;;
     esac
 
-    if printenv "$key" >/dev/null 2>&1; then
-      continue
-    fi
-
     case "$value" in
       \"*\")
         value=${value#\"}
@@ -64,8 +87,50 @@ $key
 
     [ -n "$value" ] || continue
 
+    if [ "$key" = REPLAN_OPENPROJECT_PROJECT_ID ] && \
+       [ -z "$replan_settings_file_project_id" ]; then
+      replan_settings_file_project_id=$value
+    fi
+
+    if printenv "$key" >/dev/null 2>&1; then
+      continue
+    fi
+
     export "$key=$value"
+    case "$replan_settings_loaded_names" in
+      *":$key:"*) ;;
+      *) replan_settings_loaded_names="$replan_settings_loaded_names$key:" ;;
+    esac
   done < "$dotenv_path"
+}
+
+# Refuse a plan-bound helper when an environment project id conflicts with the
+# settings file that supplied one or more per-project values used by it.
+replan_refuse_mixed_project_settings() {
+  replan_mixed_command=$1
+  replan_mixed_mode=$2
+  shift 2
+
+  [ -n "${REPLAN_INTERNAL_ENV_PROJECT_ID:-}" ] || return 0
+  [ -n "${REPLAN_INTERNAL_FILE_PROJECT_ID:-}" ] || return 0
+  [ "$REPLAN_INTERNAL_ENV_PROJECT_ID" != "$REPLAN_INTERNAL_FILE_PROJECT_ID" ] || return 0
+
+  replan_mixed_names=""
+  replan_mixed_json=""
+  for replan_mixed_name in "$@"; do
+    case "${REPLAN_INTERNAL_FILE_SETTINGS:-:}" in
+      *":$replan_mixed_name:"*)
+        replan_mixed_names="$replan_mixed_names $replan_mixed_name"
+        replan_mixed_json="$replan_mixed_json\"$replan_mixed_name\","
+        ;;
+    esac
+  done
+  [ -n "$replan_mixed_names" ] || return 0
+
+  replan_fail_json "$replan_mixed_command" "$replan_mixed_mode" \
+    mixed_project_settings \
+    "environment project id conflicts with per-project settings from the settings file:$replan_mixed_names" \
+    8 "settings=[${replan_mixed_json%,}]"
 }
 
 # Resolve secret files after dotenv loading. Direct environment values win.

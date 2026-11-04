@@ -32,9 +32,11 @@ needed once, for what the list under "What needs an administrator" names.
 
 ## Set up
 
-1. Unpack the archive anywhere and stay in its directory.
-2. Copy `env.local.example` to `.env.local` and fill it in. `.env.local` holds
-   your token: never commit it and never print it.
+1. Unpack one kit directory per project and stay in that directory. Do not
+   share a configured kit between projects.
+2. Copy `env.local.example` to `.env.local`, next to `scripts/`, and fill it
+   in. Each project has its own `.env.local`. It holds your token: never
+   commit it and never print it.
 3. Check the program and the connection:
 
    ```sh
@@ -45,11 +47,25 @@ needed once, for what the list under "What needs an administrator" names.
    The first prints warnings of the example plan and no errors. The second
    prints a JSON document with `"ok": true` and your project's work packages.
 
-Every helper reads `.env.local` itself; settings already in the environment
-win over the file. The helpers have no default plan or project: one that
-needs `REPLAN_PROJECT` or `REPLAN_OPENPROJECT_PROJECT_ID` and does not find it
-answers `missing_setting`, exit 8, with the names in `missing_settings`,
-instead of working on another project.
+Every helper reads `.env.local` and then `.env`; settings already in the
+environment win. Set `REPLAN_ENV_FILE` in the environment to read only that
+file instead. The named file must be readable. `REPLAN_ENV_FILE` itself is
+never read from a settings file.
+
+The per-project settings are `REPLAN_PROJECT`,
+`REPLAN_OPENPROJECT_PROJECT_NAME`, its deprecated
+`REPLAN_OPENPROJECT_TARGET_PROJECT_NAME` alias, the three
+`REPLAN_OPENPROJECT_ASSIGNEE_*` settings,
+`REPLAN_OPENPROJECT_BINDINGS_PATH`, `REPLAN_OVERLAY_OUTPUT_DIR` and
+`REPLAN_OVERLAY_PUBLISH_TARGET`. If the environment selects one OpenProject
+project but the settings file names another, a helper that uses any of those
+file values refuses with `mixed_project_settings`, exit 8, before a request.
+Connection-only commands may reuse one connection file for several projects.
+
+The helpers have no default plan or project: one that needs `REPLAN_PROJECT`
+or `REPLAN_OPENPROJECT_PROJECT_ID` and does not find it answers
+`missing_setting`, exit 8, with the names in `missing_settings`, instead of
+working on another project.
 
 `REPLAN_OPENPROJECT_PROJECT_ID` is the identifier used by every helper,
 including bootstrap. Bootstrap uses `REPLAN_OPENPROJECT_PROJECT_NAME` only when
@@ -664,6 +680,11 @@ Ask the OpenProject administrator, once:
 
 ## If something fails
 
+- `missing_setting` names `REPLAN_ENV_FILE`: the explicit settings file does
+  not exist or cannot be read. Its path is not printed.
+- `mixed_project_settings`: the environment project id and settings-file
+  project id differ, while the helper would use listed per-project values
+  from that file. Use the right project's kit or settings file.
 - `token_env_not_set` among `warning_codes`, with an empty result or
   `"mode": "skipped"`: `.env.local` is missing or has no `OPENPROJECT_TOKEN`.
   With `REPLAN_APPLY=1` the same is an error, exit 8, and nothing was written.

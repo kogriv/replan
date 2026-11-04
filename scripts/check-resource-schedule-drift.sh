@@ -2,6 +2,7 @@
 # Check resource demands and scheduled workload for planning drift.
 #
 # Settings:
+#   REPLAN_ENV_FILE                         default empty; environment only
 #   REPLAN_PROJECT  required
 #   REPLAN_BIN      default build locally
 #   REPLAN_FORMAT   only json; any other value is refused
@@ -24,6 +25,8 @@ replan_help "$0" "$@"
 replan_require_no_args_json "check-resource-schedule-drift" "check-resource-schedule-drift.sh" "$@"
 . "$ROOT_DIR/scripts/lib/load-dotenv.sh"
 replan_load_openproject_dotenv "$ROOT_DIR"
+replan_refuse_mixed_project_settings "check-resource-schedule-drift" invalid \
+  REPLAN_PROJECT
 
 replan_require_json_format "check-resource-schedule-drift"
 replan_require_settings "check-resource-schedule-drift" REPLAN_PROJECT

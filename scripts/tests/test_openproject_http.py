@@ -502,6 +502,27 @@ class SettingsTest(unittest.TestCase):
 
 
 class DotenvSettingsListTest(unittest.TestCase):
+    def test_python_settings_load_explicit_file(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as temp_dir:
+            explicit = pathlib.Path(temp_dir, "project.settings")
+            explicit.write_text(
+                "REPLAN_OPENPROJECT_PROJECT_ID=file-project\n"
+                "REPLAN_PROJECT=/file/plan\n"
+            )
+            settings = Settings.from_env(environ={
+                "REPLAN_ENV_FILE": str(explicit),
+                "REPLAN_PROJECT": "/environment/plan",
+            })
+        self.assertEqual(settings.project_id, "file-project")
+        self.assertEqual(settings.project_path, "/environment/plan")
+
+    def test_python_settings_refuse_missing_explicit_file(self):
+        with self.assertRaises(MissingSettingError) as raised:
+            Settings.from_env(environ={"REPLAN_ENV_FILE": "/not/a/settings/file"})
+        self.assertEqual(raised.exception.setting, "REPLAN_ENV_FILE")
+        self.assertNotIn("/not/a/settings/file", str(raised.exception))
+
     def test_loader_allowlist_precedence_and_quoting(self):
         import tempfile
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -527,6 +548,122 @@ printf '%s|%s|%s\n' "$REPLAN_OPENPROJECT_BASE_URL" "$OPENPROJECT_TOKEN" "${NOT_O
             )
         self.assertEqual(result.stdout, "https://quoted.example|exported|unset\n")
 
+    def test_explicit_file_replaces_root_files_and_environment_wins(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = pathlib.Path(temp_dir)
+            settings_dir = root / "scripts/lib"
+            settings_dir.mkdir(parents=True)
+            (settings_dir / "settings.list").write_text(
+                (ROOT / "scripts/lib/settings.list").read_text()
+            )
+            (root / ".env.local").write_text(
+                "REPLAN_OPENPROJECT_PROJECT_ID=root-project\n"
+                "OPENPROJECT_TOKEN=root-token\n"
+            )
+            explicit = root / "project.settings"
+            explicit.write_text(
+                'REPLAN_OPENPROJECT_BASE_URL="https://file.example"\n'
+                "REPLAN_OPENPROJECT_PROJECT_ID='file-project'\n"
+            )
+            script = r'''
+. "$1/scripts/lib/load-dotenv.sh"
+replan_load_openproject_dotenv "$2"
+printf '%s|%s|%s\n' "$REPLAN_OPENPROJECT_BASE_URL" "$REPLAN_OPENPROJECT_PROJECT_ID" "${OPENPROJECT_TOKEN-unset}"
+'''
+            env = {
+                "PATH": os.environ["PATH"],
+                "REPLAN_ENV_FILE": str(explicit),
+                "REPLAN_OPENPROJECT_BASE_URL": "https://environment.example",
+            }
+            result = subprocess.run(
+                ["sh", "-c", script, "sh", str(ROOT), temp_dir],
+                check=True, text=True, capture_output=True, env=env,
+            )
+        self.assertEqual(
+            result.stdout,
+            "https://environment.example|file-project|unset\n",
+        )
+
+    def test_missing_explicit_file_is_refused_without_printing_path(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as temp_dir:
+            missing = os.path.join(temp_dir, "private-name.settings")
+            env = {
+                "PATH": os.environ["PATH"],
+                "REPLAN_ENV_FILE": missing,
+            }
+            result = subprocess.run(
+                [str(ROOT / "scripts/review-resource-pool.sh")],
+                text=True, capture_output=True, env=env,
+            )
+        self.assertEqual(result.returncode, 8)
+        out = json.loads(result.stdout)
+        self.assertEqual(out["command"], "review-resource-pool")
+        self.assertEqual(out["error_codes"], ["missing_setting"])
+        self.assertEqual(out["missing_settings"], ["REPLAN_ENV_FILE"])
+        self.assertNotIn(missing, result.stdout + result.stderr)
+
+    def test_mixed_project_is_refused_only_when_the_plan_is_used(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as temp_dir:
+            explicit = pathlib.Path(temp_dir, "project.settings")
+            explicit.write_text(
+                "REPLAN_OPENPROJECT_PROJECT_ID=file-project\n"
+                f"REPLAN_PROJECT={temp_dir}/plan\n"
+            )
+            base_env = {
+                "PATH": os.environ["PATH"],
+                "REPLAN_ENV_FILE": str(explicit),
+                "REPLAN_OPENPROJECT_PROJECT_ID": "environment-project",
+            }
+            refused = subprocess.run(
+                [str(ROOT / "scripts/review-resource-pool.sh")],
+                text=True, capture_output=True, env=base_env,
+            )
+            allowed = subprocess.run(
+                [
+                    str(ROOT / "scripts/openproject-work-package-toolkit.sh"),
+                    "work-package", "list",
+                ],
+                text=True, capture_output=True,
+                env={**base_env, "REPLAN_PROJECT": ""},
+            )
+        self.assertEqual(refused.returncode, 8)
+        refused_out = json.loads(refused.stdout)
+        self.assertEqual(refused_out["error_codes"], ["mixed_project_settings"])
+        self.assertEqual(refused_out["settings"], ["REPLAN_PROJECT"])
+        self.assertEqual(allowed.returncode, 0)
+        allowed_out = json.loads(allowed.stdout)
+        self.assertTrue(allowed_out["ok"])
+        self.assertIn("token_env_not_set", allowed_out["warning_codes"])
+
+    def test_mixed_bootstrap_project_name_is_refused(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as temp_dir:
+            explicit = pathlib.Path(temp_dir, "project.settings")
+            explicit.write_text(
+                "REPLAN_OPENPROJECT_PROJECT_ID=file-project\n"
+                "REPLAN_OPENPROJECT_PROJECT_NAME=File project\n"
+            )
+            result = subprocess.run(
+                [str(ROOT / "scripts/apply-openproject-bootstrap.sh")],
+                text=True, capture_output=True,
+                env={
+                    "PATH": os.environ["PATH"],
+                    "REPLAN_ENV_FILE": str(explicit),
+                    "REPLAN_OPENPROJECT_PROJECT_ID": "environment-project",
+                    "REPLAN_PROJECT": os.path.join(temp_dir, "plan"),
+                    "REPLAN_OPENPROJECT_BINDINGS_PATH": os.path.join(
+                        temp_dir, "bindings.yaml"
+                    ),
+                },
+            )
+        self.assertEqual(result.returncode, 8)
+        out = json.loads(result.stdout)
+        self.assertEqual(out["error_codes"], ["mixed_project_settings"])
+        self.assertEqual(out["settings"], ["REPLAN_OPENPROJECT_PROJECT_NAME"])
+
     def test_agent_kit_example_names_are_all_listed(self):
         allowed = {
             line.strip()
@@ -551,17 +688,18 @@ printf '%s|%s|%s\n' "$REPLAN_OPENPROJECT_BASE_URL" "$OPENPROJECT_TOKEN" "${NOT_O
             pathlib.Path(temp_dir, ".env.local").write_text(
                 "REPLAN_APPLY=1\n"
                 "REPLAN_OPENPROJECT_FROM_FILE=private-fixture.json\n"
+                "REPLAN_ENV_FILE=/must/not/be-loaded\n"
             )
             script = r'''
 . "$1/scripts/lib/load-dotenv.sh"
 replan_load_openproject_dotenv "$2"
-printf '%s|%s\n' "${REPLAN_APPLY-unset}" "${REPLAN_OPENPROJECT_FROM_FILE-unset}"
+printf '%s|%s|%s\n' "${REPLAN_APPLY-unset}" "${REPLAN_OPENPROJECT_FROM_FILE-unset}" "${REPLAN_ENV_FILE-unset}"
 '''
             result = subprocess.run(
                 ["sh", "-c", script, "sh", str(ROOT), temp_dir],
                 check=True, text=True, capture_output=True, env={"PATH": os.environ["PATH"]},
             )
-        self.assertEqual(result.stdout, "unset|unset\n")
+        self.assertEqual(result.stdout, "unset|unset|unset\n")
 
     def test_missing_settings_list_loads_nothing(self):
         import tempfile

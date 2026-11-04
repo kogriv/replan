@@ -2,6 +2,7 @@
 # Explain one resource and unit's overloaded workload demand by demand.
 #
 # Settings:
+#   REPLAN_ENV_FILE                         default empty; environment only
 #   REPLAN_PROJECT      required
 #   REPLAN_RESOURCE_ID  required
 #   REPLAN_UNIT         required
@@ -25,6 +26,8 @@ replan_help "$0" "$@"
 replan_require_no_args_json "explain-resource-overload" "explain-resource-overload.sh" "$@"
 . "$ROOT_DIR/scripts/lib/load-dotenv.sh"
 replan_load_openproject_dotenv "$ROOT_DIR"
+replan_refuse_mixed_project_settings "explain-resource-overload" invalid \
+  REPLAN_PROJECT
 
 replan_require_json_format "explain-resource-overload"
 replan_require_settings "explain-resource-overload" REPLAN_PROJECT REPLAN_RESOURCE_ID REPLAN_UNIT

@@ -2,6 +2,7 @@
 # Validate fixture and optional live OpenProject import/accept workflows.
 #
 # Settings:
+#   REPLAN_ENV_FILE                         default empty; environment only
 #   REPLAN_PROJECT                           default examples/small-team
 #   REPLAN_OPENPROJECT_SAMPLE                default examples/imports/openproject/work-packages.sample.json
 #   REPLAN_OPENPROJECT_PROFILE               default openproject.demo
@@ -44,6 +45,7 @@ replan_help "$0" "$@"
 replan_require_no_args_text "validate-openproject.sh" "$@"
 . "$ROOT_DIR/scripts/lib/load-dotenv.sh"
 replan_load_openproject_dotenv "$ROOT_DIR"
+replan_refuse_mixed_project_settings "validate-openproject" invalid REPLAN_PROJECT
 replan_resolve_openproject_settings "validate-openproject" invalid
 PROJECT_PATH="${REPLAN_PROJECT:-$ROOT_DIR/examples/small-team}"
 OPENPROJECT_SAMPLE="${REPLAN_OPENPROJECT_SAMPLE:-$ROOT_DIR/examples/imports/openproject/work-packages.sample.json}"

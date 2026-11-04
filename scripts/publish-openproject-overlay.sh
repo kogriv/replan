@@ -16,6 +16,7 @@
 # the plan.
 # External dependency: rsync.
 # Settings:
+#   REPLAN_ENV_FILE                         default empty; environment only
 #   REPLAN_OPENPROJECT_PROJECT_ID  required
 #   REPLAN_OPENPROJECT_TARGET_PROJECT_ID  deprecated alias of REPLAN_OPENPROJECT_PROJECT_ID
 #   REPLAN_OVERLAY_OUTPUT_DIR      default tmp/openproject-live-overlay/latest
@@ -36,6 +37,8 @@ replan_help "$0" "$@"
 replan_require_no_args_json "publish-openproject-overlay" "publish-openproject-overlay.sh" "$@"
 . "$ROOT_DIR/scripts/lib/load-dotenv.sh"
 replan_load_openproject_dotenv "$ROOT_DIR"
+replan_refuse_mixed_project_settings "publish-openproject-overlay" invalid \
+  REPLAN_OVERLAY_OUTPUT_DIR REPLAN_OVERLAY_PUBLISH_TARGET
 replan_resolve_openproject_settings "publish-openproject-overlay" invalid
 OPENPROJECT_PROJECT_ID="${REPLAN_OPENPROJECT_PROJECT_ID:-}"
 SOURCE_DIR="${REPLAN_OVERLAY_OUTPUT_DIR:-$ROOT_DIR/tmp/openproject-live-overlay/latest}"

@@ -202,6 +202,9 @@ class KitScriptsLoadSettingsTest(unittest.TestCase):
         missing = [name for name in scripts
                    if 'replan_load_openproject_dotenv "$ROOT_DIR"' not in read(os.path.join(ROOT, "scripts", name))]
         self.assertEqual(missing, [])
+        missing_help = [name for name in scripts
+                        if "#   REPLAN_ENV_FILE" not in read(os.path.join(ROOT, "scripts", name))]
+        self.assertEqual(missing_help, [])
 
 
 class ImportFailureTest(unittest.TestCase):

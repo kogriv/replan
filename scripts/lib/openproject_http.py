@@ -19,6 +19,7 @@ TIMEOUT_ENV = "REPLAN_OPENPROJECT_TIMEOUT_SECONDS"
 RETRIES_ENV = "REPLAN_OPENPROJECT_RETRIES"
 RETRY_DELAY_ENV = "REPLAN_OPENPROJECT_RETRY_DELAY_SECONDS"
 DEFAULT_PERIMETER_HEADER = "X-Perimeter-Key"
+ENV_FILE_ENV = "REPLAN_ENV_FILE"
 
 
 class ConflictingSettingsError(ValueError):
@@ -31,6 +32,81 @@ class MissingSettingError(ValueError):
     def __init__(self, setting):
         self.setting = setting
         super().__init__(f"required setting could not be read: {setting}")
+
+
+class MixedProjectSettingsError(ValueError):
+    """A settings file supplied per-project values for another project."""
+
+    def __init__(self, settings):
+        self.settings = tuple(settings)
+        names = " ".join(self.settings)
+        super().__init__(
+            "environment project id conflicts with per-project settings "
+            f"from the settings file: {names}"
+        )
+
+
+def mixed_project_settings(environ, used_settings):
+    """Return used per-project names loaded from a conflicting settings file."""
+    env_project = environ.get("REPLAN_INTERNAL_ENV_PROJECT_ID", "")
+    file_project = environ.get("REPLAN_INTERNAL_FILE_PROJECT_ID", "")
+    if not env_project or not file_project or env_project == file_project:
+        return ()
+    loaded = environ.get("REPLAN_INTERNAL_FILE_SETTINGS", ":")
+    return tuple(name for name in used_settings if f":{name}:" in loaded)
+
+
+def refuse_mixed_project_settings(environ, used_settings):
+    names = mixed_project_settings(environ, used_settings)
+    if names:
+        raise MixedProjectSettingsError(names)
+
+
+def _explicit_settings_environ(environ):
+    """Load REPLAN_ENV_FILE for direct Python callers; shell wrappers mark it loaded."""
+    if ENV_FILE_ENV not in environ or "REPLAN_INTERNAL_FILE_SETTINGS" in environ:
+        return environ
+    path = environ.get(ENV_FILE_ENV, "")
+    try:
+        with open(os.path.join(os.path.dirname(__file__), "settings.list"), encoding="utf-8") as stream:
+            allowed = {
+                line.strip() for line in stream
+                if line.strip() and not line.lstrip().startswith("#")
+            }
+        with open(path, encoding="utf-8") as stream:
+            lines = stream.readlines()
+    except (OSError, UnicodeError) as exc:
+        raise MissingSettingError(ENV_FILE_ENV) from exc
+
+    loaded = dict(environ)
+    env_project = environ.get("REPLAN_OPENPROJECT_PROJECT_ID", "")
+    file_project = ""
+    loaded_names = []
+    for raw_line in lines:
+        line = raw_line.rstrip("\r\n")
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[len("export "):]
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        if not key or not key.replace("_", "a").isalnum() or key not in allowed:
+            continue
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            value = value[1:-1]
+        if not value:
+            continue
+        if key == "REPLAN_OPENPROJECT_PROJECT_ID" and not file_project:
+            file_project = value
+        if key in environ:
+            continue
+        loaded[key] = value
+        loaded_names.append(key)
+    loaded["REPLAN_INTERNAL_ENV_PROJECT_ID"] = env_project
+    loaded["REPLAN_INTERNAL_FILE_PROJECT_ID"] = file_project
+    loaded["REPLAN_INTERNAL_FILE_SETTINGS"] = ":" + ":".join(loaded_names) + ":"
+    return loaded
 
 
 def _secret_setting(environ, value_name, file_name):
@@ -108,6 +184,7 @@ class Settings:
         root_dir=None,
     ):
         environ = os.environ if environ is None else environ
+        environ = _explicit_settings_environ(environ)
         token_env = token_env or environ.get("REPLAN_OPENPROJECT_TOKEN_ENV", "") or "OPENPROJECT_TOKEN"
         token = _secret_setting(environ, token_env, TOKEN_FILE_ENV)
         if require_token and not token:

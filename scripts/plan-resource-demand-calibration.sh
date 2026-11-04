@@ -2,6 +2,7 @@
 # Plan resource-demand calibration actions from current RePlan state.
 #
 # Settings:
+#   REPLAN_ENV_FILE                         default empty; environment only
 #   REPLAN_PROJECT  required
 #   REPLAN_FORMAT   only json; any other value is refused
 #
@@ -21,6 +22,8 @@ replan_help "$0" "$@"
 replan_require_no_args_json "plan-resource-demand-calibration" "plan-resource-demand-calibration.sh" "$@"
 . "$ROOT_DIR/scripts/lib/load-dotenv.sh"
 replan_load_openproject_dotenv "$ROOT_DIR"
+replan_refuse_mixed_project_settings "plan-resource-demand-calibration" invalid \
+  REPLAN_PROJECT
 
 replan_require_json_format "plan-resource-demand-calibration"
 replan_require_settings "plan-resource-demand-calibration" REPLAN_PROJECT

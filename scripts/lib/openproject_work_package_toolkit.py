@@ -11,7 +11,13 @@ import tempfile
 import urllib.parse
 
 import yaml
-from openproject_http import MissingSettingError, OpenProjectClient, Settings
+from openproject_http import (
+    MissingSettingError,
+    MixedProjectSettingsError,
+    OpenProjectClient,
+    Settings,
+    refuse_mixed_project_settings,
+)
 import helper_envelope
 import openproject_bindings
 import openproject_rescheduling
@@ -64,6 +70,11 @@ def initialize_environment(args):
     global settings, project_path, base_url, token_env, openproject_project_id
     global from_file, bindings_path, host_header, forwarded_proto, token, mode, client
     settings = Settings.from_env(root_dir=root_dir)
+    if command_requires_plan(args):
+        refuse_mixed_project_settings(
+            os.environ,
+            ("REPLAN_PROJECT", "REPLAN_OPENPROJECT_BINDINGS_PATH"),
+        )
     project_path, base_url = settings.project_path, settings.base_url.rstrip("/")
     token_env, openproject_project_id = settings.token_env, settings.project_id
     missing = []
@@ -1696,6 +1707,12 @@ except MissingSettingError as exc:
         "openproject work-package toolkit", "invalid", "missing_setting",
         str(exc), helper_envelope.EXIT["usage"],
         extra={"missing_settings": [exc.setting]},
+    )
+except MixedProjectSettingsError as exc:
+    helper_envelope.fail(
+        "openproject work-package toolkit", "invalid", "mixed_project_settings",
+        str(exc), helper_envelope.EXIT["usage"],
+        extra={"settings": list(exc.settings)},
     )
 except ValueError as exc:
     print_json(envelope("openproject work-package toolkit", mode, ok=False, errors=[diagnostic("invalid_arguments", str(exc))]), 8)
