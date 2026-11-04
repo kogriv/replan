@@ -6321,7 +6321,7 @@ tasks:
       title: Show agent load with the approved calibration applied
       description: 'Decided on 2026-11-04 (agent effort units design, option B, step 1). workload, report weekly, report state and the dashboard compare calibrated open demand of an agent resource with its real capacity, using CalibrationFactor per size band of an approved sealed calibration whose scope covers the resource and unit. Every row names the calibration applied; --raw and a raw column in JSON keep the uncalibrated load. Without a matching calibration nothing changes. Planned amounts are not rewritten.'
       type: implementation
-      tracking_status: not_started
+      tracking_status: in_progress
       planned_start: "2026-11-04"
       planned_finish: "2026-11-04"
       assignee_hint:
@@ -6330,6 +6330,8 @@ tasks:
       resource_demands:
         - kind: resource_demand
           id: resource_demand.calibrated-agent-load.agent
+        - kind: resource_demand
+          id: resource_demand.calibrated-agent-load.codex
         - kind: resource_demand
           id: resource_demand.calibrated-agent-load.maintainer
         - kind: resource_demand
