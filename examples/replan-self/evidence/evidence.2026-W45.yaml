@@ -558,3 +558,14 @@ evidence:
       targets:
         - kind: task
           id: task.self.calibration-starting-factor
+    - id: evidence.self.calibration-starting-factor
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-04T18:55:36+07:00"
+      summary: 'Feature commit: estimate calibrate --prior/--source (method prior, result.prior_source, sealed, human approver), refusals, validate, next replacement suggestion, list/show/dashboard. Checked on a copy of small-team: prior 0.21 written and valid, Codex load 0.5 calibrated vs 2 raw. Gate green incl. 79 live kit checks. Codex 18:20:29-18:39:47; executor 18:16:36-18:20:29 and review 18:40:20-18:55:16; brief writing before 18:16 not timed.'
+      targets:
+        - kind: task
+          id: task.self.calibration-starting-factor

@@ -6350,7 +6350,7 @@ tasks:
       title: Allow a sealed starting factor for a project without a sample
       description: 'Decided on 2026-11-04 (agent effort units design, option B, step 2). replan estimate calibrate --prior FACTOR --source TEXT writes a sealed, approved calibration with method prior, the cited source and no sample, refused without a human approver. replan next suggests replacing it once the project''s own clean sample reaches the minimum. Validate checks the new method.'
       type: implementation
-      tracking_status: in_progress
+      tracking_status: review_ready
       planned_start: "2026-11-04"
       planned_finish: "2026-11-04"
       assignee_hint:
