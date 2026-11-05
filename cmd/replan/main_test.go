@@ -3110,7 +3110,9 @@ func projectFileContents(t *testing.T, root string) map[string]string {
 		if err != nil {
 			return err
 		}
-		if strings.HasPrefix(filepath.ToSlash(rel), ".replan/lock/") {
+		// The write lock is created by any --apply run, even a refused one,
+		// and is ignored by git; it is not project content.
+		if slashed := filepath.ToSlash(rel); strings.HasPrefix(slashed, ".replan/lock/") || slashed == ".replan/write.lock" {
 			return nil
 		}
 		data, err := os.ReadFile(path)
