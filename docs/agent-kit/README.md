@@ -512,6 +512,14 @@ Bootstrap merges new task and assignee bindings into the private bindings
 file; it preserves existing relations, bindings and extension keys, and refuses
 another project's file with `bindings_project_mismatch` (exit 5).
 
+Bootstrap matches each task by its private binding first, then by subject when
+there is no binding. If a bound work package has a different subject, the dry
+run plans `update_subject`; apply changes only its subject with the current lock
+version and reports `updated_subject`. If the bound id is not in the target
+project, bootstrap reports `bound_work_package_missing` and does not create a
+replacement. Remove the stale binding if bootstrap should create a new work
+package.
+
 Work packages are assigned to the token's own user unless
 `REPLAN_OPENPROJECT_ASSIGNEE_USER_ID` names another member. With
 `REPLAN_OPENPROJECT_ASSIGNEE_RESOURCE_ID` set, bootstrap also binds that user

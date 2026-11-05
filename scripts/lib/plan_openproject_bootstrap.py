@@ -90,7 +90,7 @@ for index, task_id in enumerate(ordered_ids, start=1):
         "assignee_hint": task.get("assignee_hint") or {},
         "tags": task.get("tags") or [],
         "existing_public_source_refs": source_refs,
-        "bootstrap_action": "create_or_match_by_subject",
+        "bootstrap_action": "match_by_private_binding_then_subject_or_create",
     })
 
 dependency_edges = []

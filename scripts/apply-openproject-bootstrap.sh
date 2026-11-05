@@ -1,6 +1,9 @@
 #!/usr/bin/env sh
 # Apply a planned RePlan bootstrap to an OpenProject project. Dated work-package
 # creates preserve instance non-working weekdays with ignoreNonWorkingDays.
+# Existing tasks match by private binding first, then by subject. A renamed
+# bound task plans update_subject and apply reports updated_subject; a stale id
+# is bound_work_package_missing.
 #
 # Settings:
 #   REPLAN_ENV_FILE                         default empty; environment only

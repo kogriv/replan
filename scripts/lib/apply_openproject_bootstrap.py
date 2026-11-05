@@ -49,6 +49,16 @@ class BindingsFileError(Exception):
         self.code = code
         self.exit_code = exit_code
 
+
+class WorkPackageChangedError(Exception):
+    def __init__(self, work_package_id, lock_version):
+        super().__init__(
+            f"work package {work_package_id} changed after lock version "
+            f"{lock_version} was read"
+        )
+        self.work_package_id = work_package_id
+        self.lock_version = lock_version
+
 def safe_main(fn):
     try:
         return fn()
@@ -60,6 +70,31 @@ def safe_main(fn):
             "openproject_request": settings.request_metadata(),
             "errors": [helper_envelope.diagnostic(exc.code, str(exc))],
         }, exc.exit_code)
+    except WorkPackageChangedError as exc:
+        private_binding_layer = persist_partial_bindings()
+        out = {
+            "ok": False,
+            "command": "apply-openproject-bootstrap",
+            "mode": mode,
+            "openproject_request": settings.request_metadata(),
+            "errors": [helper_envelope.diagnostic(
+                "openproject_work_package_changed",
+                str(exc),
+                "error",
+                "openproject_work_package",
+                exc.work_package_id,
+            )],
+            "private_binding_layer": private_binding_layer,
+            "checked_lock_version": exc.lock_version,
+        }
+        if partial_apply.applied_so_far:
+            out["applied_so_far"] = partial_apply.applied_so_far
+            out["failed_step"] = partial_apply.failed_step
+        helper_envelope.emit(
+            out,
+            helper_envelope.EXIT["partial"] if partial_apply.applied_so_far
+            else helper_envelope.EXIT["validation"],
+        )
     except Exception as exc:
         private_binding_layer = persist_partial_bindings()
         entry, code, extra = partial_apply.failure(exc, "openproject_bootstrap_apply_failed")
@@ -74,7 +109,7 @@ def safe_main(fn):
         }
         if partial_apply.applied_so_far:
             out["operator_next_steps"] = [
-                "Run this helper again as a dry run; bootstrap matches work packages by subject and private bindings, so it resumes without recreating confirmed work packages."
+                "Run this helper again as a dry run; bootstrap matches work packages by private binding and then subject, so it resumes without recreating confirmed work packages."
             ]
             if entry.get("outcome_unknown"):
                 out["operator_next_steps"].insert(0, "Check the failed project, membership, or work package in OpenProject first; the write may have been applied.")
@@ -132,12 +167,16 @@ def project_types(project):
 def existing_work_packages(project):
     project_id = project["id"]
     filters = json.dumps([{"project": {"operator": "=", "values": [str(project_id)]}}], separators=(",", ":"))
+    by_id = {}
     by_subject = {}
     for item in client.paginate("/api/v3/work_packages", 500, {"filters": filters}):
+        work_package_id = str(item.get("id", ""))
+        if work_package_id:
+            by_id[work_package_id] = item
         subject = item.get("subject", "")
         if subject:
             by_subject[subject.strip().lower()] = item
-    return by_subject
+    return by_id, by_subject
 
 def membership_filter_path(project):
     filters = json.dumps([{"project": {"operator": "=", "values": [str(project["id"])]}}], separators=(",", ":"))
@@ -194,6 +233,31 @@ def create_work_package(project, type_href, status_href_by_title, item, working_
     if status_href:
         payload["_links"]["status"] = {"href": status_href}
     _, data = client.request_json("POST", "/api/v3/work_packages", payload, expected=(201,))
+    return data
+
+
+def update_work_package_subject(existing, item):
+    work_package_id = str(existing.get("id", ""))
+    lock_version = existing.get("lockVersion")
+    payload = {
+        "subject": item["subject"],
+        "lockVersion": lock_version,
+    }
+    try:
+        _, data = client.request_json(
+            "PATCH",
+            f"/api/v3/work_packages/{urllib.parse.quote(work_package_id)}",
+            payload,
+            expected=(200,),
+        )
+    except RuntimeError as exc:
+        try:
+            failure = json.loads(str(exc))
+        except ValueError:
+            raise
+        if failure.get("status") == 409:
+            raise WorkPackageChangedError(work_package_id, lock_version) from exc
+        raise
     return data
 
 def resolve_assignee():
@@ -386,12 +450,22 @@ def main():
     bindings = []
     errors = []
     warnings = list(plan.get("warnings") or [])
+    matched_by_binding = 0
+    matched_by_subject = 0
     dated_items = [item for item in planned if item.get("start_date") or item.get("due_date")]
     working_by_day = None
     if dated_items:
         working_by_day, working_day_warnings = openproject_working_days.load(client)
         warnings.extend(working_day_warnings)
     bindings_exists, existing_bindings_doc = load_private_bindings()
+    if existing_bindings_doc is None:
+        task_to_work_package = {}
+        work_package_to_task = {}
+    else:
+        task_to_work_package, work_package_to_task = openproject_bindings.task_maps(
+            existing_bindings_doc,
+            strict=False,
+        )
     partial_binding_context["exists"] = bindings_exists
     partial_binding_context["existing_document"] = existing_bindings_doc
     partial_binding_context["task_bindings"] = bindings
@@ -441,6 +515,22 @@ def main():
 
     if project is None:
         for item in planned:
+            bound_work_package_id = task_to_work_package.get(item["replan_task_id"])
+            if bound_work_package_id:
+                error = helper_envelope.diagnostic(
+                    "bound_work_package_missing",
+                    (
+                        f"task {item['replan_task_id']} is bound to work package "
+                        f"{bound_work_package_id}, but it is not in the target project; "
+                        "remove the stale binding to let bootstrap create a new work package"
+                    ),
+                    "error",
+                    "task",
+                    item["replan_task_id"],
+                )
+                error["work_package_id"] = bound_work_package_id
+                errors.append(error)
+                continue
             action = {
                 "action": "create_work_package_after_project_create",
                 "replan_task_id": item["replan_task_id"],
@@ -463,22 +553,98 @@ def main():
             })
         type_href = project_types(project)
         statuses = status_map_by_title()
-        existing_by_subject = existing_work_packages(project)
+        existing_by_id, existing_by_subject = existing_work_packages(project)
         if planned and mode == "apply":
             partial_apply.clear()
         for item in planned:
+            task_id = item["replan_task_id"]
+            bound_work_package_id = task_to_work_package.get(task_id)
+            if bound_work_package_id:
+                existing = existing_by_id.get(bound_work_package_id)
+                if existing is None:
+                    error = helper_envelope.diagnostic(
+                        "bound_work_package_missing",
+                        (
+                            f"task {task_id} is bound to work package "
+                            f"{bound_work_package_id}, but it is not in the target project; "
+                            "remove the stale binding to let bootstrap create a new work package"
+                        ),
+                        "error",
+                        "task",
+                        task_id,
+                    )
+                    error["work_package_id"] = bound_work_package_id
+                    errors.append(error)
+                    continue
+                matched_by_binding += 1
+                current_subject = existing.get("subject", "")
+                if current_subject != item["subject"]:
+                    step = {
+                        "action": "update_subject",
+                        "replan_task_id": task_id,
+                        "work_package_id": bound_work_package_id,
+                        "from_subject": current_subject,
+                        "to_subject": item["subject"],
+                    }
+                    if mode == "apply":
+                        partial_apply.attempting(step)
+                        partial_apply.writing()
+                        update_work_package_subject(existing, item)
+                        action = {**step, "action": "updated_subject"}
+                        actions.append(action)
+                        partial_apply.applied(action)
+                    else:
+                        actions.append(step)
+                else:
+                    actions.append({
+                        "action": "match_existing_work_package",
+                        "match": "binding",
+                        "replan_task_id": task_id,
+                        "subject": item["subject"],
+                        "work_package_id": bound_work_package_id,
+                    })
+                bindings.append({
+                    "replan_task_id": task_id,
+                    "source_ref": {
+                        "source": "openproject",
+                        "object_type": "work_package",
+                        "object_id": bound_work_package_id,
+                        "url": f"{base_url}/work_packages/{bound_work_package_id}",
+                    },
+                })
+                continue
             key = item["subject"].strip().lower()
             existing = existing_by_subject.get(key)
             if existing:
                 wp_id = str(existing.get("id", ""))
+                bound_task_id = work_package_to_task.get(wp_id)
+                if bound_task_id and bound_task_id != task_id:
+                    warning = helper_envelope.diagnostic(
+                        "binding_conflict",
+                        (
+                            f"work package {wp_id} matching task {task_id} by subject "
+                            f"is already bound to task {bound_task_id}"
+                        ),
+                        "warning",
+                        "task",
+                        task_id,
+                    )
+                    warning.update({
+                        "work_package_id": wp_id,
+                        "existing_replan_task_id": bound_task_id,
+                    })
+                    warnings.append(warning)
+                    continue
+                matched_by_subject += 1
                 actions.append({
                     "action": "match_existing_work_package",
-                    "replan_task_id": item["replan_task_id"],
+                    "match": "subject",
+                    "replan_task_id": task_id,
                     "subject": item["subject"],
                     "work_package_id": wp_id,
                 })
                 bindings.append({
-                    "replan_task_id": item["replan_task_id"],
+                    "replan_task_id": task_id,
                     "source_ref": {
                         "source": "openproject",
                         "object_type": "work_package",
@@ -566,6 +732,12 @@ def main():
         "create_work_package": sum(1 for action in actions if action["action"] in {"create_work_package", "create_work_package_after_project_create"}),
         "created_work_package": sum(1 for action in actions if action["action"] == "created_work_package"),
         "matched_existing_work_package": sum(1 for action in actions if action["action"] == "match_existing_work_package"),
+        "matched_by_binding": matched_by_binding,
+        "matched_by_subject": matched_by_subject,
+        "subject_updates": sum(
+            1 for action in actions
+            if action["action"] in {"update_subject", "updated_subject"}
+        ),
     }
 
     out = {
@@ -603,7 +775,10 @@ def main():
         ],
     }
 
-    applied = sum(1 for action in actions if action["action"] == "created_work_package")
+    applied = sum(
+        1 for action in actions
+        if action["action"] in {"created_work_package", "updated_subject"}
+    )
     helper_envelope.emit(out, helper_envelope.apply_exit_code(out, applied), mode)
 
 safe_main(main)

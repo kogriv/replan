@@ -20,20 +20,22 @@ LIB = os.path.join(ROOT, "scripts", "lib")
 class BootstrapBindingsTest(unittest.TestCase):
     def setUp(self):
         self.created_ids = []
+        self.work_package_patches = []
         self.work_package_get_paths = []
         self.work_package_posts = 0
         self.work_package_payloads = []
         self.fail_work_package_post = 0
+        self.patch_status = 200
 
         owner = self
 
         class OpenProject(http.server.BaseHTTPRequestHandler):
             work_packages = [
-                {"id": 909, "subject": "Conflicting task"},
+                {"id": 909, "subject": "Conflicting task", "lockVersion": 2},
             ] + [
-                {"id": 1000 + index, "subject": f"Unrelated task {index}"}
+                {"id": 1000 + index, "subject": f"Unrelated task {index}", "lockVersion": 1}
                 for index in range(999)
-            ] + [{"id": 101, "subject": "Existing task"}]
+            ] + [{"id": 101, "subject": "Existing task", "lockVersion": 3}]
 
             def reply(self, body, status=200):
                 data = json.dumps(body).encode()
@@ -91,6 +93,19 @@ class BootstrapBindingsTest(unittest.TestCase):
                 else:
                     self.body()
                     self.reply({"id": 1}, 201)
+
+            def do_PATCH(self):
+                payload = self.body()
+                owner.work_package_patches.append((self.path, payload))
+                if owner.patch_status == 409:
+                    self.reply({"message": "Conflict"}, 409)
+                    return
+                work_package_id = int(self.path.rsplit("/", 1)[-1])
+                self.reply({
+                    "id": work_package_id,
+                    "subject": payload["subject"],
+                    "lockVersion": payload["lockVersion"] + 1,
+                })
 
             def log_message(self, *args):
                 pass
@@ -238,7 +253,7 @@ class BootstrapBindingsTest(unittest.TestCase):
             self.assertTrue(all(query["pageSize"] == ["500"] for query in queries))
             self.assertTrue(all("filters" in query for query in queries))
 
-    def test_conflicting_task_binding_warns_and_keeps_existing(self):
+    def test_missing_bound_work_package_errors_and_does_not_create(self):
         with tempfile.TemporaryDirectory() as tmp:
             doc = self.existing_doc()
             doc["openproject_private_bindings"]["tasks"][0] = {
@@ -250,14 +265,107 @@ class BootstrapBindingsTest(unittest.TestCase):
             plan = self.write_plan(tmp, [{"replan_task_id": "task.conflict", "subject": "Conflicting task"}])
 
             proc, out = self.run_bootstrap(plan, bindings)
-            self.assertEqual(proc.returncode, 0, out)
-            self.assertEqual(out["warning_codes"], ["binding_conflict"])
-            warning = out["warnings"][0]
-            self.assertEqual((warning["target"]["id"], warning["existing_work_package_id"], warning["bootstrap_work_package_id"]),
-                             ("task.conflict", "808", "909"))
+            self.assertEqual(proc.returncode, 11, out)
+            self.assertEqual(out["error_codes"], ["bound_work_package_missing"])
+            error = out["errors"][0]
+            self.assertEqual((error["target"]["id"], error["work_package_id"]),
+                             ("task.conflict", "808"))
+            self.assertIn("remove the stale binding", error["message"])
+            self.assertEqual(self.work_package_posts, 0)
             with open(bindings) as fh:
                 tasks = yaml.safe_load(fh)["openproject_private_bindings"]["tasks"]
             self.assertEqual(tasks[0]["source_ref"]["object_id"], "808")
+
+    def test_renamed_bound_task_plans_and_applies_subject_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bindings = os.path.join(tmp, "bindings.yaml")
+            with open(bindings, "w") as fh:
+                yaml.safe_dump(self.existing_doc(), fh, sort_keys=False)
+            plan = self.write_plan(tmp, [{
+                "replan_task_id": "task.existing",
+                "subject": "Renamed task",
+            }])
+
+            proc, dry = self.run_bootstrap(plan, bindings, apply="")
+            self.assertEqual(proc.returncode, 0, dry)
+            self.assertEqual(dry["actions"], [{
+                "action": "update_subject",
+                "replan_task_id": "task.existing",
+                "work_package_id": "101",
+                "from_subject": "Existing task",
+                "to_subject": "Renamed task",
+            }])
+            self.assertEqual(dry["counts"]["matched_by_binding"], 1)
+            self.assertEqual(dry["counts"]["matched_by_subject"], 0)
+            self.assertEqual(dry["counts"]["subject_updates"], 1)
+            self.assertEqual(dry["counts"]["create_work_package"], 0)
+            self.assertEqual(self.work_package_posts, 0)
+            self.assertEqual(self.work_package_patches, [])
+
+            proc, out = self.run_bootstrap(plan, bindings)
+            self.assertEqual(proc.returncode, 0, out)
+            self.assertEqual(out["actions"][0]["action"], "updated_subject")
+            self.assertEqual(self.work_package_posts, 0)
+            self.assertEqual(self.work_package_patches, [
+                ("/api/v3/work_packages/101", {
+                    "subject": "Renamed task",
+                    "lockVersion": 3,
+                }),
+            ])
+
+    def test_subject_match_without_binding_and_bound_conflict(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bindings = os.path.join(tmp, "bindings.yaml")
+            doc = self.existing_doc()
+            doc["openproject_private_bindings"]["tasks"][0] = {
+                "replan_task_id": "task.other",
+                "source_ref": {"object_id": "909"},
+            }
+            with open(bindings, "w") as fh:
+                yaml.safe_dump(doc, fh, sort_keys=False)
+            plan = self.write_plan(tmp, [
+                {"replan_task_id": "task.unbound", "subject": "Existing task"},
+                {"replan_task_id": "task.conflict", "subject": "Conflicting task"},
+            ])
+
+            proc, out = self.run_bootstrap(plan, bindings, apply="")
+
+            self.assertEqual(proc.returncode, 0, out)
+            self.assertEqual(out["counts"]["matched_by_binding"], 0)
+            self.assertEqual(out["counts"]["matched_by_subject"], 1)
+            self.assertEqual(out["counts"]["subject_updates"], 0)
+            self.assertEqual(out["warning_codes"], ["binding_conflict"])
+            self.assertEqual(
+                [(action["replan_task_id"], action["work_package_id"])
+                 for action in out["actions"]],
+                [("task.unbound", "101")],
+            )
+            warning = out["warnings"][0]
+            self.assertEqual(
+                (warning["target"]["id"], warning["work_package_id"],
+                 warning["existing_replan_task_id"]),
+                ("task.conflict", "909", "task.other"),
+            )
+
+    def test_subject_update_lock_conflict_names_work_package(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.patch_status = 409
+            bindings = os.path.join(tmp, "bindings.yaml")
+            with open(bindings, "w") as fh:
+                yaml.safe_dump(self.existing_doc(), fh, sort_keys=False)
+            plan = self.write_plan(tmp, [{
+                "replan_task_id": "task.existing",
+                "subject": "Renamed task",
+            }])
+
+            proc, out = self.run_bootstrap(plan, bindings)
+
+            self.assertEqual(proc.returncode, 2, out)
+            self.assertEqual(out["error_codes"], ["openproject_work_package_changed"])
+            self.assertEqual(out["errors"][0]["target"], {
+                "kind": "openproject_work_package", "id": "101",
+            })
+            self.assertEqual(len(self.work_package_patches), 1)
 
     def test_conflicting_resource_binding_warns_and_keeps_existing(self):
         with tempfile.TemporaryDirectory() as tmp:
