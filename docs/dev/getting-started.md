@@ -191,6 +191,8 @@ Implemented command families as of 2026-10-30:
 - `scenario list`, `show`, `diff`, `apply`;
 - `proposal list`, `show`, `suggest-dependencies`, `accept`, `reject`;
 - `dependency add`, `dependency list`, `deadline add`, `deadline list`;
+- `demand add`, `demand set`, `demand move`, including all-or-nothing add and
+  set batches;
 - `baseline create`, `list`, `show`;
 - `estimate calibrate`, including a cited `--prior` starting factor, plus
   `list`, `show`, `apply` for sealed calibrations and calibration-linked

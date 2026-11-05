@@ -1886,6 +1886,99 @@ Rules:
   `scripts/apply-openproject-bootstrap.sh`, or toolkit `work-package create`
   followed by `bind` for one task.
 
+## `replan demand add`, `demand set` and `demand move`
+
+These audited commands change canonical resource demands without hand-editing
+the demand and task files.
+
+Their splice writes keep existing demand and task YAML bytes unchanged. New
+task demand refs use the indentation of that task's existing ref list, and
+new nested demand fields use the file's two-space mapping indentation.
+
+```bash
+replan demand add --project examples/small-team --task task.op.1234 \
+  --suffix docs --resource resource.human.ivan --role writer \
+  --unit hours --amount 3 --reason "Add documentation work." \
+  --actor actor.human.operator --evidence evidence.github.pr.45 --dry-run
+replan demand set resource_demand.task-op-1234.docs \
+  --project examples/small-team --amount 4 --remaining 4 \
+  --reason "Refine the estimate." --actor actor.human.operator \
+  --evidence evidence.github.pr.45 --dry-run
+replan demand move resource_demand.task-op-1234.docs \
+  --project examples/small-team --suffix docs-petr \
+  --to-resource resource.human.petr --reason "Move the remaining work." \
+  --actor actor.human.operator --evidence evidence.github.pr.45 --dry-run
+```
+
+Implemented command flags:
+
+```text
+replan demand add --project -p --bindings --format --actor --amount --apply --criticality --dry-run --earliest-start --evidence --from-file --id --latest-finish --occurred-at --pool --reason --resource --resource-class --role --status --suffix --task --unit
+replan demand set --project -p --bindings --format --actor --amount --apply --criticality --dry-run --earliest-start --evidence --from-file --latest-finish --occurred-at --reason --remaining --role --status --unit
+replan demand move --project -p --bindings --format --actor --amount --apply --dry-run --evidence --id --occurred-at --reason --suffix --to-pool --to-resource
+```
+
+`add` requires an existing task, either a full `--id` or a `--suffix`, exactly
+one of `--resource` and `--pool`, a capacity unit and a positive finite amount.
+Role defaults to the suffix when omitted. The id derived from a suffix uses the
+same `resource_demand.<task-slug>.<suffix>` rule as `task add --demand`.
+`resource_class` defaults from the resource or pool, remaining starts equal to
+planned, criticality defaults to `required`, and status defaults to `active`.
+The optional timing window uses `YYYY-MM-DD` and cannot finish before it starts.
+
+`set` accepts planned `--amount`, `--remaining`, `--unit`, `--role`,
+`--criticality`, `--status`, `--earliest-start` and `--latest-finish`. At least
+one changed value is required. It does not change actuals or baselines. Its
+audit reason lists only the fields that changed; command JSON keeps the full
+before and after demands.
+
+`move` requires exactly one target. It creates a new active demand with the
+old task, role, unit, criticality and timing. Planned and remaining equal the
+old remaining amount unless `--amount` is given. The old demand becomes
+`superseded`, its remaining amount becomes zero, and `superseded_by` /
+`supersedes` link the two demands. Both ids stay on the task. A superseded,
+cancelled or consumed demand, the same target, a duplicate id, or a unit not
+offered by the target is refused. Without `--amount`, zero or missing remaining
+work is refused as `demand_nothing_to_move`. The old demand's audit reason
+names the target, replacement demand id and amount moved without embedding the
+full YAML records.
+
+Refusal codes include `missing_demand`, `missing_demand_id`,
+`duplicate_demand_id`, `demand_not_found`, `missing_task`, `task_not_found`,
+`invalid_demand_target`, `resource_not_found`, `resource_pool_not_found`,
+`invalid_resource_unit`, `invalid_demand_amount`, `invalid_remaining_amount`,
+`invalid_demand_role`, `invalid_demand_criticality`, `invalid_demand_status`,
+`invalid_demand_earliest_start`, `invalid_demand_latest_finish`,
+`invalid_demand_timing_range`, `missing_demand_change`, `demand_unchanged`,
+`demand_not_movable`, `demand_nothing_to_move` and `same_demand_target`.
+Common audited-write refusals also cover missing or unknown actor/evidence,
+missing reason, invalid occurrence time and the dry-run/apply gate.
+
+`demand add` and `demand set` accept all-or-nothing YAML batches. Common audit
+flags stay on the command and one evidence id covers the batch. Each item gets
+one audit record:
+
+```yaml
+demands:
+  - task: task.op.1234
+    suffix: docs
+    resource: resource.human.ivan
+    role: writer
+    unit: hours
+    amount: 3
+  - task: task.offline.repair-pump
+    id: resource_demand.repair-pump.review
+    pool: pool.reviewers
+    resource_class: human
+    role: reviewer
+    unit: review_hours
+    amount: 1
+```
+
+For `demand set`, items use `id` plus any changed fields from the set flags.
+All items are checked first and one staged commit writes the batch. Dry run
+writes nothing.
+
 ## `replan task set-dates`
 
 Purpose:

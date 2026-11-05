@@ -760,6 +760,9 @@ resource_demand:
   actual_amount: 3
   criticality: required
   status: active
+  superseded_by:
+    kind: resource_demand
+    id: demand.task-op-1234.implementer-petr
   timing:
     earliest_start: "2026-07-06"
     latest_finish: "2026-07-10"
@@ -814,6 +817,10 @@ Rules:
 - unknown remaining amount should produce warning when it affects forecast;
 - demand may represent quota, budget, material, equipment, location or approval,
   not only time.
+- `superseded_by` on the old demand and `supersedes` on the replacement are
+  optional `resource_demand` references. When present, they must resolve.
+  `demand move` writes both links, marks the old demand `superseded`, sets its
+  remaining amount to zero and keeps both demands on the task.
 
 ## Timing
 
@@ -1726,6 +1733,10 @@ Validation should warn:
 - scenario with changes that cannot be calculated;
 - proposal without evidence for risky mutation;
 - source-specific metadata placed inside canonical fields.
+- `demand_not_listed_by_task` when a demand's `task_ref` resolves but that task
+  does not list the demand in `resource_demands`;
+- `task_lists_demand_of_other_task` when a task lists a demand whose
+  `task_ref` names another task.
 
 ## Mapping rules
 

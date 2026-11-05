@@ -122,6 +122,29 @@ func TestValidateRejectsMissingCurrentPlanBaseline(t *testing.T) {
 	}
 }
 
+func TestValidateWarnsAboutDemandTaskOwnership(t *testing.T) {
+	ref := func(kind, id string) domain.Ref { return domain.Ref{Kind: kind, ID: id} }
+	ws := domain.Workspace{
+		Project: domain.Project{ID: "project.test", Name: "Test", Timezone: "UTC"},
+		Tasks: []domain.Task{
+			{ID: "task.a", Title: "A", TrackingStatus: "ready", ResourceDemands: []domain.Ref{ref("resource_demand", "demand.b")}},
+			{ID: "task.b", Title: "B", TrackingStatus: "ready", ResourceDemands: []domain.Ref{ref("resource_demand", "demand.b")}},
+		},
+		Resources: []domain.Resource{{ID: "resource.a", Class: "human", Name: "A"}},
+		ResourceDemands: []domain.ResourceDemand{
+			{ID: "demand.a", TaskRef: ref("task", "task.a"), ResourceRef: ref("resource", "resource.a"), ResourceClass: "human", Role: "work", Unit: "hours", PlannedAmount: 1, Status: "active"},
+			{ID: "demand.b", TaskRef: ref("task", "task.b"), ResourceRef: ref("resource", "resource.a"), ResourceClass: "human", Role: "work", Unit: "hours", PlannedAmount: 1, Status: "active"},
+		},
+	}
+	result, err := app.NewValidateService(stubLoader{ws: ws}).Validate(context.Background(), app.ValidateRequest{})
+	if err != nil {
+		t.Fatalf("Validate error=%v errors=%#v", err, result.Errors)
+	}
+	if !hasDiagnostic(result.Warnings, "demand_not_listed_by_task") || !hasDiagnostic(result.Warnings, "task_lists_demand_of_other_task") {
+		t.Fatalf("ownership warnings=%#v", result.Warnings)
+	}
+}
+
 func TestValidateRejectsPriorCalibrationWithoutSource(t *testing.T) {
 	calibration := domain.Calibration{
 		ID: "calibration.prior", ApprovedBy: domain.Ref{Kind: "actor", ID: "actor.operator"},

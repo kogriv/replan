@@ -188,6 +188,10 @@ const (
 // store's file system (GAP-019). With missingOK a missing file starts as the
 // zero document.
 func updateYAML[T any](s Store, rel string, missingOK bool, mutate func(*T) error) error {
+	return updateYAMLWithOptions(s, rel, missingOK, spliceOptions{}, mutate)
+}
+
+func updateYAMLWithOptions[T any](s Store, rel string, missingOK bool, options spliceOptions, mutate func(*T) error) error {
 	var doc T
 	data, err := s.fs.read(rel)
 	switch {
@@ -203,7 +207,11 @@ func updateYAML[T any](s Store, rel string, missingOK bool, mutate func(*T) erro
 	if err := mutate(&doc); err != nil {
 		return err
 	}
-	return writeYAML(s, rel, data, doc)
+	out, err := renderYAMLWithOptions(data, doc, options)
+	if err != nil {
+		return fmt.Errorf("render %s: %w", rel, err)
+	}
+	return s.fs.write(rel, out)
 }
 
 // appendCanonicalSequence keeps the splice writer for populated files, but
@@ -371,6 +379,65 @@ func (s Store) AddDependencies(dependencies []domain.Dependency) (string, error)
 		doc.Dependencies = append(doc.Dependencies, dependencies...)
 	})
 	return dependenciesRel, err
+}
+
+// WriteResourceDemands replaces existing demands, appends new demands, and
+// adds references for new demands to their owning tasks. The caller stages
+// this method, so the two canonical files commit together.
+func (s Store) WriteResourceDemands(demands []domain.ResourceDemand) ([]string, error) {
+	return s.writeResourceDemands(demands, true)
+}
+
+func (s Store) writeResourceDemands(demands []domain.ResourceDemand, replaceExisting bool) ([]string, error) {
+	newByTask := map[string][]domain.Ref{}
+	if err := updateYAMLWithOptions(s, demandsRel, false, spliceOptions{twoSpaceMappingEntries: true}, func(doc *demandsDoc) error {
+		index := demandIndex(doc.ResourceDemands)
+		for _, demand := range demands {
+			if i, ok := index[demand.ID]; ok {
+				if replaceExisting {
+					doc.ResourceDemands[i] = demand
+				}
+				continue
+			}
+			index[demand.ID] = len(doc.ResourceDemands)
+			doc.ResourceDemands = append(doc.ResourceDemands, demand)
+			newByTask[demand.TaskRef.ID] = append(newByTask[demand.TaskRef.ID], domain.Ref{Kind: "resource_demand", ID: demand.ID})
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	paths := []string{demandsRel}
+	if len(newByTask) == 0 {
+		return paths, nil
+	}
+	if err := updateYAMLWithOptions(s, tasksRel, false, spliceOptions{appendNestedSequences: true}, func(doc *tasksDoc) error {
+		index := taskIndex(doc.Tasks)
+		for taskID, refs := range newByTask {
+			i, ok := index[taskID]
+			if !ok {
+				return fmt.Errorf("task %s not found", taskID)
+			}
+			for _, ref := range refs {
+				if !refListContains(doc.Tasks[i].ResourceDemands, ref.ID) {
+					doc.Tasks[i].ResourceDemands = append(doc.Tasks[i].ResourceDemands, ref)
+				}
+			}
+		}
+		return nil
+	}); err != nil {
+		return paths, err
+	}
+	return append(paths, tasksRel), nil
+}
+
+func refListContains(refs []domain.Ref, id string) bool {
+	for _, ref := range refs {
+		if ref.ID == id {
+			return true
+		}
+	}
+	return false
 }
 
 func (s Store) AddDeadlines(deadlines []domain.Deadline) (string, error) {
@@ -1122,18 +1189,19 @@ func (s Store) ApplyImportAcceptActuals(changes []app.ImportAcceptActualChange, 
 }
 
 func (s Store) ApplyImportAcceptResourceDemands(changes []app.ImportAcceptResourceDemandChange, audit domain.AuditRecord) ([]string, error) {
-	err := updateYAML(s, demandsRel, false, func(doc *demandsDoc) error {
-		index := demandIndex(doc.ResourceDemands)
-		for _, change := range changes {
-			if _, exists := index[change.Demand.ID]; exists {
-				continue
-			}
-			doc.ResourceDemands = append(doc.ResourceDemands, change.Demand)
-			index[change.Demand.ID] = len(doc.ResourceDemands) - 1
-		}
-		return nil
-	})
-	return s.withAudit(demandsRel, err, audit)
+	demands := make([]domain.ResourceDemand, 0, len(changes))
+	for _, change := range changes {
+		demands = append(demands, change.Demand)
+	}
+	paths, err := s.writeResourceDemands(demands, false)
+	if err != nil {
+		return paths, err
+	}
+	auditPath, err := s.AppendAudit(audit)
+	if err != nil {
+		return paths, err
+	}
+	return append(paths, auditPath), nil
 }
 
 func (s Store) ApplyImportAcceptResourceLinks(changes []app.ImportAcceptResourceLinkChange, audit domain.AuditRecord) ([]string, error) {

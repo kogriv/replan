@@ -117,6 +117,36 @@ func TestStoreSetResourceDemandStatus(t *testing.T) {
 	t.Fatal("resource demand was not loaded")
 }
 
+func TestImportAcceptResourceDemandKeepsExistingDemandUntouched(t *testing.T) {
+	projectPath := copyProjectFixture(t)
+	store := New(projectPath)
+	demandsBefore := readHandFile(t, projectPath, demandsRel)
+	tasksBefore := readHandFile(t, projectPath, tasksRel)
+	replacement := domain.ResourceDemand{
+		ID:              "resource_demand.task-op-1234.implementer",
+		TaskRef:         domain.Ref{Kind: "task", ID: "task.op.1234"},
+		ResourceRef:     domain.Ref{Kind: "resource", ID: "resource.human.petr"},
+		ResourceClass:   "human",
+		Role:            "replacement-must-not-land",
+		Unit:            "hours",
+		PlannedAmount:   999,
+		RemainingAmount: domain.Amount(999),
+		Status:          "active",
+	}
+	audit := domain.AuditRecord{ID: "audit.test.import-existing-demand", OccurredAt: "2026-07-08T10:00:00+07:00", ActorRef: domain.Ref{Kind: "actor", ID: "actor.human.operator"}, Operation: "import_accept", Result: "success"}
+
+	_, err := store.ApplyImportAcceptResourceDemands([]app.ImportAcceptResourceDemandChange{{SourceID: "existing", Demand: replacement}}, audit)
+	if err != nil {
+		t.Fatalf("ApplyImportAcceptResourceDemands: %v", err)
+	}
+	if got := readHandFile(t, projectPath, demandsRel); got != demandsBefore {
+		t.Fatalf("existing demand changed\n--- got\n%s--- want\n%s", got, demandsBefore)
+	}
+	if got := readHandFile(t, projectPath, tasksRel); got != tasksBefore {
+		t.Fatalf("task demand references changed\n--- got\n%s--- want\n%s", got, tasksBefore)
+	}
+}
+
 func TestStoreSetTaskTrackingStatus(t *testing.T) {
 	projectPath := copyProjectFixture(t)
 	store := New(projectPath)

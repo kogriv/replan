@@ -9,7 +9,6 @@ import (
 
 	"github.com/kogriv/replan/internal/app"
 	"github.com/kogriv/replan/internal/domain"
-	"gopkg.in/yaml.v3"
 )
 
 func runDependency(args []string, stdout, stderr *os.File) int {
@@ -81,11 +80,8 @@ func runDependencyAdd(args []string, stdout, stderr *os.File) int {
 	}
 	items := []app.DependencyAddItem{{ID: *id, Type: *dependencyType, PredecessorID: *predecessor, SuccessorID: *successor, External: *external, Criticality: *criticality, Status: *status, Description: *description, RequiredState: *requiredState, ExpectedResolutionDate: *expectedResolutionDate}}
 	if *fromFile != "" {
-		data, readErr := os.ReadFile(*fromFile)
 		var batch dependencyBatchFile
-		if readErr == nil {
-			readErr = yaml.Unmarshal(data, &batch)
-		}
+		readErr := readYAMLBatch(*fromFile, &batch)
 		if readErr != nil {
 			return printInputFileError("dependency add", *projectPath, *format, *fromFile, readErr, stdout, stderr)
 		}

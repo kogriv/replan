@@ -142,6 +142,8 @@ type ResourceDemand struct {
 	Criticality     string         `json:"criticality,omitempty" yaml:"criticality,omitempty"`
 	Status          string         `json:"status,omitempty" yaml:"status,omitempty"`
 	Timing          Timing         `json:"timing,omitempty" yaml:"timing,omitempty"`
+	SupersededBy    Ref            `json:"superseded_by,omitempty" yaml:"superseded_by,omitempty"`
+	Supersedes      Ref            `json:"supersedes,omitempty" yaml:"supersedes,omitempty"`
 	OverrunReview   *OverrunReview `json:"overrun_review,omitempty" yaml:"overrun_review,omitempty"`
 }
 

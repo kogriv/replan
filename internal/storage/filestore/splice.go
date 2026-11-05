@@ -16,6 +16,18 @@ import (
 // would; when splicing is not possible or that check fails, the whole file is
 // rendered as before.
 func renderYAML(original []byte, doc any) ([]byte, error) {
+	return renderYAMLWithOptions(original, doc, spliceOptions{})
+}
+
+// spliceOptions are opt-in fixes for canonical demand writes. They stay out
+// of the generic writer so commands outside that surface keep their current
+// rendering until YAML style is unified deliberately.
+type spliceOptions struct {
+	appendNestedSequences  bool
+	twoSpaceMappingEntries bool
+}
+
+func renderYAMLWithOptions(original []byte, doc any, options spliceOptions) ([]byte, error) {
 	whole, err := yaml.Marshal(doc)
 	if err != nil {
 		return nil, err
@@ -27,7 +39,7 @@ func renderYAML(original []byte, doc any) ([]byte, error) {
 	// drop them; if the result does not check, a key was cleared on purpose
 	// and is removed.
 	for _, keepUnknown := range []bool{true, false} {
-		spliced, ok := spliceYAML(original, doc, keepUnknown)
+		spliced, ok := spliceYAML(original, doc, keepUnknown, options)
 		if ok && sameDocument(spliced, whole, doc) {
 			return spliced, nil
 		}
@@ -56,6 +68,7 @@ type splicer struct {
 	lines       []string
 	edits       []lineEdit
 	keepUnknown bool
+	options     spliceOptions
 }
 
 // insert adds text before line at; insertions at the same line keep their
@@ -68,7 +81,7 @@ func (sp *splicer) insert(at int, text []string) {
 	sp.edits = append(sp.edits, lineEdit{start: at, end: at, text: text})
 }
 
-func spliceYAML(original []byte, doc any, keepUnknown bool) ([]byte, bool) {
+func spliceYAML(original []byte, doc any, keepUnknown bool, options spliceOptions) ([]byte, bool) {
 	var root yaml.Node
 	if err := yaml.Unmarshal(original, &root); err != nil {
 		return nil, false
@@ -81,7 +94,7 @@ func spliceYAML(original []byte, doc any, keepUnknown bool) ([]byte, bool) {
 	if top == nil || next == nil {
 		return nil, false
 	}
-	sp := &splicer{lines: splitLines(original), keepUnknown: keepUnknown}
+	sp := &splicer{lines: splitLines(original), keepUnknown: keepUnknown, options: options}
 	for i := 0; i+1 < len(next.Content); i += 2 {
 		key, value := next.Content[i].Value, next.Content[i+1]
 		at := mappingIndex(top, key)
@@ -213,7 +226,7 @@ func (sp *splicer) mapping(key string, old, next *yaml.Node, limit int, onDash b
 			if onDash && last < 0 {
 				return false
 			}
-			text, ok := renderMappingEntry(key, nil, next.Content[j], next.Content[j+1], column)
+			text, ok := renderMappingEntry(key, nil, next.Content[j], next.Content[j+1], column, sp.options.twoSpaceMappingEntries)
 			if !ok {
 				return false
 			}
@@ -234,6 +247,13 @@ func (sp *splicer) mapping(key string, old, next *yaml.Node, limit int, onDash b
 			return false
 		}
 		oldValue, newValue := old.Content[at+1], next.Content[j+1]
+		if sp.options.appendNestedSequences && oldValue.Kind == yaml.SequenceNode && newValue.Kind == yaml.SequenceNode {
+			mark := len(sp.edits)
+			if sp.appendSequence(name, oldValue, newValue, end) {
+				continue
+			}
+			sp.edits = sp.edits[:mark]
+		}
 		if oldValue.Kind == yaml.MappingNode && newValue.Kind == yaml.MappingNode && oldValue.Line > old.Content[at].Line {
 			mark := len(sp.edits)
 			if sp.mapping(key, oldValue, newValue, end, false) {
@@ -241,7 +261,7 @@ func (sp *splicer) mapping(key string, old, next *yaml.Node, limit int, onDash b
 			}
 			sp.edits = sp.edits[:mark]
 		}
-		text, ok := renderMappingEntry(key, oldValue, next.Content[j], newValue, column)
+		text, ok := renderMappingEntry(key, oldValue, next.Content[j], newValue, column, sp.options.twoSpaceMappingEntries)
 		if !ok {
 			return false
 		}
@@ -255,6 +275,36 @@ func (sp *splicer) mapping(key string, old, next *yaml.Node, limit int, onDash b
 			start, end := segment(at)
 			sp.edits = append(sp.edits, lineEdit{start: start, end: end})
 		}
+	}
+	return true
+}
+
+// appendSequence appends items to an existing nested block sequence without
+// re-rendering its old items. The first old item supplies the exact dash
+// indentation used by the hand-maintained file.
+func (sp *splicer) appendSequence(key string, old, next *yaml.Node, at int) bool {
+	if old.Style&yaml.FlowStyle != 0 || len(old.Content) == 0 || len(next.Content) < len(old.Content) {
+		return false
+	}
+	for i := range old.Content {
+		if !equalNodes(old.Content[i], next.Content[i]) {
+			return false
+		}
+	}
+	start := old.Content[0].Line - 1
+	if start < 0 || start >= len(sp.lines) {
+		return false
+	}
+	dash := len(sp.lines[start]) - len(strings.TrimLeft(sp.lines[start], " "))
+	if !strings.HasPrefix(strings.TrimLeft(sp.lines[start], " "), "- ") {
+		return false
+	}
+	for _, item := range next.Content[len(old.Content):] {
+		text, ok := renderSequenceItem(key, nil, item, dash)
+		if !ok {
+			return false
+		}
+		sp.insert(at, text)
 	}
 	return true
 }
@@ -315,13 +365,25 @@ func renderSequenceItem(key string, old, next *yaml.Node, dash int) ([]string, b
 
 // renderMappingEntry renders one key and value of a block mapping with the
 // key at column column.
-func renderMappingEntry(key string, old, name, next *yaml.Node, column int) ([]string, bool) {
+func renderMappingEntry(key string, old, name, next *yaml.Node, column int, twoSpace bool) ([]string, bool) {
 	value := keepStyles(old, next)
 	wrapper := &yaml.Node{Kind: yaml.MappingNode, Content: []*yaml.Node{
 		{Kind: yaml.ScalarNode, Tag: "!!str", Value: key},
 		{Kind: yaml.MappingNode, Tag: "!!map", Content: []*yaml.Node{name, value}},
 	}}
-	return renderBelow(wrapper, column)
+	lines, ok := renderBelow(wrapper, column)
+	if !ok || !twoSpace {
+		return lines, ok
+	}
+	// yaml.v3 indents a mapping value by four spaces when marshaling nodes.
+	// Demand files use two; move the value subtree left without changing the
+	// key's established column.
+	for i := 1; i < len(lines); i++ {
+		if strings.HasPrefix(lines[i], strings.Repeat(" ", column+2)) {
+			lines[i] = lines[i][2:]
+		}
+	}
+	return lines, true
 }
 
 // renderBelow renders wrapper, drops its first line (the wrapping key) and

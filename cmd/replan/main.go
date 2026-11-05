@@ -116,6 +116,8 @@ func runCommand(args []string, stdout, stderr *os.File) int {
 		return runProposal(args[1:], stdout, stderr)
 	case "dependency":
 		return runDependency(args[1:], stdout, stderr)
+	case "demand":
+		return runDemand(args[1:], stdout, stderr)
 	case "deadline":
 		return runDeadline(args[1:], stdout, stderr)
 	case "baseline":
@@ -177,6 +179,9 @@ func printUsage(out *os.File) {
 	fmt.Fprintln(out, "  replan scenario list|show|diff|apply --project <path> [--dry-run|--apply for apply] [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan proposal list|show|suggest-dependencies|accept|reject --project <path> [--dry-run|--apply for accept/reject] [--format json|markdown]")
 	fmt.Fprintln(out, "  replan dependency list --project <path> [--format json|markdown]")
+	fmt.Fprintln(out, "  replan demand add --project <path> --task <id> [--id <id>|--suffix <suffix>] (--resource <id>|--pool <id>) [--resource-class <class>] [--role <role>] --unit <unit> --amount <n> [--criticality <value>] [--status <value>] [--earliest-start <date>] [--latest-finish <date>] [--from-file <yaml>] --reason <text> --actor <id> --evidence <id> (--dry-run|--apply) [--format json|text]")
+	fmt.Fprintln(out, "  replan demand set <demand-id> --project <path> [--amount <n>] [--remaining <n>] [--unit <unit>] [--role <role>] [--criticality <value>] [--status <value>] [--earliest-start <date>] [--latest-finish <date>] [--from-file <yaml>] --reason <text> --actor <id> --evidence <id> (--dry-run|--apply) [--format json|text]")
+	fmt.Fprintln(out, "  replan demand move <demand-id> --project <path> [--id <id>|--suffix <suffix>] (--to-resource <id>|--to-pool <id>) [--amount <n>] --reason <text> --actor <id> --evidence <id> (--dry-run|--apply) [--format json|text]")
 	fmt.Fprintln(out, "  replan dependency add --project <path> [--id <id>] [--type <type>] (--predecessor <task-id>|--external --description <text>) --successor <task-id> [--criticality <value>] [--status <value>] [--required-state <state>] [--expected-resolution-date <YYYY-MM-DD>] [--from-file <yaml>] --reason <text> --actor <id> --evidence <id> (--dry-run|--apply) [--format json|text]")
 	fmt.Fprintln(out, "  replan deadline add --project <path> --id <id> (--task <task-id>|--milestone <task-id>) --date <YYYY-MM-DD|RFC3339> [--type <type>] [--criticality <value>] [--timezone <zone>] [--source <text>] [--description <text>] [--from-file <yaml>] --reason <text> --actor <id> --evidence <id> (--dry-run|--apply) [--format json|text]")
 	fmt.Fprintln(out, "  replan deadline list --project <path> [--format json|markdown]")

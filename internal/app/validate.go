@@ -127,6 +127,8 @@ func validateWorkspace(result *ValidateResult, ws domain.Workspace) {
 	v.dependencies(ws.Dependencies)
 	v.deadlines(ws.Deadlines)
 	v.taskDatesAndRefs(ws.Tasks)
+	v.demandTaskLinks(ws.Tasks, ws.ResourceDemands)
+	v.demandSupersessionRefs(ws.ResourceDemands)
 	v.capacities(ws.Capacities)
 	v.availabilities(ws.Availabilities)
 	v.proposals(ws.Proposals)
@@ -295,6 +297,18 @@ func (v *workspaceValidator) resourceDemand(demand domain.ResourceDemand) {
 	if hasPool {
 		v.resolves(demand.ResourcePoolRef, kind, demand.ID, "demand resource_pool_ref")
 	}
+	startValid, finishValid := true, true
+	if demand.Timing.EarliestStart != "" && !validDate(demand.Timing.EarliestStart) {
+		v.errorf("invalid_demand_earliest_start", kind, demand.ID, "resource demand earliest_start %q must use YYYY-MM-DD", demand.Timing.EarliestStart)
+		startValid = false
+	}
+	if demand.Timing.LatestFinish != "" && !validDate(demand.Timing.LatestFinish) {
+		v.errorf("invalid_demand_latest_finish", kind, demand.ID, "resource demand latest_finish %q must use YYYY-MM-DD", demand.Timing.LatestFinish)
+		finishValid = false
+	}
+	if startValid && finishValid && demand.Timing.EarliestStart != "" && demand.Timing.LatestFinish != "" && demand.Timing.LatestFinish < demand.Timing.EarliestStart {
+		v.errorf("invalid_demand_timing_range", kind, demand.ID, "resource demand latest_finish %s is before earliest_start %s", demand.Timing.LatestFinish, demand.Timing.EarliestStart)
+	}
 }
 
 // dependencies checks each dependency and that no OpenProject relation or
@@ -451,6 +465,39 @@ func (v *workspaceValidator) taskDatesAndRefs(tasks []domain.Task) {
 		}
 		for _, dependencyRef := range task.Dependencies {
 			v.resolves(dependencyRef, "task", task.ID, "task dependency")
+		}
+	}
+}
+
+func (v *workspaceValidator) demandTaskLinks(tasks []domain.Task, demands []domain.ResourceDemand) {
+	taskByID := make(map[string]domain.Task, len(tasks))
+	for _, task := range tasks {
+		taskByID[task.ID] = task
+	}
+	demandByID := make(map[string]domain.ResourceDemand, len(demands))
+	for _, demand := range demands {
+		demandByID[demand.ID] = demand
+		task, ok := taskByID[demand.TaskRef.ID]
+		if ok && !refListHasID(task.ResourceDemands, demand.ID) {
+			v.warn("demand_not_listed_by_task", fmt.Sprintf("resource demand %s points to task %s, but the task does not list it", demand.ID, task.ID), "resource_demand", demand.ID)
+		}
+	}
+	for _, task := range tasks {
+		for _, ref := range task.ResourceDemands {
+			if demand, ok := demandByID[ref.ID]; ok && demand.TaskRef.ID != task.ID {
+				v.warn("task_lists_demand_of_other_task", fmt.Sprintf("task %s lists resource demand %s, which points to task %s", task.ID, demand.ID, demand.TaskRef.ID), "task", task.ID)
+			}
+		}
+	}
+}
+
+func (v *workspaceValidator) demandSupersessionRefs(demands []domain.ResourceDemand) {
+	for _, demand := range demands {
+		if demand.SupersededBy.ID != "" {
+			v.resolves(demand.SupersededBy, "resource_demand", demand.ID, "demand superseded_by")
+		}
+		if demand.Supersedes.ID != "" {
+			v.resolves(demand.Supersedes, "resource_demand", demand.ID, "demand supersedes")
 		}
 	}
 }

@@ -93,6 +93,42 @@
       }
     },
     {
+      "code": "demand_not_listed_by_task",
+      "message": "resource demand demand.orphan points to task task.a, but the task does not list it",
+      "severity": "warning",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.orphan"
+      }
+    },
+    {
+      "code": "demand_not_listed_by_task",
+      "message": "resource demand demand.bad-timing points to task task.d, but the task does not list it",
+      "severity": "warning",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.bad-timing"
+      }
+    },
+    {
+      "code": "task_lists_demand_of_other_task",
+      "message": "task task.c lists resource demand demand.b, which points to task task.missing",
+      "severity": "warning",
+      "target": {
+        "kind": "task",
+        "id": "task.c"
+      }
+    },
+    {
+      "code": "task_lists_demand_of_other_task",
+      "message": "task task.c lists resource demand demand.c, which points to task task.d",
+      "severity": "warning",
+      "target": {
+        "kind": "task",
+        "id": "task.c"
+      }
+    },
+    {
       "code": "required_dependency_unresolved",
       "message": "required dependency dependency.external is open",
       "severity": "warning",
@@ -511,6 +547,33 @@
       "target": {
         "kind": "resource_demand",
         "id": "demand.c"
+      }
+    },
+    {
+      "code": "invalid_demand_timing_range",
+      "message": "resource demand latest_finish 2026-11-01 is before earliest_start 2026-11-10",
+      "severity": "error",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.orphan"
+      }
+    },
+    {
+      "code": "invalid_demand_earliest_start",
+      "message": "resource demand earliest_start \"soon\" must use YYYY-MM-DD",
+      "severity": "error",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.bad-timing"
+      }
+    },
+    {
+      "code": "invalid_demand_latest_finish",
+      "message": "resource demand latest_finish \"later\" must use YYYY-MM-DD",
+      "severity": "error",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.bad-timing"
       }
     },
     {
