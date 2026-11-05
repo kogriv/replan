@@ -740,3 +740,14 @@ evidence:
       targets:
         - kind: task
           id: task.self.bootstrap-matches-by-binding
+    - id: evidence.self.bootstrap-matches-by-binding
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-05T07:07:16+07:00"
+      summary: 'Feature commit 73776c4: bootstrap matches bound tasks by work package id before subject; a renamed task plans update_subject (PATCH of subject and lockVersion only; 409 is openproject_work_package_changed), a stale binding is bound_work_package_missing with no create, a subject match bound to another task is binding_conflict; counts matched_by_binding, matched_by_subject, subject_updates. Python suite OK, shellcheck, smoke. Live dry run on the self project: 222 of 222 matched by binding, 0 creates, 0 subject updates. Codex 06:45:34-07:01:07; executor 06:41:40-06:45:35 and review 07:01:07-07:07:16; brief writing before 06:41 not timed.'
+      targets:
+        - kind: task
+          id: task.self.bootstrap-matches-by-binding
