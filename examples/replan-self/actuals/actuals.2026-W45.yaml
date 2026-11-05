@@ -1225,3 +1225,24 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.dependency-and-deadline-commands
+    - id: actual.self-dependency-and-deadline-commands.ci-github-actions.20261105T1011170700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.dependency-and-deadline-commands
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.dependency-and-deadline-commands.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-11-05T10:11:17+07:00"
+      status_date: "2026-11-05"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-dependency-and-deadline-commands

@@ -6091,7 +6091,7 @@ tasks:
       title: Add dependency add and deadline add commands
       description: 'Dependencies and deadlines can be written only by editing YAML; task add --after only orders current_plan and reads like a dependency. Add replan dependency add (type, predecessor, successor, criticality) and replan deadline add/list with dry run, apply and audit like other writes, and say in task add help that --after is plan order, not a dependency.'
       type: implementation
-      tracking_status: review_ready
+      tracking_status: accepted
       planned_start: "2026-11-05"
       planned_finish: "2026-11-05"
       assignee_hint:
@@ -6439,7 +6439,7 @@ tasks:
       title: Add commands to add, change and move resource demands
       description: 'Changing a demand means editing two files by hand: resource_demands.yaml and the task''s resource_demands list in tasks.yaml; forgetting the second leaves an orphan demand and validate says nothing. Add replan demand add (to an existing task), demand set (amount, unit, role, window) and demand move (to another resource: the old demand becomes superseded with a reference to the new one), with dry run, apply and audit; and a validate warning for a demand whose task does not list it.'
       type: implementation
-      tracking_status: not_started
+      tracking_status: in_progress
       planned_start: "2026-11-05"
       planned_finish: "2026-11-05"
       assignee_hint:
@@ -6448,6 +6448,8 @@ tasks:
       resource_demands:
         - kind: resource_demand
           id: resource_demand.demand-add-set-move-commands.agent
+        - kind: resource_demand
+          id: resource_demand.demand-add-set-move-commands.codex
         - kind: resource_demand
           id: resource_demand.demand-add-set-move-commands.maintainer
         - kind: resource_demand

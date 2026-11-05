@@ -11573,7 +11573,7 @@ resource_demands:
       planned_amount: 1
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.dependency-and-deadline-commands.codex
       task_ref:
         kind: task
@@ -11587,7 +11587,7 @@ resource_demands:
       planned_amount: 3
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.dependency-and-deadline-commands.maintainer
       task_ref:
         kind: task
@@ -11599,9 +11599,9 @@ resource_demands:
       role: maintainer
       unit: hours
       planned_amount: 0.25
-      remaining_amount: 0.25
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.dependency-and-deadline-commands.local-dev
       task_ref:
         kind: task
@@ -11613,9 +11613,9 @@ resource_demands:
       role: development_environment
       unit: concurrent_slots
       planned_amount: 1
-      remaining_amount: 1
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.dependency-and-deadline-commands.ci
       task_ref:
         kind: task
@@ -11627,9 +11627,9 @@ resource_demands:
       role: ci_runtime
       unit: ci_minutes
       planned_amount: 10
-      remaining_amount: 10
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.quiet-unresolved-dependency-on-undated-successor.agent
       task_ref:
         kind: task
@@ -12354,8 +12354,22 @@ resource_demands:
       resource_class: ai_agent
       role: implementation_agent
       unit: agent_hours
-      planned_amount: 4
-      remaining_amount: 4
+      planned_amount: 1
+      remaining_amount: 1
+      criticality: required
+      status: active
+    - id: resource_demand.demand-add-set-move-commands.codex
+      task_ref:
+        kind: task
+        id: task.self.demand-add-set-move-commands
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 3
+      remaining_amount: 3
       criticality: required
       status: active
     - id: resource_demand.demand-add-set-move-commands.maintainer
