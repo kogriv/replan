@@ -12357,7 +12357,7 @@ resource_demands:
       planned_amount: 1
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.demand-add-set-move-commands.codex
       task_ref:
         kind: task
@@ -12371,7 +12371,7 @@ resource_demands:
       planned_amount: 3
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.demand-add-set-move-commands.maintainer
       task_ref:
         kind: task
@@ -12383,9 +12383,9 @@ resource_demands:
       role: maintainer
       unit: hours
       planned_amount: 0.25
-      remaining_amount: 0.25
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.demand-add-set-move-commands.local-dev
       task_ref:
         kind: task
@@ -12397,9 +12397,9 @@ resource_demands:
       role: development_environment
       unit: concurrent_slots
       planned_amount: 1
-      remaining_amount: 1
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.demand-add-set-move-commands.ci
       task_ref:
         kind: task
@@ -12411,9 +12411,9 @@ resource_demands:
       role: ci_runtime
       unit: ci_minutes
       planned_amount: 10
-      remaining_amount: 10
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.rename-resource-and-actor.agent
       task_ref:
         kind: task
@@ -12564,8 +12564,22 @@ resource_demands:
       resource_class: ai_agent
       role: implementation_agent
       unit: agent_hours
-      planned_amount: 1.5
-      remaining_amount: 1.5
+      planned_amount: 0.5
+      remaining_amount: 0.5
+      criticality: required
+      status: active
+    - id: resource_demand.task-set-description.codex
+      task_ref:
+        kind: task
+        id: task.self.task-set-description
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      resource_class: ai_agent
+      role: implementation_agent
+      unit: agent_hours
+      planned_amount: 1
+      remaining_amount: 1
       criticality: required
       status: active
     - id: resource_demand.task-set-description.maintainer

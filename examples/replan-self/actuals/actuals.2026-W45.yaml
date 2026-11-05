@@ -1288,3 +1288,24 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.demand-add-set-move-commands
+    - id: actual.self-demand-add-set-move-commands.ci-github-actions.20261105T1352020700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.demand-add-set-move-commands
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.demand-add-set-move-commands.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-11-05T13:52:02+07:00"
+      status_date: "2026-11-05"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-demand-add-set-move-commands

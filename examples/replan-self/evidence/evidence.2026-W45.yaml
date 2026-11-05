@@ -832,3 +832,27 @@ evidence:
       targets:
         - kind: task
           id: task.self.demand-add-set-move-commands
+    - id: evidence.self.accept-demand-add-set-move-commands
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-05T13:52:02+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-05: demand add, set and move with batch files, supersession links and the demand listing warnings work as reviewed.'
+      targets:
+        - kind: task
+          id: task.self.demand-add-set-move-commands
+    - id: evidence.self.start-task-set-description
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-05T13:53:21+07:00"
+      summary: Started on 2026-11-05 after the operator accepted the demand commands; estimate 1.5 agent hours frozen in baseline.2026-11-05.consumer-feedback-sync, split into agent 0.5 and Codex 1.
+      targets:
+        - kind: task
+          id: task.self.task-set-description
