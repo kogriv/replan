@@ -821,3 +821,14 @@ evidence:
       targets:
         - kind: task
           id: task.self.demand-add-set-move-commands
+    - id: evidence.self.demand-add-set-move-commands
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-05T11:37:19+07:00"
+      summary: 'Commit 59f30a1 adds demand add, set and move with batch files for add and set, superseded_by and supersedes links, and two validate warnings for demands missing from their task. Codex took three rounds: review fixed import accept overwriting existing demands, long audit text, a pointer compare and a zero-amount move; a hands-on trial found task demand lists re-indented on write, fixed so old lines stay byte-for-byte. Local gate green. Codex 0.99 h from round prompt and result times (10:18:12-10:54:32, 10:56:00-11:06:49, 11:07:52-11:20:02); agent 0.17 h from brief, reviews, trial and gate start stretches up to this record; bookkeeping after it is not timed.'
+      targets:
+        - kind: task
+          id: task.self.demand-add-set-move-commands

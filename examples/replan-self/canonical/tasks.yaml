@@ -6439,7 +6439,7 @@ tasks:
       title: Add commands to add, change and move resource demands
       description: 'Changing a demand means editing two files by hand: resource_demands.yaml and the task''s resource_demands list in tasks.yaml; forgetting the second leaves an orphan demand and validate says nothing. Add replan demand add (to an existing task), demand set (amount, unit, role, window) and demand move (to another resource: the old demand becomes superseded with a reference to the new one), with dry run, apply and audit; and a validate warning for a demand whose task does not list it.'
       type: implementation
-      tracking_status: in_progress
+      tracking_status: review_ready
       planned_start: "2026-11-05"
       planned_finish: "2026-11-05"
       assignee_hint:
