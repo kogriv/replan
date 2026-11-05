@@ -751,3 +751,27 @@ evidence:
       targets:
         - kind: task
           id: task.self.bootstrap-matches-by-binding
+    - id: evidence.self.accept-bootstrap-matches-by-binding
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-05T08:13:46+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-05: bootstrap matches work packages by binding before subject.'
+      targets:
+        - kind: task
+          id: task.self.bootstrap-matches-by-binding
+    - id: evidence.self.start-dependency-and-deadline-commands
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-05T08:15:05+07:00"
+      summary: Started on 2026-11-05; estimate 4 agent hours frozen in baseline.2026-11-04.consumer-feedback, split into agent 1 and Codex 3. Scope adds a batch file after a consumer added 4 deadlines and 18 dependencies by hand.
+      targets:
+        - kind: task
+          id: task.self.dependency-and-deadline-commands

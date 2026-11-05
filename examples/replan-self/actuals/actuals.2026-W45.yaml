@@ -1162,3 +1162,24 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.bootstrap-matches-by-binding
+    - id: actual.self-bootstrap-matches-by-binding.ci-github-actions.20261105T0813460700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.bootstrap-matches-by-binding
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.bootstrap-matches-by-binding.ci
+      resource_ref:
+        kind: resource
+        id: resource.ci.github-actions
+      amount: 3
+      unit: ci_minutes
+      occurred_at: "2026-11-05T08:13:46+07:00"
+      status_date: "2026-11-05"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-bootstrap-matches-by-binding
