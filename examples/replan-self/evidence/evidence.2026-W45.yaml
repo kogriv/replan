@@ -856,3 +856,14 @@ evidence:
       targets:
         - kind: task
           id: task.self.task-set-description
+    - id: evidence.self.task-set-description
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-05T14:57:58+07:00"
+      summary: 'Commit 81ef80f adds task set-description with flag, file, stdin and --clear sources and a short audit text; it shares the write path with set-title. A hands-on trial found multi-line text indented 8 spaces; round 2 writes it in the two-space style, tested byte-for-byte. Also found that two writes on one target in the same second get the same audit id, so the second is refused and rolled back; this is older than this task and affects set-title too. Local gate green. Codex 0.42 h from round prompt and result times (14:00:57-14:15:17, 14:16:47-14:27:24); agent 0.2 h from brief, review, trial and gate start stretches plus the finish up to this record.'
+      targets:
+        - kind: task
+          id: task.self.task-set-description
