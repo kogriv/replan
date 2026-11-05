@@ -57,6 +57,7 @@ func (s ValidateService) Validate(ctx context.Context, req ValidateRequest) (Val
 			"tasks":            len(ws.Tasks),
 			"resource_demands": len(ws.ResourceDemands),
 			"dependencies":     len(ws.Dependencies),
+			"deadlines":        len(ws.Deadlines),
 			"capacities":       len(ws.Capacities),
 			"availability":     len(ws.Availabilities),
 			"baselines":        len(ws.Baselines),
@@ -124,6 +125,7 @@ func validateWorkspace(result *ValidateResult, ws domain.Workspace) {
 	v.tasks(ws.Tasks)
 	v.resourceDemands(ws.ResourceDemands)
 	v.dependencies(ws.Dependencies)
+	v.deadlines(ws.Deadlines)
 	v.taskDatesAndRefs(ws.Tasks)
 	v.capacities(ws.Capacities)
 	v.availabilities(ws.Availabilities)
@@ -408,6 +410,30 @@ func dependencyTripleKey(dependencyType string, predecessor, successor domain.Re
 		predecessorKey, successorKey = successorKey, predecessorKey
 	}
 	return dependencyType + ":" + predecessorKey + ":" + successorKey
+}
+
+func (v *workspaceValidator) deadlines(deadlines []domain.Deadline) {
+	for _, deadline := range deadlines {
+		v.register("deadline", deadline.ID)
+		if deadline.TargetRef.Kind != "task" || deadline.TargetRef.ID == "" {
+			v.errorf("invalid_deadline_target", "deadline", deadline.ID, "deadline target_ref must name a task")
+		} else {
+			v.resolves(deadline.TargetRef, "deadline", deadline.ID, "deadline target_ref")
+		}
+		if !domain.ValidDeadlineType(deadline.Type) {
+			v.errorf("invalid_deadline_type", "deadline", deadline.ID, "invalid deadline type %q", deadline.Type)
+		}
+		if !domain.ValidDeadlineCriticality(deadline.Criticality) {
+			v.errorf("invalid_deadline_criticality", "deadline", deadline.ID, "invalid deadline criticality %q", deadline.Criticality)
+		}
+		if deadline.Type == "due_timestamp" {
+			if _, err := time.Parse(time.RFC3339, deadline.DueTimestamp); err != nil {
+				v.errorf("invalid_deadline_timestamp", "deadline", deadline.ID, "deadline due_timestamp %q must be RFC3339 with an offset", deadline.DueTimestamp)
+			}
+		} else if !validDate(deadline.DueDate) {
+			v.errorf("invalid_deadline_date", "deadline", deadline.ID, "deadline due_date %q must use YYYY-MM-DD", deadline.DueDate)
+		}
+	}
 }
 
 // taskDatesAndRefs runs after demands and dependencies are registered, so a

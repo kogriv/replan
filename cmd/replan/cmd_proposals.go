@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/kogriv/replan/internal/app"
+	"github.com/kogriv/replan/internal/domain"
+	"gopkg.in/yaml.v3"
 )
 
 func runDependency(args []string, stdout, stderr *os.File) int {
@@ -17,6 +19,8 @@ func runDependency(args []string, stdout, stderr *os.File) int {
 		return exitInvalidUsage
 	}
 	switch args[0] {
+	case "add":
+		return runDependencyAdd(args[1:], stdout, stderr)
 	case "list":
 		return runDependencyList(args[1:], stdout, stderr)
 	case "-h", "--help":
@@ -27,6 +31,100 @@ func runDependency(args []string, stdout, stderr *os.File) int {
 		printUsage(stderr)
 		return exitInvalidUsage
 	}
+}
+
+type dependencyBatchFile struct {
+	Dependencies []struct {
+		ID                     string `yaml:"id"`
+		Type                   string `yaml:"type"`
+		Predecessor            string `yaml:"predecessor"`
+		Successor              string `yaml:"successor"`
+		External               bool   `yaml:"external"`
+		Criticality            string `yaml:"criticality"`
+		Status                 string `yaml:"status"`
+		Description            string `yaml:"description"`
+		RequiredState          string `yaml:"required_state"`
+		ExpectedResolutionDate string `yaml:"expected_resolution_date"`
+	} `yaml:"dependencies"`
+}
+
+func runDependencyAdd(args []string, stdout, stderr *os.File) int {
+	fs := newCLIFlagSet("dependency add")
+	projectPath := fs.String("project", ".", "path to RePlan project")
+	fs.StringVar(projectPath, "p", ".", "path to RePlan project")
+	format := fs.String("format", "json", "output format: json, text")
+	id := fs.String("id", "", "optional dependency id; derived when absent")
+	dependencyType := fs.String("type", "finish_to_start", "dependency type")
+	predecessor := fs.String("predecessor", "", "predecessor task id")
+	successor := fs.String("successor", "", "successor task id")
+	external := fs.Bool("external", false, "create an external_dependency without a predecessor task")
+	criticality := fs.String("criticality", "", "dependency criticality; defaults to required, or optional for relates")
+	status := fs.String("status", "open", "dependency status")
+	description := fs.String("description", "", "optional description; required with --external")
+	requiredState := fs.String("required-state", "", "optional predecessor state required")
+	expectedResolutionDate := fs.String("expected-resolution-date", "", "optional YYYY-MM-DD")
+	fromFile := fs.String("from-file", "", "YAML file containing a dependencies list")
+	reason := fs.String("reason", "", "required audit reason")
+	actor := fs.String("actor", "", "required existing audit actor")
+	evidence := fs.String("evidence", "", "required existing evidence id shared by the batch")
+	occurredAt := fs.String("occurred-at", "", "optional RFC3339 timestamp with an offset")
+	writeFlags := addCanonicalWriteFlags(fs)
+	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+		return code
+	}
+	if strings.ToLower(*format) != "json" && strings.ToLower(*format) != "text" {
+		return printTaskFormatError("dependency add", *projectPath, stdout, stderr)
+	}
+	dryRun, code, done := requireCanonicalWriteChoice("dependency add", *projectPath, *format, writeFlags, stdout, stderr)
+	if done {
+		return code
+	}
+	items := []app.DependencyAddItem{{ID: *id, Type: *dependencyType, PredecessorID: *predecessor, SuccessorID: *successor, External: *external, Criticality: *criticality, Status: *status, Description: *description, RequiredState: *requiredState, ExpectedResolutionDate: *expectedResolutionDate}}
+	if *fromFile != "" {
+		data, readErr := os.ReadFile(*fromFile)
+		var batch dependencyBatchFile
+		if readErr == nil {
+			readErr = yaml.Unmarshal(data, &batch)
+		}
+		if readErr != nil {
+			return printInputFileError("dependency add", *projectPath, *format, *fromFile, readErr, stdout, stderr)
+		}
+		items = make([]app.DependencyAddItem, 0, len(batch.Dependencies))
+		for _, item := range batch.Dependencies {
+			items = append(items, app.DependencyAddItem{ID: item.ID, Type: item.Type, PredecessorID: item.Predecessor, SuccessorID: item.Successor, External: item.External, Criticality: item.Criticality, Status: item.Status, Description: item.Description, RequiredState: item.RequiredState, ExpectedResolutionDate: item.ExpectedResolutionDate})
+		}
+	}
+	result, err := app.NewDependencyService(newStore(*projectPath)).Add(context.Background(), app.DependencyAddRequest{Items: items, Reason: *reason, ActorID: *actor, EvidenceID: *evidence, OccurredAt: *occurredAt, DryRun: dryRun})
+	env := envelope{OK: err == nil && len(result.Errors) == 0, Command: "dependency add", ProjectPath: *projectPath, Result: result, Warnings: result.Warnings, Errors: result.Errors}
+	if strings.EqualFold(*format, "text") && err == nil {
+		return writeAddItemsText(stdout, "Dependencies", result.DryRun, result.Applied, dependencyIDs(result.Dependencies))
+	}
+	return printScenarioEnvelope(stdout, stderr, *format, env, err)
+}
+
+func dependencyIDs(items []domain.Dependency) []string {
+	ids := make([]string, 0, len(items))
+	for _, item := range items {
+		ids = append(ids, item.ID)
+	}
+	return ids
+}
+
+func printInputFileError(command, projectPath, format, path string, inputErr error, stdout, stderr *os.File) int {
+	env := envelope{OK: false, Command: command, ProjectPath: projectPath, Result: nil, Warnings: []app.Diagnostic{}, Errors: []app.Diagnostic{{Code: "batch_file_invalid", Message: fmt.Sprintf("failed to read or parse %s: %v", path, inputErr), Severity: "error"}}}
+	if err := printEnvelope(stdout, format, env); err != nil {
+		fmt.Fprintln(stderr, err)
+		return exitGeneralError
+	}
+	return exitInvalidUsage
+}
+
+func writeAddItemsText(stdout *os.File, title string, dryRun, applied bool, ids []string) int {
+	fmt.Fprintf(stdout, "%s\nDry run: %t\nApplied: %t\n", title, dryRun, applied)
+	for _, id := range ids {
+		fmt.Fprintf(stdout, "- %s\n", id)
+	}
+	return exitSuccess
 }
 
 func runDependencyList(args []string, stdout, stderr *os.File) int {

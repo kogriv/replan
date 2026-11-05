@@ -27,6 +27,8 @@ var canonicalWriteCommands = []string{
 	"actual set-remaining",
 	"baseline create",
 	"capacity set",
+	"deadline add",
+	"dependency add",
 	"evidence add",
 	"estimate apply",
 	"estimate calibrate",

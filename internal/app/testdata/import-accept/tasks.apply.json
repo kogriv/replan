@@ -83,7 +83,7 @@
     "validation": {
       "valid": true,
       "project_path": "<project>",
-      "checked_files": 11,
+      "checked_files": 12,
       "object_counts": {
         "actors": 4,
         "actuals": 1,
@@ -92,6 +92,7 @@
         "baselines": 1,
         "calibrations": 0,
         "capacities": 7,
+        "deadlines": 0,
         "dependencies": 2,
         "evidence": 2,
         "proposals": 1,

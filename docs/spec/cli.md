@@ -1582,12 +1582,14 @@ Implemented remaining-work proposal accept/apply slice:
 
 Purpose:
 
-Inspect canonical dependency lifecycle state without mutating the project.
+Add and inspect canonical dependencies without changing task dates or writing
+to OpenProject.
 
 Subcommands:
 
 ```text
 replan dependency list
+replan dependency add
 ```
 
 Examples:
@@ -1595,12 +1597,19 @@ Examples:
 ```bash
 replan dependency list --project examples/small-team --format json
 replan dependency list --project examples/small-team --format markdown
+replan dependency add --project examples/small-team \
+  --type requires_input_from --predecessor task.op.1234 \
+  --successor task.offline.repair-pump \
+  --reason "Customer call changed the order." \
+  --actor actor.human.operator --evidence evidence.github.pr.45 \
+  --dry-run --format json
 ```
 
 Implemented command flags:
 
 ```text
 replan dependency list --project -p --bindings --format
+replan dependency add --project -p --bindings --format --id --type --predecessor --external --successor --criticality --status --description --required-state --expected-resolution-date --from-file --reason --actor --evidence --occurred-at --dry-run --apply
 ```
 
 Implemented dependency overview slice:
@@ -1614,8 +1623,121 @@ Implemented dependency overview slice:
 - lists blocked successor tasks whose required dependencies are all resolved or
   cancelled;
 - includes linked open proposal ids for dependency and task targets;
-- read-only; does not write proposals, mutate tasks, mutate dependencies or
-  write back to OpenProject.
+- `list` is read-only and does not write back to OpenProject.
+
+`add` rules:
+
+- `--type` defaults to `finish_to_start`; supported values are
+  `finish_to_start`, `blocks`, `relates`, `requires_input_from`,
+  `requires_resource_from` and `external_dependency`;
+- normal criticality defaults to `required`; `relates` defaults to `optional`;
+  status defaults to `open`;
+- a task dependency needs `--predecessor` and `--successor`. An external
+  dependency uses `--type external_dependency --external --description` and
+  still needs a successor;
+- an omitted id is stable:
+  `dependency.<type>.<predecessor-or-external>.<successor>`, with id parts
+  normalized like other generated ids;
+- `--reason`, `--actor` and `--evidence` are required. One batch uses the same
+  evidence id and writes one audit record per dependency;
+- unknown tasks, equal predecessor and successor, an unsupported type or
+  status or criticality, duplicate id, duplicate type/predecessor/successor,
+  bad expected-resolution date and a `finish_to_start` cycle are refused;
+- the whole result is staged and validated before `--apply` commits it.
+  `--dry-run` writes nothing and shows every item.
+
+Refusal codes include `predecessor_task_not_found`,
+`successor_task_not_found`, `self_dependency`, `invalid_dependency_type`,
+`invalid_dependency_status`, `invalid_dependency_criticality`,
+`duplicate_dependency_id`, `duplicate_dependency`, `dependency_cycle`,
+`invalid_external_dependency`, `missing_external_description` and
+`invalid_dependency_expected_resolution_date`.
+
+Batch file:
+
+```yaml
+dependencies:
+  - type: finish_to_start
+    predecessor: task.design
+    successor: task.build
+    required_state: accepted
+  - id: dependency.vendor-approval
+    type: external_dependency
+    external: true
+    successor: task.release
+    criticality: required
+    status: open
+    description: Vendor must approve the release.
+    expected_resolution_date: "2026-11-10"
+```
+
+Use it with `dependency add --from-file dependencies.yaml` plus the common
+audit and write flags. Item keys are the long flag names with `_` in place of
+`-`.
+
+## `replan deadline`
+
+Purpose:
+
+Add and list canonical task or milestone deadlines.
+
+Examples:
+
+```bash
+replan deadline add --project examples/small-team \
+  --id deadline.validation.customer-review --task task.op.1234 \
+  --date 2026-07-12 --description "Customer review" \
+  --reason "Date agreed on customer call." \
+  --actor actor.human.operator --evidence evidence.github.pr.45 \
+  --dry-run --format json
+replan deadline list --project examples/small-team --format markdown
+```
+
+Implemented command flags:
+
+```text
+replan deadline add --project -p --bindings --format --id --task --milestone --date --type --criticality --timezone --source --description --from-file --reason --actor --evidence --occurred-at --dry-run --apply
+replan deadline list --project -p --bindings --format
+```
+
+Rules:
+
+- `--id`, exactly one of `--task` or `--milestone`, `--date`, `--reason`,
+  `--actor` and `--evidence` are required. A milestone is an existing task
+  record used as a milestone; there is no separate milestone entity;
+- type defaults to `due_date`; criticality defaults to `hard`. The accepted
+  types and criticalities are the lists in the canonical model;
+- `due_timestamp` uses an RFC3339 `--date` with an offset. Other types use
+  `YYYY-MM-DD`;
+- duplicate ids, unknown targets, bad dates, types or criticalities are
+  refused before writing. Refusal codes include `duplicate_deadline_id`,
+  `deadline_target_not_found`, `invalid_deadline_target`,
+  `invalid_deadline_date`, `invalid_deadline_timestamp`,
+  `invalid_deadline_type` and `invalid_deadline_criticality`;
+- `list` supports JSON and Markdown. `add` stages and validates the complete
+  result, writes one audit record per item, and supports JSON or text.
+
+Batch file:
+
+```yaml
+deadlines:
+  - id: deadline.design.review
+    task: task.design
+    date: "2026-11-10"
+    type: due_date
+    criticality: hard
+    timezone: Asia/Novosibirsk
+    source: operator
+    description: Customer design review.
+  - id: deadline.release.window
+    milestone: task.release
+    date: "2026-11-12T18:00:00+07:00"
+    type: due_timestamp
+    criticality: soft
+```
+
+Use it with `deadline add --from-file deadlines.yaml` plus the common audit
+and write flags. The batch is all or nothing and uses one evidence id.
 
 ## `replan estimate`
 
@@ -1752,7 +1874,8 @@ Rules:
   to `SUFFIX` when omitted; new demands are `required` and `active`;
 - the task starts with `tracking_status: not_started`. The current-plan
   reference is appended, or inserted immediately after the existing included
-  task named by `--after`;
+  task named by `--after`. This sets plan order only; it does not create a
+  dependency. Use `replan dependency add` for that;
 - duplicate task or demand ids, unknown resources, assignees, actors, evidence
   or `--after` tasks, malformed demands, invalid units/dates, a finish before
   the start and a missing demand are refused before disk writes;

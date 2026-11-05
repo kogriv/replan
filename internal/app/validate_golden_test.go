@@ -80,6 +80,13 @@ func everyDiagnosticWorkspace() domain.Workspace {
 			{ID: "dependency.ahead", Type: "requires_input_from", Status: "open", Criticality: "required", PredecessorRef: ref("task", "task.c"), SuccessorRef: ref("task", "task.e")},
 			{ID: "dependency.undated", Type: "requires_input_from", Status: "open", Criticality: "required", PredecessorRef: ref("task", "task.c"), SuccessorRef: ref("task", "task.d")},
 		},
+		Deadlines: []domain.Deadline{
+			{ID: "deadline.bad-target", TargetRef: ref("resource", "resource.ok"), Type: "due_date", DueDate: "2026-10-10", Criticality: "hard"},
+			{ID: "deadline.bad-type", TargetRef: ref("task", "task.a"), Type: "sideways", DueDate: "2026-10-10", Criticality: "hard"},
+			{ID: "deadline.bad-criticality", TargetRef: ref("task", "task.a"), Type: "due_date", DueDate: "2026-10-10", Criticality: "required"},
+			{ID: "deadline.bad-date", TargetRef: ref("task", "task.a"), Type: "due_date", DueDate: "tomorrow", Criticality: "hard"},
+			{ID: "deadline.bad-timestamp", TargetRef: ref("task", "task.a"), Type: "due_timestamp", DueTimestamp: "soon", Criticality: "hard"},
+		},
 		Capacities: []domain.Capacity{
 			{ID: "capacity.bad", ResourceRef: ref("resource", "resource.missing"), EffectiveFrom: "2026-10-10", EffectiveTo: "2026-10-01"},
 			{ID: "capacity.date", ResourceRef: ref("resource", "resource.ok"), Unit: "hours", Type: "weekly", EffectiveFrom: "tomorrow"},

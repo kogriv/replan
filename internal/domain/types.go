@@ -192,6 +192,20 @@ type Dependency struct {
 	Notes                  string      `json:"notes,omitempty" yaml:"notes,omitempty"`
 }
 
+// Deadline is a date or timestamp constraint attached to a task. Milestones
+// are represented by task records in the current canonical model.
+type Deadline struct {
+	ID           string `json:"id" yaml:"id"`
+	TargetRef    Ref    `json:"target_ref" yaml:"target_ref"`
+	Type         string `json:"type" yaml:"type"`
+	DueDate      string `json:"due_date,omitempty" yaml:"due_date,omitempty"`
+	DueTimestamp string `json:"due_timestamp,omitempty" yaml:"due_timestamp,omitempty"`
+	Timezone     string `json:"timezone,omitempty" yaml:"timezone,omitempty"`
+	Criticality  string `json:"criticality" yaml:"criticality"`
+	Source       string `json:"source,omitempty" yaml:"source,omitempty"`
+	Description  string `json:"description,omitempty" yaml:"description,omitempty"`
+}
+
 type Timing struct {
 	EarliestStart   string `json:"earliest_start,omitempty" yaml:"earliest_start,omitempty"`
 	LatestFinish    string `json:"latest_finish,omitempty" yaml:"latest_finish,omitempty"`
@@ -422,6 +436,7 @@ type Workspace struct {
 	Tasks           []Task
 	ResourceDemands []ResourceDemand
 	Dependencies    []Dependency
+	Deadlines       []Deadline
 	Capacities      []Capacity
 	Availabilities  []Availability
 	CurrentPlan     CurrentPlan

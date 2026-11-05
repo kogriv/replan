@@ -658,6 +658,51 @@
       }
     },
     {
+      "code": "invalid_deadline_target",
+      "message": "deadline target_ref must name a task",
+      "severity": "error",
+      "target": {
+        "kind": "deadline",
+        "id": "deadline.bad-target"
+      }
+    },
+    {
+      "code": "invalid_deadline_type",
+      "message": "invalid deadline type \"sideways\"",
+      "severity": "error",
+      "target": {
+        "kind": "deadline",
+        "id": "deadline.bad-type"
+      }
+    },
+    {
+      "code": "invalid_deadline_criticality",
+      "message": "invalid deadline criticality \"required\"",
+      "severity": "error",
+      "target": {
+        "kind": "deadline",
+        "id": "deadline.bad-criticality"
+      }
+    },
+    {
+      "code": "invalid_deadline_date",
+      "message": "deadline due_date \"tomorrow\" must use YYYY-MM-DD",
+      "severity": "error",
+      "target": {
+        "kind": "deadline",
+        "id": "deadline.bad-date"
+      }
+    },
+    {
+      "code": "invalid_deadline_timestamp",
+      "message": "deadline due_timestamp \"soon\" must be RFC3339 with an offset",
+      "severity": "error",
+      "target": {
+        "kind": "deadline",
+        "id": "deadline.bad-timestamp"
+      }
+    },
+    {
       "code": "unresolved_reference",
       "message": "task resource demand \"demand.missing\" does not exist",
       "severity": "error",

@@ -75,3 +75,21 @@ func ValidDependencyCriticality(criticality string) bool {
 		return false
 	}
 }
+
+func ValidDeadlineType(deadlineType string) bool {
+	switch deadlineType {
+	case "due_date", "due_timestamp", "start_no_earlier_than", "start_no_later_than", "finish_no_earlier_than", "finish_no_later_than", "access_window_end", "quota_reset_date", "contractual", "soft_target":
+		return true
+	default:
+		return false
+	}
+}
+
+func ValidDeadlineCriticality(criticality string) bool {
+	switch criticality {
+	case "hard", "soft", "informational":
+		return true
+	default:
+		return false
+	}
+}

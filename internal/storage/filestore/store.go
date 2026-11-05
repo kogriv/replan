@@ -141,6 +141,10 @@ type dependenciesDoc struct {
 	Dependencies []domain.Dependency `yaml:"dependencies"`
 }
 
+type deadlinesDoc struct {
+	Deadlines []domain.Deadline `yaml:"deadlines"`
+}
+
 type resourcesDoc struct {
 	Resources []domain.Resource `yaml:"resources"`
 }
@@ -173,6 +177,7 @@ const (
 	tasksRel        = "canonical/tasks.yaml"
 	demandsRel      = "canonical/resource_demands.yaml"
 	dependenciesRel = "canonical/dependencies.yaml"
+	deadlinesRel    = "canonical/deadlines.yaml"
 	resourcesRel    = "canonical/resources.yaml"
 	actorsRel       = "canonical/actors.yaml"
 	capacitiesRel   = "canonical/capacities.yaml"
@@ -197,6 +202,34 @@ func updateYAML[T any](s Store, rel string, missingOK bool, mutate func(*T) erro
 	}
 	if err := mutate(&doc); err != nil {
 		return err
+	}
+	return writeYAML(s, rel, data, doc)
+}
+
+// appendCanonicalSequence keeps the splice writer for populated files, but
+// uses the canonical two-space renderer when the old sequence is empty and
+// therefore has no item indentation for the splicer to copy.
+func appendCanonicalSequence[T any](s Store, rel string, missingOK bool, empty func(*T) bool, mutate func(*T)) error {
+	var doc T
+	data, err := s.fs.read(rel)
+	switch {
+	case err == nil:
+		if err := yaml.Unmarshal(data, &doc); err != nil {
+			return fmt.Errorf("parse %s: %w", rel, err)
+		}
+	case errors.Is(err, os.ErrNotExist) && missingOK:
+		data = nil
+	default:
+		return fmt.Errorf("read %s: %w", rel, err)
+	}
+	wasEmpty := empty(&doc)
+	mutate(&doc)
+	if wasEmpty {
+		out, err := yamlformat.Render(doc)
+		if err != nil {
+			return fmt.Errorf("render %s: %w", rel, err)
+		}
+		return s.fs.write(rel, out)
 	}
 	return writeYAML(s, rel, data, doc)
 }
@@ -329,6 +362,24 @@ func (s Store) AddTask(task domain.Task, demands []domain.ResourceDemand, afterT
 		return []string{tasksRel, demandsRel}, err
 	}
 	return []string{tasksRel, demandsRel, planRel}, nil
+}
+
+func (s Store) AddDependencies(dependencies []domain.Dependency) (string, error) {
+	err := appendCanonicalSequence(s, dependenciesRel, true, func(doc *dependenciesDoc) bool {
+		return len(doc.Dependencies) == 0
+	}, func(doc *dependenciesDoc) {
+		doc.Dependencies = append(doc.Dependencies, dependencies...)
+	})
+	return dependenciesRel, err
+}
+
+func (s Store) AddDeadlines(deadlines []domain.Deadline) (string, error) {
+	err := appendCanonicalSequence(s, deadlinesRel, true, func(doc *deadlinesDoc) bool {
+		return len(doc.Deadlines) == 0
+	}, func(doc *deadlinesDoc) {
+		doc.Deadlines = append(doc.Deadlines, deadlines...)
+	})
+	return deadlinesRel, err
 }
 
 func (s Store) AddResource(resource domain.Resource, actor *domain.Actor, audit domain.AuditRecord) ([]string, error) {
@@ -1248,6 +1299,12 @@ func (s Store) Load(ctx context.Context) (domain.Workspace, []app.Diagnostic) {
 	}
 	readOptionalYAML(s, &diags, "canonical/dependencies.yaml", &dependencies, &ws.CheckedFiles)
 	ws.Dependencies = dependencies.Dependencies
+
+	var deadlines struct {
+		Deadlines []domain.Deadline `yaml:"deadlines"`
+	}
+	readOptionalYAML(s, &diags, deadlinesRel, &deadlines, &ws.CheckedFiles)
+	ws.Deadlines = deadlines.Deadlines
 
 	var capacities struct {
 		Capacities []domain.Capacity `yaml:"capacities"`

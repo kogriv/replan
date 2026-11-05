@@ -73,6 +73,132 @@ func TestVersionTextJSONAndGlobalFlag(t *testing.T) {
 	}
 }
 
+func TestDependencyAddApplyRefusalsBatchAndDryRun(t *testing.T) {
+	baseArgs := func(project string) []string {
+		return []string{"dependency", "add", "--project", project, "--reason", "Customer replanning", "--actor", "actor.human.operator", "--evidence", "evidence.github.pr.45", "--occurred-at", "2026-07-08T10:00:00+07:00", "--format", "json"}
+	}
+	t.Run("apply writes renderer style and audit", func(t *testing.T) {
+		project := copyCmdProjectFixture(t)
+		args := append(baseArgs(project), "--type", "requires_input_from", "--predecessor", "task.op.1234", "--successor", "task.offline.repair-pump", "--apply")
+		stdout, stderr := tempOutputFiles(t)
+		if code := run(args, stdout, stderr); code != exitSuccess {
+			t.Fatalf("exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+		}
+		dependencies := readFileString(t, filepath.Join(project, "canonical/dependencies.yaml"))
+		if !strings.Contains(dependencies, "  - id: dependency.requires-input-from.op-1234.offline-repair-pump\n    type: requires_input_from\n") {
+			t.Fatalf("dependency was not rendered in canonical style:\n%s", dependencies)
+		}
+		audit := readFileString(t, filepath.Join(project, "audit/audit.2026-07.jsonl"))
+		if !strings.Contains(audit, `"operation":"dependency_add"`) || !strings.Contains(audit, `"id":"evidence.github.pr.45"`) {
+			t.Fatalf("audit record missing: %s", audit)
+		}
+	})
+
+	refusals := []struct {
+		name, code string
+		extra      []string
+	}{
+		{name: "unknown task", code: "predecessor_task_not_found", extra: []string{"--predecessor", "task.missing", "--successor", "task.op.1234"}},
+		{name: "self", code: "self_dependency", extra: []string{"--predecessor", "task.op.1234", "--successor", "task.op.1234"}},
+		{name: "type", code: "invalid_dependency_type", extra: []string{"--type", "generic", "--predecessor", "task.op.1234", "--successor", "task.offline.repair-pump"}},
+		{name: "duplicate triple", code: "duplicate_dependency", extra: []string{"--predecessor", "task.offline.repair-pump", "--successor", "task.op.1234"}},
+		{name: "cycle", code: "dependency_cycle", extra: []string{"--predecessor", "task.op.1234", "--successor", "task.offline.repair-pump"}},
+	}
+	for _, tc := range refusals {
+		t.Run(tc.name, func(t *testing.T) {
+			project := copyCmdProjectFixture(t)
+			args := append(baseArgs(project), tc.extra...)
+			args = append(args, "--dry-run")
+			stdout, stderr := tempOutputFiles(t)
+			if code := run(args, stdout, stderr); code != exitValidationFailed && code != exitNotFound {
+				t.Fatalf("exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+			}
+			var env cliTestEnvelope
+			if err := json.Unmarshal([]byte(readFileString(t, stdout.Name())), &env); err != nil {
+				t.Fatal(err)
+			}
+			if firstDiagnostic(env.Errors, tc.code) == nil {
+				t.Fatalf("errors=%#v want %s", env.Errors, tc.code)
+			}
+		})
+	}
+
+	t.Run("batch is all or nothing and dry run writes nothing", func(t *testing.T) {
+		project := copyCmdProjectFixture(t)
+		before := projectFileContents(t, project)
+		batch := filepath.Join(t.TempDir(), "dependencies.yaml")
+		if err := os.WriteFile(batch, []byte("dependencies:\n  - type: blocks\n    predecessor: task.op.1234\n    successor: task.offline.repair-pump\n  - type: blocks\n    predecessor: task.missing\n    successor: task.op.1234\n"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		stdout, stderr := tempOutputFiles(t)
+		args := append(baseArgs(project), "--from-file", batch, "--apply")
+		if code := run(args, stdout, stderr); code != exitNotFound {
+			t.Fatalf("exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+		}
+		if !reflect.DeepEqual(before, projectFileContents(t, project)) {
+			t.Fatal("bad batch changed project files")
+		}
+
+		stdout, stderr = tempOutputFiles(t)
+		args = append(baseArgs(project), "--type", "blocks", "--predecessor", "task.op.1234", "--successor", "task.offline.repair-pump", "--dry-run")
+		if code := run(args, stdout, stderr); code != exitSuccess {
+			t.Fatalf("dry-run exit=%d stdout=%s", code, readFileString(t, stdout.Name()))
+		}
+		if !reflect.DeepEqual(before, projectFileContents(t, project)) {
+			t.Fatal("dry run changed project files")
+		}
+	})
+}
+
+func TestDeadlineAddListAndRefusals(t *testing.T) {
+	project := copyCmdProjectFixture(t)
+	stdout, stderr := tempOutputFiles(t)
+	args := []string{"deadline", "add", "--project", project, "--id", "deadline.validation.customer", "--task", "task.op.1234", "--date", "2026-07-12", "--description", "Customer review", "--reason", "Customer call", "--actor", "actor.human.operator", "--evidence", "evidence.github.pr.45", "--occurred-at", "2026-07-08T11:00:00+07:00", "--apply", "--format", "json"}
+	if code := run(args, stdout, stderr); code != exitSuccess {
+		t.Fatalf("add exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	deadlines := readFileString(t, filepath.Join(project, "canonical/deadlines.yaml"))
+	if !strings.Contains(deadlines, "  - id: deadline.validation.customer\n    target_ref:\n      kind: task\n      id: task.op.1234\n    type: due_date\n    due_date: \"2026-07-12\"\n") {
+		t.Fatalf("deadline renderer output:\n%s", deadlines)
+	}
+
+	stdout, stderr = tempOutputFiles(t)
+	if code := run([]string{"deadline", "list", "--project", project, "--format", "json"}, stdout, stderr); code != exitSuccess {
+		t.Fatalf("list exit=%d stdout=%s", code, readFileString(t, stdout.Name()))
+	}
+	var env struct {
+		Result app.DeadlineListResult `json:"result"`
+	}
+	if err := json.Unmarshal([]byte(readFileString(t, stdout.Name())), &env); err != nil {
+		t.Fatal(err)
+	}
+	if len(env.Result.Deadlines) != 1 || env.Result.Deadlines[0].ID != "deadline.validation.customer" {
+		t.Fatalf("deadlines=%#v", env.Result.Deadlines)
+	}
+
+	for _, tc := range []struct{ name, id, task, date, code string }{
+		{name: "duplicate", id: "deadline.validation.customer", task: "task.op.1234", date: "2026-07-13", code: "duplicate_deadline_id"},
+		{name: "unknown", id: "deadline.unknown", task: "task.missing", date: "2026-07-13", code: "deadline_target_not_found"},
+		{name: "bad date", id: "deadline.bad-date", task: "task.op.1234", date: "13 July", code: "invalid_deadline_date"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			stdout, stderr := tempOutputFiles(t)
+			args := []string{"deadline", "add", "--project", project, "--id", tc.id, "--task", tc.task, "--date", tc.date, "--reason", "test", "--actor", "actor.human.operator", "--evidence", "evidence.github.pr.45", "--dry-run", "--format", "json"}
+			code := run(args, stdout, stderr)
+			if code != exitValidationFailed && code != exitNotFound {
+				t.Fatalf("exit=%d stdout=%s", code, readFileString(t, stdout.Name()))
+			}
+			var env cliTestEnvelope
+			if err := json.Unmarshal([]byte(readFileString(t, stdout.Name())), &env); err != nil {
+				t.Fatal(err)
+			}
+			if firstDiagnostic(env.Errors, tc.code) == nil {
+				t.Fatalf("errors=%#v", env.Errors)
+			}
+		})
+	}
+}
+
 func TestWorkloadRawFlagDisablesCalibration(t *testing.T) {
 	read := func(extra ...string) app.WorkloadResult {
 		t.Helper()
@@ -1420,7 +1546,7 @@ func TestCLIJSONEnvelopeContract(t *testing.T) {
 			},
 			assert: func(t *testing.T, env cliTestEnvelope) {
 				assertResultField(t, env, "valid", true)
-				assertResultNumberField(t, env, "checked_files", 11)
+				assertResultNumberField(t, env, "checked_files", 12)
 			},
 		},
 		{

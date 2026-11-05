@@ -116,6 +116,8 @@ func runCommand(args []string, stdout, stderr *os.File) int {
 		return runProposal(args[1:], stdout, stderr)
 	case "dependency":
 		return runDependency(args[1:], stdout, stderr)
+	case "deadline":
+		return runDeadline(args[1:], stdout, stderr)
 	case "baseline":
 		return runBaseline(args[1:], stdout, stderr)
 	case "estimate":
@@ -175,6 +177,9 @@ func printUsage(out *os.File) {
 	fmt.Fprintln(out, "  replan scenario list|show|diff|apply --project <path> [--dry-run|--apply for apply] [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan proposal list|show|suggest-dependencies|accept|reject --project <path> [--dry-run|--apply for accept/reject] [--format json|markdown]")
 	fmt.Fprintln(out, "  replan dependency list --project <path> [--format json|markdown]")
+	fmt.Fprintln(out, "  replan dependency add --project <path> [--id <id>] [--type <type>] (--predecessor <task-id>|--external --description <text>) --successor <task-id> [--criticality <value>] [--status <value>] [--required-state <state>] [--expected-resolution-date <YYYY-MM-DD>] [--from-file <yaml>] --reason <text> --actor <id> --evidence <id> (--dry-run|--apply) [--format json|text]")
+	fmt.Fprintln(out, "  replan deadline add --project <path> --id <id> (--task <task-id>|--milestone <task-id>) --date <YYYY-MM-DD|RFC3339> [--type <type>] [--criticality <value>] [--timezone <zone>] [--source <text>] [--description <text>] [--from-file <yaml>] --reason <text> --actor <id> --evidence <id> (--dry-run|--apply) [--format json|text]")
+	fmt.Fprintln(out, "  replan deadline list --project <path> [--format json|markdown]")
 	fmt.Fprintln(out, "  replan baseline create --project <path> [--task <id> ...] --id <id> --name <name> --approved-by <actor-id> [--status-date <YYYY-MM-DD>] [--assumption <text> ...] [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text]")
 	fmt.Fprintln(out, "  replan baseline list --project <path> [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan baseline show <id> --project <path> [--format json|markdown|text]")
@@ -187,7 +192,7 @@ func printUsage(out *os.File) {
 	fmt.Fprintln(out, "  replan resource set-name --project <path> --resource <resource-id> --name <name> --reason <text> --actor <id> --evidence <id> [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text]")
 	fmt.Fprintln(out, "  replan actor set-name --project <path> --actor-id <actor-id> --name <name> --reason <text> --actor <id> --evidence <id> [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text]")
 	fmt.Fprintln(out, "  replan capacity set --project <path> --resource <resource-id> --unit <unit> --amount <n> [--period week] [--effective-from <YYYY-MM-DD>] --actor <id> [--evidence <id>] (--dry-run|--apply) [--format json|text]")
-	fmt.Fprintln(out, "  replan task add --project <path> --id <task-id> --title <title> [--description <text>] [--type <type>] [--planned-start <YYYY-MM-DD>] [--planned-finish <YYYY-MM-DD>] [--tag <tag> ...] [--assignee <resource-id>] [--after <task-id>] --demand <SUFFIX=RESOURCE_ID:AMOUNT:UNIT[:ROLE]> [--demand ...] --actor <id> --evidence <id> [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text] (does not create an OpenProject work package; next use scripts/apply-openproject-bootstrap.sh or toolkit work-package create + bind)")
+	fmt.Fprintln(out, "  replan task add --project <path> --id <task-id> --title <title> [--description <text>] [--type <type>] [--planned-start <YYYY-MM-DD>] [--planned-finish <YYYY-MM-DD>] [--tag <tag> ...] [--assignee <resource-id>] [--after <task-id>] --demand <SUFFIX=RESOURCE_ID:AMOUNT:UNIT[:ROLE]> [--demand ...] --actor <id> --evidence <id> [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text] (--after sets plan order, not a dependency; use dependency add; this does not create an OpenProject work package)")
 	fmt.Fprintln(out, "  replan task set-dates --project <path> --task <task-id> [--planned-start <YYYY-MM-DD>] [--planned-finish <YYYY-MM-DD>] --reason <text> --actor <id> --evidence <id> [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text] (push to OpenProject separately with scripts/push-openproject-date-drift.sh)")
 	fmt.Fprintln(out, "  replan task record-actual-window --project <path> --task <task-id> --actor <id> --evidence <id> [--reason <text>] [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text]")
 	fmt.Fprintln(out, "  replan task set-title --project <path> --task <task-id> --title <title> --reason <text> --actor <id> --evidence <id> [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|text]")

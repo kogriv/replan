@@ -118,6 +118,7 @@ go run ./cmd/replan proposal list --project examples/small-team --status open --
 go run ./cmd/replan proposal show proposal.adjust-remaining-task-op-1234.20260706 --project examples/small-team --format markdown
 go run ./cmd/replan proposal suggest-dependencies --project examples/small-team --format json
 go run ./cmd/replan dependency list --project examples/small-team --format markdown
+go run ./cmd/replan deadline list --project examples/small-team --format markdown
 go run ./cmd/replan audit list --project examples/small-team --since 2026-07-01 --format json
 go run ./cmd/replan audit verify --project examples/small-team --format json
 ```
@@ -189,7 +190,7 @@ Implemented command families as of 2026-10-30:
 - `tracking suggest`, optionally writing proposal candidates;
 - `scenario list`, `show`, `diff`, `apply`;
 - `proposal list`, `show`, `suggest-dependencies`, `accept`, `reject`;
-- `dependency list`;
+- `dependency add`, `dependency list`, `deadline add`, `deadline list`;
 - `baseline create`, `list`, `show`;
 - `estimate calibrate`, including a cited `--prior` starting factor, plus
   `list`, `show`, `apply` for sealed calibrations and calibration-linked
@@ -495,6 +496,8 @@ Safe dry-run mutation previews:
 go run ./cmd/replan scenario apply --project examples/small-team --dry-run --format json scenario.task-op-1234-remaining-5
 go run ./cmd/replan actual add-consumption --project examples/small-team --task task.op.1234 --demand resource_demand.task-op-1234.implementer --resource resource.human.ivan --amount 1 --unit hours --actor actor.human.operator --occurred-at 2026-07-08T10:00:00+07:00 --status-date 2026-07-08 --dry-run --format json
 go run ./cmd/replan import openproject --project examples/small-team --from-file examples/imports/openproject/work-packages.sample.json --dry-run --format json
+go run ./cmd/replan dependency add --project examples/small-team --type requires_input_from --predecessor task.op.1234 --successor task.offline.repair-pump --reason "Customer call changed the order." --actor actor.human.operator --evidence evidence.github.pr.45 --dry-run --format json
+go run ./cmd/replan deadline add --project examples/small-team --id deadline.validation.customer-review --task task.op.1234 --date 2026-07-12 --description "Customer review" --reason "Date agreed on customer call." --actor actor.human.operator --evidence evidence.github.pr.45 --dry-run --format json
 ```
 
 Dependency lifecycle loop:

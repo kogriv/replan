@@ -44,6 +44,9 @@ RePlan's answer is a small, explicit model kept in plain YAML files in Git:
 
 Nothing changes the project unless the command is given `--apply` (or
 `REPLAN_APPLY=1`). Without it, a command only shows what it would do.
+Dependencies and deadlines no longer require hand-editing YAML: use the
+audited `dependency add` and `deadline add` commands, including their batch
+file mode for a reviewed group of changes.
 
 ## Try it
 

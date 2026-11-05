@@ -69,7 +69,7 @@ func runTaskAdd(args []string, stdout, stderr *os.File) int {
 	var tags repeatedStringFlag
 	fs.Var(&tags, "tag", "optional repeatable task tag")
 	assignee := fs.String("assignee", "", "optional existing resource id used as assignee_hint")
-	after := fs.String("after", "", "optional existing task after which to insert the current-plan reference; default is the end")
+	after := fs.String("after", "", "optional existing task after which to insert the current-plan reference; this sets plan order, not a dependency; use dependency add for a dependency")
 	var demands repeatedStringFlag
 	fs.Var(&demands, "demand", "required repeatable SUFFIX=RESOURCE_ID:AMOUNT:UNIT[:ROLE]; id is resource_demand.<task id after task.<namespace>.>.<SUFFIX>; role defaults to SUFFIX; unit must match a resource capacity")
 	actor := fs.String("actor", "", "required existing actor id; also used as the audit actor")
