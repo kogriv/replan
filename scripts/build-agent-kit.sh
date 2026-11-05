@@ -50,6 +50,7 @@ plan-openproject-bootstrap.sh
 plan-resource-demand-calibration.sh
 publish-openproject-overlay.sh
 push-openproject-date-drift.sh
+push-openproject-description-drift.sh
 push-openproject-status-drift.sh
 review-resource-pool.sh
 validate-openproject-live.sh
@@ -71,6 +72,7 @@ load-dotenv.sh
 settings.list
 openproject_http.py
 openproject_bindings.py
+openproject_description.py
 openproject_import_failure.py
 openproject_live_overlay.py
 openproject_operator_report.py
@@ -84,6 +86,7 @@ openproject_work_package_toolkit.py
 plan_openproject_bootstrap.py
 plan_resource_demand_calibration.py
 push_openproject_date_drift.py
+push_openproject_description_drift.py
 push_openproject_status_drift.py
 replan_workload.py
 review_resource_pool.py

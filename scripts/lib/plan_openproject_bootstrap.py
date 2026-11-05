@@ -5,6 +5,7 @@ import sys
 
 import yaml
 import helper_envelope
+import openproject_description
 from openproject_http import Settings
 import openproject_source_profile
 from openproject_status_map import TRACKING_TO_OPENPROJECT_STATUS
@@ -77,10 +78,9 @@ for index, task_id in enumerate(ordered_ids, start=1):
         "ordinal": index,
         "replan_task_id": task_id,
         "subject": task.get("title", ""),
-        "description": "\n\n".join(part for part in [
-            task.get("description", ""),
-            f"RePlan task id: `{task_id}`",
-        ] if part),
+        "description": openproject_description.description_with_task_id(
+            task.get("description", ""), task_id
+        ),
         "replan_tracking_status": tracking_status,
         "suggested_openproject_status": openproject_status,
         "start_date": task.get("planned_start", ""),

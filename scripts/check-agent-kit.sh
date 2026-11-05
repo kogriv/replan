@@ -229,6 +229,7 @@ for script_path in "$KIT"/scripts/*.sh; do
     plan-resource-demand-calibration.sh) expected=0; set -- "scripts/$script" ;;
     publish-openproject-overlay.sh) expected=4; set -- "scripts/$script" ;;
     push-openproject-date-drift.sh) expected=6; set -- "scripts/$script" ;;
+    push-openproject-description-drift.sh) expected=4; set -- "scripts/$script" ;;
     push-openproject-status-drift.sh) expected=6; set -- "scripts/$script" ;;
     review-resource-pool.sh) expected=0; set -- "scripts/$script" ;;
     validate-openproject-live.sh) expected=6; set -- "scripts/$script" ;;

@@ -269,6 +269,16 @@ RePlan. Record them from evidence and actuals with `bin/replan actual
 add-status` and the other `actual` commands; push only the resulting tracking
 status to OpenProject.
 
+RePlan owns descriptions of bound tasks once a person pushes them with
+`scripts/push-openproject-description-drift.sh`. OpenProject description edits
+are overwritten only by a reviewed apply, never by the default dry run. Review
+the old and new lengths and short previews before setting `REPLAN_APPLY=1`.
+Descriptions created by bootstrap contain a `RePlan task id` trailer line.
+Text above that line is RePlan-owned. The trailer line and everything after it
+are OpenProject-owned and are kept byte-for-byte on an update, including human
+notes below the trailer. The helper does not add a trailer to a work package
+whose description lacks it.
+
 ## Start a plan of your own
 
 The sample plan in `examples/small-team` shows every feature. To plan your
@@ -373,7 +383,7 @@ to its root. A write to OpenProject or the bindings file is a dry run unless
 | Import GitHub Issues | `bin/replan import github --project "$REPLAN_PROJECT" --profile <id> --dry-run` | A profile names `repository` and `token_env`; explicit `--repository` is also available. File replay uses `--from-file`. Review candidates, omit `--dry-run` to stage the snapshot, then use the shared `import accept` modes. No GitHub write-back is implemented. |
 | Planned dates to OpenProject | `scripts/push-openproject-date-drift.sh` | Toolkit `work-package update-dates` is the single-work-package surface. |
 | Dates from OpenProject | `bin/replan task set-dates ... --dry-run` | Reviewed one-task acceptance. For a stored snapshot use `bin/replan import accept <snapshot-id> --accept-dates --dry-run`. The live batch helper keeps private-binding matching, then writes audited `task set-dates` changes and requires `REPLAN_ACTOR` with `REPLAN_APPLY=1`. |
-| Change a RePlan planning description | `bin/replan task set-description ... --dry-run` | Changes only the canonical RePlan description and records an audit entry; review, then use `--apply`. Pushing the description to OpenProject is a separate step that does not exist yet. |
+| Change and push a task description | `bin/replan task set-description ... --dry-run`, then `scripts/push-openproject-description-drift.sh` | The CLI changes the audited canonical description. The helper previews bound work-package differences, preserves an existing bootstrap trailer and all OpenProject text below it byte-for-byte, and pushes only with `REPLAN_APPLY=1`; `REPLAN_TASKS` optionally limits the task ids. |
 | Correct subject or description | `scripts/openproject-work-package-toolkit.sh work-package update-text ...` | Shows old/new text and the current lock version. A bound subject is preflighted and synchronized with audited `bin/replan task set-title`; an OpenProject description is not copied into the separate RePlan planning note. |
 | Drift check | `scripts/check-openproject-drift.sh` | Read-only comparison; a person chooses the direction. |
 | Overlay build and publish | `scripts/build-openproject-live-overlay.sh`, then `scripts/publish-openproject-overlay.sh` | Builds locally with private bindings, then publishes only to the selected project's directory. Publish is a dry run unless `REPLAN_APPLY=1`; the private target comes only from the environment or ignored `.env.local`. |
@@ -541,6 +551,7 @@ Compare the plan and OpenProject, then run the reviewed exchanges:
 scripts/check-openproject-drift.sh
 scripts/push-openproject-status-drift.sh
 scripts/push-openproject-date-drift.sh
+scripts/push-openproject-description-drift.sh
 scripts/openproject-operator-report.sh
 ```
 

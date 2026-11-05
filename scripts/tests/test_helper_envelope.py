@@ -39,6 +39,7 @@ WRAPPERS = {
     "plan-openproject-bootstrap": [],
     "plan-resource-demand-calibration": [],
     "push-openproject-date-drift": [],
+    "push-openproject-description-drift": [],
     "push-openproject-status-drift": [],
     "review-resource-pool": [],
     "validate-openproject": [],
@@ -59,6 +60,7 @@ NETWORK = {
     "openproject-wiki": 6,
     "openproject-work-package-toolkit": 6,
     "push-openproject-date-drift": 6,
+    "push-openproject-description-drift": 4,
     "push-openproject-status-drift": 6,
     "validate-openproject-live": 6,
 }
@@ -72,6 +74,7 @@ SETTINGS = {
     "check-openproject-live-alignment": "missing_setting",
     "openproject-operator-report": "missing_openproject_target",
     "push-openproject-date-drift": "missing_setting",
+    "push-openproject-description-drift": "missing_base_url",
     "push-openproject-status-drift": "missing_base_url",
     "validate-openproject": "missing_setting",
     "validate-openproject-live": "missing_setting",
@@ -1018,7 +1021,8 @@ class WrapperFailurePathsTest(unittest.TestCase):
             "apply-openproject-bootstrap": ["REPLAN_OPENPROJECT_PROJECT_ID"],
         }
         with_project_id = {"accept-openproject-soft-drift", "apply-openproject-relations", "check-openproject-drift",
-                           "openproject-operator-report", "push-openproject-date-drift", "push-openproject-status-drift",
+                           "openproject-operator-report", "push-openproject-date-drift", "push-openproject-description-drift",
+                           "push-openproject-status-drift",
                            "openproject-work-package-toolkit"}
         for name in WRAPPERS:
             if name in ("openproject-wiki", "validate-openproject", "run-openproject-sidecar-pipeline"):
@@ -1038,7 +1042,8 @@ class WrapperFailurePathsTest(unittest.TestCase):
         # in a dry run, and for a helper that only reads, it is skipped with
         # token_env_not_set among its warnings.
         writers = ["accept-openproject-soft-drift", "apply-openproject-bootstrap", "apply-openproject-relations",
-                   "push-openproject-date-drift", "push-openproject-status-drift"]
+                   "push-openproject-date-drift", "push-openproject-description-drift",
+                   "push-openproject-status-drift"]
         readers = ["check-openproject-drift", "check-openproject-live-alignment", "openproject-operator-report",
                    "validate-openproject-live", "run-openproject-sidecar-pipeline"]
         settings = {"REPLAN_OPENPROJECT_BASE_URL": "http://127.0.0.1:9", "REPLAN_OPENPROJECT_PROJECT_ID": "replan-self"}
