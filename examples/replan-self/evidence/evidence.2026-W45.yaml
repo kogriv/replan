@@ -867,3 +867,38 @@ evidence:
       targets:
         - kind: task
           id: task.self.task-set-description
+    - id: evidence.self.accept-task-set-description
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-05T15:08:17+07:00"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-05: task set-description with flag, file, stdin and clear sources writes and audits as reviewed.'
+      targets:
+        - kind: task
+          id: task.self.task-set-description
+    - id: evidence.self.plan-unique-audit-ids
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-05T15:10:12+07:00"
+      summary: 'The operator agreed on 2026-11-05 to plan unique audit record ids, found while checking task set-description, after the two remaining consumer feedback tasks. Agreement to plan approves the estimate of 2 agent hours.'
+      targets:
+        - kind: task
+          id: task.self.unique-audit-ids
+    - id: evidence.self.start-push-description-to-work-package
+      type: decision
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-05T15:11:12+07:00"
+      summary: Started on 2026-11-05 after the operator accepted task set-description and said to continue as recommended; estimate 2 agent hours frozen in baseline.2026-11-05.consumer-feedback-sync, split into agent 0.5 and Codex 1.5.
+      targets:
+        - kind: task
+          id: task.self.push-description-to-work-package

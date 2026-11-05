@@ -442,6 +442,8 @@ current_plan:
     - kind: task
       id: task.self.one-yaml-style-for-canonical-files
     - kind: task
+      id: task.self.unique-audit-ids
+    - kind: task
       id: task.self.fix-first-project-defects
     - kind: task
       id: task.self.implement-replan-init-and-resource-commands

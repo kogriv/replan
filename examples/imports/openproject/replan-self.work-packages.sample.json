@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 222,
-  "count": 222,
+  "total": 223,
+  "count": 223,
   "_embedded": {
     "elements": [
       {
@@ -6432,6 +6432,35 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2322"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2323,
+        "subject": "Keep audit record ids unique for writes in the same second",
+        "description": {
+          "raw": "Found while checking task set-description on 2026-11-05: audit ids are built from the timestamp to the second, the operation and the target, so two writes on one target in the same second get the same id; validation refuses the second write and rolls it back. A script that runs commands back to back hits this at once. Make the id unique when it is already taken (a numeric suffix) for every command that appends audit records, and test two writes in one second."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-06",
+        "dueDate": "2026-11-06",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2323"
           },
           "status": {
             "title": "New"
