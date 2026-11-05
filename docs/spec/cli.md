@@ -670,6 +670,7 @@ task add
 task set-dates
 task record-actual-window
 task set-title
+task set-description
 actual add-consumption
 actual correct
 actual set-remaining
@@ -2088,6 +2089,51 @@ Rules:
 - a changed title stages the title splice and audit record, validates the
   would-be project, then commits both on `--apply`. The result shows the old
   and new title;
+- the read-only private-bindings layer is refused like every canonical writer.
+
+## `replan task set-description`
+
+Purpose:
+
+Apply an operator-reviewed change to the canonical RePlan planning
+description. This changes only RePlan. Pushing a description to OpenProject
+would be a separate step, and no such step exists yet.
+
+```bash
+replan task set-description --project examples/small-team \
+  --task task.op.1234 --description-file planning-note.md \
+  --reason "Record the reviewed implementation constraints." \
+  --actor actor.human.operator --evidence evidence.github.pr.45 \
+  --dry-run --format json
+```
+
+Implemented command flags:
+
+```text
+replan task set-description --project -p --bindings --format --actor --apply --clear --description --description-file --dry-run --evidence --occurred-at --reason --task
+```
+
+Rules:
+
+- `--task`, `--reason`, `--actor`, `--evidence` and exactly one of
+  `--description <text>`, `--description-file <path>` or `--clear` are
+  required. `--description-file -` reads the exact description from stdin;
+- empty or whitespace-only text is `missing_task_description` (exit 2); no
+  source is `missing_description_source` (exit 2); multiple sources are
+  `conflicting_description_sources` (exit 2); an unknown task is
+  `task_not_found` (exit 4). An unreadable description file is
+  `description_file_read_failed` (exit 8);
+- `--occurred-at` is optional RFC3339 with an offset and defaults to now. The
+  task, actor and evidence must exist;
+- an unchanged description is a successful no-op with no canonical or audit
+  write, matching `task set-title`;
+- a changed description stages the narrow description splice and audit
+  record, validates the would-be project, then commits both on `--apply`.
+  Multi-line text is stored as valid YAML and round-trips exactly, including a
+  trailing newline, without rewriting other task records;
+- the audit operation is `task_set_description`. Its reason includes the old
+  and new character counts and a one-line preview of at most 60 characters,
+  never the complete long description;
 - the read-only private-bindings layer is refused like every canonical writer.
 
 ## `replan evidence add`

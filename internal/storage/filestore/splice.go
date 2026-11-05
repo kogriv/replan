@@ -19,8 +19,8 @@ func renderYAML(original []byte, doc any) ([]byte, error) {
 	return renderYAMLWithOptions(original, doc, spliceOptions{})
 }
 
-// spliceOptions are opt-in fixes for canonical demand writes. They stay out
-// of the generic writer so commands outside that surface keep their current
+// spliceOptions are opt-in fixes for narrow canonical writes. They stay out
+// of the generic writer so commands outside those surfaces keep their current
 // rendering until YAML style is unified deliberately.
 type spliceOptions struct {
 	appendNestedSequences  bool

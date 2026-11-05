@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -45,6 +46,8 @@ func runTask(args []string, stdout, stderr *os.File) int {
 		return runTaskRecordActualWindow(args[1:], stdout, stderr)
 	case "set-title":
 		return runTaskSetTitle(args[1:], stdout, stderr)
+	case "set-description":
+		return runTaskSetDescription(args[1:], stdout, stderr)
 	case "-h", "--help":
 		printUsage(stdout)
 		return exitSuccess
@@ -189,6 +192,66 @@ func runTaskSetTitle(args []string, stdout, stderr *os.File) int {
 	result, err := app.NewTaskService(newStore(*projectPath)).SetTitle(context.Background(), app.TaskSetTitleRequest{TaskID: *taskID, Title: *title, Reason: *reason, ActorID: *actor, EvidenceID: *evidence, OccurredAt: *occurredAt, DryRun: dryRun})
 	env := envelope{OK: err == nil && len(result.Errors) == 0, Command: "task set-title", ProjectPath: *projectPath, Result: result, Warnings: result.Warnings, Errors: result.Errors}
 	return printScenarioEnvelope(stdout, stderr, *format, env, err)
+}
+
+func runTaskSetDescription(args []string, stdout, stderr *os.File) int {
+	fs := newCLIFlagSet("task set-description")
+	projectPath := fs.String("project", ".", "path to RePlan project")
+	fs.StringVar(projectPath, "p", ".", "path to RePlan project")
+	format := fs.String("format", "json", "output format: json, text")
+	taskID := fs.String("task", "", "required existing task id")
+	description := fs.String("description", "", "new task description; exactly one description source is required")
+	descriptionFile := fs.String("description-file", "", "file containing the new task description; - reads stdin")
+	clearDescription := fs.Bool("clear", false, "remove the task description")
+	reason := fs.String("reason", "", "required reason for changing the description")
+	actor := fs.String("actor", "", "required existing actor id; also used as the audit actor")
+	evidence := fs.String("evidence", "", "required existing evidence id for the audit record")
+	occurredAt := fs.String("occurred-at", "", "optional RFC3339 timestamp with an offset; defaults to now")
+	writeFlags := addCanonicalWriteFlags(fs)
+	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+		return code
+	}
+	if !supportedTaskFormat(*format) {
+		return printTaskFormatError("task set-description", *projectPath, stdout, stderr)
+	}
+	dryRun, code, done := requireCanonicalWriteChoice("task set-description", *projectPath, *format, writeFlags, stdout, stderr)
+	if done {
+		return code
+	}
+	set := visitedFlags(fs)
+	descriptionSet := set["description"] || set["description-file"]
+	sourceCount := 0
+	for _, name := range []string{"description", "description-file", "clear"} {
+		if set[name] {
+			sourceCount++
+		}
+	}
+	if set["description-file"] && !set["description"] && !*clearDescription {
+		data, err := readDescriptionInput(*descriptionFile)
+		if err != nil {
+			return printDescriptionFileError(*projectPath, *format, *descriptionFile, err, stdout, stderr)
+		}
+		*description = string(data)
+	}
+	result, err := app.NewTaskService(newStore(*projectPath)).SetDescription(context.Background(), app.TaskSetDescriptionRequest{TaskID: *taskID, Description: *description, DescriptionSet: descriptionSet, Clear: *clearDescription, SourceCount: sourceCount, Reason: *reason, ActorID: *actor, EvidenceID: *evidence, OccurredAt: *occurredAt, DryRun: dryRun})
+	env := envelope{OK: err == nil && len(result.Errors) == 0, Command: "task set-description", ProjectPath: *projectPath, Result: result, Warnings: result.Warnings, Errors: result.Errors}
+	return printScenarioEnvelope(stdout, stderr, *format, env, err)
+}
+
+func readDescriptionInput(path string) ([]byte, error) {
+	if path == "-" {
+		return io.ReadAll(os.Stdin)
+	}
+	return os.ReadFile(path)
+}
+
+func printDescriptionFileError(projectPath, format, path string, inputErr error, stdout, stderr *os.File) int {
+	env := envelope{OK: false, Command: "task set-description", ProjectPath: projectPath, Result: nil, Warnings: []app.Diagnostic{}, Errors: []app.Diagnostic{{Code: "description_file_read_failed", Message: fmt.Sprintf("failed to read description from %s: %v", path, inputErr), Severity: "error"}}}
+	if err := printEnvelope(stdout, format, env); err != nil {
+		fmt.Fprintln(stderr, err)
+		return exitGeneralError
+	}
+	return exitInvalidUsage
 }
 
 func supportedTaskFormat(format string) bool {

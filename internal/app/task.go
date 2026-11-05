@@ -18,6 +18,7 @@ type TaskWriter interface {
 	AddTask(task domain.Task, demands []domain.ResourceDemand, afterTaskID string) ([]string, error)
 	SetTaskDates(taskID, plannedStart, plannedFinish string) (string, error)
 	SetTaskTitle(taskID, title string) (string, error)
+	SetTaskDescription(taskID, description string) (string, error)
 	AppendAudit(record domain.AuditRecord) (string, error)
 }
 
@@ -126,6 +127,29 @@ type TaskSetTitleResult struct {
 	Validation         *ValidateResult    `json:"validation,omitempty"`
 	Warnings           []Diagnostic       `json:"warnings"`
 	Errors             []Diagnostic       `json:"errors"`
+}
+
+type TaskSetDescriptionRequest struct {
+	TaskID, Description, Reason, ActorID, EvidenceID string
+	OccurredAt                                       string
+	DescriptionSet, Clear, DryRun                    bool
+	SourceCount                                      int
+}
+
+type TaskSetDescriptionResult struct {
+	DryRun              bool               `json:"dry_run"`
+	Applied             bool               `json:"applied"`
+	NoOp                bool               `json:"no_op"`
+	TaskID              string             `json:"task_id"`
+	PreviousDescription string             `json:"previous_description"`
+	NewDescription      string             `json:"new_description"`
+	Reason              string             `json:"reason"`
+	PlannedWrites       []PlannedWrite     `json:"planned_writes"`
+	WrittenFiles        []string           `json:"written_files,omitempty"`
+	AuditRecordPreview  domain.AuditRecord `json:"audit_record_preview,omitempty"`
+	Validation          *ValidateResult    `json:"validation,omitempty"`
+	Warnings            []Diagnostic       `json:"warnings"`
+	Errors              []Diagnostic       `json:"errors"`
 }
 
 type TaskService struct{ loader WorkspaceLoader }
@@ -362,27 +386,93 @@ func (s TaskService) RecordActualWindow(ctx context.Context, req TaskRecordActua
 }
 
 func (s TaskService) SetTitle(ctx context.Context, req TaskSetTitleRequest) (TaskSetTitleResult, error) {
+	common, err := s.setTaskText(ctx, taskTextMutationRequest{TaskID: req.TaskID, Value: req.Title, ValueSet: true, SourceCount: 1, Reason: req.Reason, ActorID: req.ActorID, EvidenceID: req.EvidenceID, OccurredAt: req.OccurredAt, DryRun: req.DryRun}, taskTextMutationSpec{
+		field: "title", operation: "task_set_title", auditSlug: "task-set-title", missingCode: "missing_task_title", missingMessage: "title must not be empty or whitespace",
+		get: func(task domain.Task) string { return task.Title },
+		write: func(writer TaskWriter, taskID, value string) (string, error) {
+			return writer.SetTaskTitle(taskID, value)
+		},
+		auditReason: func(reason, old, next string) string {
+			return fmt.Sprintf("%s. Task title: %q -> %q.", trimAuditReason(reason), old, next)
+		},
+	})
+	return TaskSetTitleResult{DryRun: common.DryRun, Applied: common.Applied, NoOp: common.NoOp, TaskID: common.TaskID, PreviousTitle: common.PreviousValue, NewTitle: common.NewValue, Reason: common.Reason, PlannedWrites: common.PlannedWrites, WrittenFiles: common.WrittenFiles, AuditRecordPreview: common.AuditRecordPreview, Validation: common.Validation, Warnings: common.Warnings, Errors: common.Errors}, err
+}
+
+func (s TaskService) SetDescription(ctx context.Context, req TaskSetDescriptionRequest) (TaskSetDescriptionResult, error) {
+	sourceCount := req.SourceCount
+	if sourceCount == 0 {
+		if req.DescriptionSet {
+			sourceCount++
+		}
+		if req.Clear {
+			sourceCount++
+		}
+	}
+	common, err := s.setTaskText(ctx, taskTextMutationRequest{TaskID: req.TaskID, Value: req.Description, ValueSet: req.DescriptionSet, Clear: req.Clear, SourceCount: sourceCount, Reason: req.Reason, ActorID: req.ActorID, EvidenceID: req.EvidenceID, OccurredAt: req.OccurredAt, DryRun: req.DryRun}, taskTextMutationSpec{
+		field: "description", operation: "task_set_description", auditSlug: "task-set-description", missingCode: "missing_task_description", missingMessage: "description must not be empty or whitespace without --clear",
+		missingSourceCode: "missing_description_source", conflictingSourceCode: "conflicting_description_sources",
+		get: func(task domain.Task) string { return task.Description },
+		write: func(writer TaskWriter, taskID, value string) (string, error) {
+			return writer.SetTaskDescription(taskID, value)
+		},
+		auditReason: descriptionAuditReason,
+	})
+	return TaskSetDescriptionResult{DryRun: common.DryRun, Applied: common.Applied, NoOp: common.NoOp, TaskID: common.TaskID, PreviousDescription: common.PreviousValue, NewDescription: common.NewValue, Reason: common.Reason, PlannedWrites: common.PlannedWrites, WrittenFiles: common.WrittenFiles, AuditRecordPreview: common.AuditRecordPreview, Validation: common.Validation, Warnings: common.Warnings, Errors: common.Errors}, err
+}
+
+type taskTextMutationRequest struct {
+	TaskID, Value, Reason, ActorID, EvidenceID, OccurredAt string
+	ValueSet, Clear, DryRun                                bool
+	SourceCount                                            int
+}
+
+type taskTextMutationSpec struct {
+	field, operation, auditSlug, missingCode, missingMessage string
+	missingSourceCode, conflictingSourceCode                 string
+	get                                                      func(domain.Task) string
+	write                                                    func(TaskWriter, string, string) (string, error)
+	auditReason                                              func(string, string, string) string
+}
+
+type taskTextMutationResult struct {
+	DryRun, Applied, NoOp bool
+	TaskID                string
+	PreviousValue         string
+	NewValue              string
+	Reason                string
+	PlannedWrites         []PlannedWrite
+	WrittenFiles          []string
+	AuditRecordPreview    domain.AuditRecord
+	Validation            *ValidateResult
+	Warnings              []Diagnostic
+	Errors                []Diagnostic
+}
+
+func (s TaskService) setTaskText(ctx context.Context, req taskTextMutationRequest, spec taskTextMutationSpec) (taskTextMutationResult, error) {
 	ws, loadDiags := s.loader.Load(ctx)
-	result := TaskSetTitleResult{DryRun: req.DryRun, TaskID: req.TaskID, NewTitle: req.Title, Reason: req.Reason, PlannedWrites: []PlannedWrite{}, WrittenFiles: []string{}, Warnings: []Diagnostic{}, Errors: []Diagnostic{}}
+	result := taskTextMutationResult{DryRun: req.DryRun, TaskID: req.TaskID, NewValue: req.Value, Reason: req.Reason, PlannedWrites: []PlannedWrite{}, WrittenFiles: []string{}, Warnings: []Diagnostic{}, Errors: []Diagnostic{}}
 	appendLoadDiagnostics(&result.Warnings, &result.Errors, loadDiags)
-	task, ok := validateTaskSetTitle(&result.Errors, ws, req)
+	task, ok := validateTaskTextMutation(&result.Errors, ws, req, spec)
 	if len(result.Errors) > 0 || !ok {
 		return result, ErrValidationFailed
 	}
-	result.PreviousTitle = task.Title
-	if task.Title == req.Title {
+	result.PreviousValue = spec.get(task)
+	if req.Clear {
+		result.NewValue = ""
+	}
+	if result.PreviousValue == result.NewValue {
 		result.NoOp = true
 		return result, nil
 	}
 
 	occurredAt := taskOccurredAt(req.OccurredAt)
-	auditReason := fmt.Sprintf("%s. Task title: %q -> %q.", strings.TrimRight(strings.TrimSpace(req.Reason), "."), task.Title, req.Title)
-	audit := domain.AuditRecord{ID: "audit." + compactTimestamp(occurredAt) + ".task-set-title." + slugID(req.TaskID), OccurredAt: occurredAt, ActorRef: domain.Ref{Kind: "actor", ID: req.ActorID}, Operation: "task_set_title", TargetRef: domain.Ref{Kind: "task", ID: req.TaskID}, Reason: auditReason, EvidenceRefs: []domain.Ref{{Kind: "evidence", ID: req.EvidenceID}}, Result: "success"}
+	audit := domain.AuditRecord{ID: "audit." + compactTimestamp(occurredAt) + "." + spec.auditSlug + "." + slugID(req.TaskID), OccurredAt: occurredAt, ActorRef: domain.Ref{Kind: "actor", ID: req.ActorID}, Operation: spec.operation, TargetRef: domain.Ref{Kind: "task", ID: req.TaskID}, Reason: spec.auditReason(req.Reason, result.PreviousValue, result.NewValue), EvidenceRefs: []domain.Ref{{Kind: "evidence", ID: req.EvidenceID}}, Result: "success"}
 	if req.DryRun {
 		audit.Result = "dry_run"
 	}
 	result.AuditRecordPreview = audit
-	patch, _ := yaml.Marshal(map[string]any{"task": req.TaskID, "title": map[string]string{"before": task.Title, "after": req.Title}, "reason": req.Reason})
+	patch, _ := yaml.Marshal(map[string]any{"task": req.TaskID, spec.field: map[string]string{"before": result.PreviousValue, "after": result.NewValue}, "reason": req.Reason})
 	result.PlannedWrites = []PlannedWrite{{Path: "canonical/tasks.yaml", Action: "replace_yaml_field", Format: "yaml-patch-preview", Content: string(patch)}, auditPlannedWrite(audit)}
 	if req.DryRun {
 		return result, nil
@@ -394,7 +484,7 @@ func (s TaskService) SetTitle(ctx context.Context, req TaskSetTitleRequest) (Tas
 		result.Errors = append(result.Errors, taskDiag("storage_write_not_supported", "configured project store does not support task writes", "project", s.loader.ProjectPath()))
 		return result, ErrValidationFailed
 	}
-	path, err := writer.SetTaskTitle(req.TaskID, req.Title)
+	path, err := spec.write(writer, req.TaskID, result.NewValue)
 	if err != nil {
 		result.Errors = append(result.Errors, taskDiag("task_write_failed", err.Error(), "task", req.TaskID))
 		return result, err
@@ -414,6 +504,20 @@ func (s TaskService) SetTitle(ctx context.Context, req TaskSetTitleRequest) (Tas
 	}
 	result.Applied = true
 	return result, nil
+}
+
+func trimAuditReason(reason string) string { return strings.TrimRight(strings.TrimSpace(reason), ".") }
+
+func descriptionAuditReason(reason, old, next string) string {
+	return fmt.Sprintf("%s. description: %d -> %d chars (%q).", trimAuditReason(reason), len([]rune(old)), len([]rune(next)), descriptionPreview(next))
+}
+
+func descriptionPreview(value string) string {
+	runes := []rune(value)
+	if len(runes) > 60 {
+		runes = runes[:60]
+	}
+	return strings.NewReplacer("\r", " ", "\n", " ").Replace(string(runes))
 }
 
 func validateTaskAddBasics(errors *[]Diagnostic, ws domain.Workspace, req TaskAddRequest) {
@@ -569,7 +673,7 @@ func validateTaskRecordActualWindow(errors *[]Diagnostic, ws domain.Workspace, r
 	return task, ok
 }
 
-func validateTaskSetTitle(errors *[]Diagnostic, ws domain.Workspace, req TaskSetTitleRequest) (domain.Task, bool) {
+func validateTaskTextMutation(errors *[]Diagnostic, ws domain.Workspace, req taskTextMutationRequest, spec taskTextMutationSpec) (domain.Task, bool) {
 	if req.TaskID == "" {
 		*errors = append(*errors, taskDiag("missing_task", "task is required", "task", ""))
 	}
@@ -577,8 +681,14 @@ func validateTaskSetTitle(errors *[]Diagnostic, ws domain.Workspace, req TaskSet
 	if req.TaskID != "" && !ok {
 		*errors = append(*errors, taskDiag("task_not_found", fmt.Sprintf("task %s not found", req.TaskID), "task", req.TaskID))
 	}
-	if strings.TrimSpace(req.Title) == "" {
-		*errors = append(*errors, taskDiag("missing_task_title", "title must not be empty or whitespace", "task", req.TaskID))
+	if req.SourceCount != 1 {
+		code, message := spec.missingSourceCode, "exactly one text source is required"
+		if req.SourceCount > 1 {
+			code, message = spec.conflictingSourceCode, "only one text source may be used"
+		}
+		*errors = append(*errors, taskDiag(code, message, "task", req.TaskID))
+	} else if req.ValueSet && strings.TrimSpace(req.Value) == "" {
+		*errors = append(*errors, taskDiag(spec.missingCode, spec.missingMessage, "task", req.TaskID))
 	}
 	if strings.TrimSpace(req.Reason) == "" {
 		*errors = append(*errors, taskDiag("missing_reason", "reason is required", "task", req.TaskID))

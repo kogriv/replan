@@ -642,6 +642,18 @@ func (s Store) SetTaskTitle(taskID, title string) (string, error) {
 	return tasksRel, err
 }
 
+func (s Store) SetTaskDescription(taskID, description string) (string, error) {
+	err := updateYAMLWithOptions(s, tasksRel, false, spliceOptions{twoSpaceMappingEntries: true}, func(doc *tasksDoc) error {
+		i, ok := taskIndex(doc.Tasks)[taskID]
+		if !ok {
+			return fmt.Errorf("task %s not found", taskID)
+		}
+		doc.Tasks[i].Description = description
+		return nil
+	})
+	return tasksRel, err
+}
+
 func (s Store) SetResourceName(resourceID, name string) (string, error) {
 	err := updateYAML(s, resourcesRel, false, func(doc *resourcesDoc) error {
 		for i := range doc.Resources {

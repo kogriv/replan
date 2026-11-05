@@ -1021,6 +1021,9 @@ func TestWorkspaceLoadingCommandsReportMissingProject(t *testing.T) {
 		{name: "task set-title", text: true, args: func(path string) []string {
 			return []string{"task", "set-title", "--project", path, "--task", "task.test", "--title", "Test", "--reason", "test", "--actor", "actor.test", "--evidence", "evidence.test", "--apply"}
 		}},
+		{name: "task set-description", text: true, args: func(path string) []string {
+			return []string{"task", "set-description", "--project", path, "--task", "task.test", "--description", "Test", "--reason", "test", "--actor", "actor.test", "--evidence", "evidence.test", "--apply"}
+		}},
 		{name: "import openproject", args: func(path string) []string {
 			return []string{"import", "openproject", "--project", path, "--from-file", "../../examples/imports/openproject/work-packages.sample.json"}
 		}},
@@ -1469,6 +1472,120 @@ func TestTaskCommandRefusalExitClasses(t *testing.T) {
 			env := readCLIEnvelope(t, stdout.Name())
 			if !hasDiagnosticCode(env.Errors, tc.code) {
 				t.Fatalf("diagnostics %#v missing %s", env.Errors, tc.code)
+			}
+		})
+	}
+}
+
+func TestTaskSetDescriptionCLITextFileStdinClearDryRunAndRefusals(t *testing.T) {
+	baseArgs := func(project string) []string {
+		return []string{"task", "set-description", "--project", project, "--task", "task.op.1234", "--reason", "Update the planning note.", "--actor", "actor.human.operator", "--evidence", "evidence.github.pr.45", "--occurred-at", "2026-10-28T14:00:00+07:00", "--format", "json"}
+	}
+	runCommand := func(t *testing.T, args []string, stdin string) (int, cliTestEnvelope) {
+		t.Helper()
+		oldStdin := os.Stdin
+		if stdin != "" {
+			input, err := os.CreateTemp(t.TempDir(), "description-stdin")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, err := input.WriteString(stdin); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := input.Seek(0, 0); err != nil {
+				t.Fatal(err)
+			}
+			os.Stdin = input
+			defer func() { os.Stdin = oldStdin; input.Close() }()
+		}
+		stdout, stderr := tempOutputFiles(t)
+		code := run(args, stdout, stderr)
+		return code, readCLIEnvelope(t, stdout.Name())
+	}
+	description := func(t *testing.T, project string) string {
+		t.Helper()
+		ws, diags := newStore(project).Load(context.Background())
+		if len(diags) != 0 {
+			t.Fatalf("load diagnostics: %#v", diags)
+		}
+		for _, task := range ws.Tasks {
+			if task.ID == "task.op.1234" {
+				return task.Description
+			}
+		}
+		t.Fatal("task.op.1234 not found")
+		return ""
+	}
+
+	for _, tc := range []struct {
+		name, want, stdin string
+		flags             func(*testing.T) []string
+	}{
+		{name: "text", want: "A concise planning note: keep # and quotes \"here\".", flags: func(*testing.T) []string {
+			return []string{"--description", "A concise planning note: keep # and quotes \"here\"."}
+		}},
+		{name: "file", want: "First line: file\n  indented # text\n", flags: func(t *testing.T) []string {
+			path := filepath.Join(t.TempDir(), "description.txt")
+			if err := os.WriteFile(path, []byte("First line: file\n  indented # text\n"), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			return []string{"--description-file", path}
+		}},
+		{name: "stdin", want: "First line: stdin\n  quoted: \"yes\" # literal\n", stdin: "First line: stdin\n  quoted: \"yes\" # literal\n", flags: func(*testing.T) []string { return []string{"--description-file", "-"} }},
+		{name: "clear", want: "", flags: func(*testing.T) []string { return []string{"--clear"} }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			project := copyCmdProjectFixture(t)
+			args := append(baseArgs(project), tc.flags(t)...)
+			args = append(args, "--apply")
+			code, env := runCommand(t, args, tc.stdin)
+			if code != exitSuccess || !env.OK {
+				t.Fatalf("exit=%d envelope=%#v", code, env)
+			}
+			if got := description(t, project); got != tc.want {
+				t.Fatalf("description=%q, want %q", got, tc.want)
+			}
+		})
+	}
+
+	t.Run("dry run writes nothing", func(t *testing.T) {
+		project := copyCmdProjectFixture(t)
+		before := snapshotProjectFiles(t, project)
+		args := append(baseArgs(project), "--description", "Dry-run description", "--dry-run")
+		code, env := runCommand(t, args, "")
+		if code != exitSuccess || !env.OK || !reflect.DeepEqual(before, snapshotProjectFiles(t, project)) {
+			t.Fatalf("exit=%d envelope=%#v or project changed", code, env)
+		}
+	})
+
+	t.Run("unchanged is no-op", func(t *testing.T) {
+		project := copyCmdProjectFixture(t)
+		before := snapshotProjectFiles(t, project)
+		args := append(baseArgs(project), "--description", description(t, project), "--apply")
+		code, env := runCommand(t, args, "")
+		if code != exitSuccess || !env.OK || !reflect.DeepEqual(before, snapshotProjectFiles(t, project)) {
+			t.Fatalf("exit=%d envelope=%#v or project changed", code, env)
+		}
+	})
+
+	for _, tc := range []struct {
+		name, code string
+		wantExit   int
+		flags      []string
+	}{
+		{name: "unknown task", code: "task_not_found", wantExit: exitNotFound, flags: []string{"--task", "task.missing", "--description", "new"}},
+		{name: "empty text", code: "missing_task_description", wantExit: exitValidationFailed, flags: []string{"--description", " \t"}},
+		{name: "missing source", code: "missing_description_source", wantExit: exitValidationFailed},
+		{name: "multiple sources", code: "conflicting_description_sources", wantExit: exitValidationFailed, flags: []string{"--description", "new", "--clear"}},
+		{name: "unreadable file", code: "description_file_read_failed", wantExit: exitInvalidUsage, flags: []string{"--description-file", "/does/not/exist"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			project := copyCmdProjectFixture(t)
+			args := append(baseArgs(project), tc.flags...)
+			args = append(args, "--dry-run")
+			code, env := runCommand(t, args, "")
+			if code != tc.wantExit || env.OK || !hasDiagnosticCode(env.Errors, tc.code) {
+				t.Fatalf("exit=%d envelope=%#v, want exit=%d code=%s", code, env, tc.wantExit, tc.code)
 			}
 		})
 	}

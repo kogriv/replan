@@ -380,6 +380,110 @@ func TestTaskSetTitleApplyDryRunNoOpAndRefusals(t *testing.T) {
 	}
 }
 
+func TestTaskSetDescriptionApplyDryRunClearRoundTripAndRefusals(t *testing.T) {
+	const originalDescription = "Load local files and validate canonical ids, references and statuses."
+	const multiline = "Quoted: \"value\" and 'single'\nColon: value # literal hash\n  leading spaces stay\ntrailing newline stays\n"
+	req := app.TaskSetDescriptionRequest{TaskID: "task.op.1234", Description: multiline, DescriptionSet: true, SourceCount: 1, Reason: "Clarify the planning note.", ActorID: "actor.human.operator", EvidenceID: "evidence.github.pr.45", OccurredAt: "2026-10-28T13:30:00+07:00"}
+
+	project := copyAppProjectFixture(t)
+	before := readTaskTestFile(t, project, "canonical/tasks.yaml")
+	result, err := app.NewTaskService(filestore.New(project)).SetDescription(context.Background(), req)
+	if err != nil || !result.Applied || result.PreviousDescription != originalDescription || result.NewDescription != multiline {
+		t.Fatalf("SetDescription: result=%#v err=%v", result, err)
+	}
+	after := readTaskTestFile(t, project, "canonical/tasks.yaml")
+	wantMultiline := strings.Replace(before,
+		"    description: "+originalDescription+"\n",
+		"    description: |\n      Quoted: \"value\" and 'single'\n      Colon: value # literal hash\n        leading spaces stay\n      trailing newline stays\n", 1)
+	if after != wantMultiline {
+		t.Fatalf("multiline description changed unexpected task bytes\n--- got\n%s--- want\n%s", after, wantMultiline)
+	}
+	ws, diags := filestore.New(project).Load(context.Background())
+	if len(diags) != 0 {
+		t.Fatalf("load diagnostics: %#v", diags)
+	}
+	for _, task := range ws.Tasks {
+		if task.ID == req.TaskID && task.Description != multiline {
+			t.Fatalf("description round trip = %q, want %q", task.Description, multiline)
+		}
+	}
+	audit := readTaskTestFile(t, project, "audit/audit.2026-10.jsonl")
+	wantReason := `Clarify the planning note. description: 69 -\u003e 102 chars (\"Quoted: \\\"value\\\" and 'single' Colon: value # literal hash   l\").`
+	for _, want := range []string{`"operation":"task_set_description"`, wantReason} {
+		if !strings.Contains(audit, want) {
+			t.Errorf("audit missing %q: %s", want, audit)
+		}
+	}
+	if strings.Contains(audit, "trailing newline stays") {
+		t.Fatal("audit contains the complete description instead of a short preview")
+	}
+
+	dryProject := copyAppProjectFixture(t)
+	dryBefore := snapshotTaskProject(t, dryProject)
+	dryReq := req
+	dryReq.DryRun = true
+	dry, err := app.NewTaskService(filestore.New(dryProject)).SetDescription(context.Background(), dryReq)
+	if err != nil || dry.Applied || dry.NoOp || len(dry.PlannedWrites) != 2 || !reflect.DeepEqual(dryBefore, snapshotTaskProject(t, dryProject)) {
+		t.Fatalf("bad dry run: result=%#v err=%v", dry, err)
+	}
+
+	oneLineReq := req
+	oneLineReq.Description = "One-line replacement."
+	oneLineReq.OccurredAt = "2026-10-28T13:31:00+07:00"
+	oneLine, err := app.NewTaskService(filestore.New(project)).SetDescription(context.Background(), oneLineReq)
+	wantOneLine := strings.Replace(wantMultiline,
+		"    description: |\n      Quoted: \"value\" and 'single'\n      Colon: value # literal hash\n        leading spaces stay\n      trailing newline stays\n",
+		"    description: One-line replacement.\n", 1)
+	gotOneLine := readTaskTestFile(t, project, "canonical/tasks.yaml")
+	if err != nil || !oneLine.Applied || gotOneLine != wantOneLine {
+		t.Fatalf("multiline-to-one-line result=%#v err=%v\n--- got\n%s--- want\n%s", oneLine, err, gotOneLine, wantOneLine)
+	}
+
+	clearReq := req
+	clearReq.Description, clearReq.DescriptionSet, clearReq.Clear = "", false, true
+	clearReq.OccurredAt = "2026-10-28T13:32:00+07:00"
+	clearProject := copyAppProjectFixture(t)
+	if seeded, seedErr := app.NewTaskService(filestore.New(clearProject)).SetDescription(context.Background(), req); seedErr != nil || !seeded.Applied {
+		t.Fatalf("seed multiline description before clear: result=%#v err=%v", seeded, seedErr)
+	}
+	cleared, err := app.NewTaskService(filestore.New(clearProject)).SetDescription(context.Background(), clearReq)
+	wantClear := strings.Replace(wantMultiline,
+		"    description: |\n      Quoted: \"value\" and 'single'\n      Colon: value # literal hash\n        leading spaces stay\n      trailing newline stays\n", "", 1)
+	gotClear := readTaskTestFile(t, clearProject, "canonical/tasks.yaml")
+	if err != nil || !cleared.Applied || cleared.NewDescription != "" || gotClear != wantClear {
+		t.Fatalf("multiline-to-clear result=%#v err=%v\n--- got\n%s--- want\n%s", cleared, err, gotClear, wantClear)
+	}
+
+	noOpReq := req
+	noOpReq.Description = originalDescription
+	noOp, err := app.NewTaskService(filestore.New(dryProject)).SetDescription(context.Background(), noOpReq)
+	if err != nil || !noOp.NoOp || noOp.Applied || len(noOp.PlannedWrites) != 0 || !reflect.DeepEqual(dryBefore, snapshotTaskProject(t, dryProject)) {
+		t.Fatalf("bad no-op: result=%#v err=%v", noOp, err)
+	}
+
+	refusals := []struct {
+		name, code string
+		edit       func(*app.TaskSetDescriptionRequest)
+	}{
+		{"unknown task", "task_not_found", func(r *app.TaskSetDescriptionRequest) { r.TaskID = "task.missing" }},
+		{"empty text", "missing_task_description", func(r *app.TaskSetDescriptionRequest) { r.Description = " \t\n" }},
+		{"missing source", "missing_description_source", func(r *app.TaskSetDescriptionRequest) { r.DescriptionSet, r.SourceCount = false, 0 }},
+		{"multiple sources", "conflicting_description_sources", func(r *app.TaskSetDescriptionRequest) { r.SourceCount = 2 }},
+	}
+	for _, tc := range refusals {
+		t.Run(tc.name, func(t *testing.T) {
+			p := copyAppProjectFixture(t)
+			r := req
+			tc.edit(&r)
+			res, callErr := app.NewTaskService(filestore.New(p)).SetDescription(context.Background(), r)
+			if callErr == nil {
+				t.Fatal("expected refusal")
+			}
+			assertTaskDiag(t, res.Errors, tc.code)
+		})
+	}
+}
+
 func readTaskTestFile(t *testing.T, root, rel string) string {
 	t.Helper()
 	b, err := os.ReadFile(filepath.Join(root, rel))

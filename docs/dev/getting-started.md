@@ -204,7 +204,8 @@ Implemented command families as of 2026-10-30:
   resources, `resource list`, `resource set-name`, and `actor set-name`;
 - `capacity set`, which adds dated weekly capacity periods and closes the
   preceding period without rewriting its history;
-- `task add`, `task set-dates`, `task record-actual-window`, `task set-title`;
+- `task add`, `task set-dates`, `task record-actual-window`, `task set-title`,
+  `task set-description`;
 - `import openproject` from a file, a source profile or the API, with
   relations, time entries and resource sidecars;
 - `import github` from a versioned exported file or the GitHub REST API, with

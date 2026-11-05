@@ -48,6 +48,7 @@ var canonicalWriteCommands = []string{
 	"task add",
 	"task record-actual-window",
 	"task set-dates",
+	"task set-description",
 	"task set-title",
 }
 
