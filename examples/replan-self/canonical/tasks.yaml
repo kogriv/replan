@@ -6555,7 +6555,7 @@ tasks:
       title: Push a changed task description to its work package
       description: 'Consumer feedback on 2026-11-04: neither bootstrap nor the drift helpers carry a changed task description to the bound work package, so consumers update descriptions through API v3 by hand. Add an update_description action (dry run, then REPLAN_APPLY=1) that compares the RePlan description with the work package and writes only the differing ones.'
       type: implementation
-      tracking_status: in_progress
+      tracking_status: review_ready
       planned_start: "2026-11-06"
       planned_finish: "2026-11-06"
       assignee_hint:

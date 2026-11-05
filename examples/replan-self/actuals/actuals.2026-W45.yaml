@@ -1372,3 +1372,45 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.accept-task-set-description
+    - id: actual.self-push-description-to-work-package.ai-codex-local.20261105T1613180700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.push-description-to-work-package
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.push-description-to-work-package.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.61
+      unit: agent_hours
+      occurred_at: "2026-11-05T16:13:18+07:00"
+      status_date: "2026-11-05"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.push-description-to-work-package
+    - id: actual.self-push-description-to-work-package.ai-agent-executor.20261105T1613180700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.push-description-to-work-package
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.push-description-to-work-package.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.18
+      unit: agent_hours
+      occurred_at: "2026-11-05T16:13:18+07:00"
+      status_date: "2026-11-05"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.push-description-to-work-package

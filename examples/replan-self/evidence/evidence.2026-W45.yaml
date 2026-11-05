@@ -902,3 +902,14 @@ evidence:
       targets:
         - kind: task
           id: task.self.push-description-to-work-package
+    - id: evidence.self.push-description-to-work-package
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-05T16:13:18+07:00"
+      summary: 'Commit c8ae886 adds scripts/push-openproject-description-drift.sh. Read-only dry runs on the self project shaped it: round 1 would have erased the bootstrap task-id trailer on 38 work packages and took about 2 minutes; round 2 keeps the trailer and reads pages (4 seconds, 12 differences); reading those in full showed text a person added below the trailer, so round 3 keeps the trailer and everything after it. The last dry run plans 10 updates, all RePlan-side edits, not yet applied. Local gate green. Codex 0.61 h from round prompt and result times (15:16:10-15:33:11, 15:36:19-15:46:39, 15:48:23-15:57:23); agent 0.18 h from brief, reviews, dry runs and gate start stretches plus the finish up to this record.'
+      targets:
+        - kind: task
+          id: task.self.push-description-to-work-package

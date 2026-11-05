@@ -12635,7 +12635,7 @@ resource_demands:
       role: implementation_agent
       unit: agent_hours
       planned_amount: 0.5
-      remaining_amount: 0.5
+      remaining_amount: 0
       criticality: required
       status: active
     - id: resource_demand.push-description-to-work-package.codex
@@ -12649,7 +12649,7 @@ resource_demands:
       role: implementation_agent
       unit: agent_hours
       planned_amount: 1.5
-      remaining_amount: 1.5
+      remaining_amount: 0
       criticality: required
       status: active
     - id: resource_demand.push-description-to-work-package.maintainer
