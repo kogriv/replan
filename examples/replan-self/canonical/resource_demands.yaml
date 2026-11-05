@@ -12637,7 +12637,7 @@ resource_demands:
       planned_amount: 0.5
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.push-description-to-work-package.codex
       task_ref:
         kind: task
@@ -12651,7 +12651,7 @@ resource_demands:
       planned_amount: 1.5
       remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.push-description-to-work-package.maintainer
       task_ref:
         kind: task
@@ -12663,9 +12663,9 @@ resource_demands:
       role: maintainer
       unit: hours
       planned_amount: 0.25
-      remaining_amount: 0.25
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.push-description-to-work-package.local-dev
       task_ref:
         kind: task
@@ -12677,9 +12677,9 @@ resource_demands:
       role: development_environment
       unit: concurrent_slots
       planned_amount: 1
-      remaining_amount: 1
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.push-description-to-work-package.ci
       task_ref:
         kind: task
@@ -12691,9 +12691,9 @@ resource_demands:
       role: ci_runtime
       unit: ci_minutes
       planned_amount: 10
-      remaining_amount: 10
+      remaining_amount: 0
       criticality: required
-      status: active
+      status: consumed
     - id: resource_demand.one-yaml-style-for-canonical-files.agent
       task_ref:
         kind: task

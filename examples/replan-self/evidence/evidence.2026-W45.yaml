@@ -913,3 +913,16 @@ evidence:
       targets:
         - kind: task
           id: task.self.push-description-to-work-package
+    - id: evidence.self.accept-push-description-to-work-package
+      type: decision
+      subtype: operator_acceptance
+      source: chat
+      actor_ref:
+        kind: actor
+        id: actor.human.maintainer
+      observed_at: "2026-11-05T10:40:20Z"
+      confidence: observed
+      summary: 'Accepted by the operator on 2026-11-05: description push helper keeps the task-id trailer and human text below it; operator approved applying it to the dogfood project.'
+      targets:
+        - kind: task
+          id: task.self.push-description-to-work-package
