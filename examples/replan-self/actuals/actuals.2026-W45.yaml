@@ -1183,3 +1183,45 @@ actuals:
       evidence_refs:
         - kind: evidence
           id: evidence.self.accept-bootstrap-matches-by-binding
+    - id: actual.self-dependency-and-deadline-commands.ai-codex-local.20261105T0902050700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.dependency-and-deadline-commands
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.dependency-and-deadline-commands.codex
+      resource_ref:
+        kind: resource
+        id: resource.ai.codex.local
+      amount: 0.34
+      unit: agent_hours
+      occurred_at: "2026-11-05T09:02:05+07:00"
+      status_date: "2026-11-05"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.dependency-and-deadline-commands
+    - id: actual.self-dependency-and-deadline-commands.ai-agent-executor.20261105T0902050700.work-consumed
+      type: work_consumed
+      task_ref:
+        kind: task
+        id: task.self.dependency-and-deadline-commands
+      demand_ref:
+        kind: resource_demand
+        id: resource_demand.dependency-and-deadline-commands.agent
+      resource_ref:
+        kind: resource
+        id: resource.ai.agent.executor
+      amount: 0.44
+      unit: agent_hours
+      occurred_at: "2026-11-05T09:02:05+07:00"
+      status_date: "2026-11-05"
+      accepted_by:
+        kind: actor
+        id: actor.ai.agent.executor
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.dependency-and-deadline-commands

@@ -775,3 +775,14 @@ evidence:
       targets:
         - kind: task
           id: task.self.dependency-and-deadline-commands
+    - id: evidence.self.dependency-and-deadline-commands
+      type: command_result
+      source: local
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-05T09:02:05+07:00"
+      summary: 'Feature commit 0bf8747: dependency add and deadline add/list, by flags or --from-file batch checked as a whole and written all or nothing, one audit entry per item; refusals include self_dependency, duplicate_dependency, dependency_cycle (finish_to_start), deadline_target_not_found and invalid deadline type, date, criticality. Deadlines are now loaded and validated (before, canonical/deadlines.yaml was not read). Review: round 1 reported green tests but three Go tests failed (checked_files count, diagnostic fixture, import-accept goldens); round 2 fixed them and reverted an unasked renderer change. Executor fixed deadline list printing null for no deadlines. Checked on a copy of a consumer plan: appending a deadline keeps existing entries and their extra note fields. Codex 08:18:40-08:35:31 and 08:53:33-08:57:07; executor 08:15:05-08:18:40, review and gate 08:35:31-08:53:33, final checks 08:57:07-09:02:05; brief writing before 08:15 not timed.'
+      targets:
+        - kind: task
+          id: task.self.dependency-and-deadline-commands
