@@ -786,3 +786,14 @@ evidence:
       targets:
         - kind: task
           id: task.self.dependency-and-deadline-commands
+    - id: evidence.self.dependency-and-deadline-commands-ci
+      type: command_result
+      source: ci
+      actor_ref:
+        kind: actor
+        id: actor.ai.agent.executor
+      observed_at: "2026-11-05T09:14:03+07:00"
+      summary: 'CI failed on 0bf8747 and 886f5d6: the new batch test compared project files including .replan/write.lock, which a refused --apply creates and git ignores; locally an old lock file hid it. Test fix 146b819 checked in a clean worktree; CI green on 146b819.'
+      targets:
+        - kind: task
+          id: task.self.dependency-and-deadline-commands
