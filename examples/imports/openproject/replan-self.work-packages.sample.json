@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 223,
-  "count": 223,
+  "total": 224,
+  "count": 224,
   "_embedded": {
     "elements": [
       {
@@ -6464,6 +6464,35 @@
           },
           "status": {
             "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2324,
+        "subject": "Make --raw in the TaskJuggler export mean only uncalibrated",
+        "description": {
+          "raw": "Follow-up from the calibrated TaskJuggler export (task.self.calibrated-dates-and-agent-hours-tab): --raw in replan export taskjuggler disables calibration and also drops agent_hours demands, while --raw in workload and reports only disables calibration. Make --raw in the export mean only uncalibrated amounts, keep agent_hours demands scheduled with their raw effort, and update the CLI spec and tests."
+        },
+        "status": {
+          "name": "In progress"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-06",
+        "dueDate": "2026-11-06",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2324"
+          },
+          "status": {
+            "title": "In progress"
           },
           "assignee": {
             "href": "/api/v3/users/101",

@@ -983,3 +983,38 @@ evidence:
     targets:
       - kind: task
         id: task.self.unique-audit-ids
+  - id: evidence.self.accept-unique-audit-ids
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-06T06:46:22Z"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-06: audit and actual ids get a numeric suffix when taken, and an identical actual is still refused as a retry.'
+    targets:
+      - kind: task
+        id: task.self.unique-audit-ids
+  - id: evidence.self.plan-taskjuggler-raw-means-uncalibrated
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-06T13:48:24+07:00"
+    summary: 'The operator accepted unique audit ids on 2026-11-06 and said to continue as recommended; the recommendation was this follow-up from the calibrated TaskJuggler export. Agreement to plan approves the estimate of 1 agent hour.'
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-raw-means-uncalibrated
+  - id: evidence.self.start-taskjuggler-raw-means-uncalibrated
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-06T13:48:26+07:00"
+    summary: Started on 2026-11-06 right after planning; estimate 1 agent hour frozen in baseline.2026-11-06.taskjuggler-raw-means-uncalibrated, split into agent 0.25 and Codex 0.75.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-raw-means-uncalibrated

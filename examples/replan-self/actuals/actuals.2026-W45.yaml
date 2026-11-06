@@ -1540,3 +1540,24 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.unique-audit-ids
+  - id: actual.self-unique-audit-ids.ci-github-actions.20261106T064622Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.unique-audit-ids
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.unique-audit-ids.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-06T06:46:22Z"
+    status_date: "2026-11-06"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-unique-audit-ids

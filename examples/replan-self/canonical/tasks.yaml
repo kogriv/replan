@@ -6613,7 +6613,7 @@ tasks:
     title: Keep audit record ids unique for writes in the same second
     description: 'Found while checking task set-description on 2026-11-05: audit ids are built from the timestamp to the second, the operation and the target, so two writes on one target in the same second get the same id; validation refuses the second write and rolls it back. A script that runs commands back to back hits this at once. Make the id unique when it is already taken (a numeric suffix) for every command that appends audit records, and test two writes in one second.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-06"
     planned_finish: "2026-11-06"
     assignee_hint:
@@ -6638,3 +6638,32 @@ tasks:
         object_type: work_package
         object_id: "2323"
         url: https://op.example.internal/work_packages/2323
+  - id: task.self.taskjuggler-raw-means-uncalibrated
+    title: Make --raw in the TaskJuggler export mean only uncalibrated
+    description: 'Follow-up from the calibrated TaskJuggler export (task.self.calibrated-dates-and-agent-hours-tab): --raw in replan export taskjuggler disables calibration and also drops agent_hours demands, while --raw in workload and reports only disables calibration. Make --raw in the export mean only uncalibrated amounts, keep agent_hours demands scheduled with their raw effort, and update the CLI spec and tests.'
+    type: implementation
+    tracking_status: in_progress
+    planned_start: "2026-11-06"
+    planned_finish: "2026-11-06"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.taskjuggler-raw-means-uncalibrated.agent
+      - kind: resource_demand
+        id: resource_demand.taskjuggler-raw-means-uncalibrated.codex
+      - kind: resource_demand
+        id: resource_demand.taskjuggler-raw-means-uncalibrated.maintainer
+      - kind: resource_demand
+        id: resource_demand.taskjuggler-raw-means-uncalibrated.local-dev
+      - kind: resource_demand
+        id: resource_demand.taskjuggler-raw-means-uncalibrated.ci
+    tags:
+      - taskjuggler
+      - estimates
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2324"
+        url: https://op.example.internal/work_packages/2324

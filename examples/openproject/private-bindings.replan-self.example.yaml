@@ -587,6 +587,12 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2323"
         url: https://op.example.internal/work_packages/2323
+    - replan_task_id: task.self.taskjuggler-raw-means-uncalibrated
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2324"
+        url: https://op.example.internal/work_packages/2324
     - replan_task_id: task.self.fix-first-project-defects
       source_ref:
         source: openproject
