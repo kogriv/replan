@@ -1435,3 +1435,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-push-description-to-work-package
+  - id: actual.self-one-yaml-style-for-canonical-files.ai-codex-local.20261106T1202260700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.one-yaml-style-for-canonical-files
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.one-yaml-style-for-canonical-files.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.66
+    unit: agent_hours
+    occurred_at: "2026-11-06T12:02:26+07:00"
+    status_date: "2026-11-06"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.one-yaml-style-for-canonical-files
+  - id: actual.self-one-yaml-style-for-canonical-files.ai-agent-executor.20261106T1202260700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.one-yaml-style-for-canonical-files
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.one-yaml-style-for-canonical-files.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.52
+    unit: agent_hours
+    occurred_at: "2026-11-06T12:02:26+07:00"
+    status_date: "2026-11-06"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.one-yaml-style-for-canonical-files

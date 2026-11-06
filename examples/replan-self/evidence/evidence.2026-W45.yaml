@@ -937,3 +937,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.one-yaml-style-for-canonical-files
+  - id: evidence.self.one-yaml-style-for-canonical-files
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-06T12:02:26+07:00"
+    summary: 'Commit 49beb8e makes every YAML writer use the two-space renderer, makes appended nested blocks copy sibling indentation and adds replan project format (refuses data-changing round trips, one audit entry). The dogfood project was reformatted with it (177 files); validate and workload output stayed the same apart from the new audit record. The first gate found tests and the smoke matching four-space fixture text; they now match two-space text. The canonical model shows how a Python tool keeps the style: a full PyYAML rewrite of the dogfood files now differs by about 1000 quoting lines instead of about 93000. Local gate green. Codex 0.66 h from round prompt and result times (2026-11-05 17:46:24-18:25:44); agent 0.52 h: brief 2026-11-05 17:41:48-17:46:24, review, trial and fixes 2026-11-06 11:19:35-11:46:07, finish from 12:00:56 to this record; the second gate wait is not booked. The round result waited overnight because the wait watched a wrong round number.'
+    targets:
+      - kind: task
+        id: task.self.one-yaml-style-for-canonical-files
