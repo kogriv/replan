@@ -1603,3 +1603,24 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.taskjuggler-raw-means-uncalibrated
+  - id: actual.self-taskjuggler-raw-means-uncalibrated.ci-github-actions.20261106T074418Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-raw-means-uncalibrated
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-raw-means-uncalibrated.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-06T07:44:18Z"
+    status_date: "2026-11-06"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-taskjuggler-raw-means-uncalibrated

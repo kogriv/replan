@@ -6642,7 +6642,7 @@ tasks:
     title: Make --raw in the TaskJuggler export mean only uncalibrated
     description: 'Follow-up from the calibrated TaskJuggler export (task.self.calibrated-dates-and-agent-hours-tab): --raw in replan export taskjuggler disables calibration and also drops agent_hours demands, while --raw in workload and reports only disables calibration. Make --raw in the export mean only uncalibrated amounts, keep agent_hours demands scheduled with their raw effort, and update the CLI spec and tests.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-06"
     planned_finish: "2026-11-06"
     assignee_hint:
@@ -6667,3 +6667,32 @@ tasks:
         object_type: work_package
         object_id: "2324"
         url: https://op.example.internal/work_packages/2324
+  - id: task.self.group-taskjuggler-unsupported-unit-warnings
+    title: Group TaskJuggler unsupported-unit warnings by unit
+    description: 'Found while checking the TaskJuggler raw export on 2026-11-06: the export of the dogfood project gives 375 taskjuggler_unsupported_demand_unit warnings, one per demand (concurrent slots 172, CI minutes 156, review hours 45, other 2), so useful warnings drown. Give one warning per unit with the demand count and a few example ids, keep the full demand list in the JSON result, and say in the CLI spec which units the export represents (hours and agent hours of people and agents) and why role review hours are not exported.'
+    type: implementation
+    tracking_status: in_progress
+    planned_start: "2026-11-06"
+    planned_finish: "2026-11-06"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.group-taskjuggler-unsupported-unit-warnings.agent
+      - kind: resource_demand
+        id: resource_demand.group-taskjuggler-unsupported-unit-warnings.codex
+      - kind: resource_demand
+        id: resource_demand.group-taskjuggler-unsupported-unit-warnings.maintainer
+      - kind: resource_demand
+        id: resource_demand.group-taskjuggler-unsupported-unit-warnings.local-dev
+      - kind: resource_demand
+        id: resource_demand.group-taskjuggler-unsupported-unit-warnings.ci
+    tags:
+      - taskjuggler
+      - diagnostics
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2325"
+        url: https://op.example.internal/work_packages/2325

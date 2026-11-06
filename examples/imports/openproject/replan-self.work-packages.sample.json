@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 224,
-  "count": 224,
+  "total": 225,
+  "count": 225,
   "_embedded": {
     "elements": [
       {
@@ -6490,6 +6490,35 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2324"
+          },
+          "status": {
+            "title": "In progress"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2325,
+        "subject": "Group TaskJuggler unsupported-unit warnings by unit",
+        "description": {
+          "raw": "Found while checking the TaskJuggler raw export on 2026-11-06: the export of the dogfood project gives 375 taskjuggler_unsupported_demand_unit warnings, one per demand (concurrent slots 172, CI minutes 156, review hours 45, other 2), so useful warnings drown. Give one warning per unit with the demand count and a few example ids, keep the full demand list in the JSON result, and say in the CLI spec which units the export represents (hours and agent hours of people and agents) and why role review hours are not exported."
+        },
+        "status": {
+          "name": "In progress"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-06",
+        "dueDate": "2026-11-06",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2325"
           },
           "status": {
             "title": "In progress"

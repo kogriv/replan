@@ -446,6 +446,8 @@ current_plan:
     - kind: task
       id: task.self.taskjuggler-raw-means-uncalibrated
     - kind: task
+      id: task.self.group-taskjuggler-unsupported-unit-warnings
+    - kind: task
       id: task.self.fix-first-project-defects
     - kind: task
       id: task.self.implement-replan-init-and-resource-commands

@@ -1029,3 +1029,38 @@ evidence:
     targets:
       - kind: task
         id: task.self.taskjuggler-raw-means-uncalibrated
+  - id: evidence.self.accept-taskjuggler-raw-means-uncalibrated
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-06T07:44:18Z"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-06: --raw in the TaskJuggler export only drops calibration; agent hours are exported in both modes.'
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-raw-means-uncalibrated
+  - id: evidence.self.plan-group-taskjuggler-unsupported-unit-warnings
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-06T14:47:28+07:00"
+    summary: 'The operator accepted the TaskJuggler raw export fix on 2026-11-06 and agreed to plan grouping its unsupported-unit warnings as recommended. Agreement to plan approves the estimate of 1 agent hour.'
+    targets:
+      - kind: task
+        id: task.self.group-taskjuggler-unsupported-unit-warnings
+  - id: evidence.self.start-group-taskjuggler-unsupported-unit-warnings
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-06T14:47:30+07:00"
+    summary: Started on 2026-11-06 right after planning; estimate 1 agent hour frozen in baseline.2026-11-06.group-taskjuggler-unsupported-unit-warnings, split into agent 0.25 and Codex 0.75.
+    targets:
+      - kind: task
+        id: task.self.group-taskjuggler-unsupported-unit-warnings
