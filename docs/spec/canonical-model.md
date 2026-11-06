@@ -41,6 +41,34 @@ one system's schema as its core.
 
 ## Design principles
 
+### File style
+
+Canonical YAML uses two-space indentation. Sequences are indented under their
+key, block scalar content is indented by two spaces, and date strings are
+quoted. A tool that rewrites a whole file should keep this style or run
+`replan project format` afterwards. RePlan splice writes keep the style of a
+consistent existing file and do not reformat unrelated lines.
+
+PyYAML does not indent sequences under their key by default. A Python tool can
+match the style with a dumper that indents them and keeps key order:
+
+```python
+class Dumper(yaml.SafeDumper):
+    def increase_indent(self, flow=False, indentless=False):
+        return super().increase_indent(flow, False)
+
+def text(dumper, value):
+    style = '"' if re.match(r"\d{4}-\d\d-\d\d", value) else None
+    return dumper.represent_scalar("tag:yaml.org,2002:str", value, style=style)
+
+Dumper.add_representer(str, text)
+yaml.dump(doc, stream, Dumper=Dumper, indent=2, sort_keys=False,
+          allow_unicode=True, width=10**9)
+```
+
+PyYAML still picks its own quotes for other strings, so a few lines can
+differ; `replan project format --dry-run` shows what remains.
+
 ### Source-agnostic core
 
 Core entities must not contain OpenProject-only, Plane-only, GitHub-only or

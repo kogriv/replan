@@ -1,334 +1,334 @@
 calibration:
-    id: calibration.2026-11-02.agents-by-size
-    name: Agent estimates by task size
-    approved_by:
-        kind: actor
-        id: actor.human.maintainer
-    approved_at: "2026-11-02T18:54:46+07:00"
-    source_baselines:
-        - id: baseline.2026-10-15.tooling-consolidation
-          seal_sha256: cc264af2d4cffa7bdbdba4f6fc2722cc189fc122196a171ca03d4b9389e7dc67
-        - id: baseline.2026-10-28.oss-checkpoint
-          seal_sha256: d6e80a8e2691edecd6bd39b49e9fb96d78a0ec88f16ef17f458e634e7733ecdf
-        - id: baseline.2026-10-28.roadmap-plan
-          seal_sha256: 9e5f24078b4eb66f25e6801b32dbc47c466844e68e276fc5678ae811ac775474
-    scope:
-        resources:
-            - resource.ai.agent.executor
-            - resource.ai.codex.local
-        unit: agent_hours
-    sample:
-        tasks:
-            - task.self.accept-openproject-dates-through-import-accept
-            - task.self.add-agent-surface-map-and-date-direction-rule
-            - task.self.add-contributing-and-security-policy
-            - task.self.add-help-to-every-script
-            - task.self.add-replan-evidence-add
-            - task.self.add-replan-task-add
-            - task.self.backfill-actual-task-windows
-            - task.self.check-agent-kit-with-env-file-only
-            - task.self.clean-up-openproject-env-vars
-            - task.self.clear-remaining-lint-baseline
-            - task.self.cut-public-repository-from-sanitized-tree
-            - task.self.derive-self-plan-counts-from-fixture
-            - task.self.edit-work-package-subject-and-description-in-toolkit
-            - task.self.fix-openproject-relations-and-bootstrap-pagination
-            - task.self.guard-import-accept-against-real-ids
-            - task.self.implement-estimate-calibration
-            - task.self.implement-local-web-view
-            - task.self.import-second-tracker-from-file
-            - task.self.import-second-tracker-live
-            - task.self.index-openproject-design-docs
-            - task.self.keep-existing-bindings-on-bootstrap
-            - task.self.move-pilot-narrative-to-private-storage
-            - task.self.one-apply-gate-rule-for-cli-and-helpers
-            - task.self.pass-named-arguments-to-python-helpers
-            - task.self.preview-moved-task-dates-in-scenarios
-            - task.self.publish-first-release
-            - task.self.publish-public-repository
-            - task.self.read-private-openproject-bindings-in-go
-            - task.self.refresh-agent-kit-after-tooling-consolidation
-            - task.self.report-applied-actions-on-helper-failure
-            - task.self.report-missing-project-root-as-not-found
-            - task.self.report-openproject-rescheduling-after-relation-create
-            - task.self.retry-only-idempotent-openproject-requests
-            - task.self.share-openproject-bindings-module
-            - task.self.share-openproject-http-client-and-settings
-            - task.self.ship-overlay-publish-in-agent-kit
-            - task.self.single-openproject-status-map
-            - task.self.sync-cli-spec-and-getting-started
-            - task.self.track-the-task-acceptance-chain
-        excluded:
-            - task: task.self.add-gantt-resource-allocation-lanes
-              reason: estimated_after_start
-            - task: task.self.add-go-lint-baseline-and-ci-gate
-              reason: estimated_after_start
-            - task: task.self.add-openproject-backlog-reconcile-helper
-              reason: estimated_after_start
-            - task: task.self.add-openproject-tunnel-header-support
-              reason: estimated_after_start
-            - task: task.self.add-plan-vs-actual-state-tracking
-              reason: estimated_after_start
-            - task: task.self.add-plugin-gantt-navigation
-              reason: estimated_after_start
-            - task: task.self.add-plugin-rendered-page-checks
-              reason: estimated_after_start
-            - task: task.self.add-plugin-resource-load-profile
-              reason: estimated_after_start
-            - task: task.self.add-project-state-report
-              reason: estimated_after_start
-            - task: task.self.add-safe-openproject-dotenv-loader
-              reason: estimated_after_start
-            - task: task.self.add-static-gantt-dashboard
-              reason: estimated_after_start
-            - task: task.self.add-tracking-loop-observability
-              reason: estimated_after_start
-            - task: task.self.add-tracking-proposal-candidates
-              reason: estimated_after_start
-            - task: task.self.add-tracking-suggest-command
-              reason: estimated_after_start
-            - task: task.self.add-version-command-and-release-build
-              reason: estimated_after_start
-            - task: task.self.add-wiki-api-page-delete
-              reason: estimated_after_start
-            - task: task.self.add-wiki-commands-to-agent-kit
-              reason: estimated_after_start
-            - task: task.self.apply-tracking-remaining-proposals
-              reason: estimated_after_start
-            - task: task.self.audit-and-sync-project-documentation
-              reason: estimated_after_start
-            - task: task.self.audit-openproject-agent-tools-hands-on
-              reason: estimated_after_start
-            - task: task.self.calibrate-plan-and-resources
-              reason: estimated_after_start
-            - task: task.self.cancel-dependency-with-audit
-              reason: estimated_after_start
-            - task: task.self.check-upstream-openproject-wiki-api-roadmap
-              reason: estimated_after_start
-            - task: task.self.clean-dead-code-and-workload-spec
-              reason: estimated_after_start
-            - task: task.self.clean-post-pause-audit-hygiene
-              reason: estimated_after_start
-            - task: task.self.cleanup-oss-boundary
-              reason: estimated_after_start
-            - task: task.self.count-concurrent-slots-in-schedule-drift-like-workload
-              reason: actuals_judged
-            - task: task.self.create-replan-self-fixture
-              reason: estimated_after_start
-            - task: task.self.dedupe-import-accept-modes
-              reason: estimated_after_start
-            - task: task.self.define-openproject-overlay-json-contract
-              reason: estimated_after_start
-            - task: task.self.deploy-openproject-wiki-api-plugin-live
-              reason: estimated_after_start
-            - task: task.self.deploy-plugin-milestone-1
-              reason: estimated_after_start
-            - task: task.self.deploy-plugin-milestone-2
-              reason: actual_start_unknown
-            - task: task.self.deploy-plugin-milestone-3-and-accept-track
-              reason: estimated_after_start
-            - task: task.self.derive-helper-exit-codes-from-ok
-              reason: actuals_judged
-            - task: task.self.design-estimate-calibration
-              reason: estimated_after_start
-            - task: task.self.design-local-web-view
-              reason: estimated_after_start
-            - task: task.self.design-openproject-ai-cli-operating-layer
-              reason: estimated_after_start
-            - task: task.self.design-openproject-native-surface
-              reason: estimated_after_start
-            - task: task.self.design-openproject-plugin-deployment-path
-              reason: estimated_after_start
-            - task: task.self.design-openproject-plugin-gantt-view
-              reason: estimated_after_start
-            - task: task.self.design-openproject-read-only-plugin-feasibility
-              reason: estimated_after_start
-            - task: task.self.design-openproject-wiki-api-access
-              reason: estimated_after_start
-            - task: task.self.design-openproject-work-package-operator-toolkit
-              reason: estimated_after_start
-            - task: task.self.design-openproject-work-package-replan-panel
-              reason: estimated_after_start
-            - task: task.self.design-second-tracker-adapter
-              reason: estimated_after_start
-            - task: task.self.design-static-dashboard
-              reason: estimated_after_start
-            - task: task.self.drop-dogfood-defaults-from-kit-scripts
-              reason: actuals_judged
-            - task: task.self.evaluate-code-graph-quality-tooling
-              reason: estimated_after_start
-            - task: task.self.evaluate-openproject-agent-interfaces
-              reason: estimated_after_start
-            - task: task.self.execute-live-openproject-plugin-installation
-              reason: estimated_after_start
-            - task: task.self.expand-openproject-fixtures
-              reason: estimated_after_start
-            - task: task.self.extend-overlay-contract-for-plugin-views
-              reason: estimated_after_start
-            - task: task.self.fail-apply-without-openproject-token
-              reason: actuals_judged
-            - task: task.self.fix-actual-audit-ids-and-demand-reopen
-              reason: estimated_after_start
-            - task: task.self.fix-ci-smoke-ripgrep-dependency
-              reason: estimated_after_start
-            - task: task.self.fix-close-demand-stale-remaining
-              reason: estimated_after_start
-            - task: task.self.fix-plugin-panel-permission
-              reason: estimated_after_start
-            - task: task.self.give-replan-menu-item-an-icon
-              reason: estimated_after_start
-            - task: task.self.give-third-project-agent-own-identity
-              reason: estimated_after_start
-            - task: task.self.honest-weekly-workload-for-multi-week-and-concurrent-demands
-              reason: estimated_after_start
-            - task: task.self.honour-capacity-effective-dates
-              reason: estimated_after_start
-            - task: task.self.implement-dashboard-load-profile-rendering
-              reason: estimated_after_start
-            - task: task.self.implement-openproject-plugin-gantt-view
-              reason: estimated_after_start
-            - task: task.self.implement-openproject-preflight-operator-helpers
-              reason: estimated_after_start
-            - task: task.self.implement-openproject-private-binding-helper
-              reason: estimated_after_start
-            - task: task.self.implement-openproject-wiki-api-plugin
-              reason: estimated_after_start
-            - task: task.self.implement-openproject-work-package-create-helper
-              reason: estimated_after_start
-            - task: task.self.implement-openproject-work-package-operator-toolkit
-              reason: estimated_after_start
-            - task: task.self.implement-openproject-work-package-replan-panel
-              reason: estimated_after_start
-            - task: task.self.implement-static-dashboard
-              reason: estimated_after_start
-            - task: task.self.improve-live-openproject-plugin-resource-view
-              reason: estimated_after_start
-            - task: task.self.improve-state-report-next-actions
-              reason: estimated_after_start
-            - task: task.self.improve-static-gantt-observability
-              reason: estimated_after_start
-            - task: task.self.keep-non-working-day-dates-in-openproject
-              reason: estimated_after_start
-            - task: task.self.license-and-audit-repo-for-publication
-              reason: estimated_after_start
-            - task: task.self.link-openproject-work-package-to-replan-panel
-              reason: estimated_after_start
-            - task: task.self.load-dotenv-in-every-kit-script
-              reason: actuals_judged
-            - task: task.self.move-heredoc-python-into-script-modules
-              reason: estimated_after_start
-            - task: task.self.optimize-openproject-plugin-image-build-layering
-              reason: estimated_after_start
-            - task: task.self.package-openproject-tooling-for-outside-agents
-              reason: estimated_after_start
-            - task: task.self.pass-perimeter-key-to-openproject
-              reason: estimated_after_start
-            - task: task.self.pin-dashboard-html-golden
-              reason: estimated_after_start
-            - task: task.self.plan-mvp-readiness-audit
-              reason: estimated_after_start
-            - task: task.self.plan-post-mvp-dogfood
-              reason: estimated_after_start
-            - task: task.self.prepare-live-openproject-plugin-installation
-              reason: estimated_after_start
-            - task: task.self.prepare-release-story
-              reason: baseline_amount_not_positive
-            - task: task.self.prioritize-tracking-loop
-              reason: estimated_after_start
-            - task: task.self.prototype-openproject-native-surface-level-0-1
-              reason: estimated_after_start
-            - task: task.self.reconcile-dashboard-load-semantics
-              reason: estimated_after_start
-            - task: task.self.reconstruct-openproject-functionality-and-pitfalls
-              reason: estimated_after_start
-            - task: task.self.record-actual-task-window
-              reason: estimated_after_start
-            - task: task.self.reenter-openproject-dogfood-cycle-after-pause
-              reason: estimated_after_start
-            - task: task.self.refactor-live-replan-self-openproject-plan
-              reason: estimated_after_start
-            - task: task.self.refresh-agent-kit-for-second-project
-              reason: estimated_after_start
-            - task: task.self.refresh-second-project-agent-kit
-              reason: estimated_after_start
-            - task: task.self.remove-old-task-list-from-plugin-overview
-              reason: estimated_after_start
-            - task: task.self.remove-yaml-rewrite-noise
-              reason: estimated_after_start
-            - task: task.self.render-tracking-loop-dashboard
-              reason: estimated_after_start
-            - task: task.self.report-estimate-accuracy
-              reason: estimated_after_start
-            - task: task.self.restructure-plugin-project-page
-              reason: estimated_after_start
-            - task: task.self.review-agent-tooling-consistency
-              reason: estimated_after_start
-            - task: task.self.review-openproject-replan-plugin-views
-              reason: estimated_after_start
-            - task: task.self.run-first-dogfood-tracking-cleanup
-              reason: estimated_after_start
-            - task: task.self.run-full-openproject-dogfood-cycle
-              reason: actual_start_unknown
-            - task: task.self.scaffold-openproject-overlay-plugin-consumer
-              reason: estimated_after_start
-            - task: task.self.scope-plugin-overlay-to-its-project
-              reason: estimated_after_start
-            - task: task.self.select-next-product-slice-from-replan-reports
-              reason: estimated_after_start
-            - task: task.self.serve-plugin-overlays-per-project-live
-              reason: estimated_after_start
-            - task: task.self.set-project-status-date-command
-              reason: estimated_after_start
-            - task: task.self.show-evidence-and-actuals-in-plugin-panel
-              reason: estimated_after_start
-            - task: task.self.split-project-state-markdown
-              reason: estimated_after_start
-            - task: task.self.split-validate-workspace
-              reason: estimated_after_start
-            - task: task.self.stabilize-openproject-live-helper-timeouts
-              reason: estimated_after_start
-            - task: task.self.store-estimates-in-baselines
-              reason: estimated_after_start
-            - task: task.self.suggest-dependency-reviews-only-when-due
-              reason: estimated_after_start
-            - task: task.self.sync-latest-openproject-live-backlog-drift
-              reason: estimated_after_start
-            - task: task.self.theme-plugin-views-with-openproject-variables
-              reason: estimated_after_start
-            - task: task.self.unify-helper-json-envelope
-              reason: actuals_judged
-            - task: task.self.verify-openproject-plugin-throwaway-runtime
-              reason: estimated_after_start
-            - task: task.self.verify-openproject-wiki-api-plugin-throwaway-runtime
-              reason: estimated_after_start
-            - task: task.self.version-project-file-format
-              reason: estimated_after_start
-            - task: task.self.warn-accepted-task-future-window
-              reason: estimated_after_start
-            - task: task.self.warn-dependency-only-when-due
-              reason: estimated_after_start
-            - task: task.self.write-oss-readiness-audit
-              reason: estimated_after_start
-    result:
-        method: size_bands
-        factor: 0.2125
-        total_ratio: 0.20669
-        p25: 0.15125
-        p75: 0.270833
-        count: 39
-        size_bands:
-            - up_to: 2
-              count: 9
-              median: 0.5
-              factor: 0.5
-              factor_source: band
-            - up_to: 4
-              count: 18
-              median: 0.20375
-              factor: 0.20375
-              factor_source: band
-            - count: 12
-              median: 0.161333
-              factor: 0.161333
-              factor_source: band
-    seal_sha256: d645144012d82615fa6958da30068a75b02d65db57da9b1b07f5bbb68d0cf671
+  id: calibration.2026-11-02.agents-by-size
+  name: Agent estimates by task size
+  approved_by:
+    kind: actor
+    id: actor.human.maintainer
+  approved_at: "2026-11-02T18:54:46+07:00"
+  source_baselines:
+    - id: baseline.2026-10-15.tooling-consolidation
+      seal_sha256: cc264af2d4cffa7bdbdba4f6fc2722cc189fc122196a171ca03d4b9389e7dc67
+    - id: baseline.2026-10-28.oss-checkpoint
+      seal_sha256: d6e80a8e2691edecd6bd39b49e9fb96d78a0ec88f16ef17f458e634e7733ecdf
+    - id: baseline.2026-10-28.roadmap-plan
+      seal_sha256: 9e5f24078b4eb66f25e6801b32dbc47c466844e68e276fc5678ae811ac775474
+  scope:
+    resources:
+      - resource.ai.agent.executor
+      - resource.ai.codex.local
+    unit: agent_hours
+  sample:
+    tasks:
+      - task.self.accept-openproject-dates-through-import-accept
+      - task.self.add-agent-surface-map-and-date-direction-rule
+      - task.self.add-contributing-and-security-policy
+      - task.self.add-help-to-every-script
+      - task.self.add-replan-evidence-add
+      - task.self.add-replan-task-add
+      - task.self.backfill-actual-task-windows
+      - task.self.check-agent-kit-with-env-file-only
+      - task.self.clean-up-openproject-env-vars
+      - task.self.clear-remaining-lint-baseline
+      - task.self.cut-public-repository-from-sanitized-tree
+      - task.self.derive-self-plan-counts-from-fixture
+      - task.self.edit-work-package-subject-and-description-in-toolkit
+      - task.self.fix-openproject-relations-and-bootstrap-pagination
+      - task.self.guard-import-accept-against-real-ids
+      - task.self.implement-estimate-calibration
+      - task.self.implement-local-web-view
+      - task.self.import-second-tracker-from-file
+      - task.self.import-second-tracker-live
+      - task.self.index-openproject-design-docs
+      - task.self.keep-existing-bindings-on-bootstrap
+      - task.self.move-pilot-narrative-to-private-storage
+      - task.self.one-apply-gate-rule-for-cli-and-helpers
+      - task.self.pass-named-arguments-to-python-helpers
+      - task.self.preview-moved-task-dates-in-scenarios
+      - task.self.publish-first-release
+      - task.self.publish-public-repository
+      - task.self.read-private-openproject-bindings-in-go
+      - task.self.refresh-agent-kit-after-tooling-consolidation
+      - task.self.report-applied-actions-on-helper-failure
+      - task.self.report-missing-project-root-as-not-found
+      - task.self.report-openproject-rescheduling-after-relation-create
+      - task.self.retry-only-idempotent-openproject-requests
+      - task.self.share-openproject-bindings-module
+      - task.self.share-openproject-http-client-and-settings
+      - task.self.ship-overlay-publish-in-agent-kit
+      - task.self.single-openproject-status-map
+      - task.self.sync-cli-spec-and-getting-started
+      - task.self.track-the-task-acceptance-chain
+    excluded:
+      - task: task.self.add-gantt-resource-allocation-lanes
+        reason: estimated_after_start
+      - task: task.self.add-go-lint-baseline-and-ci-gate
+        reason: estimated_after_start
+      - task: task.self.add-openproject-backlog-reconcile-helper
+        reason: estimated_after_start
+      - task: task.self.add-openproject-tunnel-header-support
+        reason: estimated_after_start
+      - task: task.self.add-plan-vs-actual-state-tracking
+        reason: estimated_after_start
+      - task: task.self.add-plugin-gantt-navigation
+        reason: estimated_after_start
+      - task: task.self.add-plugin-rendered-page-checks
+        reason: estimated_after_start
+      - task: task.self.add-plugin-resource-load-profile
+        reason: estimated_after_start
+      - task: task.self.add-project-state-report
+        reason: estimated_after_start
+      - task: task.self.add-safe-openproject-dotenv-loader
+        reason: estimated_after_start
+      - task: task.self.add-static-gantt-dashboard
+        reason: estimated_after_start
+      - task: task.self.add-tracking-loop-observability
+        reason: estimated_after_start
+      - task: task.self.add-tracking-proposal-candidates
+        reason: estimated_after_start
+      - task: task.self.add-tracking-suggest-command
+        reason: estimated_after_start
+      - task: task.self.add-version-command-and-release-build
+        reason: estimated_after_start
+      - task: task.self.add-wiki-api-page-delete
+        reason: estimated_after_start
+      - task: task.self.add-wiki-commands-to-agent-kit
+        reason: estimated_after_start
+      - task: task.self.apply-tracking-remaining-proposals
+        reason: estimated_after_start
+      - task: task.self.audit-and-sync-project-documentation
+        reason: estimated_after_start
+      - task: task.self.audit-openproject-agent-tools-hands-on
+        reason: estimated_after_start
+      - task: task.self.calibrate-plan-and-resources
+        reason: estimated_after_start
+      - task: task.self.cancel-dependency-with-audit
+        reason: estimated_after_start
+      - task: task.self.check-upstream-openproject-wiki-api-roadmap
+        reason: estimated_after_start
+      - task: task.self.clean-dead-code-and-workload-spec
+        reason: estimated_after_start
+      - task: task.self.clean-post-pause-audit-hygiene
+        reason: estimated_after_start
+      - task: task.self.cleanup-oss-boundary
+        reason: estimated_after_start
+      - task: task.self.count-concurrent-slots-in-schedule-drift-like-workload
+        reason: actuals_judged
+      - task: task.self.create-replan-self-fixture
+        reason: estimated_after_start
+      - task: task.self.dedupe-import-accept-modes
+        reason: estimated_after_start
+      - task: task.self.define-openproject-overlay-json-contract
+        reason: estimated_after_start
+      - task: task.self.deploy-openproject-wiki-api-plugin-live
+        reason: estimated_after_start
+      - task: task.self.deploy-plugin-milestone-1
+        reason: estimated_after_start
+      - task: task.self.deploy-plugin-milestone-2
+        reason: actual_start_unknown
+      - task: task.self.deploy-plugin-milestone-3-and-accept-track
+        reason: estimated_after_start
+      - task: task.self.derive-helper-exit-codes-from-ok
+        reason: actuals_judged
+      - task: task.self.design-estimate-calibration
+        reason: estimated_after_start
+      - task: task.self.design-local-web-view
+        reason: estimated_after_start
+      - task: task.self.design-openproject-ai-cli-operating-layer
+        reason: estimated_after_start
+      - task: task.self.design-openproject-native-surface
+        reason: estimated_after_start
+      - task: task.self.design-openproject-plugin-deployment-path
+        reason: estimated_after_start
+      - task: task.self.design-openproject-plugin-gantt-view
+        reason: estimated_after_start
+      - task: task.self.design-openproject-read-only-plugin-feasibility
+        reason: estimated_after_start
+      - task: task.self.design-openproject-wiki-api-access
+        reason: estimated_after_start
+      - task: task.self.design-openproject-work-package-operator-toolkit
+        reason: estimated_after_start
+      - task: task.self.design-openproject-work-package-replan-panel
+        reason: estimated_after_start
+      - task: task.self.design-second-tracker-adapter
+        reason: estimated_after_start
+      - task: task.self.design-static-dashboard
+        reason: estimated_after_start
+      - task: task.self.drop-dogfood-defaults-from-kit-scripts
+        reason: actuals_judged
+      - task: task.self.evaluate-code-graph-quality-tooling
+        reason: estimated_after_start
+      - task: task.self.evaluate-openproject-agent-interfaces
+        reason: estimated_after_start
+      - task: task.self.execute-live-openproject-plugin-installation
+        reason: estimated_after_start
+      - task: task.self.expand-openproject-fixtures
+        reason: estimated_after_start
+      - task: task.self.extend-overlay-contract-for-plugin-views
+        reason: estimated_after_start
+      - task: task.self.fail-apply-without-openproject-token
+        reason: actuals_judged
+      - task: task.self.fix-actual-audit-ids-and-demand-reopen
+        reason: estimated_after_start
+      - task: task.self.fix-ci-smoke-ripgrep-dependency
+        reason: estimated_after_start
+      - task: task.self.fix-close-demand-stale-remaining
+        reason: estimated_after_start
+      - task: task.self.fix-plugin-panel-permission
+        reason: estimated_after_start
+      - task: task.self.give-replan-menu-item-an-icon
+        reason: estimated_after_start
+      - task: task.self.give-third-project-agent-own-identity
+        reason: estimated_after_start
+      - task: task.self.honest-weekly-workload-for-multi-week-and-concurrent-demands
+        reason: estimated_after_start
+      - task: task.self.honour-capacity-effective-dates
+        reason: estimated_after_start
+      - task: task.self.implement-dashboard-load-profile-rendering
+        reason: estimated_after_start
+      - task: task.self.implement-openproject-plugin-gantt-view
+        reason: estimated_after_start
+      - task: task.self.implement-openproject-preflight-operator-helpers
+        reason: estimated_after_start
+      - task: task.self.implement-openproject-private-binding-helper
+        reason: estimated_after_start
+      - task: task.self.implement-openproject-wiki-api-plugin
+        reason: estimated_after_start
+      - task: task.self.implement-openproject-work-package-create-helper
+        reason: estimated_after_start
+      - task: task.self.implement-openproject-work-package-operator-toolkit
+        reason: estimated_after_start
+      - task: task.self.implement-openproject-work-package-replan-panel
+        reason: estimated_after_start
+      - task: task.self.implement-static-dashboard
+        reason: estimated_after_start
+      - task: task.self.improve-live-openproject-plugin-resource-view
+        reason: estimated_after_start
+      - task: task.self.improve-state-report-next-actions
+        reason: estimated_after_start
+      - task: task.self.improve-static-gantt-observability
+        reason: estimated_after_start
+      - task: task.self.keep-non-working-day-dates-in-openproject
+        reason: estimated_after_start
+      - task: task.self.license-and-audit-repo-for-publication
+        reason: estimated_after_start
+      - task: task.self.link-openproject-work-package-to-replan-panel
+        reason: estimated_after_start
+      - task: task.self.load-dotenv-in-every-kit-script
+        reason: actuals_judged
+      - task: task.self.move-heredoc-python-into-script-modules
+        reason: estimated_after_start
+      - task: task.self.optimize-openproject-plugin-image-build-layering
+        reason: estimated_after_start
+      - task: task.self.package-openproject-tooling-for-outside-agents
+        reason: estimated_after_start
+      - task: task.self.pass-perimeter-key-to-openproject
+        reason: estimated_after_start
+      - task: task.self.pin-dashboard-html-golden
+        reason: estimated_after_start
+      - task: task.self.plan-mvp-readiness-audit
+        reason: estimated_after_start
+      - task: task.self.plan-post-mvp-dogfood
+        reason: estimated_after_start
+      - task: task.self.prepare-live-openproject-plugin-installation
+        reason: estimated_after_start
+      - task: task.self.prepare-release-story
+        reason: baseline_amount_not_positive
+      - task: task.self.prioritize-tracking-loop
+        reason: estimated_after_start
+      - task: task.self.prototype-openproject-native-surface-level-0-1
+        reason: estimated_after_start
+      - task: task.self.reconcile-dashboard-load-semantics
+        reason: estimated_after_start
+      - task: task.self.reconstruct-openproject-functionality-and-pitfalls
+        reason: estimated_after_start
+      - task: task.self.record-actual-task-window
+        reason: estimated_after_start
+      - task: task.self.reenter-openproject-dogfood-cycle-after-pause
+        reason: estimated_after_start
+      - task: task.self.refactor-live-replan-self-openproject-plan
+        reason: estimated_after_start
+      - task: task.self.refresh-agent-kit-for-second-project
+        reason: estimated_after_start
+      - task: task.self.refresh-second-project-agent-kit
+        reason: estimated_after_start
+      - task: task.self.remove-old-task-list-from-plugin-overview
+        reason: estimated_after_start
+      - task: task.self.remove-yaml-rewrite-noise
+        reason: estimated_after_start
+      - task: task.self.render-tracking-loop-dashboard
+        reason: estimated_after_start
+      - task: task.self.report-estimate-accuracy
+        reason: estimated_after_start
+      - task: task.self.restructure-plugin-project-page
+        reason: estimated_after_start
+      - task: task.self.review-agent-tooling-consistency
+        reason: estimated_after_start
+      - task: task.self.review-openproject-replan-plugin-views
+        reason: estimated_after_start
+      - task: task.self.run-first-dogfood-tracking-cleanup
+        reason: estimated_after_start
+      - task: task.self.run-full-openproject-dogfood-cycle
+        reason: actual_start_unknown
+      - task: task.self.scaffold-openproject-overlay-plugin-consumer
+        reason: estimated_after_start
+      - task: task.self.scope-plugin-overlay-to-its-project
+        reason: estimated_after_start
+      - task: task.self.select-next-product-slice-from-replan-reports
+        reason: estimated_after_start
+      - task: task.self.serve-plugin-overlays-per-project-live
+        reason: estimated_after_start
+      - task: task.self.set-project-status-date-command
+        reason: estimated_after_start
+      - task: task.self.show-evidence-and-actuals-in-plugin-panel
+        reason: estimated_after_start
+      - task: task.self.split-project-state-markdown
+        reason: estimated_after_start
+      - task: task.self.split-validate-workspace
+        reason: estimated_after_start
+      - task: task.self.stabilize-openproject-live-helper-timeouts
+        reason: estimated_after_start
+      - task: task.self.store-estimates-in-baselines
+        reason: estimated_after_start
+      - task: task.self.suggest-dependency-reviews-only-when-due
+        reason: estimated_after_start
+      - task: task.self.sync-latest-openproject-live-backlog-drift
+        reason: estimated_after_start
+      - task: task.self.theme-plugin-views-with-openproject-variables
+        reason: estimated_after_start
+      - task: task.self.unify-helper-json-envelope
+        reason: actuals_judged
+      - task: task.self.verify-openproject-plugin-throwaway-runtime
+        reason: estimated_after_start
+      - task: task.self.verify-openproject-wiki-api-plugin-throwaway-runtime
+        reason: estimated_after_start
+      - task: task.self.version-project-file-format
+        reason: estimated_after_start
+      - task: task.self.warn-accepted-task-future-window
+        reason: estimated_after_start
+      - task: task.self.warn-dependency-only-when-due
+        reason: estimated_after_start
+      - task: task.self.write-oss-readiness-audit
+        reason: estimated_after_start
+  result:
+    method: size_bands
+    factor: 0.2125
+    total_ratio: 0.20669
+    p25: 0.15125
+    p75: 0.270833
+    count: 39
+    size_bands:
+      - up_to: 2
+        count: 9
+        median: 0.5
+        factor: 0.5
+        factor_source: band
+      - up_to: 4
+        count: 18
+        median: 0.20375
+        factor: 0.20375
+        factor_source: band
+      - count: 12
+        median: 0.161333
+        factor: 0.161333
+        factor_source: band
+  seal_sha256: d645144012d82615fa6958da30068a75b02d65db57da9b1b07f5bbb68d0cf671

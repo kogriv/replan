@@ -11,7 +11,7 @@ import (
 
 	"github.com/kogriv/replan/internal/app"
 	"github.com/kogriv/replan/internal/domain"
-	"gopkg.in/yaml.v3"
+	"github.com/kogriv/replan/internal/storage/yamlformat"
 )
 
 type TaskJugglerImportResult struct {
@@ -506,10 +506,10 @@ func taskJugglerProposalPreview(scenario domain.Scenario, manifest TaskJugglerRu
 }
 
 func taskJugglerCandidatePlannedWrites(scenario domain.Scenario, proposal domain.Proposal) []app.PlannedWrite {
-	scenarioContent, _ := yaml.Marshal(struct {
+	scenarioContent, _ := yamlformat.Render(struct {
 		Scenario domain.Scenario `yaml:"scenario"`
 	}{Scenario: scenario})
-	proposalContent, _ := yaml.Marshal(struct {
+	proposalContent, _ := yamlformat.Render(struct {
 		Proposal domain.Proposal `yaml:"proposal"`
 	}{Proposal: proposal})
 	return []app.PlannedWrite{

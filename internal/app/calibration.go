@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/kogriv/replan/internal/domain"
-	"gopkg.in/yaml.v3"
+	"github.com/kogriv/replan/internal/storage/yamlformat"
 )
 
 const CalibrationMinimumSample = 8
@@ -190,7 +190,7 @@ func (s CalibrationService) Calibrate(ctx context.Context, req CalibrationCalibr
 	}
 	result.Calibration = calibration
 	path := filepath.ToSlash(filepath.Join("calibrations", req.ID+".yaml"))
-	data, err := yaml.Marshal(struct {
+	data, err := yamlformat.Render(struct {
 		Calibration domain.Calibration `yaml:"calibration"`
 	}{Calibration: calibration})
 	if err != nil {
@@ -688,7 +688,7 @@ func (s CalibrationService) Apply(ctx context.Context, req CalibrationApplyReque
 	}
 	scenario := buildCalibrationScenario(ws, calibration, req.ScenarioID, req.ActorID, occurredAt, &result.Skipped)
 	result.Scenario = scenario
-	data, err := yaml.Marshal(struct {
+	data, err := yamlformat.Render(struct {
 		Scenario domain.Scenario `yaml:"scenario"`
 	}{Scenario: scenario})
 	if err != nil {

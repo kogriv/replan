@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/kogriv/replan/internal/domain"
-	"gopkg.in/yaml.v3"
+	"github.com/kogriv/replan/internal/storage/yamlformat"
 )
 
 type BaselineService struct {
@@ -137,7 +137,7 @@ func (s BaselineService) Create(ctx context.Context, req BaselineCreateRequest) 
 	}
 
 	path := filepath.ToSlash(filepath.Join("baselines", req.ID+".yaml"))
-	data, err := yaml.Marshal(struct {
+	data, err := yamlformat.Render(struct {
 		Baseline domain.Baseline `yaml:"baseline"`
 	}{Baseline: baseline})
 	if err != nil {

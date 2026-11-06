@@ -78,7 +78,7 @@ make_self_tracking_suggest_stale() {
   rm -f "$project"/proposals/open/proposal.tracking.resource_demand-tracking-suggest-*.yaml
   rm -f "$project"/proposals/accepted/proposal.tracking.resource_demand-tracking-suggest-*.yaml
   rm -f "$project"/proposals/rejected/proposal.tracking.resource_demand-tracking-suggest-*.yaml
-  perl -0pi -e 's/(id: resource_demand\.tracking-suggest\.maintainer\n      task_ref:\n        kind: task\n        id: task\.self\.add-tracking-suggest-command\n      resource_ref:\n        kind: resource\n        id: resource\.human\.maintainer\n      resource_class: human\n      role: implementer\n      unit: hours\n      planned_amount: 3\n)(      criticality: required)/$1      remaining_amount: 3\n$2/' "$project/canonical/resource_demands.yaml"
+  perl -0pi -e 's/(id: resource_demand\.tracking-suggest\.maintainer\n    task_ref:\n      kind: task\n      id: task\.self\.add-tracking-suggest-command\n    resource_ref:\n      kind: resource\n      id: resource\.human\.maintainer\n    resource_class: human\n    role: implementer\n    unit: hours\n    planned_amount: 3\n)(    criticality: required)/$1    remaining_amount: 3\n$2/' "$project/canonical/resource_demands.yaml"
 }
 
 run_json_ok() {
@@ -290,7 +290,7 @@ run_json_ok self-tracking-validate-after-accept "$BIN" validate "$self_tracking_
 # An accepted zero is recorded explicitly, not dropped (GAP-016).
 awk '
   /id: resource_demand.tracking-suggest.maintainer/ { found = 1; in_target = 1; next }
-  in_target && /^    - id:/ { in_target = 0 }
+  in_target && /^  - id:/ { in_target = 0 }
   in_target && /remaining_amount: 0$/ { zero = 1 }
   END { if (!found || !zero) exit 1 }
 ' "$self_tracking_project/canonical/resource_demands.yaml"
@@ -299,8 +299,8 @@ cp -a "$SELF_PROJECT" "$self_close_demand_project"
 # The lifecycle checks below need an active demand. Set one up in the copy so
 # the smoke does not depend on the living project's current demand states.
 awk '
-  /^    - id: / { in_target = ($0 ~ /id: resource_demand.full-dogfood-cycle.review$/) }
-  in_target && /^      status: / { sub(/status: .*/, "status: active") }
+  /^  - id: / { in_target = ($0 ~ /id: resource_demand.full-dogfood-cycle.review$/) }
+  in_target && /^    status: / { sub(/status: .*/, "status: active") }
   { print }
 ' "$self_close_demand_project/canonical/resource_demands.yaml" >"$TMP_DIR/demands.active.yaml"
 mv "$TMP_DIR/demands.active.yaml" "$self_close_demand_project/canonical/resource_demands.yaml"
@@ -326,7 +326,7 @@ assert_contains "$TMP_DIR/self-close-demand.json" '"applied": true'
 assert_project_audit_contains "$self_close_demand_project" 'actual_close_demand'
 awk '
   /id: resource_demand.full-dogfood-cycle.review/ { found = 1; in_target = 1; next }
-  in_target && /^    - id:/ { in_target = 0 }
+  in_target && /^  - id:/ { in_target = 0 }
   in_target && /status: cancelled/ { cancelled = 1 }
   END { if (!found || !cancelled) exit 1 }
 ' "$self_close_demand_project/canonical/resource_demands.yaml"
@@ -344,7 +344,7 @@ assert_contains "$TMP_DIR/self-reopen-demand.json" '"previous_status": "cancelle
 assert_project_audit_contains "$self_close_demand_project" 'actual_reopen_demand'
 awk '
   /id: resource_demand.full-dogfood-cycle.review/ { found = 1; in_target = 1; next }
-  in_target && /^    - id:/ { in_target = 0 }
+  in_target && /^  - id:/ { in_target = 0 }
   in_target && /status: active/ { active = 1 }
   in_target && /remaining_amount: 0.5$/ { remaining = 1 }
   END { if (!found || !active || !remaining) exit 1 }

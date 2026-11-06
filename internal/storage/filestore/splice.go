@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/kogriv/replan/internal/storage/yamlformat"
 	"gopkg.in/yaml.v3"
 )
 
@@ -19,16 +20,18 @@ func renderYAML(original []byte, doc any) ([]byte, error) {
 	return renderYAMLWithOptions(original, doc, spliceOptions{})
 }
 
-// spliceOptions are opt-in fixes for narrow canonical writes. They stay out
-// of the generic writer so commands outside those surfaces keep their current
-// rendering until YAML style is unified deliberately.
+// spliceOptions allow a caller to request splice behavior explicitly. The
+// generic writer enables the style-preserving behaviors for every canonical
+// write, so newly appended nested blocks copy their siblings' indentation.
 type spliceOptions struct {
 	appendNestedSequences  bool
 	twoSpaceMappingEntries bool
 }
 
 func renderYAMLWithOptions(original []byte, doc any, options spliceOptions) ([]byte, error) {
-	whole, err := yaml.Marshal(doc)
+	options.appendNestedSequences = true
+	options.twoSpaceMappingEntries = true
+	whole, err := yamlformat.Render(doc)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +57,7 @@ func sameDocument(spliced, whole []byte, doc any) bool {
 	if err := yaml.Unmarshal(spliced, target.Interface()); err != nil {
 		return false
 	}
-	again, err := yaml.Marshal(target.Elem().Interface())
+	again, err := yamlformat.Render(target.Elem().Interface())
 	return err == nil && bytes.Equal(again, whole)
 }
 
@@ -389,6 +392,9 @@ func renderMappingEntry(key string, old, name, next *yaml.Node, column int, twoS
 // renderBelow renders wrapper, drops its first line (the wrapping key) and
 // moves the rest so its first line starts at column.
 func renderBelow(wrapper *yaml.Node, column int) ([]string, bool) {
+	// This is a temporary wrapper used to render one splice fragment, not a
+	// complete file. yaml.v3's four-space node indentation is normalized below
+	// to the sibling indentation in the existing file.
 	out, err := yaml.Marshal(wrapper)
 	if err != nil {
 		return nil, false

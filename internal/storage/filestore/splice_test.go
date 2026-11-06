@@ -1,6 +1,7 @@
 package filestore
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -287,6 +288,29 @@ func TestSpliceAppendEvidenceToHandAppendedDogfoodFile(t *testing.T) {
 	}
 	if !strings.HasPrefix(strings.TrimPrefix(got, string(original)), "  - id: evidence.splice.probe\n") {
 		t.Fatalf("appended record:\n%s", strings.TrimPrefix(got, string(original)))
+	}
+}
+
+func TestSpliceAppendMatchesTwoAndFourSpaceSiblings(t *testing.T) {
+	for _, dash := range []int{2, 4} {
+		t.Run(fmt.Sprintf("dash_%d", dash), func(t *testing.T) {
+			root := t.TempDir()
+			rel := evidencePath("2026-11-05T10:00:00Z")
+			indent := strings.Repeat(" ", dash)
+			original := "evidence:\n" + indent + "- id: evidence.a\n" + indent + "  type: note\n" + indent + "  observed_at: \"2026-11-05T09:00:00Z\"\n" + indent + "  summary: Existing\n"
+			writeHandFile(t, root, rel, original)
+			item := domain.Evidence{ID: "evidence.b", Type: "note", ObservedAt: "2026-11-05T10:00:00Z", Summary: "New"}
+			if _, err := New(root).AppendEvidence(item.ObservedAt, item); err != nil {
+				t.Fatal(err)
+			}
+			got := readHandFile(t, root, rel)
+			if !strings.HasPrefix(got, original) {
+				t.Fatalf("existing lines changed:\n%s", got)
+			}
+			if added := strings.TrimPrefix(got, original); !strings.HasPrefix(added, indent+"- id: evidence.b\n") {
+				t.Fatalf("new item does not match sibling indentation:\n%s", added)
+			}
+		})
 	}
 }
 

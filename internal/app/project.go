@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -21,12 +22,127 @@ type ProjectMigrationWriter interface {
 	AppendAudit(record domain.AuditRecord) (string, error)
 }
 
+type ProjectFormatFile struct {
+	Path         string `json:"path"`
+	ChangedLines int    `json:"changed_lines"`
+}
+
+type ProjectFormatRequest struct {
+	Reason  string
+	ActorID string
+	DryRun  bool
+	Now     time.Time
+}
+
+type ProjectFormatResult struct {
+	DryRun             bool                `json:"dry_run"`
+	Applied            bool                `json:"applied"`
+	ProjectID          string              `json:"project_id"`
+	Files              []ProjectFormatFile `json:"files"`
+	ChangedFiles       int                 `json:"changed_files"`
+	ChangedLines       int                 `json:"changed_lines"`
+	PlannedWrites      []PlannedWrite      `json:"planned_writes"`
+	WrittenFiles       []string            `json:"written_files,omitempty"`
+	AuditRecordPreview domain.AuditRecord  `json:"audit_record_preview"`
+	Validation         *ValidateResult     `json:"validation,omitempty"`
+	Warnings           []Diagnostic        `json:"warnings"`
+	Errors             []Diagnostic        `json:"errors"`
+}
+
+type ProjectFormatter interface {
+	FormatCanonicalYAML(apply bool) ([]ProjectFormatFile, error)
+	AppendAudit(record domain.AuditRecord) (string, error)
+}
+
 type ProjectService struct {
 	loader WorkspaceLoader
 }
 
 func NewProjectService(loader WorkspaceLoader) ProjectService {
 	return ProjectService{loader: loader}
+}
+
+// Format rewrites canonical project YAML without changing its parsed data.
+func (s ProjectService) Format(ctx context.Context, req ProjectFormatRequest) (ProjectFormatResult, error) {
+	ws, loadDiags := s.loader.Load(ctx)
+	result := ProjectFormatResult{DryRun: req.DryRun, ProjectID: ws.Project.ID, Files: []ProjectFormatFile{}, PlannedWrites: []PlannedWrite{}, WrittenFiles: []string{}, Warnings: []Diagnostic{}, Errors: []Diagnostic{}}
+	appendLoadDiagnostics(&result.Warnings, &result.Errors, loadDiags)
+	if req.ActorID == "" {
+		result.Errors = append(result.Errors, Diagnostic{Code: "missing_actor", Message: "actor is required", Severity: "error", Target: Target{Kind: "actor"}})
+	} else if !hasActor(ws.Actors, req.ActorID) {
+		result.Errors = append(result.Errors, Diagnostic{Code: "actor_not_found", Message: fmt.Sprintf("actor %s not found", req.ActorID), Severity: "error", Target: Target{Kind: "actor", ID: req.ActorID}})
+	}
+	if req.Reason == "" {
+		result.Errors = append(result.Errors, Diagnostic{Code: "missing_reason", Message: "reason is required", Severity: "error", Target: Target{Kind: "project", ID: ws.Project.ID}})
+	}
+	if len(result.Errors) > 0 {
+		return result, ErrValidationFailed
+	}
+	formatter, ok := s.loader.(ProjectFormatter)
+	if !ok {
+		result.Errors = append(result.Errors, Diagnostic{Code: "storage_write_not_supported", Message: "configured project store does not support project formatting", Severity: "error", Target: Target{Kind: "project", ID: s.loader.ProjectPath()}})
+		return result, ErrValidationFailed
+	}
+	files, err := formatter.FormatCanonicalYAML(false)
+	if err != nil {
+		return projectFormatFailure(result, err)
+	}
+	result.Files = files
+	result.ChangedFiles = len(files)
+	for _, file := range files {
+		result.ChangedLines += file.ChangedLines
+		result.PlannedWrites = append(result.PlannedWrites, PlannedWrite{Path: file.Path, Action: "format_yaml", Format: "yaml"})
+	}
+	now := req.Now
+	if now.IsZero() {
+		now = time.Now()
+	}
+	audit := domain.AuditRecord{ID: "audit." + compactTimestamp(now.Format(time.RFC3339)) + ".project-format." + slugID(ws.Project.ID), OccurredAt: now.Format(time.RFC3339), ActorRef: domain.Ref{Kind: "actor", ID: req.ActorID}, Operation: "project_format", TargetRef: domain.Ref{Kind: "project", ID: ws.Project.ID}, Reason: req.Reason, Result: "success"}
+	if req.DryRun {
+		audit.Result = "dry_run"
+	}
+	result.AuditRecordPreview = audit
+	result.PlannedWrites = append(result.PlannedWrites, auditPlannedWrite(audit))
+	if req.DryRun {
+		return result, nil
+	}
+	session := beginWrite(s.loader)
+	writer, ok := session.target.(ProjectFormatter)
+	if !ok {
+		return result, ErrValidationFailed
+	}
+	files, err = writer.FormatCanonicalYAML(true)
+	if err != nil {
+		return projectFormatFailure(result, err)
+	}
+	for _, file := range files {
+		result.WrittenFiles = append(result.WrittenFiles, file.Path)
+	}
+	auditPath, err := writer.AppendAudit(audit)
+	if err != nil {
+		result.Errors = append(result.Errors, Diagnostic{Code: "audit_write_failed", Message: err.Error(), Severity: "error", Target: Target{Kind: "audit_record", ID: audit.ID}})
+		return result, err
+	}
+	result.WrittenFiles = append(result.WrittenFiles, auditPath)
+	validation, written, err := session.finish(ctx, result.WrittenFiles)
+	result.Validation, result.WrittenFiles = &validation, written
+	if err != nil {
+		result.Errors = append(result.Errors, validation.Errors...)
+		return result, err
+	}
+	result.Applied = true
+	return result, nil
+}
+
+func projectFormatFailure(result ProjectFormatResult, err error) (ProjectFormatResult, error) {
+	var refusal interface{ FormatWouldChangeData() string }
+	if errors.As(err, &refusal) {
+		path := refusal.FormatWouldChangeData()
+		result.Errors = append(result.Errors, Diagnostic{Code: "format_would_change_data", Message: err.Error(), Severity: "error", Target: Target{Kind: "file", ID: path}})
+		return result, ErrValidationFailed
+	}
+	result.Errors = append(result.Errors, Diagnostic{Code: "project_format_failed", Message: err.Error(), Severity: "error", Target: Target{Kind: "project", ID: result.ProjectID}})
+	return result, err
 }
 
 type ProjectSetStatusDateRequest struct {

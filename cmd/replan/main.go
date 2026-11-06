@@ -171,6 +171,7 @@ func printUsage(out *os.File) {
 	fmt.Fprintln(out, "  replan estimate apply --project <path> --calibration <id> --scenario-id <id> --actor <id> (--dry-run|--apply) [--format json|markdown]")
 	fmt.Fprintln(out, "  replan next --project <path> [--week <YYYY-Www>] [--format text|json]")
 	fmt.Fprintln(out, "  replan project migrate --project <path> --actor <id> [--reason <text>] [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|markdown]")
+	fmt.Fprintln(out, "  replan project format --project <path> --actor <id> --reason <text> (--dry-run|--apply) [--format json|text]")
 	fmt.Fprintln(out, "  replan project recover --project <path> (--dry-run|--apply) [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan project set-status-date --project <path> --date <YYYY-MM-DD|today> --actor <id> [--reason <text>] (--dry-run|--apply) [--format json|markdown]")
 	fmt.Fprintln(out, "  replan report state --project <path> [--week <YYYY-Www>] [--raw] [--format json|markdown|text]")

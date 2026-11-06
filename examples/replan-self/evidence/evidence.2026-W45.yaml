@@ -1,939 +1,939 @@
 evidence:
-    - id: evidence.self.start-calibrate-estimates-by-size
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-02T18:01:37+07:00"
-      summary: 'Agreed with the operator on 2026-11-02 ("приступай как рекомендуешь"). A dry run over the three estimate baselines found 39 clean agent tasks with size bands of 9, 18 and 12 tasks (medians 0.5, 0.20, 0.16), so every band now reaches the minimum sample. Decision: an opt-in --by-size calibration with a sealed factor per band and fallback to the overall factor below the minimum; existing records keep one factor. Original estimate before the Codex split: 3 agent hours. The task is not in any baseline.'
-      targets:
-        - kind: task
-          id: task.self.calibrate-estimates-by-size
-    - id: evidence.self.calibrate-estimates-by-size
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-02T18:44:24+07:00"
-      summary: 'Codex round 1 (18:05:47-18:25:09) added estimate calibrate --by-size: a sealed factor per size band, the band median at 8 or more tasks and the overall factor below, all three bands listed, one CalibrationFactor lookup used by estimate apply, task add hints, next and the reports; validate refuses unknown methods and bands without factors; the 2026-10-29 record keeps its seal and single factor. Review fixes: removed a wrong openproject_sync_pending note from the design doc, a plain bool instead of a variadic flag, task amounts computed once per calibration, show layout. Checked on a copy of the self plan: a --by-size calibration over the three estimate baselines gives 39 tasks and band factors 0.5, 0.20 and 0.16; a 1.5-hour split task takes the up-to-2 band, a 6-hour task the above-4 band; estimate apply and next use the band factors. Full local gate green, 79 live kit checks (commit a5fad14).'
-      targets:
-        - kind: task
-          id: task.self.calibrate-estimates-by-size
-    - id: evidence.self.accept-calibrate-estimates-by-size
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-02T18:53:29+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-02: size-band calibration (--by-size) with fallback to the overall factor.'
-      targets:
-        - kind: task
-          id: task.self.calibrate-estimates-by-size
-    - id: evidence.self.approve-size-band-calibration
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-02T18:54:46+07:00"
-      summary: 'The operator approved on 2026-11-02 ("остальное - как рекомендуешь") writing calibration.2026-11-02.agents-by-size: executor and Codex agent hours over the three estimate baselines, the six judged 15-16 October tasks excluded as before, factors per size band. Applying it to open work through a scenario is left for a separate decision.'
-      targets:
-        - kind: project
-          id: project.replan-self
-    - id: evidence.self.start-keep-new-tasks-calibratable
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-02T18:56:22+07:00"
-      summary: 'The operator chose on 2026-11-02 ("остальное - как рекомендуешь") a baseline limited to the new task(s), taken when they are planned and approved together with the task. Decision: baseline create --task with scope tasks, reports skip limited baselines when unpinned, estimate calibrate --all-baselines, next suggests across limited baselines, the step added to the backlog convention. Original estimate before the Codex split: 1.5 agent hours; the task is not in any baseline.'
-      targets:
-        - kind: task
-          id: task.self.keep-new-tasks-calibratable
-    - id: evidence.self.start-smoke-dashboard-week-follows-status-date
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-02T19:08:30+07:00"
-      summary: 'Started at once because main is red. I fix it myself, without Codex: the smoke reads default_status_date from the copied project and asserts its ISO week on the workload page. Original estimate 0.25 agent hours; not in any baseline.'
-      targets:
-        - kind: task
-          id: task.self.smoke-dashboard-week-follows-status-date
-    - id: evidence.self.smoke-dashboard-week-follows-status-date
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-02T19:14:59+07:00"
-      summary: The smoke reads default_status_date from the copied self project and asserts its ISO week (computed with python3, portable) on the dashboard workload page. Smoke and the smoke on a copy without private settings pass; shellcheck clean (commit 33db7ae).
-      targets:
-        - kind: task
-          id: task.self.smoke-dashboard-week-follows-status-date
-    - id: evidence.self.smoke-dashboard-week-follows-status-date-go-test
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-02T19:25:06+07:00"
-      summary: 'CI stayed red after the smoke fix: TestDashboardOpenProjectOverlaySelfFixture also pinned 2026-W40. It now derives the expected window (four weeks before to eight weeks after the status week) from the self plan status date. go test ./... and lint pass; CI run 41444139671 green (commit 111864a). Lesson: run go test, not only the smoke, after moving the self plan status date.'
-      targets:
-        - kind: task
-          id: task.self.smoke-dashboard-week-follows-status-date
-    - id: evidence.self.keep-new-tasks-calibratable
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-02T19:46:02+07:00"
-      summary: 'Codex round 1 (19:04:28-19:20:37) added baseline create --task (scope: tasks, sealed), the unpinned report fallback skipping limited baselines, estimate calibrate --all-baselines with a conflict refusal, a next suggestion across limited baselines, scope in baseline list/show, one dashboard table for limited baselines, and the planning step in the backlog convention. Review fixes: validate refuses an unknown baseline scope (split out to keep gocyclo under 30), a test expected 4 demands where the fixture task has 5. Checked on a copy of the self plan: a one-task baseline is 1.7 KB, unknown task refused, --all-baselines with --baseline refused, --all-baselines picks up the limited baseline, weekly report keeps the pinned whole-plan baseline. Full local gate green, 79 live kit checks (commit 4e30b1a). Agent time excludes the smoke fix (task 671) and a reply to another session, about 0.1 h.'
-      targets:
-        - kind: task
-          id: task.self.keep-new-tasks-calibratable
-    - id: evidence.self.smoke-dashboard-week-follows-status-date-calibration-test
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-02T19:52:55+07:00"
-      summary: 'A third test of the same kind failed in CI run 41447861399 after task 670 closed the last open agent demands: TestCommittedSingleFactorCalibrationStillVerifiesAndApplies (added with task 669) applied the old calibration to the live self plan. It now copies the plan, adds one open 4-hour agent demand and expects 0.75. cmd/replan tests and lint pass (commit 6e54ff9).'
-      targets:
-        - kind: task
-          id: task.self.smoke-dashboard-week-follows-status-date
-    - id: evidence.self.accept-keep-new-tasks-calibratable
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-03T07:36:08+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-03: limited baselines (baseline create --task), estimate calibrate --all-baselines and the convention step.'
-      targets:
-        - kind: task
-          id: task.self.keep-new-tasks-calibratable
-    - id: evidence.self.accept-smoke-dashboard-week-follows-status-date
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-03T07:36:53+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-03: smoke and two tests no longer depend on the live self-plan status week or open work.'
-      targets:
-        - kind: task
-          id: task.self.smoke-dashboard-week-follows-status-date
-    - id: evidence.self.cancel-remove-superseded-pilot-kits
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-03T09:38:48+07:00"
-      summary: 'Cancelled by the operator on 2026-11-03 before any work: the request covered RePlan''s own project and ROADMAP, not the pilot wiki.'
-      targets:
-        - kind: task
-          id: task.self.remove-superseded-pilot-kits
-    - id: evidence.self.start-format-compatibility-guard
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-03T09:40:52+07:00"
-      summary: Started on 2026-11-03 with the operator's approval; estimate agent 0.5 plus Codex 3.5 agent hours, frozen in baseline.2026-11-03.kit-cleanup-and-format-guard before start.
-      targets:
-        - kind: task
-          id: task.self.format-compatibility-guard
-    - id: evidence.self.format-compatibility-guard
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T11:15:17+07:00"
-      summary: 'Feature commit ac3c461: docs/spec/file-format-compatibility.md, frozen small-team fixtures from v0.1.0 and v0.3.0 under internal/app/testdata/format-v1 (byte-identical to the tags), and a guard test (strict field decode, load, validate, workload, report state, migrate dry run, seals; unknown task field survives a splice). Gate green: vet, lint, shellcheck, go test, kit, py, smoke, iso, live throwaway. Codex 09:44:21-09:58:45 on 2026-11-03; executor brief 09:40:52-09:44:26 and review 10:59-11:15 on 2026-11-04.'
-      targets:
-        - kind: task
-          id: task.self.format-compatibility-guard
-    - id: evidence.self.accept-format-compatibility-guard
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-04T12:00:44+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-04: format-1 compatibility rules and the frozen release fixture guard.'
-      targets:
-        - kind: task
-          id: task.self.format-compatibility-guard
-    - id: evidence.self.start-explicit-env-file-for-helpers
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T12:02:08+07:00"
-      summary: Started on 2026-11-04 after the operator accepted the consumer feedback tasks; estimate 2 agent hours frozen in baseline.2026-11-04.consumer-feedback, split into agent 0.5 and Codex 1.5.
-      targets:
-        - kind: task
-          id: task.self.explicit-env-file-for-helpers
-    - id: evidence.self.explicit-env-file-for-helpers
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T12:48:25+07:00"
-      summary: 'Feature commit 61c9a47: REPLAN_ENV_FILE (environment-only), mixed_project_settings refusal for plan-bound helpers, connection-only commands unchanged, agent kit README one kit per project; the live link check now sets its own settings and reads an empty settings file (it had silently used the repository plan). Live: drift check with a foreign project id refused, wiki read still works. Gate green incl. 79 live kit checks. Codex 12:05:44-12:28:29; executor brief 12:00:44-12:05:49 and review 12:29:02-12:48:09.'
-      targets:
-        - kind: task
-          id: task.self.explicit-env-file-for-helpers
-    - id: evidence.self.start-agent-effort-units-design
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T12:55:16+07:00"
-      summary: Started on 2026-11-04; estimate 2 agent hours frozen in baseline.2026-11-04.consumer-feedback; the executor writes the design without Codex.
-      targets:
-        - kind: task
-          id: task.self.agent-effort-units-design
-    - id: evidence.self.agent-effort-units-design
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T12:58:38+07:00"
-      summary: 'Design commit ddc523f: docs/dev/agent-effort-units-design.md with options A-D (convention, calibrated load, pace per resource, applying the calibration to the plan) and OpenProject visibility; recommends calibrated load with a sealed starting factor and an Agent hours line on the RePlan tab, in three steps. Executor 12:55:16-12:59. The decision waits on the operator.'
-      targets:
-        - kind: task
-          id: task.self.agent-effort-units-design
-    - id: evidence.self.accept-explicit-env-file-for-helpers
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-04T13:13:21+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-04: REPLAN_ENV_FILE and the mixed_project_settings refusal.'
-      targets:
-        - kind: task
-          id: task.self.explicit-env-file-for-helpers
-    - id: evidence.self.accept-agent-effort-units-design
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-04T13:14:18+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-04: option B (calibrated load with a starting factor and agent hours on the RePlan tab), planned as three tasks.'
-      targets:
-        - kind: task
-          id: task.self.agent-effort-units-design
-    - id: evidence.self.start-relations-apply-reports-unsupported-type
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T13:20:22+07:00"
-      summary: Started on 2026-11-04; estimate 1 agent hour frozen in baseline.2026-11-04.consumer-feedback; the executor fixes it without Codex.
-      targets:
-        - kind: task
-          id: task.self.relations-apply-reports-unsupported-type
-    - id: evidence.self.relations-apply-reports-unsupported-type
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T13:38:28+07:00"
-      summary: 'Fix commit: refused dependencies in apply-openproject-relations are diagnostics with codes (unsupported_dependency_type with supported_types, task_binding_missing), so errors and error_codes are no longer empty; test with a fake OpenProject; README names the exported types and that other relations are still created while the bindings file is not written. Gate green incl. 79 live kit checks. Executor 13:20:22-13:38:28.'
-      targets:
-        - kind: task
-          id: task.self.relations-apply-reports-unsupported-type
-    - id: evidence.self.start-overlay-build-surfaces-cause
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T13:45:55+07:00"
-      summary: Started on 2026-11-04; estimate 1 agent hour frozen in baseline.2026-11-04.consumer-feedback; the executor fixes it without Codex.
-      targets:
-        - kind: task
-          id: task.self.overlay-build-surfaces-cause
-    - id: evidence.self.overlay-build-surfaces-cause
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T13:52:19+07:00"
-      summary: 'Fix: build-openproject-live-overlay lifts the coded errors of the replan envelope next to dashboard_failed; live check with an output dir inside the plan gives error_codes bindings_layer_output_in_project and dashboard_failed and writes nothing; README says the output dir must be outside the plan. 192 helper tests, kit check, smoke green. Executor 13:45:55-13:52:19, 0.11 h.'
-      targets:
-        - kind: task
-          id: task.self.overlay-build-surfaces-cause
-    - id: evidence.self.start-source-profile-checked-early
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T13:57:11+07:00"
-      summary: Started on 2026-11-04; estimate 2 agent hours frozen in baseline.2026-11-04.consumer-feedback, split into agent 0.5 and Codex 1.5.
-      targets:
-        - kind: task
-          id: task.self.source-profile-checked-early
-    - id: evidence.self.start-align-dependency-types-with-spec
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T14:01:10+07:00"
-      summary: Started on 2026-11-04; estimate 1 agent hour frozen in baseline.2026-11-04.consumer-feedback; documentation, by the executor.
-      targets:
-        - kind: task
-          id: task.self.align-dependency-types-with-spec
-    - id: evidence.self.align-dependency-types-with-spec
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T14:01:42+07:00"
-      summary: 'docs/spec/canonical-model.md: the six types validate accepts, the three exported to OpenProject, the unsupported names, requires_input_from or relates for parallel streams, and what start_to_start would take (readiness rules, drafted dates, TaskJuggler, no OpenProject relation). dependency-deadline-behavior.md already matched. Executor 14:01:10-14:01:42, 0.01 h.'
-      targets:
-        - kind: task
-          id: task.self.align-dependency-types-with-spec
-    - id: evidence.self.start-warn-about-outdated-binary
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T14:08:49+07:00"
-      summary: Started on 2026-11-04; estimate 0.5 agent hours frozen in baseline.2026-11-04.consumer-feedback; documentation, by the executor.
-      targets:
-        - kind: task
-          id: task.self.warn-about-outdated-binary
-    - id: evidence.self.warn-about-outdated-binary
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T14:12:23+07:00"
-      summary: 'Quickstart, README and getting-started say: run replan version first; unknown command means a binary from before v0.1.0 first on PATH; which -a replan, remove or reinstall. Checked against the real old binary in GOPATH/bin (answers unknown command). Smoke (runs quickstart blocks) green. Executor 14:08:49-14:12:23, 0.06 h.'
-      targets:
-        - kind: task
-          id: task.self.warn-about-outdated-binary
-    - id: evidence.self.source-profile-checked-early
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T14:41:04+07:00"
-      summary: 'Feature commit e255a19: init --openproject-project-id, openproject_source_profile_missing/_mismatch warned by bootstrap and refused by the overlay build before writing; README note on the placeholder base_url (operator chose the documented placeholder). Live: overlay build and bootstrap plan clean on the self plan; an init project validates without warnings. Gate green incl. 79 live kit checks after updating the self sample for three newly planned tasks. Codex 14:00:50-14:17:58; executor brief 13:56:59-14:00:55 and review 14:20:26-14:40:45.'
-      targets:
-        - kind: task
-          id: task.self.source-profile-checked-early
-    - id: evidence.self.accept-relations-apply-reports-unsupported-type
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-04T14:41:16+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-04: apply-openproject-relations names refused dependencies in errors.'
-      targets:
-        - kind: task
-          id: task.self.relations-apply-reports-unsupported-type
-    - id: evidence.self.accept-overlay-build-surfaces-cause
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-04T14:41:50+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-04: the overlay build reports the CLI''s own error code.'
-      targets:
-        - kind: task
-          id: task.self.overlay-build-surfaces-cause
-    - id: evidence.self.accept-align-dependency-types-with-spec
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-04T14:42:23+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-04: the dependency type list in the spec matches validate.'
-      targets:
-        - kind: task
-          id: task.self.align-dependency-types-with-spec
-    - id: evidence.self.accept-warn-about-outdated-binary
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-04T14:42:55+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-04: docs tell how to spot an outdated replan binary.'
-      targets:
-        - kind: task
-          id: task.self.warn-about-outdated-binary
-    - id: evidence.self.start-workload-skips-closed-demands
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T14:50:49+07:00"
-      summary: Started on 2026-11-04; estimate 1.5 agent hours frozen in baseline.2026-11-04.consumer-feedback-roles, split into agent 0.5 and Codex 1.0.
-      targets:
-        - kind: task
-          id: task.self.workload-skips-closed-demands
-    - id: evidence.self.workload-skips-closed-demands
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T15:31:47+07:00"
-      summary: 'Fix commit: domain.DemandLoads leaves cancelled, superseded and released demands out of planned/remaining/reserved load in workload (incl. concurrent), reports, dashboard, overlay, TaskJuggler and next; closed demands stay visible with zero share. Gate green incl. 79 live kit checks. Codex 14:54:16-15:16:21; executor start 14:50:49-14:54:16 and review 15:16:47-15:31:25 (brief writing before 14:50:39 not timed).'
-      targets:
-        - kind: task
-          id: task.self.workload-skips-closed-demands
-    - id: evidence.self.start-rename-resource-and-actor
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T15:41:19+07:00"
-      summary: Started on 2026-11-04; estimate 1.5 agent hours frozen in baseline.2026-11-04.consumer-feedback-roles, split into agent 0.5 and Codex 1.
-      targets:
-        - kind: task
-          id: task.self.rename-resource-and-actor
-    - id: evidence.self.start-quiet-unresolved-dependency-on-undated-successor
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T15:45:12+07:00"
-      summary: Started on 2026-11-04; estimate 1.5 agent hours frozen in baseline.2026-11-04.consumer-feedback; the executor implements it while Codex works on another task.
-      targets:
-        - kind: task
-          id: task.self.quiet-unresolved-dependency-on-undated-successor
-    - id: evidence.self.quiet-unresolved-dependency-on-undated-successor
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T15:57:10+07:00"
-      summary: 'Fix commit ed23719: open required dependencies of work not yet started are counted once (required_dependencies_undated, required_dependencies_without_status_date) instead of one warning each; ready/blocked/started successors still warn; review proposals follow; finish_to_start undated successors stay named by dependency_successor_start_unknown. A copy of the consumer''s plan: 23 warnings to 1. go test, lint, smoke green. Executor 15:45:12-15:57:00.'
-      targets:
-        - kind: task
-          id: task.self.quiet-unresolved-dependency-on-undated-successor
-    - id: evidence.self.rename-resource-and-actor
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T16:14:54+07:00"
-      summary: 'Feature commit: resource set-name and actor set-name (--actor-id for the target), one-line splice, audit with old and new name. Checked on a copy of small-team: two one-line diffs, plan valid. Executor review merged the two CLI handlers into runSetName after lint flagged duplication. Gate green incl. 79 live kit checks. Codex 15:44:52-15:56:04; executor brief 15:41:10-15:44:52 (writing before not timed) and review 15:57:17-16:14:54, shared with finishing another task 15:57-15:58.'
-      targets:
-        - kind: task
-          id: task.self.rename-resource-and-actor
-    - id: evidence.self.start-init-owner-id-for-non-ascii-names
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T16:22:27+07:00"
-      summary: Started on 2026-11-04; estimate 1.5 agent hours frozen in baseline.2026-11-04.consumer-feedback; the executor implements it.
-      targets:
-        - kind: task
-          id: task.self.init-owner-id-for-non-ascii-names
-    - id: evidence.self.init-owner-id-for-non-ascii-names
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T16:28:00+07:00"
-      summary: 'Feature commit 9daec34: init --owner-id; Cyrillic owner names transliterated (Исполнитель (оператор) gives ispolnitel-operator); owner_id_required instead of the project fallback; CLI spec, usage and agent kit README. go test, lint, smoke, kit check green. Executor 16:22:27-16:28:00, 0.09 h.'
-      targets:
-        - kind: task
-          id: task.self.init-owner-id-for-non-ascii-names
-    - id: evidence.self.start-next-shows-people-work-this-week
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T16:35:21+07:00"
-      summary: Started on 2026-11-04; estimate 2.5 agent hours frozen in baseline.2026-11-04.consumer-feedback, split into agent 0.5 and Codex 2.
-      targets:
-        - kind: task
-          id: task.self.next-shows-people-work-this-week
-    - id: evidence.self.next-shows-people-work-this-week
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T17:14:06+07:00"
-      summary: 'Feature commit: next shows Planned for people this week (planned_for_people). Executor review added the unit per person (review_hours was shown as hours) and rounding in text. A copy of the consumer''s plan lists 13 tasks of people for W45, including the customer''s decisions. Gate green incl. 79 live kit checks. Codex 16:41:06-16:57:32; executor start and a failed launch (k99 GitHub key missing, fetch moved to https) 16:35:21-16:41:06, review 16:58:06-17:14.'
-      targets:
-        - kind: task
-          id: task.self.next-shows-people-work-this-week
-    - id: evidence.self.start-calibrated-agent-load
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T17:30:29+07:00"
-      summary: Started on 2026-11-04; estimate 3 agent hours frozen in baseline.2026-11-04.calibrated-agent-load, split into agent 0.5 and Codex 2.5.
-      targets:
-        - kind: task
-          id: task.self.calibrated-agent-load
-    - id: evidence.self.calibrated-agent-load
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T18:08:14+07:00"
-      summary: 'Feature commit: calibrated agent load by default (latest verified calibration covering resource, unit, tag; size bands; applied calibration scenarios and closed demands excluded), calibration_ids and raw amounts in rows, --raw. Self plan W45: executor 13.25 calibrated vs 26 raw, Codex 11.5 vs 16.75, capacity 40. Gate green incl. 79 live kit checks. Codex 17:35:14-17:51:05; executor 17:30:29-17:35:14 (start, push over https after ssh key trouble) and review 17:51:29-18:07:55; brief writing before 17:30 not timed.'
-      targets:
-        - kind: task
-          id: task.self.calibrated-agent-load
-    - id: evidence.self.start-calibration-starting-factor
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T18:16:36+07:00"
-      summary: Started on 2026-11-04; estimate 2 agent hours frozen in baseline.2026-11-04.calibrated-agent-load, split into agent 0.5 and Codex 1.5.
-      targets:
-        - kind: task
-          id: task.self.calibration-starting-factor
-    - id: evidence.self.calibration-starting-factor
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T18:55:36+07:00"
-      summary: 'Feature commit: estimate calibrate --prior/--source (method prior, result.prior_source, sealed, human approver), refusals, validate, next replacement suggestion, list/show/dashboard. Checked on a copy of small-team: prior 0.21 written and valid, Codex load 0.5 calibrated vs 2 raw. Gate green incl. 79 live kit checks. Codex 18:20:29-18:39:47; executor 18:16:36-18:20:29 and review 18:40:20-18:55:16; brief writing before 18:16 not timed.'
-      targets:
-        - kind: task
-          id: task.self.calibration-starting-factor
-    - id: evidence.self.accept-source-profile-checked-early
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-04T21:08:50+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-04: the source profile is checked before the overlay build.'
-      targets:
-        - kind: task
-          id: task.self.source-profile-checked-early
-    - id: evidence.self.accept-workload-skips-closed-demands
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-04T21:09:44+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-04: workload skips cancelled, superseded and released demands.'
-      targets:
-        - kind: task
-          id: task.self.workload-skips-closed-demands
-    - id: evidence.self.accept-quiet-unresolved-dependency-on-undated-successor
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-04T21:10:29+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-04: validate stays quiet about dependencies of undated planned-ahead successors.'
-      targets:
-        - kind: task
-          id: task.self.quiet-unresolved-dependency-on-undated-successor
-    - id: evidence.self.accept-rename-resource-and-actor
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-04T21:11:01+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-04: resource set-name and actor set-name.'
-      targets:
-        - kind: task
-          id: task.self.rename-resource-and-actor
-    - id: evidence.self.accept-init-owner-id-for-non-ascii-names
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-04T21:11:35+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-04: init derives an owner id from non-ASCII names and takes --owner-id.'
-      targets:
-        - kind: task
-          id: task.self.init-owner-id-for-non-ascii-names
-    - id: evidence.self.accept-next-shows-people-work-this-week
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-04T21:12:12+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-04: next shows planned work for people this week.'
-      targets:
-        - kind: task
-          id: task.self.next-shows-people-work-this-week
-    - id: evidence.self.accept-calibrated-agent-load
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-04T21:12:48+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-04: agent load uses the approved calibration.'
-      targets:
-        - kind: task
-          id: task.self.calibrated-agent-load
-    - id: evidence.self.accept-calibration-starting-factor
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-04T21:13:23+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-04: a sealed starting calibration factor.'
-      targets:
-        - kind: task
-          id: task.self.calibration-starting-factor
-    - id: evidence.self.start-calibrated-dates-and-agent-hours-tab
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T21:29:32+07:00"
-      summary: Started on 2026-11-04 with the operator's go-ahead for the plugin deploy; estimate 3 agent hours frozen in baseline.2026-11-04.calibrated-agent-load, split into agent 0.75 and Codex 2.25.
-      targets:
-        - kind: task
-          id: task.self.calibrated-dates-and-agent-hours-tab
-    - id: evidence.self.calibrated-dates-and-agent-hours-tab
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-04T22:18:51+07:00"
-      summary: 'Feature commit 5d77203: TaskJuggler export schedules agent_hours demands with the approved calibration (task comment and JSON calibrations; --raw keeps the former output), the import repeats the calibrations from the run manifest, overlay demand rows carry calibrated amounts, and the RePlan tab shows an Agent hours line. Plugin image 5d77203 deployed after a pg_dumpall backup; switch 22:15:45-22:17:11, web healthy after 45 s, no load errors. Live overlay check: this task shows planned 3 h, calibrated 0.75 h. Gate green incl. 79 live kit checks; plugin Ruby tests pass in the image. Codex 21:33:32-21:55:54; executor 21:29:32-21:33:39 and review, deploy 21:55:54-22:18:51; brief writing during the acceptance run not timed.'
-      targets:
-        - kind: task
-          id: task.self.calibrated-dates-and-agent-hours-tab
-    - id: evidence.self.accept-calibrated-dates-and-agent-hours-tab
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-05T06:34:47+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-05: drafted dates and the RePlan tab use calibrated agent hours.'
-      targets:
-        - kind: task
-          id: task.self.calibrated-dates-and-agent-hours-tab
-    - id: evidence.self.plan-consumer-feedback-2026-11-05
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-05T06:36:17+07:00"
-      summary: 'The operator agreed on 2026-11-05 to plan four tasks from a consumer report: bootstrap matching by binding, task set-description, pushing a changed description to the work package, one YAML style. Agreement to plan approves the estimates. The not started dependency and deadline commands and demand commands move to 2026-11-05.'
-      targets:
-        - kind: task
-          id: task.self.bootstrap-matches-by-binding
-        - kind: task
-          id: task.self.task-set-description
-        - kind: task
-          id: task.self.push-description-to-work-package
-        - kind: task
-          id: task.self.one-yaml-style-for-canonical-files
-        - kind: task
-          id: task.self.dependency-and-deadline-commands
-        - kind: task
-          id: task.self.demand-add-set-move-commands
-    - id: evidence.self.start-bootstrap-matches-by-binding
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-05T06:41:40+07:00"
-      summary: Started on 2026-11-05; estimate 2 agent hours frozen in baseline.2026-11-05.consumer-feedback-sync, split into agent 0.5 and Codex 1.5.
-      targets:
-        - kind: task
-          id: task.self.bootstrap-matches-by-binding
-    - id: evidence.self.bootstrap-matches-by-binding
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-05T07:07:16+07:00"
-      summary: 'Feature commit 73776c4: bootstrap matches bound tasks by work package id before subject; a renamed task plans update_subject (PATCH of subject and lockVersion only; 409 is openproject_work_package_changed), a stale binding is bound_work_package_missing with no create, a subject match bound to another task is binding_conflict; counts matched_by_binding, matched_by_subject, subject_updates. Python suite OK, shellcheck, smoke. Live dry run on the self project: 222 of 222 matched by binding, 0 creates, 0 subject updates. Codex 06:45:34-07:01:07; executor 06:41:40-06:45:35 and review 07:01:07-07:07:16; brief writing before 06:41 not timed.'
-      targets:
-        - kind: task
-          id: task.self.bootstrap-matches-by-binding
-    - id: evidence.self.accept-bootstrap-matches-by-binding
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-05T08:13:46+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-05: bootstrap matches work packages by binding before subject.'
-      targets:
-        - kind: task
-          id: task.self.bootstrap-matches-by-binding
-    - id: evidence.self.start-dependency-and-deadline-commands
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-05T08:15:05+07:00"
-      summary: Started on 2026-11-05; estimate 4 agent hours frozen in baseline.2026-11-04.consumer-feedback, split into agent 1 and Codex 3. Scope adds a batch file after a consumer added 4 deadlines and 18 dependencies by hand.
-      targets:
-        - kind: task
-          id: task.self.dependency-and-deadline-commands
-    - id: evidence.self.dependency-and-deadline-commands
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-05T09:02:05+07:00"
-      summary: 'Feature commit 0bf8747: dependency add and deadline add/list, by flags or --from-file batch checked as a whole and written all or nothing, one audit entry per item; refusals include self_dependency, duplicate_dependency, dependency_cycle (finish_to_start), deadline_target_not_found and invalid deadline type, date, criticality. Deadlines are now loaded and validated (before, canonical/deadlines.yaml was not read). Review: round 1 reported green tests but three Go tests failed (checked_files count, diagnostic fixture, import-accept goldens); round 2 fixed them and reverted an unasked renderer change. Executor fixed deadline list printing null for no deadlines. Checked on a copy of a consumer plan: appending a deadline keeps existing entries and their extra note fields. Codex 08:18:40-08:35:31 and 08:53:33-08:57:07; executor 08:15:05-08:18:40, review and gate 08:35:31-08:53:33, final checks 08:57:07-09:02:05; brief writing before 08:15 not timed.'
-      targets:
-        - kind: task
-          id: task.self.dependency-and-deadline-commands
-    - id: evidence.self.dependency-and-deadline-commands-ci
-      type: command_result
-      source: ci
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-05T09:14:03+07:00"
-      summary: 'CI failed on 0bf8747 and 886f5d6: the new batch test compared project files including .replan/write.lock, which a refused --apply creates and git ignores; locally an old lock file hid it. Test fix 146b819 checked in a clean worktree; CI green on 146b819.'
-      targets:
-        - kind: task
-          id: task.self.dependency-and-deadline-commands
-    - id: evidence.self.accept-dependency-and-deadline-commands
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-05T10:11:17+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-05: dependency add, deadline add/list, batch files and deadline loading work as reviewed.'
-      targets:
-        - kind: task
-          id: task.self.dependency-and-deadline-commands
-    - id: evidence.self.start-demand-add-set-move-commands
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-05T10:12:08+07:00"
-      summary: Started on 2026-11-05 after the operator accepted the dependency and deadline commands; estimate 4 agent hours frozen in baseline.2026-11-04.consumer-feedback-roles, split into agent 1 and Codex 3.
-      targets:
-        - kind: task
-          id: task.self.demand-add-set-move-commands
-    - id: evidence.self.demand-add-set-move-commands
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-05T11:37:19+07:00"
-      summary: 'Commit 59f30a1 adds demand add, set and move with batch files for add and set, superseded_by and supersedes links, and two validate warnings for demands missing from their task. Codex took three rounds: review fixed import accept overwriting existing demands, long audit text, a pointer compare and a zero-amount move; a hands-on trial found task demand lists re-indented on write, fixed so old lines stay byte-for-byte. Local gate green. Codex 0.99 h from round prompt and result times (10:18:12-10:54:32, 10:56:00-11:06:49, 11:07:52-11:20:02); agent 0.17 h from brief, reviews, trial and gate start stretches up to this record; bookkeeping after it is not timed.'
-      targets:
-        - kind: task
-          id: task.self.demand-add-set-move-commands
-    - id: evidence.self.accept-demand-add-set-move-commands
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-05T13:52:02+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-05: demand add, set and move with batch files, supersession links and the demand listing warnings work as reviewed.'
-      targets:
-        - kind: task
-          id: task.self.demand-add-set-move-commands
-    - id: evidence.self.start-task-set-description
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-05T13:53:21+07:00"
-      summary: Started on 2026-11-05 after the operator accepted the demand commands; estimate 1.5 agent hours frozen in baseline.2026-11-05.consumer-feedback-sync, split into agent 0.5 and Codex 1.
-      targets:
-        - kind: task
-          id: task.self.task-set-description
-    - id: evidence.self.task-set-description
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-05T14:57:58+07:00"
-      summary: 'Commit 81ef80f adds task set-description with flag, file, stdin and --clear sources and a short audit text; it shares the write path with set-title. A hands-on trial found multi-line text indented 8 spaces; round 2 writes it in the two-space style, tested byte-for-byte. Also found that two writes on one target in the same second get the same audit id, so the second is refused and rolled back; this is older than this task and affects set-title too. Local gate green. Codex 0.42 h from round prompt and result times (14:00:57-14:15:17, 14:16:47-14:27:24); agent 0.2 h from brief, review, trial and gate start stretches plus the finish up to this record.'
-      targets:
-        - kind: task
-          id: task.self.task-set-description
-    - id: evidence.self.accept-task-set-description
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-05T15:08:17+07:00"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-05: task set-description with flag, file, stdin and clear sources writes and audits as reviewed.'
-      targets:
-        - kind: task
-          id: task.self.task-set-description
-    - id: evidence.self.plan-unique-audit-ids
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-05T15:10:12+07:00"
-      summary: 'The operator agreed on 2026-11-05 to plan unique audit record ids, found while checking task set-description, after the two remaining consumer feedback tasks. Agreement to plan approves the estimate of 2 agent hours.'
-      targets:
-        - kind: task
-          id: task.self.unique-audit-ids
-    - id: evidence.self.start-push-description-to-work-package
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-05T15:11:12+07:00"
-      summary: Started on 2026-11-05 after the operator accepted task set-description and said to continue as recommended; estimate 2 agent hours frozen in baseline.2026-11-05.consumer-feedback-sync, split into agent 0.5 and Codex 1.5.
-      targets:
-        - kind: task
-          id: task.self.push-description-to-work-package
-    - id: evidence.self.push-description-to-work-package
-      type: command_result
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-05T16:13:18+07:00"
-      summary: 'Commit c8ae886 adds scripts/push-openproject-description-drift.sh. Read-only dry runs on the self project shaped it: round 1 would have erased the bootstrap task-id trailer on 38 work packages and took about 2 minutes; round 2 keeps the trailer and reads pages (4 seconds, 12 differences); reading those in full showed text a person added below the trailer, so round 3 keeps the trailer and everything after it. The last dry run plans 10 updates, all RePlan-side edits, not yet applied. Local gate green. Codex 0.61 h from round prompt and result times (15:16:10-15:33:11, 15:36:19-15:46:39, 15:48:23-15:57:23); agent 0.18 h from brief, reviews, dry runs and gate start stretches plus the finish up to this record.'
-      targets:
-        - kind: task
-          id: task.self.push-description-to-work-package
-    - id: evidence.self.accept-push-description-to-work-package
-      type: decision
-      subtype: operator_acceptance
-      source: chat
-      actor_ref:
-        kind: actor
-        id: actor.human.maintainer
-      observed_at: "2026-11-05T10:40:20Z"
-      confidence: observed
-      summary: 'Accepted by the operator on 2026-11-05: description push helper keeps the task-id trailer and human text below it; operator approved applying it to the dogfood project.'
-      targets:
-        - kind: task
-          id: task.self.push-description-to-work-package
-    - id: evidence.self.start-one-yaml-style-for-canonical-files
-      type: decision
-      source: local
-      actor_ref:
-        kind: actor
-        id: actor.ai.agent.executor
-      observed_at: "2026-11-05T17:45:56+07:00"
-      summary: Started on 2026-11-05 after the operator accepted the description push and said to continue as recommended; estimate 2 agent hours frozen in baseline.2026-11-05.consumer-feedback-sync, split into agent 0.5 and Codex 1.5.
-      targets:
-        - kind: task
-          id: task.self.one-yaml-style-for-canonical-files
+  - id: evidence.self.start-calibrate-estimates-by-size
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-02T18:01:37+07:00"
+    summary: 'Agreed with the operator on 2026-11-02 ("приступай как рекомендуешь"). A dry run over the three estimate baselines found 39 clean agent tasks with size bands of 9, 18 and 12 tasks (medians 0.5, 0.20, 0.16), so every band now reaches the minimum sample. Decision: an opt-in --by-size calibration with a sealed factor per band and fallback to the overall factor below the minimum; existing records keep one factor. Original estimate before the Codex split: 3 agent hours. The task is not in any baseline.'
+    targets:
+      - kind: task
+        id: task.self.calibrate-estimates-by-size
+  - id: evidence.self.calibrate-estimates-by-size
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-02T18:44:24+07:00"
+    summary: 'Codex round 1 (18:05:47-18:25:09) added estimate calibrate --by-size: a sealed factor per size band, the band median at 8 or more tasks and the overall factor below, all three bands listed, one CalibrationFactor lookup used by estimate apply, task add hints, next and the reports; validate refuses unknown methods and bands without factors; the 2026-10-29 record keeps its seal and single factor. Review fixes: removed a wrong openproject_sync_pending note from the design doc, a plain bool instead of a variadic flag, task amounts computed once per calibration, show layout. Checked on a copy of the self plan: a --by-size calibration over the three estimate baselines gives 39 tasks and band factors 0.5, 0.20 and 0.16; a 1.5-hour split task takes the up-to-2 band, a 6-hour task the above-4 band; estimate apply and next use the band factors. Full local gate green, 79 live kit checks (commit a5fad14).'
+    targets:
+      - kind: task
+        id: task.self.calibrate-estimates-by-size
+  - id: evidence.self.accept-calibrate-estimates-by-size
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-02T18:53:29+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-02: size-band calibration (--by-size) with fallback to the overall factor.'
+    targets:
+      - kind: task
+        id: task.self.calibrate-estimates-by-size
+  - id: evidence.self.approve-size-band-calibration
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-02T18:54:46+07:00"
+    summary: 'The operator approved on 2026-11-02 ("остальное - как рекомендуешь") writing calibration.2026-11-02.agents-by-size: executor and Codex agent hours over the three estimate baselines, the six judged 15-16 October tasks excluded as before, factors per size band. Applying it to open work through a scenario is left for a separate decision.'
+    targets:
+      - kind: project
+        id: project.replan-self
+  - id: evidence.self.start-keep-new-tasks-calibratable
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-02T18:56:22+07:00"
+    summary: 'The operator chose on 2026-11-02 ("остальное - как рекомендуешь") a baseline limited to the new task(s), taken when they are planned and approved together with the task. Decision: baseline create --task with scope tasks, reports skip limited baselines when unpinned, estimate calibrate --all-baselines, next suggests across limited baselines, the step added to the backlog convention. Original estimate before the Codex split: 1.5 agent hours; the task is not in any baseline.'
+    targets:
+      - kind: task
+        id: task.self.keep-new-tasks-calibratable
+  - id: evidence.self.start-smoke-dashboard-week-follows-status-date
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-02T19:08:30+07:00"
+    summary: 'Started at once because main is red. I fix it myself, without Codex: the smoke reads default_status_date from the copied project and asserts its ISO week on the workload page. Original estimate 0.25 agent hours; not in any baseline.'
+    targets:
+      - kind: task
+        id: task.self.smoke-dashboard-week-follows-status-date
+  - id: evidence.self.smoke-dashboard-week-follows-status-date
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-02T19:14:59+07:00"
+    summary: The smoke reads default_status_date from the copied self project and asserts its ISO week (computed with python3, portable) on the dashboard workload page. Smoke and the smoke on a copy without private settings pass; shellcheck clean (commit 33db7ae).
+    targets:
+      - kind: task
+        id: task.self.smoke-dashboard-week-follows-status-date
+  - id: evidence.self.smoke-dashboard-week-follows-status-date-go-test
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-02T19:25:06+07:00"
+    summary: 'CI stayed red after the smoke fix: TestDashboardOpenProjectOverlaySelfFixture also pinned 2026-W40. It now derives the expected window (four weeks before to eight weeks after the status week) from the self plan status date. go test ./... and lint pass; CI run 41444139671 green (commit 111864a). Lesson: run go test, not only the smoke, after moving the self plan status date.'
+    targets:
+      - kind: task
+        id: task.self.smoke-dashboard-week-follows-status-date
+  - id: evidence.self.keep-new-tasks-calibratable
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-02T19:46:02+07:00"
+    summary: 'Codex round 1 (19:04:28-19:20:37) added baseline create --task (scope: tasks, sealed), the unpinned report fallback skipping limited baselines, estimate calibrate --all-baselines with a conflict refusal, a next suggestion across limited baselines, scope in baseline list/show, one dashboard table for limited baselines, and the planning step in the backlog convention. Review fixes: validate refuses an unknown baseline scope (split out to keep gocyclo under 30), a test expected 4 demands where the fixture task has 5. Checked on a copy of the self plan: a one-task baseline is 1.7 KB, unknown task refused, --all-baselines with --baseline refused, --all-baselines picks up the limited baseline, weekly report keeps the pinned whole-plan baseline. Full local gate green, 79 live kit checks (commit 4e30b1a). Agent time excludes the smoke fix (task 671) and a reply to another session, about 0.1 h.'
+    targets:
+      - kind: task
+        id: task.self.keep-new-tasks-calibratable
+  - id: evidence.self.smoke-dashboard-week-follows-status-date-calibration-test
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-02T19:52:55+07:00"
+    summary: 'A third test of the same kind failed in CI run 41447861399 after task 670 closed the last open agent demands: TestCommittedSingleFactorCalibrationStillVerifiesAndApplies (added with task 669) applied the old calibration to the live self plan. It now copies the plan, adds one open 4-hour agent demand and expects 0.75. cmd/replan tests and lint pass (commit 6e54ff9).'
+    targets:
+      - kind: task
+        id: task.self.smoke-dashboard-week-follows-status-date
+  - id: evidence.self.accept-keep-new-tasks-calibratable
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-03T07:36:08+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-03: limited baselines (baseline create --task), estimate calibrate --all-baselines and the convention step.'
+    targets:
+      - kind: task
+        id: task.self.keep-new-tasks-calibratable
+  - id: evidence.self.accept-smoke-dashboard-week-follows-status-date
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-03T07:36:53+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-03: smoke and two tests no longer depend on the live self-plan status week or open work.'
+    targets:
+      - kind: task
+        id: task.self.smoke-dashboard-week-follows-status-date
+  - id: evidence.self.cancel-remove-superseded-pilot-kits
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-03T09:38:48+07:00"
+    summary: 'Cancelled by the operator on 2026-11-03 before any work: the request covered RePlan''s own project and ROADMAP, not the pilot wiki.'
+    targets:
+      - kind: task
+        id: task.self.remove-superseded-pilot-kits
+  - id: evidence.self.start-format-compatibility-guard
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-03T09:40:52+07:00"
+    summary: Started on 2026-11-03 with the operator's approval; estimate agent 0.5 plus Codex 3.5 agent hours, frozen in baseline.2026-11-03.kit-cleanup-and-format-guard before start.
+    targets:
+      - kind: task
+        id: task.self.format-compatibility-guard
+  - id: evidence.self.format-compatibility-guard
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T11:15:17+07:00"
+    summary: 'Feature commit ac3c461: docs/spec/file-format-compatibility.md, frozen small-team fixtures from v0.1.0 and v0.3.0 under internal/app/testdata/format-v1 (byte-identical to the tags), and a guard test (strict field decode, load, validate, workload, report state, migrate dry run, seals; unknown task field survives a splice). Gate green: vet, lint, shellcheck, go test, kit, py, smoke, iso, live throwaway. Codex 09:44:21-09:58:45 on 2026-11-03; executor brief 09:40:52-09:44:26 and review 10:59-11:15 on 2026-11-04.'
+    targets:
+      - kind: task
+        id: task.self.format-compatibility-guard
+  - id: evidence.self.accept-format-compatibility-guard
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-04T12:00:44+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-04: format-1 compatibility rules and the frozen release fixture guard.'
+    targets:
+      - kind: task
+        id: task.self.format-compatibility-guard
+  - id: evidence.self.start-explicit-env-file-for-helpers
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T12:02:08+07:00"
+    summary: Started on 2026-11-04 after the operator accepted the consumer feedback tasks; estimate 2 agent hours frozen in baseline.2026-11-04.consumer-feedback, split into agent 0.5 and Codex 1.5.
+    targets:
+      - kind: task
+        id: task.self.explicit-env-file-for-helpers
+  - id: evidence.self.explicit-env-file-for-helpers
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T12:48:25+07:00"
+    summary: 'Feature commit 61c9a47: REPLAN_ENV_FILE (environment-only), mixed_project_settings refusal for plan-bound helpers, connection-only commands unchanged, agent kit README one kit per project; the live link check now sets its own settings and reads an empty settings file (it had silently used the repository plan). Live: drift check with a foreign project id refused, wiki read still works. Gate green incl. 79 live kit checks. Codex 12:05:44-12:28:29; executor brief 12:00:44-12:05:49 and review 12:29:02-12:48:09.'
+    targets:
+      - kind: task
+        id: task.self.explicit-env-file-for-helpers
+  - id: evidence.self.start-agent-effort-units-design
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T12:55:16+07:00"
+    summary: Started on 2026-11-04; estimate 2 agent hours frozen in baseline.2026-11-04.consumer-feedback; the executor writes the design without Codex.
+    targets:
+      - kind: task
+        id: task.self.agent-effort-units-design
+  - id: evidence.self.agent-effort-units-design
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T12:58:38+07:00"
+    summary: 'Design commit ddc523f: docs/dev/agent-effort-units-design.md with options A-D (convention, calibrated load, pace per resource, applying the calibration to the plan) and OpenProject visibility; recommends calibrated load with a sealed starting factor and an Agent hours line on the RePlan tab, in three steps. Executor 12:55:16-12:59. The decision waits on the operator.'
+    targets:
+      - kind: task
+        id: task.self.agent-effort-units-design
+  - id: evidence.self.accept-explicit-env-file-for-helpers
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-04T13:13:21+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-04: REPLAN_ENV_FILE and the mixed_project_settings refusal.'
+    targets:
+      - kind: task
+        id: task.self.explicit-env-file-for-helpers
+  - id: evidence.self.accept-agent-effort-units-design
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-04T13:14:18+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-04: option B (calibrated load with a starting factor and agent hours on the RePlan tab), planned as three tasks.'
+    targets:
+      - kind: task
+        id: task.self.agent-effort-units-design
+  - id: evidence.self.start-relations-apply-reports-unsupported-type
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T13:20:22+07:00"
+    summary: Started on 2026-11-04; estimate 1 agent hour frozen in baseline.2026-11-04.consumer-feedback; the executor fixes it without Codex.
+    targets:
+      - kind: task
+        id: task.self.relations-apply-reports-unsupported-type
+  - id: evidence.self.relations-apply-reports-unsupported-type
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T13:38:28+07:00"
+    summary: 'Fix commit: refused dependencies in apply-openproject-relations are diagnostics with codes (unsupported_dependency_type with supported_types, task_binding_missing), so errors and error_codes are no longer empty; test with a fake OpenProject; README names the exported types and that other relations are still created while the bindings file is not written. Gate green incl. 79 live kit checks. Executor 13:20:22-13:38:28.'
+    targets:
+      - kind: task
+        id: task.self.relations-apply-reports-unsupported-type
+  - id: evidence.self.start-overlay-build-surfaces-cause
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T13:45:55+07:00"
+    summary: Started on 2026-11-04; estimate 1 agent hour frozen in baseline.2026-11-04.consumer-feedback; the executor fixes it without Codex.
+    targets:
+      - kind: task
+        id: task.self.overlay-build-surfaces-cause
+  - id: evidence.self.overlay-build-surfaces-cause
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T13:52:19+07:00"
+    summary: 'Fix: build-openproject-live-overlay lifts the coded errors of the replan envelope next to dashboard_failed; live check with an output dir inside the plan gives error_codes bindings_layer_output_in_project and dashboard_failed and writes nothing; README says the output dir must be outside the plan. 192 helper tests, kit check, smoke green. Executor 13:45:55-13:52:19, 0.11 h.'
+    targets:
+      - kind: task
+        id: task.self.overlay-build-surfaces-cause
+  - id: evidence.self.start-source-profile-checked-early
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T13:57:11+07:00"
+    summary: Started on 2026-11-04; estimate 2 agent hours frozen in baseline.2026-11-04.consumer-feedback, split into agent 0.5 and Codex 1.5.
+    targets:
+      - kind: task
+        id: task.self.source-profile-checked-early
+  - id: evidence.self.start-align-dependency-types-with-spec
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T14:01:10+07:00"
+    summary: Started on 2026-11-04; estimate 1 agent hour frozen in baseline.2026-11-04.consumer-feedback; documentation, by the executor.
+    targets:
+      - kind: task
+        id: task.self.align-dependency-types-with-spec
+  - id: evidence.self.align-dependency-types-with-spec
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T14:01:42+07:00"
+    summary: 'docs/spec/canonical-model.md: the six types validate accepts, the three exported to OpenProject, the unsupported names, requires_input_from or relates for parallel streams, and what start_to_start would take (readiness rules, drafted dates, TaskJuggler, no OpenProject relation). dependency-deadline-behavior.md already matched. Executor 14:01:10-14:01:42, 0.01 h.'
+    targets:
+      - kind: task
+        id: task.self.align-dependency-types-with-spec
+  - id: evidence.self.start-warn-about-outdated-binary
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T14:08:49+07:00"
+    summary: Started on 2026-11-04; estimate 0.5 agent hours frozen in baseline.2026-11-04.consumer-feedback; documentation, by the executor.
+    targets:
+      - kind: task
+        id: task.self.warn-about-outdated-binary
+  - id: evidence.self.warn-about-outdated-binary
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T14:12:23+07:00"
+    summary: 'Quickstart, README and getting-started say: run replan version first; unknown command means a binary from before v0.1.0 first on PATH; which -a replan, remove or reinstall. Checked against the real old binary in GOPATH/bin (answers unknown command). Smoke (runs quickstart blocks) green. Executor 14:08:49-14:12:23, 0.06 h.'
+    targets:
+      - kind: task
+        id: task.self.warn-about-outdated-binary
+  - id: evidence.self.source-profile-checked-early
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T14:41:04+07:00"
+    summary: 'Feature commit e255a19: init --openproject-project-id, openproject_source_profile_missing/_mismatch warned by bootstrap and refused by the overlay build before writing; README note on the placeholder base_url (operator chose the documented placeholder). Live: overlay build and bootstrap plan clean on the self plan; an init project validates without warnings. Gate green incl. 79 live kit checks after updating the self sample for three newly planned tasks. Codex 14:00:50-14:17:58; executor brief 13:56:59-14:00:55 and review 14:20:26-14:40:45.'
+    targets:
+      - kind: task
+        id: task.self.source-profile-checked-early
+  - id: evidence.self.accept-relations-apply-reports-unsupported-type
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-04T14:41:16+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-04: apply-openproject-relations names refused dependencies in errors.'
+    targets:
+      - kind: task
+        id: task.self.relations-apply-reports-unsupported-type
+  - id: evidence.self.accept-overlay-build-surfaces-cause
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-04T14:41:50+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-04: the overlay build reports the CLI''s own error code.'
+    targets:
+      - kind: task
+        id: task.self.overlay-build-surfaces-cause
+  - id: evidence.self.accept-align-dependency-types-with-spec
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-04T14:42:23+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-04: the dependency type list in the spec matches validate.'
+    targets:
+      - kind: task
+        id: task.self.align-dependency-types-with-spec
+  - id: evidence.self.accept-warn-about-outdated-binary
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-04T14:42:55+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-04: docs tell how to spot an outdated replan binary.'
+    targets:
+      - kind: task
+        id: task.self.warn-about-outdated-binary
+  - id: evidence.self.start-workload-skips-closed-demands
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T14:50:49+07:00"
+    summary: Started on 2026-11-04; estimate 1.5 agent hours frozen in baseline.2026-11-04.consumer-feedback-roles, split into agent 0.5 and Codex 1.0.
+    targets:
+      - kind: task
+        id: task.self.workload-skips-closed-demands
+  - id: evidence.self.workload-skips-closed-demands
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T15:31:47+07:00"
+    summary: 'Fix commit: domain.DemandLoads leaves cancelled, superseded and released demands out of planned/remaining/reserved load in workload (incl. concurrent), reports, dashboard, overlay, TaskJuggler and next; closed demands stay visible with zero share. Gate green incl. 79 live kit checks. Codex 14:54:16-15:16:21; executor start 14:50:49-14:54:16 and review 15:16:47-15:31:25 (brief writing before 14:50:39 not timed).'
+    targets:
+      - kind: task
+        id: task.self.workload-skips-closed-demands
+  - id: evidence.self.start-rename-resource-and-actor
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T15:41:19+07:00"
+    summary: Started on 2026-11-04; estimate 1.5 agent hours frozen in baseline.2026-11-04.consumer-feedback-roles, split into agent 0.5 and Codex 1.
+    targets:
+      - kind: task
+        id: task.self.rename-resource-and-actor
+  - id: evidence.self.start-quiet-unresolved-dependency-on-undated-successor
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T15:45:12+07:00"
+    summary: Started on 2026-11-04; estimate 1.5 agent hours frozen in baseline.2026-11-04.consumer-feedback; the executor implements it while Codex works on another task.
+    targets:
+      - kind: task
+        id: task.self.quiet-unresolved-dependency-on-undated-successor
+  - id: evidence.self.quiet-unresolved-dependency-on-undated-successor
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T15:57:10+07:00"
+    summary: 'Fix commit ed23719: open required dependencies of work not yet started are counted once (required_dependencies_undated, required_dependencies_without_status_date) instead of one warning each; ready/blocked/started successors still warn; review proposals follow; finish_to_start undated successors stay named by dependency_successor_start_unknown. A copy of the consumer''s plan: 23 warnings to 1. go test, lint, smoke green. Executor 15:45:12-15:57:00.'
+    targets:
+      - kind: task
+        id: task.self.quiet-unresolved-dependency-on-undated-successor
+  - id: evidence.self.rename-resource-and-actor
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T16:14:54+07:00"
+    summary: 'Feature commit: resource set-name and actor set-name (--actor-id for the target), one-line splice, audit with old and new name. Checked on a copy of small-team: two one-line diffs, plan valid. Executor review merged the two CLI handlers into runSetName after lint flagged duplication. Gate green incl. 79 live kit checks. Codex 15:44:52-15:56:04; executor brief 15:41:10-15:44:52 (writing before not timed) and review 15:57:17-16:14:54, shared with finishing another task 15:57-15:58.'
+    targets:
+      - kind: task
+        id: task.self.rename-resource-and-actor
+  - id: evidence.self.start-init-owner-id-for-non-ascii-names
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T16:22:27+07:00"
+    summary: Started on 2026-11-04; estimate 1.5 agent hours frozen in baseline.2026-11-04.consumer-feedback; the executor implements it.
+    targets:
+      - kind: task
+        id: task.self.init-owner-id-for-non-ascii-names
+  - id: evidence.self.init-owner-id-for-non-ascii-names
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T16:28:00+07:00"
+    summary: 'Feature commit 9daec34: init --owner-id; Cyrillic owner names transliterated (Исполнитель (оператор) gives ispolnitel-operator); owner_id_required instead of the project fallback; CLI spec, usage and agent kit README. go test, lint, smoke, kit check green. Executor 16:22:27-16:28:00, 0.09 h.'
+    targets:
+      - kind: task
+        id: task.self.init-owner-id-for-non-ascii-names
+  - id: evidence.self.start-next-shows-people-work-this-week
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T16:35:21+07:00"
+    summary: Started on 2026-11-04; estimate 2.5 agent hours frozen in baseline.2026-11-04.consumer-feedback, split into agent 0.5 and Codex 2.
+    targets:
+      - kind: task
+        id: task.self.next-shows-people-work-this-week
+  - id: evidence.self.next-shows-people-work-this-week
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T17:14:06+07:00"
+    summary: 'Feature commit: next shows Planned for people this week (planned_for_people). Executor review added the unit per person (review_hours was shown as hours) and rounding in text. A copy of the consumer''s plan lists 13 tasks of people for W45, including the customer''s decisions. Gate green incl. 79 live kit checks. Codex 16:41:06-16:57:32; executor start and a failed launch (k99 GitHub key missing, fetch moved to https) 16:35:21-16:41:06, review 16:58:06-17:14.'
+    targets:
+      - kind: task
+        id: task.self.next-shows-people-work-this-week
+  - id: evidence.self.start-calibrated-agent-load
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T17:30:29+07:00"
+    summary: Started on 2026-11-04; estimate 3 agent hours frozen in baseline.2026-11-04.calibrated-agent-load, split into agent 0.5 and Codex 2.5.
+    targets:
+      - kind: task
+        id: task.self.calibrated-agent-load
+  - id: evidence.self.calibrated-agent-load
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T18:08:14+07:00"
+    summary: 'Feature commit: calibrated agent load by default (latest verified calibration covering resource, unit, tag; size bands; applied calibration scenarios and closed demands excluded), calibration_ids and raw amounts in rows, --raw. Self plan W45: executor 13.25 calibrated vs 26 raw, Codex 11.5 vs 16.75, capacity 40. Gate green incl. 79 live kit checks. Codex 17:35:14-17:51:05; executor 17:30:29-17:35:14 (start, push over https after ssh key trouble) and review 17:51:29-18:07:55; brief writing before 17:30 not timed.'
+    targets:
+      - kind: task
+        id: task.self.calibrated-agent-load
+  - id: evidence.self.start-calibration-starting-factor
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T18:16:36+07:00"
+    summary: Started on 2026-11-04; estimate 2 agent hours frozen in baseline.2026-11-04.calibrated-agent-load, split into agent 0.5 and Codex 1.5.
+    targets:
+      - kind: task
+        id: task.self.calibration-starting-factor
+  - id: evidence.self.calibration-starting-factor
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T18:55:36+07:00"
+    summary: 'Feature commit: estimate calibrate --prior/--source (method prior, result.prior_source, sealed, human approver), refusals, validate, next replacement suggestion, list/show/dashboard. Checked on a copy of small-team: prior 0.21 written and valid, Codex load 0.5 calibrated vs 2 raw. Gate green incl. 79 live kit checks. Codex 18:20:29-18:39:47; executor 18:16:36-18:20:29 and review 18:40:20-18:55:16; brief writing before 18:16 not timed.'
+    targets:
+      - kind: task
+        id: task.self.calibration-starting-factor
+  - id: evidence.self.accept-source-profile-checked-early
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-04T21:08:50+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-04: the source profile is checked before the overlay build.'
+    targets:
+      - kind: task
+        id: task.self.source-profile-checked-early
+  - id: evidence.self.accept-workload-skips-closed-demands
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-04T21:09:44+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-04: workload skips cancelled, superseded and released demands.'
+    targets:
+      - kind: task
+        id: task.self.workload-skips-closed-demands
+  - id: evidence.self.accept-quiet-unresolved-dependency-on-undated-successor
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-04T21:10:29+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-04: validate stays quiet about dependencies of undated planned-ahead successors.'
+    targets:
+      - kind: task
+        id: task.self.quiet-unresolved-dependency-on-undated-successor
+  - id: evidence.self.accept-rename-resource-and-actor
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-04T21:11:01+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-04: resource set-name and actor set-name.'
+    targets:
+      - kind: task
+        id: task.self.rename-resource-and-actor
+  - id: evidence.self.accept-init-owner-id-for-non-ascii-names
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-04T21:11:35+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-04: init derives an owner id from non-ASCII names and takes --owner-id.'
+    targets:
+      - kind: task
+        id: task.self.init-owner-id-for-non-ascii-names
+  - id: evidence.self.accept-next-shows-people-work-this-week
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-04T21:12:12+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-04: next shows planned work for people this week.'
+    targets:
+      - kind: task
+        id: task.self.next-shows-people-work-this-week
+  - id: evidence.self.accept-calibrated-agent-load
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-04T21:12:48+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-04: agent load uses the approved calibration.'
+    targets:
+      - kind: task
+        id: task.self.calibrated-agent-load
+  - id: evidence.self.accept-calibration-starting-factor
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-04T21:13:23+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-04: a sealed starting calibration factor.'
+    targets:
+      - kind: task
+        id: task.self.calibration-starting-factor
+  - id: evidence.self.start-calibrated-dates-and-agent-hours-tab
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T21:29:32+07:00"
+    summary: Started on 2026-11-04 with the operator's go-ahead for the plugin deploy; estimate 3 agent hours frozen in baseline.2026-11-04.calibrated-agent-load, split into agent 0.75 and Codex 2.25.
+    targets:
+      - kind: task
+        id: task.self.calibrated-dates-and-agent-hours-tab
+  - id: evidence.self.calibrated-dates-and-agent-hours-tab
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-04T22:18:51+07:00"
+    summary: 'Feature commit 5d77203: TaskJuggler export schedules agent_hours demands with the approved calibration (task comment and JSON calibrations; --raw keeps the former output), the import repeats the calibrations from the run manifest, overlay demand rows carry calibrated amounts, and the RePlan tab shows an Agent hours line. Plugin image 5d77203 deployed after a pg_dumpall backup; switch 22:15:45-22:17:11, web healthy after 45 s, no load errors. Live overlay check: this task shows planned 3 h, calibrated 0.75 h. Gate green incl. 79 live kit checks; plugin Ruby tests pass in the image. Codex 21:33:32-21:55:54; executor 21:29:32-21:33:39 and review, deploy 21:55:54-22:18:51; brief writing during the acceptance run not timed.'
+    targets:
+      - kind: task
+        id: task.self.calibrated-dates-and-agent-hours-tab
+  - id: evidence.self.accept-calibrated-dates-and-agent-hours-tab
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-05T06:34:47+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-05: drafted dates and the RePlan tab use calibrated agent hours.'
+    targets:
+      - kind: task
+        id: task.self.calibrated-dates-and-agent-hours-tab
+  - id: evidence.self.plan-consumer-feedback-2026-11-05
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-05T06:36:17+07:00"
+    summary: 'The operator agreed on 2026-11-05 to plan four tasks from a consumer report: bootstrap matching by binding, task set-description, pushing a changed description to the work package, one YAML style. Agreement to plan approves the estimates. The not started dependency and deadline commands and demand commands move to 2026-11-05.'
+    targets:
+      - kind: task
+        id: task.self.bootstrap-matches-by-binding
+      - kind: task
+        id: task.self.task-set-description
+      - kind: task
+        id: task.self.push-description-to-work-package
+      - kind: task
+        id: task.self.one-yaml-style-for-canonical-files
+      - kind: task
+        id: task.self.dependency-and-deadline-commands
+      - kind: task
+        id: task.self.demand-add-set-move-commands
+  - id: evidence.self.start-bootstrap-matches-by-binding
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-05T06:41:40+07:00"
+    summary: Started on 2026-11-05; estimate 2 agent hours frozen in baseline.2026-11-05.consumer-feedback-sync, split into agent 0.5 and Codex 1.5.
+    targets:
+      - kind: task
+        id: task.self.bootstrap-matches-by-binding
+  - id: evidence.self.bootstrap-matches-by-binding
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-05T07:07:16+07:00"
+    summary: 'Feature commit 73776c4: bootstrap matches bound tasks by work package id before subject; a renamed task plans update_subject (PATCH of subject and lockVersion only; 409 is openproject_work_package_changed), a stale binding is bound_work_package_missing with no create, a subject match bound to another task is binding_conflict; counts matched_by_binding, matched_by_subject, subject_updates. Python suite OK, shellcheck, smoke. Live dry run on the self project: 222 of 222 matched by binding, 0 creates, 0 subject updates. Codex 06:45:34-07:01:07; executor 06:41:40-06:45:35 and review 07:01:07-07:07:16; brief writing before 06:41 not timed.'
+    targets:
+      - kind: task
+        id: task.self.bootstrap-matches-by-binding
+  - id: evidence.self.accept-bootstrap-matches-by-binding
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-05T08:13:46+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-05: bootstrap matches work packages by binding before subject.'
+    targets:
+      - kind: task
+        id: task.self.bootstrap-matches-by-binding
+  - id: evidence.self.start-dependency-and-deadline-commands
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-05T08:15:05+07:00"
+    summary: Started on 2026-11-05; estimate 4 agent hours frozen in baseline.2026-11-04.consumer-feedback, split into agent 1 and Codex 3. Scope adds a batch file after a consumer added 4 deadlines and 18 dependencies by hand.
+    targets:
+      - kind: task
+        id: task.self.dependency-and-deadline-commands
+  - id: evidence.self.dependency-and-deadline-commands
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-05T09:02:05+07:00"
+    summary: 'Feature commit 0bf8747: dependency add and deadline add/list, by flags or --from-file batch checked as a whole and written all or nothing, one audit entry per item; refusals include self_dependency, duplicate_dependency, dependency_cycle (finish_to_start), deadline_target_not_found and invalid deadline type, date, criticality. Deadlines are now loaded and validated (before, canonical/deadlines.yaml was not read). Review: round 1 reported green tests but three Go tests failed (checked_files count, diagnostic fixture, import-accept goldens); round 2 fixed them and reverted an unasked renderer change. Executor fixed deadline list printing null for no deadlines. Checked on a copy of a consumer plan: appending a deadline keeps existing entries and their extra note fields. Codex 08:18:40-08:35:31 and 08:53:33-08:57:07; executor 08:15:05-08:18:40, review and gate 08:35:31-08:53:33, final checks 08:57:07-09:02:05; brief writing before 08:15 not timed.'
+    targets:
+      - kind: task
+        id: task.self.dependency-and-deadline-commands
+  - id: evidence.self.dependency-and-deadline-commands-ci
+    type: command_result
+    source: ci
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-05T09:14:03+07:00"
+    summary: 'CI failed on 0bf8747 and 886f5d6: the new batch test compared project files including .replan/write.lock, which a refused --apply creates and git ignores; locally an old lock file hid it. Test fix 146b819 checked in a clean worktree; CI green on 146b819.'
+    targets:
+      - kind: task
+        id: task.self.dependency-and-deadline-commands
+  - id: evidence.self.accept-dependency-and-deadline-commands
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-05T10:11:17+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-05: dependency add, deadline add/list, batch files and deadline loading work as reviewed.'
+    targets:
+      - kind: task
+        id: task.self.dependency-and-deadline-commands
+  - id: evidence.self.start-demand-add-set-move-commands
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-05T10:12:08+07:00"
+    summary: Started on 2026-11-05 after the operator accepted the dependency and deadline commands; estimate 4 agent hours frozen in baseline.2026-11-04.consumer-feedback-roles, split into agent 1 and Codex 3.
+    targets:
+      - kind: task
+        id: task.self.demand-add-set-move-commands
+  - id: evidence.self.demand-add-set-move-commands
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-05T11:37:19+07:00"
+    summary: 'Commit 59f30a1 adds demand add, set and move with batch files for add and set, superseded_by and supersedes links, and two validate warnings for demands missing from their task. Codex took three rounds: review fixed import accept overwriting existing demands, long audit text, a pointer compare and a zero-amount move; a hands-on trial found task demand lists re-indented on write, fixed so old lines stay byte-for-byte. Local gate green. Codex 0.99 h from round prompt and result times (10:18:12-10:54:32, 10:56:00-11:06:49, 11:07:52-11:20:02); agent 0.17 h from brief, reviews, trial and gate start stretches up to this record; bookkeeping after it is not timed.'
+    targets:
+      - kind: task
+        id: task.self.demand-add-set-move-commands
+  - id: evidence.self.accept-demand-add-set-move-commands
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-05T13:52:02+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-05: demand add, set and move with batch files, supersession links and the demand listing warnings work as reviewed.'
+    targets:
+      - kind: task
+        id: task.self.demand-add-set-move-commands
+  - id: evidence.self.start-task-set-description
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-05T13:53:21+07:00"
+    summary: Started on 2026-11-05 after the operator accepted the demand commands; estimate 1.5 agent hours frozen in baseline.2026-11-05.consumer-feedback-sync, split into agent 0.5 and Codex 1.
+    targets:
+      - kind: task
+        id: task.self.task-set-description
+  - id: evidence.self.task-set-description
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-05T14:57:58+07:00"
+    summary: 'Commit 81ef80f adds task set-description with flag, file, stdin and --clear sources and a short audit text; it shares the write path with set-title. A hands-on trial found multi-line text indented 8 spaces; round 2 writes it in the two-space style, tested byte-for-byte. Also found that two writes on one target in the same second get the same audit id, so the second is refused and rolled back; this is older than this task and affects set-title too. Local gate green. Codex 0.42 h from round prompt and result times (14:00:57-14:15:17, 14:16:47-14:27:24); agent 0.2 h from brief, review, trial and gate start stretches plus the finish up to this record.'
+    targets:
+      - kind: task
+        id: task.self.task-set-description
+  - id: evidence.self.accept-task-set-description
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-05T15:08:17+07:00"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-05: task set-description with flag, file, stdin and clear sources writes and audits as reviewed.'
+    targets:
+      - kind: task
+        id: task.self.task-set-description
+  - id: evidence.self.plan-unique-audit-ids
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-05T15:10:12+07:00"
+    summary: 'The operator agreed on 2026-11-05 to plan unique audit record ids, found while checking task set-description, after the two remaining consumer feedback tasks. Agreement to plan approves the estimate of 2 agent hours.'
+    targets:
+      - kind: task
+        id: task.self.unique-audit-ids
+  - id: evidence.self.start-push-description-to-work-package
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-05T15:11:12+07:00"
+    summary: Started on 2026-11-05 after the operator accepted task set-description and said to continue as recommended; estimate 2 agent hours frozen in baseline.2026-11-05.consumer-feedback-sync, split into agent 0.5 and Codex 1.5.
+    targets:
+      - kind: task
+        id: task.self.push-description-to-work-package
+  - id: evidence.self.push-description-to-work-package
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-05T16:13:18+07:00"
+    summary: 'Commit c8ae886 adds scripts/push-openproject-description-drift.sh. Read-only dry runs on the self project shaped it: round 1 would have erased the bootstrap task-id trailer on 38 work packages and took about 2 minutes; round 2 keeps the trailer and reads pages (4 seconds, 12 differences); reading those in full showed text a person added below the trailer, so round 3 keeps the trailer and everything after it. The last dry run plans 10 updates, all RePlan-side edits, not yet applied. Local gate green. Codex 0.61 h from round prompt and result times (15:16:10-15:33:11, 15:36:19-15:46:39, 15:48:23-15:57:23); agent 0.18 h from brief, reviews, dry runs and gate start stretches plus the finish up to this record.'
+    targets:
+      - kind: task
+        id: task.self.push-description-to-work-package
+  - id: evidence.self.accept-push-description-to-work-package
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-05T10:40:20Z"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-05: description push helper keeps the task-id trailer and human text below it; operator approved applying it to the dogfood project.'
+    targets:
+      - kind: task
+        id: task.self.push-description-to-work-package
+  - id: evidence.self.start-one-yaml-style-for-canonical-files
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-05T17:45:56+07:00"
+    summary: Started on 2026-11-05 after the operator accepted the description push and said to continue as recommended; estimate 2 agent hours frozen in baseline.2026-11-05.consumer-feedback-sync, split into agent 0.5 and Codex 1.5.
+    targets:
+      - kind: task
+        id: task.self.one-yaml-style-for-canonical-files

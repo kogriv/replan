@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/kogriv/replan/internal/domain"
+	"github.com/kogriv/replan/internal/storage/yamlformat"
 	"gopkg.in/yaml.v3"
 )
 
@@ -874,7 +875,7 @@ func buildGitHubSnapshotWrite(result GitHubImportResult, req GitHubImportRequest
 	}
 	mappedJSON = append(mappedJSON, '\n')
 	manifest := gitHubImportManifest{SourceSnapshot: gitHubImportManifestBody{ID: result.Snapshot.ID, Source: "github", SourceMode: result.Snapshot.SourceMode, ImportedAt: importedAt.Format(time.RFC3339), ProfileID: profile.ID, Repository: repository, Since: req.Since, IncludeClosed: req.IncludeClosed, IncludeRelations: req.IncludeRelations, RawLocation: base + "raw.json", MappedLocation: base + "mapped.json", AdapterVersion: "replan-github-adapter-v0", ObjectCount: len(result.TaskCandidates), WarningCount: len(result.Warnings)}}
-	manifestYAML, err := yaml.Marshal(manifest)
+	manifestYAML, err := yamlformat.Render(manifest)
 	if err != nil {
 		return OpenProjectImportSnapshotWrite{}, err
 	}

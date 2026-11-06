@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -25,6 +27,16 @@ type Store struct {
 	bindings    *openProjectBindingsDoc
 	bindingsErr *app.Diagnostic
 }
+
+// FormatWouldChangeDataError reports a renderer round trip that is not data
+// preserving. The formatter refuses the complete operation in this case.
+type FormatWouldChangeDataError struct{ Path string }
+
+func (e FormatWouldChangeDataError) Error() string {
+	return fmt.Sprintf("formatting %s would change parsed data", e.Path)
+}
+
+func (e FormatWouldChangeDataError) FormatWouldChangeData() string { return e.Path }
 
 func New(projectPath string) Store {
 	return Store{projectPath: projectPath, fs: diskFS{root: projectPath}}
@@ -242,29 +254,6 @@ func appendCanonicalSequence[T any](s Store, rel string, missingOK bool, empty f
 	return writeYAML(s, rel, data, doc)
 }
 
-// rewriteYAML updates a complete generated document with the canonical
-// two-space renderer. It is used for onboarding files that begin as an empty
-// sequence, where there is no existing sequence item for the splicer to use
-// as an indentation template.
-func rewriteYAML[T any](s Store, rel string, mutate func(*T) error) error {
-	var doc T
-	data, err := s.fs.read(rel)
-	if err != nil {
-		return fmt.Errorf("read %s: %w", rel, err)
-	}
-	if err := yaml.Unmarshal(data, &doc); err != nil {
-		return fmt.Errorf("parse %s: %w", rel, err)
-	}
-	if err := mutate(&doc); err != nil {
-		return err
-	}
-	out, err := yamlformat.Render(doc)
-	if err != nil {
-		return fmt.Errorf("render %s: %w", rel, err)
-	}
-	return s.fs.write(rel, out)
-}
-
 // writeYAML writes doc to rel. original is the file doc was read from, or
 // nil for a new file; records and fields that did not change keep their
 // original bytes (GAP-022).
@@ -476,7 +465,7 @@ func (s Store) AddResource(resource domain.Resource, actor *domain.Actor, audit 
 }
 
 func (s Store) SetCapacity(previousID, previousEffectiveTo string, capacity domain.Capacity, audit domain.AuditRecord) ([]string, error) {
-	err := rewriteYAML(s, capacitiesRel, func(doc *struct {
+	err := updateYAML(s, capacitiesRel, false, func(doc *struct {
 		Capacities []domain.Capacity `yaml:"capacities"`
 	}) error {
 		if previousID != "" {
@@ -706,34 +695,14 @@ func (s Store) SetProjectFormatVersion(version int) (string, error) {
 	return projectRel, err
 }
 
-// SetProjectStatusDate changes only project.default_status_date. It edits the
-// YAML node tree instead of round-tripping a struct, so fields and comments
-// the domain type does not model survive.
+// SetProjectStatusDate changes only project.default_status_date through the
+// style-preserving splicer, so unknown fields and unrelated bytes survive.
 func (s Store) SetProjectStatusDate(date string) (string, error) {
-	data, err := s.fs.read(projectRel)
-	if err != nil {
-		return projectRel, fmt.Errorf("read %s: %w", projectRel, err)
-	}
-	var root yaml.Node
-	if err := yaml.Unmarshal(data, &root); err != nil {
-		return projectRel, fmt.Errorf("parse %s: %w", projectRel, err)
-	}
-	project := mappingValue(&root, "project")
-	if project == nil || project.Kind != yaml.MappingNode {
-		return projectRel, fmt.Errorf("%s has no project mapping", projectRel)
-	}
-	if value := mappingValue(project, "default_status_date"); value != nil {
-		value.Kind, value.Tag, value.Value, value.Style = yaml.ScalarNode, "!!str", date, yaml.DoubleQuotedStyle
-	} else {
-		project.Content = append(project.Content,
-			&yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: "default_status_date"},
-			&yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: date, Style: yaml.DoubleQuotedStyle})
-	}
-	out, err := yamlformat.Render(&root)
-	if err != nil {
-		return projectRel, fmt.Errorf("render %s: %w", projectRel, err)
-	}
-	return projectRel, s.fs.write(projectRel, out)
+	err := updateYAML(s, projectRel, false, func(doc *projectDoc) error {
+		doc.Project.DefaultStatusDate = date
+		return nil
+	})
+	return projectRel, err
 }
 
 // mappingValue returns the value node for key in a mapping node, or in the
@@ -1101,10 +1070,128 @@ func (s Store) CreateProjectFile(rel string, content []byte) (string, error) {
 	if exists {
 		return rel, fmt.Errorf("candidate file %s already exists", rel)
 	}
+	if strings.EqualFold(filepath.Ext(rel), ".yaml") || strings.EqualFold(filepath.Ext(rel), ".yml") {
+		var root yaml.Node
+		if err := yaml.Unmarshal(content, &root); err != nil {
+			return rel, fmt.Errorf("parse new YAML file %s: %w", rel, err)
+		}
+		content, err = yamlformat.Render(&root)
+		if err != nil {
+			return rel, fmt.Errorf("render new YAML file %s: %w", rel, err)
+		}
+	}
 	if err := s.fs.write(rel, content); err != nil {
 		return rel, fmt.Errorf("write %s: %w", rel, err)
 	}
 	return rel, nil
+}
+
+// FormatCanonicalYAML renders every YAML file that participates in canonical
+// project state with the canonical renderer. A preview returns the same change
+// list without writing. Key order, comments and scalar styles are carried by
+// yaml.Node; date-like string scalars are explicitly quoted.
+func (s Store) FormatCanonicalYAML(apply bool) ([]app.ProjectFormatFile, error) {
+	paths, err := s.canonicalYAMLPaths()
+	if err != nil {
+		return nil, err
+	}
+	changes := make([]app.ProjectFormatFile, 0)
+	for _, rel := range paths {
+		original, err := s.fs.read(rel)
+		if err != nil {
+			return nil, fmt.Errorf("read %s: %w", rel, err)
+		}
+		var root yaml.Node
+		if err := yaml.Unmarshal(original, &root); err != nil {
+			return nil, fmt.Errorf("parse %s: %w", rel, err)
+		}
+		quoteDateStrings(&root)
+		formatted, err := yamlformat.Render(&root)
+		if err != nil {
+			return nil, fmt.Errorf("render %s: %w", rel, err)
+		}
+		if bytes.Equal(original, formatted) {
+			continue
+		}
+		if !formatDataEqual(original, formatted) {
+			return nil, FormatWouldChangeDataError{Path: rel}
+		}
+		changes = append(changes, app.ProjectFormatFile{Path: rel, ChangedLines: changedLineCount(original, formatted)})
+		if apply {
+			if err := s.fs.write(rel, formatted); err != nil {
+				return nil, fmt.Errorf("write %s: %w", rel, err)
+			}
+		}
+	}
+	return changes, nil
+}
+
+var formatDataEqual = sameYAMLData
+
+func sameYAMLData(before, after []byte) bool {
+	var a, b any
+	return yaml.Unmarshal(before, &a) == nil && yaml.Unmarshal(after, &b) == nil && reflect.DeepEqual(a, b)
+}
+
+func quoteDateStrings(node *yaml.Node) {
+	if node.Kind == yaml.ScalarNode && node.Tag == "!!str" && dateLikeString(node.Value) {
+		node.Style = yaml.DoubleQuotedStyle
+	}
+	for _, child := range node.Content {
+		quoteDateStrings(child)
+	}
+}
+
+func dateLikeString(value string) bool {
+	if len(value) < 10 || value[4] != '-' || value[7] != '-' {
+		return false
+	}
+	_, err := time.Parse("2006-01-02", value[:10])
+	return err == nil
+}
+
+func changedLineCount(before, after []byte) int {
+	a, b := splitLines(before), splitLines(after)
+	next := make([]int, len(b)+1)
+	for i := len(a) - 1; i >= 0; i-- {
+		current := make([]int, len(b)+1)
+		for j := len(b) - 1; j >= 0; j-- {
+			if a[i] == b[j] {
+				current[j] = next[j+1] + 1
+			} else if current[j+1] > next[j] {
+				current[j] = current[j+1]
+			} else {
+				current[j] = next[j]
+			}
+		}
+		next = current
+	}
+	return len(a) + len(b) - 2*next[0]
+}
+
+func (s Store) canonicalYAMLPaths() ([]string, error) {
+	patterns := []string{
+		".replan/project.yaml", ".replan/policy.yaml", "canonical/*.yaml",
+		"baselines/*.yaml", "calibrations/*.yaml", "actuals/*.yaml", "evidence/*.yaml",
+		"proposals/open/*.yaml", "proposals/accepted/*.yaml", "proposals/rejected/*.yaml",
+		"proposals/superseded/*.yaml", "scenarios/*.yaml",
+	}
+	seen := map[string]bool{}
+	paths := []string{}
+	for _, pattern := range patterns {
+		matches, err := s.fs.glob(pattern)
+		if err != nil {
+			return nil, fmt.Errorf("glob %s: %w", pattern, err)
+		}
+		for _, rel := range matches {
+			if !seen[rel] {
+				seen[rel] = true
+				paths = append(paths, rel)
+			}
+		}
+	}
+	sort.Strings(paths)
+	return paths, nil
 }
 
 // withAudit appends the audit record after a successful canonical write.

@@ -661,6 +661,7 @@ scenario apply
 proposal accept
 proposal reject
 project migrate
+project format
 project recover
 project set-status-date
 evidence add
@@ -1272,12 +1273,14 @@ Implemented command flags:
 
 ```text
 replan project migrate --project -p --bindings --actor --reason --occurred-at --apply --dry-run --format
+replan project format --project -p --bindings --actor --reason --apply --dry-run --format
 replan project recover --project -p --bindings --apply --dry-run --format
 replan project set-status-date --project -p --bindings --date --actor --reason --occurred-at --apply --dry-run --format
 ```
 
 ```text
 replan project migrate --project <path> --actor <id> [--reason <text>] [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|markdown]
+replan project format --project <path> --actor <id> --reason <text> (--dry-run|--apply) [--format json|text]
 replan project recover --project <path> (--dry-run|--apply) [--format json|markdown|text]
 replan project set-status-date --project <path> --date <YYYY-MM-DD|today> --actor <id> [--reason <text>] [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|markdown]
 ```
@@ -1289,6 +1292,12 @@ rewriting unrelated YAML and appends one `project_migrate` audit record.
 Already-current projects are successful no-ops with no audit record. The
 command upgrades only: a newer format is refused by project loading with
 `project_format_unsupported`.
+
+`project format` rewrites canonical project YAML with two-space indentation
+while keeping comments, key order and quoted date strings. Dry run lists each
+file and its changed-line count without writing. Apply replaces the files
+atomically and appends one `project_format` audit record. It refuses the whole
+operation with `format_would_change_data` if reparsing would change data.
 
 `project recover` inspects or completes `.replan/commit-pending/`. `--dry-run`
 validates a complete journal and lists its files without changing the project;

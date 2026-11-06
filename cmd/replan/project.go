@@ -18,6 +18,8 @@ func runProject(args []string, stdout, stderr *os.File) int {
 		return exitInvalidUsage
 	}
 	switch args[0] {
+	case "format":
+		return runProjectFormat(args[1:], stdout, stderr)
 	case "migrate":
 		return runProjectMigrate(args[1:], stdout, stderr)
 	case "recover":
@@ -32,6 +34,35 @@ func runProject(args []string, stdout, stderr *os.File) int {
 		printUsage(stderr)
 		return exitInvalidUsage
 	}
+}
+
+func runProjectFormat(args []string, stdout, stderr *os.File) int {
+	fs := newCLIFlagSet("project format")
+	projectPath, format := addProjectFormatFlags(fs, "text")
+	reason := fs.String("reason", "", "why the project YAML is formatted")
+	actorID := fs.String("actor", "", "actor id formatting the project")
+	writeFlags := addCanonicalWriteFlags(fs)
+	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+		return code
+	}
+	if *format != "json" && *format != "text" {
+		env := envelope{OK: false, Command: "project format", ProjectPath: *projectPath, Result: nil, Warnings: []app.Diagnostic{}, Errors: []app.Diagnostic{{Code: "unsupported_format", Message: "supported formats are json and text", Severity: "error"}}}
+		return printScenarioEnvelope(stdout, stderr, "json", env, app.ErrValidationFailed)
+	}
+	dryRun, code, done := requireCanonicalWriteChoice("project format", *projectPath, *format, writeFlags, stdout, stderr)
+	if done {
+		return code
+	}
+	result, err := app.NewProjectService(newStore(*projectPath)).Format(context.Background(), app.ProjectFormatRequest{Reason: *reason, ActorID: *actorID, DryRun: dryRun})
+	lines := []string{
+		fmt.Sprintf("- Project: `%s`", result.ProjectID),
+		fmt.Sprintf("- Changed files: `%d`", result.ChangedFiles),
+		fmt.Sprintf("- Changed lines: `%d`", result.ChangedLines),
+	}
+	for _, file := range result.Files {
+		lines = append(lines, fmt.Sprintf("- `%s`: %d changed lines", file.Path, file.ChangedLines))
+	}
+	return finishLifecycleCommand(stdout, stderr, *format, "project format", "Project Format", *projectPath, result.DryRun, result.Applied, result.WrittenFiles, lines, result, result.Warnings, result.Errors, err)
 }
 
 type projectRecoverResult struct {

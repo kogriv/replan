@@ -16,6 +16,7 @@ import (
 	"unicode"
 
 	"github.com/kogriv/replan/internal/domain"
+	"github.com/kogriv/replan/internal/storage/yamlformat"
 	"gopkg.in/yaml.v3"
 )
 
@@ -831,7 +832,7 @@ func buildOpenProjectSnapshotWrite(result OpenProjectImportResult, req OpenProje
 		ObjectCount:    result.Snapshot.LoadedCount,
 		WarningCount:   len(result.Warnings),
 	}}
-	manifestYAML, err := yaml.Marshal(manifest)
+	manifestYAML, err := yamlformat.Render(manifest)
 	if err != nil {
 		return OpenProjectImportSnapshotWrite{}, err
 	}
