@@ -972,3 +972,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.unique-audit-ids
+  - id: evidence.self.unique-audit-ids
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-06T13:34:35+07:00"
+    summary: 'Commit 068a5b2 makes the store pick the final audit and actual id, adding .2, .3 when the base id is taken, across shards and within a batch; apply results show the written id. A hands-on trial found that round 1 dropped the actual retry guard, so an identical repeated add-consumption booked twice; round 2 refuses an identical actual as actual_already_exists and suffixes only different content. Trial: three set-title writes in one second give X, X.2, X.3; audit verify and validate pass. Local gate green. Codex 0.55 h from round prompt and result times (12:43:38-13:06:28, 13:08:08-13:18:20); agent 0.18 h: accept of the previous task, brief and start 12:38:04-12:43:38, reviews 13:06:28-13:08:08 and 13:18:20-13:19:06, finish from 13:33:56 to this record; gate wait not booked.'
+    targets:
+      - kind: task
+        id: task.self.unique-audit-ids

@@ -6613,7 +6613,7 @@ tasks:
     title: Keep audit record ids unique for writes in the same second
     description: 'Found while checking task set-description on 2026-11-05: audit ids are built from the timestamp to the second, the operation and the target, so two writes on one target in the same second get the same id; validation refuses the second write and rolls it back. A script that runs commands back to back hits this at once. Make the id unique when it is already taken (a numeric suffix) for every command that appends audit records, and test two writes in one second.'
     type: implementation
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-06"
     planned_finish: "2026-11-06"
     assignee_hint:

@@ -1498,3 +1498,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-one-yaml-style-for-canonical-files
+  - id: actual.self-unique-audit-ids.ai-codex-local.20261106T1334350700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.unique-audit-ids
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.unique-audit-ids.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.55
+    unit: agent_hours
+    occurred_at: "2026-11-06T13:34:35+07:00"
+    status_date: "2026-11-06"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.unique-audit-ids
+  - id: actual.self-unique-audit-ids.ai-agent-executor.20261106T1334350700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.unique-audit-ids
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.unique-audit-ids.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.18
+    unit: agent_hours
+    occurred_at: "2026-11-06T13:34:35+07:00"
+    status_date: "2026-11-06"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.unique-audit-ids
