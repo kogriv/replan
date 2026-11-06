@@ -19,7 +19,7 @@ type TaskWriter interface {
 	SetTaskDates(taskID, plannedStart, plannedFinish string) (string, error)
 	SetTaskTitle(taskID, title string) (string, error)
 	SetTaskDescription(taskID, description string) (string, error)
-	AppendAudit(record domain.AuditRecord) (string, error)
+	AppendAudit(record *domain.AuditRecord) (string, error)
 }
 
 type TaskAddRequest struct {
@@ -201,7 +201,8 @@ func (s TaskService) Add(ctx context.Context, req TaskAddRequest) (TaskAddResult
 		return result, err
 	}
 	result.WrittenFiles = append(result.WrittenFiles, written...)
-	auditPath, err := writer.AppendAudit(audit)
+	auditPath, err := writer.AppendAudit(&audit)
+	result.AuditRecordPreview = audit
 	if err != nil {
 		result.Errors = append(result.Errors, taskDiag("audit_write_failed", err.Error(), "audit_record", audit.ID))
 		return result, err
@@ -287,7 +288,8 @@ func (s TaskService) SetDates(ctx context.Context, req TaskSetDatesRequest) (Tas
 		return result, err
 	}
 	result.WrittenFiles = append(result.WrittenFiles, path)
-	auditPath, err := writer.AppendAudit(audit)
+	auditPath, err := writer.AppendAudit(&audit)
+	result.AuditRecordPreview = audit
 	if err != nil {
 		result.Errors = append(result.Errors, taskDiag("audit_write_failed", err.Error(), "audit_record", audit.ID))
 		return result, err
@@ -369,7 +371,8 @@ func (s TaskService) RecordActualWindow(ctx context.Context, req TaskRecordActua
 		return result, err
 	}
 	result.WrittenFiles = append(result.WrittenFiles, path)
-	auditPath, err := writer.AppendAudit(audit)
+	auditPath, err := writer.AppendAudit(&audit)
+	result.AuditRecordPreview = &audit
 	if err != nil {
 		result.Errors = append(result.Errors, taskDiag("audit_write_failed", err.Error(), "audit_record", audit.ID))
 		return result, err
@@ -490,7 +493,8 @@ func (s TaskService) setTaskText(ctx context.Context, req taskTextMutationReques
 		return result, err
 	}
 	result.WrittenFiles = append(result.WrittenFiles, path)
-	auditPath, err := writer.AppendAudit(audit)
+	auditPath, err := writer.AppendAudit(&audit)
+	result.AuditRecordPreview = audit
 	if err != nil {
 		result.Errors = append(result.Errors, taskDiag("audit_write_failed", err.Error(), "audit_record", audit.ID))
 		return result, err

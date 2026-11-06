@@ -35,11 +35,12 @@ func TestStagedWritesStayInMemoryUntilCommit(t *testing.T) {
 		OccurredAt: "2031-01-06T10:00:00Z",
 		StatusDate: "2031-01-06",
 	}
-	actualRel, err := staged.AppendActual(actual.StatusDate, actual)
+	actualRel, err := staged.AppendActual(actual.StatusDate, &actual)
 	if err != nil {
 		t.Fatalf("AppendActual: %v", err)
 	}
-	if _, err := staged.AppendAudit(domain.AuditRecord{ID: "audit.staged.1", OccurredAt: "2031-01-06T10:00:00Z", Operation: "test", Result: "success"}); err != nil {
+	audit := domain.AuditRecord{ID: "audit.staged.1", OccurredAt: "2031-01-06T10:00:00Z", Operation: "test", Result: "success"}
+	if _, err := staged.AppendAudit(&audit); err != nil {
 		t.Fatalf("AppendAudit: %v", err)
 	}
 
@@ -97,7 +98,7 @@ func TestInterruptedCommitRollsForwardAtEveryWriteBoundary(t *testing.T) {
 				t.Fatalf("AppendEvidence: %v", err)
 			}
 			audit := domain.AuditRecord{ID: "audit.interrupted", OccurredAt: evidence.ObservedAt, ActorRef: domain.Ref{Kind: "actor", ID: "actor.human.operator"}, Operation: "evidence_add", TargetRef: domain.Ref{Kind: "evidence", ID: evidence.ID}, Result: "success"}
-			if _, err := staged.AppendAudit(audit); err != nil {
+			if _, err := staged.AppendAudit(&audit); err != nil {
 				t.Fatalf("AppendAudit: %v", err)
 			}
 
@@ -246,7 +247,8 @@ func TestStagedProposalMoveRemovesSourceOnlyOnCommit(t *testing.T) {
 	proposalID := strings.TrimSuffix(filepath.Base(matches[0]), ".yaml")
 
 	staged := New(projectPath).StageWrites().(*StagedStore)
-	if _, err := staged.MoveProposal(proposalID, "rejected", domain.AuditRecord{ID: "audit.staged.move", OccurredAt: "2031-01-06T10:00:00Z", Operation: "test", Result: "success"}); err != nil {
+	audit := domain.AuditRecord{ID: "audit.staged.move", OccurredAt: "2031-01-06T10:00:00Z", Operation: "test", Result: "success"}
+	if _, err := staged.MoveProposal(proposalID, "rejected", &audit); err != nil {
 		t.Fatalf("MoveProposal: %v", err)
 	}
 	if _, err := os.Stat(matches[0]); err != nil {

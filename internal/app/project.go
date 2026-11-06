@@ -13,13 +13,13 @@ import (
 // ProjectWriter changes project-level settings in .replan/project.yaml.
 type ProjectWriter interface {
 	SetProjectStatusDate(date string) (string, error)
-	AppendAudit(record domain.AuditRecord) (string, error)
+	AppendAudit(record *domain.AuditRecord) (string, error)
 }
 
 type ProjectMigrationWriter interface {
 	ProjectFormatVersion() (version int, explicit bool, err error)
 	SetProjectFormatVersion(version int) (string, error)
-	AppendAudit(record domain.AuditRecord) (string, error)
+	AppendAudit(record *domain.AuditRecord) (string, error)
 }
 
 type ProjectFormatFile struct {
@@ -51,7 +51,7 @@ type ProjectFormatResult struct {
 
 type ProjectFormatter interface {
 	FormatCanonicalYAML(apply bool) ([]ProjectFormatFile, error)
-	AppendAudit(record domain.AuditRecord) (string, error)
+	AppendAudit(record *domain.AuditRecord) (string, error)
 }
 
 type ProjectService struct {
@@ -118,7 +118,8 @@ func (s ProjectService) Format(ctx context.Context, req ProjectFormatRequest) (P
 	for _, file := range files {
 		result.WrittenFiles = append(result.WrittenFiles, file.Path)
 	}
-	auditPath, err := writer.AppendAudit(audit)
+	auditPath, err := writer.AppendAudit(&audit)
+	result.AuditRecordPreview = audit
 	if err != nil {
 		result.Errors = append(result.Errors, Diagnostic{Code: "audit_write_failed", Message: err.Error(), Severity: "error", Target: Target{Kind: "audit_record", ID: audit.ID}})
 		return result, err
@@ -320,7 +321,8 @@ func (s ProjectService) Migrate(ctx context.Context, req ProjectMigrateRequest) 
 		}
 		result.WrittenFiles = append(result.WrittenFiles, path)
 	}
-	auditPath, err := writer.AppendAudit(audit)
+	auditPath, err := writer.AppendAudit(&audit)
+	result.AuditRecordPreview = &audit
 	if err != nil {
 		result.Errors = append(result.Errors, Diagnostic{Code: "audit_write_failed", Message: err.Error(), Severity: "error", Target: Target{Kind: "audit_record", ID: audit.ID}})
 		return result, err
@@ -442,7 +444,8 @@ func (s ProjectService) SetStatusDate(ctx context.Context, req ProjectSetStatusD
 		return result, err
 	}
 	result.WrittenFiles = append(result.WrittenFiles, projectPath)
-	auditPath, err := writer.AppendAudit(audit)
+	auditPath, err := writer.AppendAudit(&audit)
+	result.AuditRecordPreview = audit
 	if err != nil {
 		result.Errors = append(result.Errors, Diagnostic{Code: "audit_write_failed", Message: err.Error(), Severity: "error",
 			Target: Target{Kind: "audit_record", ID: audit.ID}})

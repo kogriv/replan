@@ -145,7 +145,7 @@ type calibrationSuggestionKey struct {
 
 type CalibrationWriter interface {
 	CreateProjectFile(rel string, content []byte) (string, error)
-	AppendAudit(record domain.AuditRecord) (string, error)
+	AppendAudit(record *domain.AuditRecord) (string, error)
 }
 
 func NewCalibrationService(loader WorkspaceLoader) CalibrationService {
@@ -228,7 +228,8 @@ func (s CalibrationService) Calibrate(ctx context.Context, req CalibrationCalibr
 		return result, err
 	}
 	result.WrittenFiles = append(result.WrittenFiles, calibrationPath)
-	auditPath, err := writer.AppendAudit(audit)
+	auditPath, err := writer.AppendAudit(&audit)
+	result.AuditRecordPreview = audit
 	if err != nil {
 		return result, err
 	}
@@ -715,7 +716,8 @@ func (s CalibrationService) Apply(ctx context.Context, req CalibrationApplyReque
 		return result, err
 	}
 	result.WrittenFiles = append(result.WrittenFiles, scenarioPath)
-	auditPath, err := writer.AppendAudit(audit)
+	auditPath, err := writer.AppendAudit(&audit)
+	result.AuditRecordPreview = audit
 	if err != nil {
 		return result, err
 	}

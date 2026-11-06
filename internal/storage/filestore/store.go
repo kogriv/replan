@@ -302,10 +302,15 @@ func (s Store) updateDemand(demandID string, mutate func(*domain.ResourceDemand)
 	return demandsRel, err
 }
 
-func (s Store) AppendActual(statusDate string, actual domain.Actual) (string, error) {
+func (s Store) AppendActual(statusDate string, actual *domain.Actual) (string, error) {
 	rel := actualsPath(statusDate)
-	err := updateYAML(s, rel, true, func(doc *actualsDoc) error {
-		doc.Actuals = append(doc.Actuals, actual)
+	ids, err := s.recordIDs("actuals/*.yaml", actualIDs)
+	if err != nil {
+		return rel, fmt.Errorf("read existing actual ids: %w", err)
+	}
+	actual.ID = availableRecordID(actual.ID, ids)
+	err = updateYAML(s, rel, true, func(doc *actualsDoc) error {
+		doc.Actuals = append(doc.Actuals, *actual)
 		return nil
 	})
 	return rel, err
@@ -438,7 +443,7 @@ func (s Store) AddDeadlines(deadlines []domain.Deadline) (string, error) {
 	return deadlinesRel, err
 }
 
-func (s Store) AddResource(resource domain.Resource, actor *domain.Actor, audit domain.AuditRecord) ([]string, error) {
+func (s Store) AddResource(resource domain.Resource, actor *domain.Actor, audit *domain.AuditRecord) ([]string, error) {
 	if err := updateYAML(s, resourcesRel, false, func(doc *resourcesDoc) error {
 		doc.Resources = append(doc.Resources, resource)
 		return nil
@@ -464,7 +469,7 @@ func (s Store) AddResource(resource domain.Resource, actor *domain.Actor, audit 
 	return append(written, auditRel), nil
 }
 
-func (s Store) SetCapacity(previousID, previousEffectiveTo string, capacity domain.Capacity, audit domain.AuditRecord) ([]string, error) {
+func (s Store) SetCapacity(previousID, previousEffectiveTo string, capacity domain.Capacity, audit *domain.AuditRecord) ([]string, error) {
 	err := updateYAML(s, capacitiesRel, false, func(doc *struct {
 		Capacities []domain.Capacity `yaml:"capacities"`
 	}) error {
@@ -722,8 +727,13 @@ func mappingValue(node *yaml.Node, key string) *yaml.Node {
 	return nil
 }
 
-func (s Store) AppendAudit(record domain.AuditRecord) (string, error) {
+func (s Store) AppendAudit(record *domain.AuditRecord) (string, error) {
 	rel := app.AuditShardPath(record.OccurredAt)
+	ids, err := s.recordIDs("audit/*.jsonl", auditIDs)
+	if err != nil {
+		return rel, fmt.Errorf("read existing audit ids: %w", err)
+	}
+	record.ID = availableRecordID(record.ID, ids)
 	line, err := json.Marshal(record)
 	if err != nil {
 		return rel, fmt.Errorf("render audit record: %w", err)
@@ -740,6 +750,67 @@ func (s Store) AppendAudit(record domain.AuditRecord) (string, error) {
 		return rel, fmt.Errorf("append audit file %s: %w", rel, err)
 	}
 	return rel, nil
+}
+
+func (s Store) recordIDs(pattern string, decode func([]byte) ([]string, error)) (map[string]bool, error) {
+	paths, err := s.fs.glob(pattern)
+	if err != nil {
+		return nil, err
+	}
+	ids := map[string]bool{}
+	for _, rel := range paths {
+		data, err := s.fs.read(rel)
+		if err != nil {
+			return nil, err
+		}
+		fileIDs, err := decode(data)
+		if err != nil {
+			return nil, fmt.Errorf("decode %s: %w", rel, err)
+		}
+		for _, id := range fileIDs {
+			ids[id] = true
+		}
+	}
+	return ids, nil
+}
+
+func availableRecordID(base string, existing map[string]bool) string {
+	if !existing[base] {
+		return base
+	}
+	for suffix := 2; ; suffix++ {
+		candidate := fmt.Sprintf("%s.%d", base, suffix)
+		if !existing[candidate] {
+			return candidate
+		}
+	}
+}
+
+func actualIDs(data []byte) ([]string, error) {
+	var doc actualsDoc
+	if err := yaml.Unmarshal(data, &doc); err != nil {
+		return nil, err
+	}
+	ids := make([]string, 0, len(doc.Actuals))
+	for _, actual := range doc.Actuals {
+		ids = append(ids, actual.ID)
+	}
+	return ids, nil
+}
+
+func auditIDs(data []byte) ([]string, error) {
+	ids := []string{}
+	for _, line := range bytes.Split(data, []byte{'\n'}) {
+		if len(bytes.TrimSpace(line)) == 0 {
+			continue
+		}
+		var record domain.AuditRecord
+		if err := json.Unmarshal(line, &record); err != nil {
+			return nil, err
+		}
+		ids = append(ids, record.ID)
+	}
+	return ids, nil
 }
 
 // moveOpenProposal rewrites an open proposal under targetStatus and removes
@@ -774,7 +845,7 @@ func (s Store) moveOpenProposal(proposalID string, targetStatus string) (string,
 	return sourceRel, targetRel, nil
 }
 
-func (s Store) MoveProposal(proposalID string, targetStatus string, audit domain.AuditRecord) ([]string, error) {
+func (s Store) MoveProposal(proposalID string, targetStatus string, audit *domain.AuditRecord) ([]string, error) {
 	sourceRel, targetRel, err := s.moveOpenProposal(proposalID, targetStatus)
 	if err != nil {
 		return nil, err
@@ -808,7 +879,7 @@ func (s Store) WriteProposals(proposals []domain.Proposal) ([]string, error) {
 	return written, nil
 }
 
-func (s Store) ApplyProposalDecision(proposalID string, targetStatus string, taskStatusChanges []app.ProposalTaskStatusChange, dependencyStatusChanges []app.ProposalDependencyStatusChange, resourceDemandChanges []app.ProposalResourceDemandChange, audit domain.AuditRecord) ([]string, error) {
+func (s Store) ApplyProposalDecision(proposalID string, targetStatus string, taskStatusChanges []app.ProposalTaskStatusChange, dependencyStatusChanges []app.ProposalDependencyStatusChange, resourceDemandChanges []app.ProposalResourceDemandChange, audit *domain.AuditRecord) ([]string, error) {
 	written := []string{}
 	if _, proposal, err := s.readProposalByID(proposalID); err != nil {
 		return written, err
@@ -892,7 +963,7 @@ func (s Store) ApplyProposalDecision(proposalID string, targetStatus string, tas
 	return append(written, auditRel), nil
 }
 
-func (s Store) ApplyScenarioChanges(scenarioID string, changes []app.ScenarioApplyChange, audit domain.AuditRecord) ([]string, error) {
+func (s Store) ApplyScenarioChanges(scenarioID string, changes []app.ScenarioApplyChange, audit *domain.AuditRecord) ([]string, error) {
 	written := []string{}
 	if touchesScenarioTargetKind(changes, "task") {
 		err := s.applyScenarioTaskChanges(changes)
@@ -1195,7 +1266,7 @@ func (s Store) canonicalYAMLPaths() ([]string, error) {
 }
 
 // withAudit appends the audit record after a successful canonical write.
-func (s Store) withAudit(rel string, err error, audit domain.AuditRecord) ([]string, error) {
+func (s Store) withAudit(rel string, err error, audit *domain.AuditRecord) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
@@ -1206,7 +1277,7 @@ func (s Store) withAudit(rel string, err error, audit domain.AuditRecord) ([]str
 	return []string{rel, auditRel}, nil
 }
 
-func (s Store) ApplyImportAcceptTasks(changes []app.ImportAcceptTaskChange, audit domain.AuditRecord) ([]string, error) {
+func (s Store) ApplyImportAcceptTasks(changes []app.ImportAcceptTaskChange, audit *domain.AuditRecord) ([]string, error) {
 	err := updateYAML(s, tasksRel, false, func(doc *tasksDoc) error {
 		index := taskIndex(doc.Tasks)
 		for _, change := range changes {
@@ -1234,7 +1305,7 @@ func (s Store) ApplyImportAcceptTasks(changes []app.ImportAcceptTaskChange, audi
 	return s.withAudit(tasksRel, err, audit)
 }
 
-func (s Store) ApplyImportAcceptTrackingStatuses(changes []app.ImportAcceptTrackingStatusChange, audit domain.AuditRecord) ([]string, error) {
+func (s Store) ApplyImportAcceptTrackingStatuses(changes []app.ImportAcceptTrackingStatusChange, audit *domain.AuditRecord) ([]string, error) {
 	err := updateYAML(s, tasksRel, false, func(doc *tasksDoc) error {
 		index := taskIndex(doc.Tasks)
 		for _, change := range changes {
@@ -1249,7 +1320,7 @@ func (s Store) ApplyImportAcceptTrackingStatuses(changes []app.ImportAcceptTrack
 	return s.withAudit(tasksRel, err, audit)
 }
 
-func (s Store) ApplyImportAcceptDates(changes []app.ImportAcceptDateChange, audit domain.AuditRecord) ([]string, error) {
+func (s Store) ApplyImportAcceptDates(changes []app.ImportAcceptDateChange, audit *domain.AuditRecord) ([]string, error) {
 	for _, change := range changes {
 		if _, err := s.SetTaskDates(change.TaskID, change.PlannedStart, change.PlannedFinish); err != nil {
 			return nil, err
@@ -1258,7 +1329,7 @@ func (s Store) ApplyImportAcceptDates(changes []app.ImportAcceptDateChange, audi
 	return s.withAudit(tasksRel, nil, audit)
 }
 
-func (s Store) ApplyImportAcceptActuals(changes []app.ImportAcceptActualChange, audit domain.AuditRecord) ([]string, error) {
+func (s Store) ApplyImportAcceptActuals(changes []app.ImportAcceptActualChange, audit *domain.AuditRecord) ([]string, error) {
 	writtenSet := map[string]bool{}
 	written := []string{}
 	note := func(rel string) {
@@ -1273,7 +1344,8 @@ func (s Store) ApplyImportAcceptActuals(changes []app.ImportAcceptActualChange, 
 			return written, err
 		}
 		note(evidenceRel)
-		actualRel, err := s.AppendActual(change.Actual.StatusDate, change.Actual)
+		actual := change.Actual
+		actualRel, err := s.AppendActual(actual.StatusDate, &actual)
 		if err != nil {
 			return written, err
 		}
@@ -1287,7 +1359,7 @@ func (s Store) ApplyImportAcceptActuals(changes []app.ImportAcceptActualChange, 
 	return written, nil
 }
 
-func (s Store) ApplyImportAcceptResourceDemands(changes []app.ImportAcceptResourceDemandChange, audit domain.AuditRecord) ([]string, error) {
+func (s Store) ApplyImportAcceptResourceDemands(changes []app.ImportAcceptResourceDemandChange, audit *domain.AuditRecord) ([]string, error) {
 	demands := make([]domain.ResourceDemand, 0, len(changes))
 	for _, change := range changes {
 		demands = append(demands, change.Demand)
@@ -1303,7 +1375,7 @@ func (s Store) ApplyImportAcceptResourceDemands(changes []app.ImportAcceptResour
 	return append(paths, auditPath), nil
 }
 
-func (s Store) ApplyImportAcceptResourceLinks(changes []app.ImportAcceptResourceLinkChange, audit domain.AuditRecord) ([]string, error) {
+func (s Store) ApplyImportAcceptResourceLinks(changes []app.ImportAcceptResourceLinkChange, audit *domain.AuditRecord) ([]string, error) {
 	err := updateYAML(s, resourcesRel, false, func(doc *resourcesDoc) error {
 		index := make(map[string]int, len(doc.Resources))
 		for i, resource := range doc.Resources {
@@ -1323,7 +1395,7 @@ func (s Store) ApplyImportAcceptResourceLinks(changes []app.ImportAcceptResource
 	return s.withAudit(resourcesRel, err, audit)
 }
 
-func (s Store) ApplyImportAcceptDependencies(changes []app.ImportAcceptDependencyChange, audit domain.AuditRecord) ([]string, error) {
+func (s Store) ApplyImportAcceptDependencies(changes []app.ImportAcceptDependencyChange, audit *domain.AuditRecord) ([]string, error) {
 	err := updateYAML(s, dependenciesRel, true, func(doc *dependenciesDoc) error {
 		index := dependencyIndex(doc.Dependencies)
 		for _, change := range changes {

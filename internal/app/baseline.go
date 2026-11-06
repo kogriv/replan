@@ -72,7 +72,7 @@ type BaselineShowResult struct {
 
 type BaselineWriter interface {
 	CreateProjectFile(rel string, content []byte) (string, error)
-	AppendAudit(record domain.AuditRecord) (string, error)
+	AppendAudit(record *domain.AuditRecord) (string, error)
 }
 
 func NewBaselineService(loader WorkspaceLoader) BaselineService {
@@ -178,7 +178,8 @@ func (s BaselineService) Create(ctx context.Context, req BaselineCreateRequest) 
 		return result, err
 	}
 	result.WrittenFiles = append(result.WrittenFiles, baselinePath)
-	auditPath, err := writer.AppendAudit(audit)
+	auditPath, err := writer.AppendAudit(&audit)
+	result.AuditRecordPreview = audit
 	if err != nil {
 		result.Errors = append(result.Errors, Diagnostic{Code: "audit_write_failed", Message: err.Error(), Severity: "error", Target: Target{Kind: "audit_record", ID: audit.ID}})
 		return result, err

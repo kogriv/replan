@@ -15,7 +15,7 @@ type EvidenceService struct {
 
 type EvidenceWriter interface {
 	AppendEvidence(observedAt string, evidence domain.Evidence) (string, error)
-	AppendAudit(record domain.AuditRecord) (string, error)
+	AppendAudit(record *domain.AuditRecord) (string, error)
 }
 
 type EvidenceAddRequest struct {
@@ -118,7 +118,8 @@ func (s EvidenceService) Add(ctx context.Context, req EvidenceAddRequest) (Evide
 		return result, err
 	}
 	result.WrittenFiles = append(result.WrittenFiles, evidencePath)
-	auditPath, err := writer.AppendAudit(audit)
+	auditPath, err := writer.AppendAudit(&audit)
+	result.AuditRecordPreview = audit
 	if err != nil {
 		result.Errors = append(result.Errors, Diagnostic{Code: "audit_write_failed", Message: err.Error(), Severity: "error", Target: Target{Kind: "audit_record", ID: audit.ID}})
 		return result, err

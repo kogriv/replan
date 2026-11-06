@@ -2,6 +2,7 @@ package app_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -377,6 +378,31 @@ func TestTaskSetTitleApplyDryRunNoOpAndRefusals(t *testing.T) {
 			}
 			assertTaskDiag(t, res.Errors, tc.code)
 		})
+	}
+}
+
+func TestTaskSetTitleSameTimestampAllocatesAuditSuffixes(t *testing.T) {
+	project := copyAppProjectFixture(t)
+	service := app.NewTaskService(filestore.New(project))
+	const occurredAt = "2026-10-28T13:00:00+07:00"
+	baseID := "audit.20261028T1300000700.task-set-title.op-1234"
+	for i, wantID := range []string{baseID, baseID + ".2", baseID + ".3"} {
+		result, err := service.SetTitle(context.Background(), app.TaskSetTitleRequest{
+			TaskID: "task.op.1234", Title: fmt.Sprintf("Same-second title %d", i+1), Reason: "Exercise audit allocation.",
+			ActorID: "actor.human.operator", EvidenceID: "evidence.github.pr.45", OccurredAt: occurredAt,
+		})
+		if err != nil || !result.Applied {
+			t.Fatalf("SetTitle %d: err=%v result=%#v", i+1, err, result)
+		}
+		if result.AuditRecordPreview.ID != wantID {
+			t.Fatalf("audit id %d = %q, want %q", i+1, result.AuditRecordPreview.ID, wantID)
+		}
+	}
+	if result, err := app.NewValidateService(filestore.New(project)).Validate(context.Background(), app.ValidateRequest{}); err != nil || !result.Valid {
+		t.Fatalf("validate: err=%v result=%#v", err, result)
+	}
+	if result, err := app.NewAuditService(filestore.New(project)).Verify(context.Background(), app.AuditVerifyRequest{}); err != nil || !result.Valid {
+		t.Fatalf("audit verify: err=%v result=%#v", err, result)
 	}
 }
 

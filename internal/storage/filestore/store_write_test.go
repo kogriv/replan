@@ -27,7 +27,7 @@ func TestStoreAppendActualAndAudit(t *testing.T) {
 		StatusDate:  "2026-07-06",
 		AcceptedBy:  domain.Ref{Kind: "actor", ID: "actor.human.operator"},
 	}
-	actualPath, err := store.AppendActual(actual.StatusDate, actual)
+	actualPath, err := store.AppendActual(actual.StatusDate, &actual)
 	if err != nil {
 		t.Fatalf("AppendActual returned error: %v", err)
 	}
@@ -43,7 +43,7 @@ func TestStoreAppendActualAndAudit(t *testing.T) {
 		TargetRef:  domain.Ref{Kind: "actual", ID: actual.ID},
 		Result:     "success",
 	}
-	auditPath, err := store.AppendAudit(audit)
+	auditPath, err := store.AppendAudit(&audit)
 	if err != nil {
 		t.Fatalf("AppendAudit returned error: %v", err)
 	}
@@ -60,6 +60,27 @@ func TestStoreAppendActualAndAudit(t *testing.T) {
 	}
 	if !hasAudit(ws.AuditRecords, audit.ID) {
 		t.Fatalf("appended audit was not loaded")
+	}
+}
+
+func TestAppendAuditAllocatesIDAcrossShardsAndStagedBatch(t *testing.T) {
+	projectPath := copyProjectFixture(t)
+	staged := New(projectPath).StageWrites().(*StagedStore)
+	const baseID = "audit.same-base"
+	records := []domain.AuditRecord{
+		{ID: baseID, OccurredAt: "2026-07-06T10:00:00Z", Operation: "test", Result: "success"},
+		{ID: baseID, OccurredAt: "2026-08-06T10:00:00Z", Operation: "test", Result: "success"},
+		{ID: baseID, OccurredAt: "2026-08-06T10:00:00Z", Operation: "test", Result: "success"},
+	}
+	for i := range records {
+		if _, err := staged.AppendAudit(&records[i]); err != nil {
+			t.Fatalf("AppendAudit %d: %v", i, err)
+		}
+	}
+	for i, want := range []string{baseID, baseID + ".2", baseID + ".3"} {
+		if records[i].ID != want {
+			t.Fatalf("record %d id = %q, want %q", i, records[i].ID, want)
+		}
 	}
 }
 
@@ -135,7 +156,7 @@ func TestImportAcceptResourceDemandKeepsExistingDemandUntouched(t *testing.T) {
 	}
 	audit := domain.AuditRecord{ID: "audit.test.import-existing-demand", OccurredAt: "2026-07-08T10:00:00+07:00", ActorRef: domain.Ref{Kind: "actor", ID: "actor.human.operator"}, Operation: "import_accept", Result: "success"}
 
-	_, err := store.ApplyImportAcceptResourceDemands([]app.ImportAcceptResourceDemandChange{{SourceID: "existing", Demand: replacement}}, audit)
+	_, err := store.ApplyImportAcceptResourceDemands([]app.ImportAcceptResourceDemandChange{{SourceID: "existing", Demand: replacement}}, &audit)
 	if err != nil {
 		t.Fatalf("ApplyImportAcceptResourceDemands: %v", err)
 	}
@@ -239,7 +260,7 @@ func TestStoreMoveProposal(t *testing.T) {
 		TargetRef:  domain.Ref{Kind: "proposal", ID: "proposal.adjust-remaining-task-op-1234.20260706"},
 		Result:     "success",
 	}
-	written, err := store.MoveProposal("proposal.adjust-remaining-task-op-1234.20260706", "accepted", audit)
+	written, err := store.MoveProposal("proposal.adjust-remaining-task-op-1234.20260706", "accepted", &audit)
 	if err != nil {
 		t.Fatalf("MoveProposal returned error: %v", err)
 	}
@@ -288,7 +309,7 @@ func TestStoreApplyProposalDecisionUpdatesRemainingWork(t *testing.T) {
 			PreviousValue: 8,
 			NewValue:      5,
 		}},
-		audit,
+		&audit,
 	)
 	if err != nil {
 		t.Fatalf("ApplyProposalDecision returned error: %v", err)
@@ -328,7 +349,7 @@ func TestStoreApplyScenarioChanges(t *testing.T) {
 		TargetKind: "resource_demand",
 		Field:      "remaining_amount",
 		NewValue:   float64(5),
-	}}, audit)
+	}}, &audit)
 	if err != nil {
 		t.Fatalf("ApplyScenarioChanges returned error: %v", err)
 	}

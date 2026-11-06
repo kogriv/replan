@@ -12,7 +12,7 @@ import (
 
 type DemandWriter interface {
 	WriteResourceDemands([]domain.ResourceDemand) ([]string, error)
-	AppendAudit(domain.AuditRecord) (string, error)
+	AppendAudit(*domain.AuditRecord) (string, error)
 }
 
 type DemandAddItem struct {
@@ -191,7 +191,8 @@ func (s DemandService) write(ctx context.Context, result DemandResult, demands [
 		return result, err
 	}
 	result.WrittenFiles = append(result.WrittenFiles, paths...)
-	for _, audit := range result.AuditRecordPreviews {
+	for i := range result.AuditRecordPreviews {
+		audit := &result.AuditRecordPreviews[i]
 		path, appendErr := writer.AppendAudit(audit)
 		if appendErr != nil {
 			result.Errors = append(result.Errors, demandDiag("audit_write_failed", appendErr.Error(), audit.ID))

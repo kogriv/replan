@@ -15,7 +15,7 @@ type DemandLifecycleWriter interface {
 	SetResourceDemandStatus(demandID string, status string) (string, error)
 	SetResourceDemandRemaining(demandID string, amount float64) (string, error)
 	SetResourceDemandOverrunReview(demandID string, review domain.OverrunReview) (string, error)
-	AppendAudit(record domain.AuditRecord) (string, error)
+	AppendAudit(record *domain.AuditRecord) (string, error)
 }
 
 // ActualReopenDemandRequest returns a consumed or cancelled demand to active.
@@ -149,7 +149,8 @@ func (s ActualService) ReopenDemand(ctx context.Context, req ActualReopenDemandR
 			return result, lifecycleWriteFailed(&result.Errors, "demand_remaining_write_failed", err, "resource_demand", req.DemandID)
 		}
 	}
-	auditPath, err := writer.AppendAudit(audit)
+	auditPath, err := writer.AppendAudit(&audit)
+	result.AuditRecordPreview = audit
 	if err != nil {
 		return result, lifecycleWriteFailed(&result.Errors, "audit_write_failed", err, "audit_record", audit.ID)
 	}
@@ -237,7 +238,8 @@ func (s ActualService) AcknowledgeOverrun(ctx context.Context, req ActualAcknowl
 	if err != nil {
 		return result, lifecycleWriteFailed(&result.Errors, "demand_overrun_review_write_failed", err, "resource_demand", req.DemandID)
 	}
-	auditPath, err := writer.AppendAudit(audit)
+	auditPath, err := writer.AppendAudit(&audit)
+	result.AuditRecordPreview = audit
 	if err != nil {
 		return result, lifecycleWriteFailed(&result.Errors, "audit_write_failed", err, "audit_record", audit.ID)
 	}

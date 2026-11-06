@@ -6,6 +6,7 @@ import (
 
 	"github.com/kogriv/replan/internal/app"
 	"github.com/kogriv/replan/internal/domain"
+	"github.com/kogriv/replan/internal/storage/filestore"
 )
 
 func constraintWorkspace() domain.Workspace {
@@ -17,6 +18,27 @@ func constraintWorkspace() domain.Workspace {
 		},
 		Actors:   []domain.Actor{{ID: "actor.operator", Kind: "human"}},
 		Evidence: []domain.Evidence{{ID: "evidence.call", Type: "customer_call"}},
+	}
+}
+
+func TestDependencyAddBatchSharedTargetAndTimestampHasUniqueAuditIDs(t *testing.T) {
+	project := copyAppProjectFixture(t)
+	result, err := app.NewDependencyService(filestore.New(project)).Add(context.Background(), app.DependencyAddRequest{
+		Items: []app.DependencyAddItem{
+			{ID: "dependency.external-a.task-op-1234", Type: "external_dependency", External: true, SuccessorID: "task.op.1234", Description: "External prerequisite A."},
+			{ID: "dependency.external-b.task-op-1234", Type: "external_dependency", External: true, SuccessorID: "task.op.1234", Description: "External prerequisite B."},
+		},
+		Reason: "Two external prerequisites.", ActorID: "actor.human.operator", EvidenceID: "evidence.github.pr.45",
+		OccurredAt: "2026-10-28T13:00:00+07:00",
+	})
+	if err != nil || !result.Applied {
+		t.Fatalf("Add: err=%v result=%#v", err, result)
+	}
+	if len(result.AuditRecordPreviews) != 2 || result.AuditRecordPreviews[0].ID == result.AuditRecordPreviews[1].ID {
+		t.Fatalf("audit previews = %#v", result.AuditRecordPreviews)
+	}
+	if validation, err := app.NewValidateService(filestore.New(project)).Validate(context.Background(), app.ValidateRequest{}); err != nil || !validation.Valid {
+		t.Fatalf("validate: err=%v result=%#v", err, validation)
 	}
 }
 

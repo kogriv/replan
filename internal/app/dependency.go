@@ -13,7 +13,7 @@ import (
 
 type DependencyWriter interface {
 	AddDependencies([]domain.Dependency) (string, error)
-	AppendAudit(domain.AuditRecord) (string, error)
+	AppendAudit(*domain.AuditRecord) (string, error)
 }
 
 type DependencyAddItem struct {
@@ -158,7 +158,8 @@ func (s DependencyService) Add(ctx context.Context, req DependencyAddRequest) (D
 		return result, err
 	}
 	result.WrittenFiles = append(result.WrittenFiles, path)
-	for _, audit := range result.AuditRecordPreviews {
+	for i := range result.AuditRecordPreviews {
+		audit := &result.AuditRecordPreviews[i]
 		path, err = writer.AppendAudit(audit)
 		if err != nil {
 			result.Errors = append(result.Errors, dependencyAddDiag("audit_write_failed", err.Error(), "audit_record", audit.ID))

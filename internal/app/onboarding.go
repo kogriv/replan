@@ -28,11 +28,11 @@ var resourceTrustLevels = map[string]bool{
 }
 
 type ResourceWriter interface {
-	AddResource(resource domain.Resource, actor *domain.Actor, audit domain.AuditRecord) ([]string, error)
+	AddResource(resource domain.Resource, actor *domain.Actor, audit *domain.AuditRecord) ([]string, error)
 }
 
 type CapacityWriter interface {
-	SetCapacity(previousID, previousEffectiveTo string, capacity domain.Capacity, audit domain.AuditRecord) ([]string, error)
+	SetCapacity(previousID, previousEffectiveTo string, capacity domain.Capacity, audit *domain.AuditRecord) ([]string, error)
 }
 
 type ResourceAddRequest struct {
@@ -138,7 +138,8 @@ func (s ResourceService) Add(ctx context.Context, req ResourceAddRequest) (Resou
 		result.Errors = append(result.Errors, onboardingDiag("storage_write_not_supported", "configured project store does not support resource writes", "project", s.loader.ProjectPath()))
 		return result, ErrValidationFailed
 	}
-	written, err := writer.AddResource(resource, actor, audit)
+	written, err := writer.AddResource(resource, actor, &audit)
+	result.AuditRecordPreview = audit
 	if err != nil {
 		result.Errors = append(result.Errors, onboardingDiag("resource_write_failed", err.Error(), "resource", req.ID))
 		return result, err
@@ -202,7 +203,8 @@ func (s ResourceService) SetCapacity(ctx context.Context, req CapacitySetRequest
 	if previous != nil {
 		previousID = previous.ID
 	}
-	written, err := writer.SetCapacity(previousID, previousTo, capacity, audit)
+	written, err := writer.SetCapacity(previousID, previousTo, capacity, &audit)
+	result.AuditRecordPreview = audit
 	if err != nil {
 		result.Errors = append(result.Errors, onboardingDiag("capacity_write_failed", err.Error(), "capacity", capacity.ID))
 		return result, err

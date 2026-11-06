@@ -12,7 +12,7 @@ import (
 
 type DeadlineWriter interface {
 	AddDeadlines([]domain.Deadline) (string, error)
-	AppendAudit(domain.AuditRecord) (string, error)
+	AppendAudit(*domain.AuditRecord) (string, error)
 }
 
 type DeadlineAddItem struct {
@@ -124,7 +124,8 @@ func (s DeadlineService) Add(ctx context.Context, req DeadlineAddRequest) (Deadl
 		return result, err
 	}
 	result.WrittenFiles = append(result.WrittenFiles, path)
-	for _, audit := range result.AuditRecordPreviews {
+	for i := range result.AuditRecordPreviews {
+		audit := &result.AuditRecordPreviews[i]
 		path, err = writer.AppendAudit(audit)
 		if err != nil {
 			result.Errors = append(result.Errors, deadlineDiag("audit_write_failed", err.Error(), "audit_record", audit.ID))

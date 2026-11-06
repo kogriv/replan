@@ -56,9 +56,7 @@ func TestActualBatchWithSharedOccurredAtKeepsAuditIDsUnique(t *testing.T) {
 	}
 }
 
-// A command whose result would not validate must leave every file untouched
-// and say so (GAP-015).
-func TestActualCommandThatFailsValidationWritesNothing(t *testing.T) {
+func TestActualCommandSuffixesCollidingAuditID(t *testing.T) {
 	projectPath := copyAppProjectFixture(t)
 	const occurredAt = "2026-07-06T16:00:00+07:00"
 	const demandID = "resource_demand.task-op-1234.implementer"
@@ -74,8 +72,6 @@ func TestActualCommandThatFailsValidationWritesNothing(t *testing.T) {
 		Result:     "success",
 	})
 	appendFile(t, filepath.Join(projectPath, auditRel), append(preexisting, '\n'))
-	before := snapshotFiles(t, projectPath)
-
 	result, err := app.NewActualService(filestore.New(projectPath)).SetRemaining(context.Background(), app.ActualSetRemainingRequest{
 		DemandID:   demandID,
 		Amount:     3,
@@ -84,17 +80,11 @@ func TestActualCommandThatFailsValidationWritesNothing(t *testing.T) {
 		ActorID:    "actor.human.operator",
 		OccurredAt: occurredAt,
 	})
-	if err == nil {
-		t.Fatal("expected a validation error for the duplicate audit id")
+	if err != nil || !result.Applied {
+		t.Fatalf("SetRemaining: err=%v result=%#v", err, result)
 	}
-	if result.Applied {
-		t.Fatal("Applied = true for a command that failed validation")
-	}
-	if len(result.WrittenFiles) != 0 {
-		t.Fatalf("WrittenFiles = %#v, want none", result.WrittenFiles)
-	}
-	if diff := diffSnapshots(before, snapshotFiles(t, projectPath)); diff != "" {
-		t.Fatalf("files changed although nothing was applied: %s", diff)
+	if got := result.AuditRecordPreview.ID; got != collidingID+".2" {
+		t.Fatalf("audit id = %q, want %q", got, collidingID+".2")
 	}
 }
 
@@ -384,7 +374,7 @@ func TestActualCommitFailureIsReportedWithWrittenFiles(t *testing.T) {
 	}
 }
 
-func TestProposalAcceptThatFailsValidationWritesNothing(t *testing.T) {
+func TestProposalAcceptSuffixesCollidingAuditID(t *testing.T) {
 	projectPath := copyProposalProjectFixture(t)
 	service := app.NewProposalService(filestore.New(projectPath))
 	req := app.ProposalDecisionRequest{
@@ -401,14 +391,12 @@ func TestProposalAcceptThatFailsValidationWritesNothing(t *testing.T) {
 	}
 	colliding, _ := json.Marshal(preview.AuditRecordPreview)
 	appendFile(t, filepath.Join(projectPath, app.AuditShardPath(preview.AuditRecordPreview.OccurredAt)), append(colliding, '\n'))
-	before := snapshotFiles(t, projectPath)
-
 	result, err := service.Accept(context.Background(), req)
-	if err == nil || result.Applied || len(result.WrittenFiles) != 0 {
-		t.Fatalf("expected a validation failure with nothing written: err=%v applied=%t written=%#v", err, result.Applied, result.WrittenFiles)
+	if err != nil || !result.Applied {
+		t.Fatalf("Accept: err=%v result=%#v", err, result)
 	}
-	if diff := diffSnapshots(before, snapshotFiles(t, projectPath)); diff != "" {
-		t.Fatalf("files changed although nothing was applied: %s", diff)
+	if got, want := result.AuditRecordPreview.ID, preview.AuditRecordPreview.ID+".2"; got != want {
+		t.Fatalf("audit id = %q, want %q", got, want)
 	}
 }
 

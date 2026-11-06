@@ -1610,6 +1610,9 @@ Rules:
 - audit records should include target;
 - audit records should include reason when available;
 - audit should not store secrets;
+- when an audit id is already used, append `.2`, `.3` and so on until the id
+  is unique; the first record keeps the unsuffixed id;
+- an identical actual in the same timestamp id family is refused as a retry;
 - local MVP audit can be append-only file-based audit.
 
 ## PolicyRef

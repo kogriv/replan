@@ -90,7 +90,7 @@ type ProposalSuggestDependenciesResult struct {
 }
 
 type ProposalWriter interface {
-	MoveProposal(proposalID string, targetStatus string, audit domain.AuditRecord) ([]string, error)
+	MoveProposal(proposalID string, targetStatus string, audit *domain.AuditRecord) ([]string, error)
 }
 
 type ProposalTaskStatusChange struct {
@@ -113,7 +113,7 @@ type ProposalResourceDemandChange struct {
 }
 
 type ProposalApplyWriter interface {
-	ApplyProposalDecision(proposalID string, targetStatus string, taskStatusChanges []ProposalTaskStatusChange, dependencyStatusChanges []ProposalDependencyStatusChange, resourceDemandChanges []ProposalResourceDemandChange, audit domain.AuditRecord) ([]string, error)
+	ApplyProposalDecision(proposalID string, targetStatus string, taskStatusChanges []ProposalTaskStatusChange, dependencyStatusChanges []ProposalDependencyStatusChange, resourceDemandChanges []ProposalResourceDemandChange, audit *domain.AuditRecord) ([]string, error)
 }
 
 type ProposalCandidateWriter interface {
@@ -360,7 +360,8 @@ func (s ProposalService) decide(ctx context.Context, req ProposalDecisionRequest
 	}
 
 	session := beginWrite(s.loader)
-	writtenFiles, err := writeProposalDecision(session.target, proposal.ID, decision, taskStatusChanges, dependencyStatusChanges, resourceDemandChanges, audit)
+	writtenFiles, err := writeProposalDecision(session.target, proposal.ID, decision, taskStatusChanges, dependencyStatusChanges, resourceDemandChanges, &audit)
+	result.AuditRecordPreview = audit
 	if err != nil {
 		result.Errors = append(result.Errors, Diagnostic{
 			Code:     "proposal_decision_write_failed",
@@ -382,7 +383,7 @@ func (s ProposalService) decide(ctx context.Context, req ProposalDecisionRequest
 	return result, nil
 }
 
-func writeProposalDecision(target WorkspaceLoader, proposalID, decision string, taskStatusChanges []ProposalTaskStatusChange, dependencyStatusChanges []ProposalDependencyStatusChange, resourceDemandChanges []ProposalResourceDemandChange, audit domain.AuditRecord) ([]string, error) {
+func writeProposalDecision(target WorkspaceLoader, proposalID, decision string, taskStatusChanges []ProposalTaskStatusChange, dependencyStatusChanges []ProposalDependencyStatusChange, resourceDemandChanges []ProposalResourceDemandChange, audit *domain.AuditRecord) ([]string, error) {
 	if len(taskStatusChanges) > 0 || len(dependencyStatusChanges) > 0 || len(resourceDemandChanges) > 0 {
 		writer, ok := target.(ProposalApplyWriter)
 		if !ok {

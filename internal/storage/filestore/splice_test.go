@@ -182,7 +182,7 @@ func TestSpliceAppendActualKeepsExistingBytes(t *testing.T) {
 		StatusDate: "2026-10-01",
 		AcceptedBy: domain.Ref{Kind: "actor", ID: "actor.human.operator"},
 	}
-	if _, err := New(root).AppendActual("2026-10-01", actual); err != nil {
+	if _, err := New(root).AppendActual("2026-10-01", &actual); err != nil {
 		t.Fatal(err)
 	}
 	got := readHandFile(t, root, rel)
@@ -201,7 +201,7 @@ func TestSpliceScenarioApplyChangesOnlyItsStatus(t *testing.T) {
 	writeHandFile(t, root, "scenarios/scenario.hand.yaml", handScenario)
 	changes := []app.ScenarioApplyChange{{TargetKind: "task", TargetID: "task.a", Field: "planned_start", NewValue: "2026-10-05"}}
 	audit := domain.AuditRecord{ID: "audit.hand", OccurredAt: "2026-10-02T10:00:00+07:00", Operation: "scenario_apply", Result: "success"}
-	if _, err := New(root).ApplyScenarioChanges("scenario.hand", changes, audit); err != nil {
+	if _, err := New(root).ApplyScenarioChanges("scenario.hand", changes, &audit); err != nil {
 		t.Fatal(err)
 	}
 	expectOnly(t, readHandFile(t, root, "scenarios/scenario.hand.yaml"), handScenario,

@@ -236,23 +236,121 @@ func TestActualAddConsumptionWriteSmallTeamFixture(t *testing.T) {
 		t.Fatalf("unexpected written actual id: %s", list.Actuals[0].ID)
 	}
 
-	duplicate, err := service.AddConsumption(context.Background(), app.ActualAddConsumptionRequest{
+	second, err := service.AddConsumption(context.Background(), app.ActualAddConsumptionRequest{
 		TaskID:     "task.op.1234",
 		DemandID:   "resource_demand.task-op-1234.implementer",
 		ResourceID: "resource.human.ivan",
-		Amount:     3,
+		Amount:     4,
 		Unit:       "hours",
 		EvidenceID: "evidence.github.pr.45",
 		ActorID:    "actor.human.operator",
 		OccurredAt: "2026-07-06T16:00:00+07:00",
 		StatusDate: "2026-07-06",
 	})
+	if err != nil || !second.Applied {
+		t.Fatalf("second AddConsumption: err=%v result=%#v", err, second)
+	}
+	if got, want := second.Actual.ID, result.Actual.ID+".2"; got != want {
+		t.Fatalf("second actual id = %q, want %q", got, want)
+	}
+	if got, want := second.AuditRecordPreview.ID, result.AuditRecordPreview.ID+".2"; got != want {
+		t.Fatalf("second audit id = %q, want %q", got, want)
+	}
+	if second.AuditRecordPreview.TargetRef.ID != second.Actual.ID {
+		t.Fatalf("second audit target = %q, want final actual id %q", second.AuditRecordPreview.TargetRef.ID, second.Actual.ID)
+	}
+	retrySecond, err := service.AddConsumption(context.Background(), app.ActualAddConsumptionRequest{
+		TaskID: "task.op.1234", DemandID: "resource_demand.task-op-1234.implementer", ResourceID: "resource.human.ivan",
+		Amount: 4, Unit: "hours", EvidenceID: "evidence.github.pr.45", ActorID: "actor.human.operator",
+		OccurredAt: "2026-07-06T16:00:00+07:00", StatusDate: "2026-07-06", DryRun: true,
+	})
 	if err == nil {
-		t.Fatal("expected duplicate actual error")
+		t.Fatalf("expected retry of suffixed actual to be refused: %#v", retrySecond)
 	}
-	if len(duplicate.Errors) == 0 || duplicate.Errors[0].Code != "actual_already_exists" {
-		t.Fatalf("expected actual_already_exists error, got %#v", duplicate.Errors)
+	assertActualAlreadyExists(t, retrySecond.Errors, second.Actual.ID)
+	third, err := service.AddConsumption(context.Background(), app.ActualAddConsumptionRequest{
+		TaskID: "task.op.1234", DemandID: "resource_demand.task-op-1234.implementer", ResourceID: "resource.human.ivan",
+		Amount: 5, Unit: "hours", EvidenceID: "evidence.github.pr.45", ActorID: "actor.human.operator",
+		OccurredAt: "2026-07-06T16:00:00+07:00", StatusDate: "2026-07-06",
+	})
+	if err != nil || !third.Applied {
+		t.Fatalf("third AddConsumption: err=%v result=%#v", err, third)
 	}
+	if got, want := third.Actual.ID, result.Actual.ID+".3"; got != want {
+		t.Fatalf("third actual id = %q, want %q", got, want)
+	}
+	if got, want := third.AuditRecordPreview.ID, result.AuditRecordPreview.ID+".3"; got != want {
+		t.Fatalf("third audit id = %q, want %q", got, want)
+	}
+}
+
+func TestActualAddConsumptionRetryRefusedDryRunAndApply(t *testing.T) {
+	projectPath := copyAppProjectFixture(t)
+	service := app.NewActualService(filestore.New(projectPath))
+	req := app.ActualAddConsumptionRequest{
+		TaskID: "task.op.1234", DemandID: "resource_demand.task-op-1234.implementer", ResourceID: "resource.human.ivan",
+		Amount: 3, Unit: "hours", EvidenceID: "evidence.github.pr.45", ActorID: "actor.human.operator",
+		OccurredAt: "2026-07-06T16:00:00+07:00", StatusDate: "2026-07-06",
+	}
+	first, err := service.AddConsumption(context.Background(), req)
+	if err != nil || !first.Applied {
+		t.Fatalf("first AddConsumption: err=%v result=%#v", err, first)
+	}
+	for _, dryRun := range []bool{true, false} {
+		t.Run(map[bool]string{true: "dry_run", false: "apply"}[dryRun], func(t *testing.T) {
+			before := snapshotFiles(t, projectPath)
+			retryReq := req
+			retryReq.DryRun = dryRun
+			result, err := service.AddConsumption(context.Background(), retryReq)
+			if err == nil || result.Applied || len(result.WrittenFiles) != 0 {
+				t.Fatalf("retry: err=%v result=%#v", err, result)
+			}
+			assertActualAlreadyExists(t, result.Errors, first.Actual.ID)
+			if diff := diffSnapshots(before, snapshotFiles(t, projectPath)); diff != "" {
+				t.Fatalf("retry changed files: %s", diff)
+			}
+		})
+	}
+}
+
+func TestActualCorrectRetryRefused(t *testing.T) {
+	projectPath := copyAppProjectFixture(t)
+	service := app.NewActualService(filestore.New(projectPath))
+	amount := 0.5
+	req := app.ActualCorrectRequest{
+		ActualID: "actual.repair-pump.petr.20260706.1", CorrectedAmount: &amount,
+		Reason: "Correct duration.", EvidenceID: "evidence.github.pr.45", ActorID: "actor.human.operator",
+		OccurredAt: "2026-10-30T10:00:00+07:00",
+	}
+	first, err := service.Correct(context.Background(), req)
+	if err != nil || !first.Applied {
+		t.Fatalf("first Correct: err=%v result=%#v", err, first)
+	}
+	for _, dryRun := range []bool{true, false} {
+		t.Run(map[bool]string{true: "dry_run", false: "apply"}[dryRun], func(t *testing.T) {
+			before := snapshotFiles(t, projectPath)
+			retryReq := req
+			retryReq.DryRun = dryRun
+			retry, err := service.Correct(context.Background(), retryReq)
+			if err == nil || retry.Applied || len(retry.WrittenFiles) != 0 {
+				t.Fatalf("retry Correct: err=%v result=%#v", err, retry)
+			}
+			assertActualAlreadyExists(t, retry.Errors, first.Actual.ID)
+			if diff := diffSnapshots(before, snapshotFiles(t, projectPath)); diff != "" {
+				t.Fatalf("correction retry changed files: %s", diff)
+			}
+		})
+	}
+}
+
+func assertActualAlreadyExists(t *testing.T, diagnostics []app.Diagnostic, existingID string) {
+	t.Helper()
+	for _, diagnostic := range diagnostics {
+		if diagnostic.Code == "actual_already_exists" && diagnostic.Target.Kind == "actual" && diagnostic.Target.ID == existingID {
+			return
+		}
+	}
+	t.Fatalf("missing actual_already_exists targeting %s: %#v", existingID, diagnostics)
 }
 
 func TestActualSetRemainingDryRunSmallTeamFixture(t *testing.T) {

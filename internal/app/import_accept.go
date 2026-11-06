@@ -22,31 +22,31 @@ type ImportSnapshotReader interface {
 }
 
 type ImportAcceptWriter interface {
-	ApplyImportAcceptTasks(changes []ImportAcceptTaskChange, audit domain.AuditRecord) ([]string, error)
+	ApplyImportAcceptTasks(changes []ImportAcceptTaskChange, audit *domain.AuditRecord) ([]string, error)
 }
 
 type ImportAcceptActualWriter interface {
-	ApplyImportAcceptActuals(changes []ImportAcceptActualChange, audit domain.AuditRecord) ([]string, error)
+	ApplyImportAcceptActuals(changes []ImportAcceptActualChange, audit *domain.AuditRecord) ([]string, error)
 }
 
 type ImportAcceptResourceDemandWriter interface {
-	ApplyImportAcceptResourceDemands(changes []ImportAcceptResourceDemandChange, audit domain.AuditRecord) ([]string, error)
+	ApplyImportAcceptResourceDemands(changes []ImportAcceptResourceDemandChange, audit *domain.AuditRecord) ([]string, error)
 }
 
 type ImportAcceptResourceLinkWriter interface {
-	ApplyImportAcceptResourceLinks(changes []ImportAcceptResourceLinkChange, audit domain.AuditRecord) ([]string, error)
+	ApplyImportAcceptResourceLinks(changes []ImportAcceptResourceLinkChange, audit *domain.AuditRecord) ([]string, error)
 }
 
 type ImportAcceptTrackingStatusWriter interface {
-	ApplyImportAcceptTrackingStatuses(changes []ImportAcceptTrackingStatusChange, audit domain.AuditRecord) ([]string, error)
+	ApplyImportAcceptTrackingStatuses(changes []ImportAcceptTrackingStatusChange, audit *domain.AuditRecord) ([]string, error)
 }
 
 type ImportAcceptDateWriter interface {
-	ApplyImportAcceptDates(changes []ImportAcceptDateChange, audit domain.AuditRecord) ([]string, error)
+	ApplyImportAcceptDates(changes []ImportAcceptDateChange, audit *domain.AuditRecord) ([]string, error)
 }
 
 type ImportAcceptDependencyWriter interface {
-	ApplyImportAcceptDependencies(changes []ImportAcceptDependencyChange, audit domain.AuditRecord) ([]string, error)
+	ApplyImportAcceptDependencies(changes []ImportAcceptDependencyChange, audit *domain.AuditRecord) ([]string, error)
 }
 
 type ImportAcceptRequest struct {
@@ -402,7 +402,7 @@ type importAcceptMode struct {
 	failedCode string
 }
 
-type importAcceptWrite func(target any, audit domain.AuditRecord) ([]string, bool, error)
+type importAcceptWrite func(target any, audit *domain.AuditRecord) ([]string, bool, error)
 
 func selectImportAcceptMode(req ImportAcceptRequest) importAcceptMode {
 	switch {
@@ -431,7 +431,7 @@ var importAcceptTaskMode = importAcceptMode{
 	action:  "update",
 	prepare: func(ws domain.Workspace, mapped ImportMappedSnapshot, _ string) (int, importAcceptWrite) {
 		changes := buildSafeImportAcceptTaskChanges(ws, mapped)
-		return len(changes), func(target any, audit domain.AuditRecord) ([]string, bool, error) {
+		return len(changes), func(target any, audit *domain.AuditRecord) ([]string, bool, error) {
 			writer, ok := target.(ImportAcceptWriter)
 			if !ok {
 				return nil, false, nil
@@ -453,7 +453,7 @@ var importAcceptTimeEntryMode = importAcceptMode{
 	prepare: func(ws domain.Workspace, mapped ImportMappedSnapshot, actorID string) (int, importAcceptWrite) {
 		var warnings []Diagnostic
 		changes := buildSafeImportAcceptActualChanges(ws, mapped, actorID, &warnings)
-		return len(changes), func(target any, audit domain.AuditRecord) ([]string, bool, error) {
+		return len(changes), func(target any, audit *domain.AuditRecord) ([]string, bool, error) {
 			writer, ok := target.(ImportAcceptActualWriter)
 			if !ok {
 				return nil, false, nil
@@ -475,7 +475,7 @@ var importAcceptResourceDemandMode = importAcceptMode{
 	prepare: func(ws domain.Workspace, mapped ImportMappedSnapshot, _ string) (int, importAcceptWrite) {
 		var warnings []Diagnostic
 		changes := buildSafeImportAcceptResourceDemandChanges(ws, mapped, &warnings)
-		return len(changes), func(target any, audit domain.AuditRecord) ([]string, bool, error) {
+		return len(changes), func(target any, audit *domain.AuditRecord) ([]string, bool, error) {
 			writer, ok := target.(ImportAcceptResourceDemandWriter)
 			if !ok {
 				return nil, false, nil
@@ -497,7 +497,7 @@ var importAcceptResourceLinkMode = importAcceptMode{
 	prepare: func(ws domain.Workspace, mapped ImportMappedSnapshot, _ string) (int, importAcceptWrite) {
 		var warnings []Diagnostic
 		changes := buildSafeImportAcceptResourceLinkChanges(ws, mapped, &warnings)
-		return len(changes), func(target any, audit domain.AuditRecord) ([]string, bool, error) {
+		return len(changes), func(target any, audit *domain.AuditRecord) ([]string, bool, error) {
 			writer, ok := target.(ImportAcceptResourceLinkWriter)
 			if !ok {
 				return nil, false, nil
@@ -519,7 +519,7 @@ var importAcceptTrackingStatusMode = importAcceptMode{
 	prepare: func(ws domain.Workspace, mapped ImportMappedSnapshot, _ string) (int, importAcceptWrite) {
 		var warnings []Diagnostic
 		changes := buildSafeImportAcceptTrackingStatusChanges(ws, mapped, &warnings)
-		return len(changes), func(target any, audit domain.AuditRecord) ([]string, bool, error) {
+		return len(changes), func(target any, audit *domain.AuditRecord) ([]string, bool, error) {
 			writer, ok := target.(ImportAcceptTrackingStatusWriter)
 			if !ok {
 				return nil, false, nil
@@ -541,7 +541,7 @@ var importAcceptDateMode = importAcceptMode{
 	prepare: func(ws domain.Workspace, mapped ImportMappedSnapshot, _ string) (int, importAcceptWrite) {
 		var warnings []Diagnostic
 		changes := buildSafeImportAcceptDateChanges(ws, mapped, &warnings)
-		return len(changes), func(target any, audit domain.AuditRecord) ([]string, bool, error) {
+		return len(changes), func(target any, audit *domain.AuditRecord) ([]string, bool, error) {
 			writer, ok := target.(ImportAcceptDateWriter)
 			if !ok {
 				return nil, false, nil
@@ -563,7 +563,7 @@ var importAcceptDependencyMode = importAcceptMode{
 	prepare: func(ws domain.Workspace, mapped ImportMappedSnapshot, _ string) (int, importAcceptWrite) {
 		var warnings []Diagnostic
 		changes := buildSafeImportAcceptDependencyChanges(ws, mapped, &warnings)
-		return len(changes), func(target any, audit domain.AuditRecord) ([]string, bool, error) {
+		return len(changes), func(target any, audit *domain.AuditRecord) ([]string, bool, error) {
 			writer, ok := target.(ImportAcceptDependencyWriter)
 			if !ok {
 				return nil, false, nil
@@ -597,7 +597,7 @@ func (s ImportAcceptService) applyMode(ctx context.Context, req ImportAcceptRequ
 		return nil
 	}
 	session := beginWrite(s.loader)
-	writtenFiles, supported, err := write(session.target, result.AuditRecordPreview)
+	writtenFiles, supported, err := write(session.target, &result.AuditRecordPreview)
 	if !supported {
 		result.Errors = append(result.Errors, Diagnostic{
 			Code:     "storage_write_not_supported",

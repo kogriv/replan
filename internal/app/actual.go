@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,8 +18,8 @@ type ActualService struct {
 }
 
 type ActualWriter interface {
-	AppendActual(statusDate string, actual domain.Actual) (string, error)
-	AppendAudit(record domain.AuditRecord) (string, error)
+	AppendActual(statusDate string, actual *domain.Actual) (string, error)
+	AppendAudit(record *domain.AuditRecord) (string, error)
 	SetResourceDemandRemaining(demandID string, amount float64) (string, error)
 	SetResourceDemandStatus(demandID string, status string) (string, error)
 	SetTaskTrackingStatus(taskID string, status string) (string, error)
@@ -268,15 +269,6 @@ func (s ActualService) Correct(ctx context.Context, req ActualCorrectRequest) (A
 		}
 		occurredAt = now.Format(time.RFC3339)
 	}
-	latest := LatestActualCorrections(ws.Actuals)
-	previousAmount := original.Amount
-	if correction, exists := latest[original.ID]; exists && correction.CorrectedAmount != nil {
-		previousAmount = *correction.CorrectedAmount
-	}
-	if previousAmount == *req.CorrectedAmount {
-		addActualRequestError(&result.Errors, "actual_correction_no_change", fmt.Sprintf("actual %s effective amount is already %g", original.ID, previousAmount), "actual", original.ID)
-		return result, ErrValidationFailed
-	}
 	actual := domain.Actual{
 		ID: "actual." + slugID(original.ID) + ".correction." + compactTimestamp(occurredAt), Type: "correction",
 		CorrectsRef: domain.Ref{Kind: "actual", ID: original.ID}, CorrectedAmount: req.CorrectedAmount,
@@ -284,8 +276,17 @@ func (s ActualService) Correct(ctx context.Context, req ActualCorrectRequest) (A
 		OccurredAt: occurredAt, StatusDate: datePart(occurredAt), AcceptedBy: domain.Ref{Kind: "actor", ID: req.ActorID}, Reason: req.Reason,
 		EvidenceRefs: []domain.Ref{{Kind: "evidence", ID: req.EvidenceID}},
 	}
-	if hasActualID(ws.Actuals, actual.ID) {
-		addActualRequestError(&result.Errors, "actual_already_exists", fmt.Sprintf("actual %s already exists", actual.ID), "actual", actual.ID)
+	if existing, ok := matchingActualRetry(ws.Actuals, actual); ok {
+		addActualRequestError(&result.Errors, "actual_already_exists", fmt.Sprintf("actual %s already exists", existing.ID), "actual", existing.ID)
+		return result, ErrValidationFailed
+	}
+	latest := LatestActualCorrections(ws.Actuals)
+	previousAmount := original.Amount
+	if correction, exists := latest[original.ID]; exists && correction.CorrectedAmount != nil {
+		previousAmount = *correction.CorrectedAmount
+	}
+	if previousAmount == *req.CorrectedAmount {
+		addActualRequestError(&result.Errors, "actual_correction_no_change", fmt.Sprintf("actual %s effective amount is already %g", original.ID, previousAmount), "actual", original.ID)
 		return result, ErrValidationFailed
 	}
 	recordYAML, err := yaml.Marshal(struct {
@@ -312,12 +313,15 @@ func (s ActualService) Correct(ctx context.Context, req ActualCorrectRequest) (A
 		addActualRequestError(&result.Errors, "storage_write_not_supported", "configured project store does not support actual writes", "project", s.loader.ProjectPath())
 		return result, ErrValidationFailed
 	}
-	actualPath, err := writer.AppendActual(actual.StatusDate, actual)
+	actualPath, err := writer.AppendActual(actual.StatusDate, &actual)
 	if err != nil {
 		return result, err
 	}
+	result.Actual, result.ActualSummary = actual, actualSummary(actual)
+	result.ActualSummary.CorrectedTo = actual.CorrectedAmount
 	result.WrittenFiles = append(result.WrittenFiles, actualPath)
-	auditPath, err := writer.AppendAudit(audit)
+	auditPath, err := writer.AppendAudit(&audit)
+	result.AuditRecordPreview = audit
 	if err != nil {
 		return result, err
 	}
@@ -374,16 +378,10 @@ func (s ActualService) AddConsumption(ctx context.Context, req ActualAddConsumpt
 	if req.EvidenceID != "" {
 		actual.EvidenceRefs = []domain.Ref{{Kind: "evidence", ID: req.EvidenceID}}
 	}
-	if hasActualID(ws.Actuals, actual.ID) {
-		result.Errors = append(result.Errors, Diagnostic{
-			Code:     "actual_already_exists",
-			Message:  fmt.Sprintf("actual %s already exists", actual.ID),
-			Severity: "error",
-			Target:   Target{Kind: "actual", ID: actual.ID},
-		})
+	if existing, ok := matchingActualRetry(ws.Actuals, actual); ok {
+		addActualRequestError(&result.Errors, "actual_already_exists", fmt.Sprintf("actual %s already exists", existing.ID), "actual", existing.ID)
 		return result, ErrValidationFailed
 	}
-
 	recordYAML, err := yaml.Marshal(struct {
 		Actuals []domain.Actual `yaml:"actuals"`
 	}{Actuals: []domain.Actual{actual}})
@@ -437,7 +435,7 @@ func (s ActualService) AddConsumption(ctx context.Context, req ActualAddConsumpt
 		})
 		return result, ErrValidationFailed
 	}
-	actualPath, err := writer.AppendActual(statusDate, actual)
+	actualPath, err := writer.AppendActual(statusDate, &actual)
 	if err != nil {
 		result.Errors = append(result.Errors, Diagnostic{
 			Code:     "actual_write_failed",
@@ -447,8 +445,11 @@ func (s ActualService) AddConsumption(ctx context.Context, req ActualAddConsumpt
 		})
 		return result, err
 	}
+	result.Actual, result.ActualSummary = actual, actualSummary(actual)
+	audit.TargetRef.ID = actual.ID
 	result.WrittenFiles = append(result.WrittenFiles, actualPath)
-	auditPath, err := writer.AppendAudit(audit)
+	auditPath, err := writer.AppendAudit(&audit)
+	result.AuditRecordPreview = audit
 	if err != nil {
 		result.Errors = append(result.Errors, Diagnostic{
 			Code:     "audit_write_failed",
@@ -580,7 +581,8 @@ func (s ActualService) SetRemaining(ctx context.Context, req ActualSetRemainingR
 		return result, err
 	}
 	result.WrittenFiles = append(result.WrittenFiles, demandPath)
-	auditPath, err := writer.AppendAudit(audit)
+	auditPath, err := writer.AppendAudit(&audit)
+	result.AuditRecordPreview = audit
 	if err != nil {
 		result.Errors = append(result.Errors, Diagnostic{
 			Code:     "audit_write_failed",
@@ -729,7 +731,8 @@ func (s ActualService) CloseDemand(ctx context.Context, req ActualCloseDemandReq
 			return result, err
 		}
 	}
-	auditPath, err := writer.AppendAudit(audit)
+	auditPath, err := writer.AppendAudit(&audit)
+	result.AuditRecordPreview = audit
 	if err != nil {
 		result.Errors = append(result.Errors, Diagnostic{
 			Code:     "audit_write_failed",
@@ -859,7 +862,8 @@ func (s ActualService) AddStatus(ctx context.Context, req ActualAddStatusRequest
 		return result, err
 	}
 	result.WrittenFiles = append(result.WrittenFiles, taskPath)
-	auditPath, err := writer.AppendAudit(audit)
+	auditPath, err := writer.AppendAudit(&audit)
+	result.AuditRecordPreview = audit
 	if err != nil {
 		result.Errors = append(result.Errors, Diagnostic{
 			Code:     "audit_write_failed",
@@ -1152,6 +1156,59 @@ func hasActualID(actuals []domain.Actual, id string) bool {
 		}
 	}
 	return false
+}
+
+func matchingActualRetry(actuals []domain.Actual, candidate domain.Actual) (domain.Actual, bool) {
+	for _, existing := range actuals {
+		if actualIDInFamily(existing.ID, candidate.ID) && sameActualContent(existing, candidate) {
+			return existing, true
+		}
+	}
+	return domain.Actual{}, false
+}
+
+func actualIDInFamily(id, base string) bool {
+	if id == base {
+		return true
+	}
+	suffix, ok := strings.CutPrefix(id, base+".")
+	if !ok {
+		return false
+	}
+	n, err := strconv.Atoi(suffix)
+	return err == nil && n >= 2
+}
+
+func sameActualContent(left, right domain.Actual) bool {
+	return left.Type == right.Type &&
+		left.TaskRef == right.TaskRef &&
+		left.DemandRef == right.DemandRef &&
+		left.ResourceRef == right.ResourceRef &&
+		left.Amount == right.Amount &&
+		left.Unit == right.Unit &&
+		left.OccurredAt == right.OccurredAt &&
+		refsEqual(left.EvidenceRefs, right.EvidenceRefs) &&
+		left.CorrectsRef == right.CorrectsRef &&
+		amountsEqual(left.CorrectedAmount, right.CorrectedAmount)
+}
+
+func refsEqual(left, right []domain.Ref) bool {
+	if len(left) != len(right) {
+		return false
+	}
+	for i := range left {
+		if left[i] != right[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func amountsEqual(left, right *float64) bool {
+	if left == nil || right == nil {
+		return left == nil && right == nil
+	}
+	return *left == *right
 }
 
 func actualsPath(statusDate string) string {

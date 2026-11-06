@@ -112,7 +112,7 @@ type ScenarioApplyChange struct {
 }
 
 type ScenarioWriter interface {
-	ApplyScenarioChanges(scenarioID string, changes []ScenarioApplyChange, audit domain.AuditRecord) ([]string, error)
+	ApplyScenarioChanges(scenarioID string, changes []ScenarioApplyChange, audit *domain.AuditRecord) ([]string, error)
 }
 
 func NewScenarioService(loader WorkspaceLoader) ScenarioService {
@@ -425,7 +425,8 @@ func (s ScenarioService) Apply(ctx context.Context, req ScenarioApplyRequest) (S
 		})
 		return result, ErrValidationFailed
 	}
-	writtenFiles, err := writer.ApplyScenarioChanges(scenario.ID, result.Changes, audit)
+	writtenFiles, err := writer.ApplyScenarioChanges(scenario.ID, result.Changes, &audit)
+	result.AuditRecordPreview = audit
 	if err != nil {
 		result.Errors = append(result.Errors, Diagnostic{
 			Code:     "scenario_apply_write_failed",

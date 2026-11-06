@@ -2252,6 +2252,12 @@ Rules:
   record. It copies the original task, demand, resource and unit, requires one
   of a finite non-negative `--amount` or `--void` (zero), and requires reason,
   actor and evidence. The original stays byte-for-byte unchanged;
+- `actual add-consumption` refuses an identical same-second retry with
+  `actual_already_exists`; a different consumption in the same id family gets
+  the next numeric id suffix;
+- `actual correct` refuses an identical same-second correction or void retry
+  with `actual_already_exists`; a different correction in the same id family
+  gets the next numeric id suffix;
 - an unknown target is `actual_not_found`. Corrections, status actuals and
   other non-consumption actuals are `actual_not_correctable`. Repeating the
   current effective amount is `actual_correction_no_change`. The latest

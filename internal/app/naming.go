@@ -12,12 +12,12 @@ import (
 
 type ResourceNameWriter interface {
 	SetResourceName(resourceID, name string) (string, error)
-	AppendAudit(record domain.AuditRecord) (string, error)
+	AppendAudit(record *domain.AuditRecord) (string, error)
 }
 
 type ActorNameWriter interface {
 	SetActorDisplayName(actorID, name string) (string, error)
-	AppendAudit(record domain.AuditRecord) (string, error)
+	AppendAudit(record *domain.AuditRecord) (string, error)
 }
 
 type ResourceSetNameRequest struct {
@@ -112,7 +112,8 @@ func setCanonicalName(ctx context.Context, loader WorkspaceLoader, req setCanoni
 		return result, err
 	}
 	result.WrittenFiles = append(result.WrittenFiles, writtenPath)
-	auditPath, err := appender.AppendAudit(audit)
+	auditPath, err := appender.AppendAudit(&audit)
+	result.AuditRecordPreview = audit
 	if err != nil {
 		result.Errors = append(result.Errors, namingDiag("audit_write_failed", err.Error(), "audit_record", audit.ID))
 		return result, err
@@ -129,7 +130,7 @@ func setCanonicalName(ctx context.Context, loader WorkspaceLoader, req setCanoni
 }
 
 type auditAppender interface {
-	AppendAudit(record domain.AuditRecord) (string, error)
+	AppendAudit(record *domain.AuditRecord) (string, error)
 }
 
 func canonicalName(ws domain.Workspace, kind, id string) (string, bool) {
