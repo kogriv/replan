@@ -1477,3 +1477,24 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.one-yaml-style-for-canonical-files
+  - id: actual.self-one-yaml-style-for-canonical-files.ci-github-actions.20261106T053726Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.one-yaml-style-for-canonical-files
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.one-yaml-style-for-canonical-files.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-06T05:37:26Z"
+    status_date: "2026-11-06"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-one-yaml-style-for-canonical-files

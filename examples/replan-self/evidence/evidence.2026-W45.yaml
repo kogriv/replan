@@ -948,3 +948,27 @@ evidence:
     targets:
       - kind: task
         id: task.self.one-yaml-style-for-canonical-files
+  - id: evidence.self.accept-one-yaml-style-for-canonical-files
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-06T05:37:26Z"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-06: every writer uses the two-space style, project format reformats a project without changing data, and the dogfood project was reformatted.'
+    targets:
+      - kind: task
+        id: task.self.one-yaml-style-for-canonical-files
+  - id: evidence.self.start-unique-audit-ids
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-06T12:39:35+07:00"
+    summary: Started on 2026-11-06 after the operator accepted one YAML style for canonical files and said to continue; estimate 2 agent hours frozen in baseline.2026-11-05.unique-audit-ids, split into agent 0.5 and Codex 1.5.
+    targets:
+      - kind: task
+        id: task.self.unique-audit-ids

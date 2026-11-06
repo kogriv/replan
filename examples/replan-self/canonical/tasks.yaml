@@ -6584,8 +6584,8 @@ tasks:
     title: One YAML style for canonical files
     description: 'Consumer feedback on 2026-11-04: tasks.yaml written by task add uses a different style than the one written by seed, so a full rewrite from Python shows about 460 lines of noise. Find which writers differ, make every writer produce the renderer''s style, and say in the docs which style external tools should keep.'
     type: implementation
-    tracking_status: review_ready
-    planned_start: "2026-11-06"
+    tracking_status: accepted
+    planned_start: "2026-11-05"
     planned_finish: "2026-11-06"
     assignee_hint:
       kind: resource
@@ -6613,7 +6613,7 @@ tasks:
     title: Keep audit record ids unique for writes in the same second
     description: 'Found while checking task set-description on 2026-11-05: audit ids are built from the timestamp to the second, the operation and the target, so two writes on one target in the same second get the same id; validation refuses the second write and rolls it back. A script that runs commands back to back hits this at once. Make the id unique when it is already taken (a numeric suffix) for every command that appends audit records, and test two writes in one second.'
     type: implementation
-    tracking_status: not_started
+    tracking_status: in_progress
     planned_start: "2026-11-06"
     planned_finish: "2026-11-06"
     assignee_hint:
@@ -6622,6 +6622,8 @@ tasks:
     resource_demands:
       - kind: resource_demand
         id: resource_demand.unique-audit-ids.agent
+      - kind: resource_demand
+        id: resource_demand.unique-audit-ids.codex
       - kind: resource_demand
         id: resource_demand.unique-audit-ids.maintainer
       - kind: resource_demand
