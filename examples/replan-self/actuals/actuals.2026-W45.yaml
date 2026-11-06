@@ -1624,3 +1624,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-taskjuggler-raw-means-uncalibrated
+  - id: actual.self-group-taskjuggler-unsupported-unit-warnings.ai-codex-local.20261106T1542290700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.group-taskjuggler-unsupported-unit-warnings
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.group-taskjuggler-unsupported-unit-warnings.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.53
+    unit: agent_hours
+    occurred_at: "2026-11-06T15:42:29+07:00"
+    status_date: "2026-11-06"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.group-taskjuggler-unsupported-unit-warnings
+  - id: actual.self-group-taskjuggler-unsupported-unit-warnings.ai-agent-executor.20261106T1542290700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.group-taskjuggler-unsupported-unit-warnings
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.group-taskjuggler-unsupported-unit-warnings.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.21
+    unit: agent_hours
+    occurred_at: "2026-11-06T15:42:29+07:00"
+    status_date: "2026-11-06"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.group-taskjuggler-unsupported-unit-warnings

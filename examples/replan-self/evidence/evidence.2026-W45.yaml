@@ -1064,3 +1064,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.group-taskjuggler-unsupported-unit-warnings
+  - id: evidence.self.group-taskjuggler-unsupported-unit-warnings
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-06T15:42:29+07:00"
+    summary: 'Commit 0e05604 groups TaskJuggler unsupported-unit warnings by unit and lists every unsupported demand in JSON with count and open_count. Review of the dogfood export found two more noise sources, fixed in rounds 2 and 3: 164 per-task warnings were all finished tasks, and the unit counts were mostly consumed demands of accepted tasks. Dogfood export warnings went from 542 to 3; the .tjp content is the same apart from the export time. Local gate green. Codex 0.53 h from round prompt and result times (14:51:57-15:04:53, 15:06:11-15:16:03, 15:17:22-15:26:26); agent 0.21 h: planning and work package 14:44:52-14:46:22, binding, start and brief 14:47:28-14:51:57, reviews 15:04:53-15:06:11, 15:16:03-15:17:22 and 15:26:26-15:27:11, finish from 15:42:02 to this record; unrelated work between 14:46:22 and 14:47:28 and the gate wait are not booked.'
+    targets:
+      - kind: task
+        id: task.self.group-taskjuggler-unsupported-unit-warnings
