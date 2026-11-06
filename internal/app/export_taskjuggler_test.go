@@ -49,7 +49,7 @@ func TestExportTaskJugglerSmallTeamFixture(t *testing.T) {
 	}
 }
 
-func TestExportTaskJugglerRawKeepsFormerAgentHoursBehavior(t *testing.T) {
+func TestExportTaskJugglerRawExportsAgentHours(t *testing.T) {
 	result, err := app.NewExportService(filestore.New("../../examples/small-team")).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{
 		Raw: true,
 		Now: time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC),
@@ -57,9 +57,9 @@ func TestExportTaskJugglerRawKeepsFormerAgentHoursBehavior(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assertContains(t, result.Content, `effort 8.00h`)
-	assertNotContains(t, result.Content, `allocate resource_ai_codex_local`)
-	assertNotContains(t, result.Content, `limits { weeklymax 20.00h }`)
+	assertContains(t, result.Content, `effort 10.00h`)
+	assertContains(t, result.Content, `allocate resource_ai_codex_local`)
+	assertContains(t, result.Content, `limits { weeklymax 20.00h }`)
 }
 
 func TestExportTaskJugglerUsesCalibratedEffortAndNamesCalibration(t *testing.T) {
@@ -80,12 +80,6 @@ func TestExportTaskJugglerUsesCalibratedEffortAndNamesCalibration(t *testing.T) 
 
 func TestExportTaskJugglerRawRestoresUncalibratedOutput(t *testing.T) {
 	ws := calibratedTaskJugglerWorkspace(t)
-	ws.ResourceDemands[0].Unit = "hours"
-	ws.Capacities[0].Unit = "hours"
-	ws.Calibrations[0].Scope.Unit = "hours"
-	if err := domain.SealCalibration(&ws.Calibrations[0]); err != nil {
-		t.Fatal(err)
-	}
 	withoutCalibration := ws
 	withoutCalibration.Calibrations = nil
 	now := time.Date(2026, 11, 4, 12, 0, 0, 0, time.UTC)
@@ -101,10 +95,37 @@ func TestExportTaskJugglerRawRestoresUncalibratedOutput(t *testing.T) {
 		t.Fatalf("raw export changed output\nraw:\n%s\nwant:\n%s", raw.Content, want.Content)
 	}
 	assertContains(t, raw.Content, `effort 4.00h`)
+	assertContains(t, raw.Content, `allocate resource_agent`)
+	assertContains(t, raw.Content, `limits { weeklymax 10.00h }`)
 	assertNotContains(t, raw.Content, `# calibrated by`)
+	if hasDiagnosticCode(raw.Warnings, "taskjuggler_unsupported_demand_unit") {
+		t.Fatalf("agent_hours demand reported as unsupported: %#v", raw.Warnings)
+	}
 	if len(raw.Calibrations) != 0 {
 		t.Fatalf("raw calibrations = %#v", raw.Calibrations)
 	}
+}
+
+func TestExportTaskJugglerRawTreatsAgentHoursCapacityScenarioAsRepresented(t *testing.T) {
+	ws := calibratedTaskJugglerWorkspace(t)
+	ws.Scenarios = []domain.Scenario{{
+		ID: "scenario.agent-capacity",
+		Changes: []domain.ScenarioChange{{
+			Op: "set", Path: "capacities.capacity.agent.amount", Value: 6,
+		}},
+	}}
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{
+		ScenarioID:                   "scenario.agent-capacity",
+		UnrepresentedAssumptionsMode: "error",
+		Raw:                          true,
+	})
+	if err != nil {
+		t.Fatalf("TaskJuggler returned error: %v; errors=%#v", err, result.Errors)
+	}
+	if hasDiagnosticCode(result.Warnings, "taskjuggler_capacity_change_not_represented") || hasDiagnosticCode(result.Errors, "taskjuggler_capacity_change_not_represented") {
+		t.Fatalf("agent_hours capacity should be represented: warnings=%#v errors=%#v", result.Warnings, result.Errors)
+	}
+	assertContains(t, result.Content, `limits { weeklymax 6.00h }`)
 }
 
 func TestExportTaskJugglerDoesNotReapplyScenarioAppliedCalibration(t *testing.T) {

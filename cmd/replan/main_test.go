@@ -200,10 +200,27 @@ func TestDeadlineAddListAndRefusals(t *testing.T) {
 }
 
 func TestWorkloadRawFlagDisablesCalibration(t *testing.T) {
+	projectPath := copyCmdProjectFixtureFrom(t, "../../examples/replan-self", "replan-self")
+	stdout, stderr := tempOutputFiles(t)
+	if code := run([]string{
+		"demand", "set", "resource_demand.add-replan-evidence-add.agent",
+		"--project", projectPath,
+		"--amount", "4",
+		"--remaining", "4",
+		"--status", "active",
+		"--reason", "Create stable open calibrated workload test data.",
+		"--actor", "actor.human.maintainer",
+		"--evidence", "evidence.self.calibrate-estimates-by-size",
+		"--occurred-at", "2026-11-06T00:00:00Z",
+		"--apply",
+		"--format", "json",
+	}, stdout, stderr); code != exitSuccess {
+		t.Fatalf("prepare calibrated demand exit = %d, stdout = %s, stderr = %s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
 	read := func(extra ...string) app.WorkloadResult {
 		t.Helper()
 		stdout, stderr := tempOutputFiles(t)
-		args := []string{"workload", "--project", "../../examples/replan-self", "--format", "json"}
+		args := []string{"workload", "--project", projectPath, "--format", "json"}
 		args = append(args, extra...)
 		if code := run(args, stdout, stderr); code != exitSuccess {
 			t.Fatalf("workload %v exit = %d, stderr = %s", extra, code, readFileString(t, stderr.Name()))

@@ -2801,8 +2801,8 @@ Implemented TaskJuggler proof-of-concept:
 - calibrate that effort by default with the workload selection rule, add a
   task comment naming each calibration, and list used ids in the JSON
   `calibrations` field;
-- use `--raw` to export the former uncalibrated `.tjp` output, including its
-  former unsupported handling of `agent_hours`;
+- `--raw` exports uncalibrated effort; `agent_hours` demands are exported in
+  both modes;
 - use overlaid `resource_ref` for TaskJuggler `allocate`;
 - do not invoke TaskJuggler;
 - do not import TaskJuggler results;
