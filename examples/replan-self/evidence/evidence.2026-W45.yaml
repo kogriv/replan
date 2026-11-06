@@ -1018,3 +1018,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.taskjuggler-raw-means-uncalibrated
+  - id: evidence.self.taskjuggler-raw-means-uncalibrated
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-06T14:24:30+07:00"
+    summary: 'Commit 059a545 makes --raw in the TaskJuggler export mean only uncalibrated effort; agent_hours demands and capacities are exported in both modes. On the dogfood project a raw export now has the same 64 tasks with effort as the calibrated one instead of 63, and 375 instead of 670 unsupported-unit warnings (the rest are concurrent slots, CI minutes, review hours and other units TaskJuggler cannot represent). Found at start: the workload --raw test read the living project and failed once the only open executor demand was 0.25 h, the calibration floor; it now runs on a copy with a known open demand. Local gate green. Codex 0.23 h from round prompt and result times (13:54:11-14:08:12); agent 0.19 h: planning, work package, baseline, start and test diagnosis 13:46:55-13:54:11, review 14:08:12-14:09:08, finish from 14:23:53 to this record; gate wait not booked.'
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-raw-means-uncalibrated

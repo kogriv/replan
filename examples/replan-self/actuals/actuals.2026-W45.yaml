@@ -1561,3 +1561,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-unique-audit-ids
+  - id: actual.self-taskjuggler-raw-means-uncalibrated.ai-codex-local.20261106T1424300700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-raw-means-uncalibrated
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-raw-means-uncalibrated.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.23
+    unit: agent_hours
+    occurred_at: "2026-11-06T14:24:30+07:00"
+    status_date: "2026-11-06"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.taskjuggler-raw-means-uncalibrated
+  - id: actual.self-taskjuggler-raw-means-uncalibrated.ai-agent-executor.20261106T1424300700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-raw-means-uncalibrated
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-raw-means-uncalibrated.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.19
+    unit: agent_hours
+    occurred_at: "2026-11-06T14:24:30+07:00"
+    status_date: "2026-11-06"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.taskjuggler-raw-means-uncalibrated
