@@ -2790,6 +2790,21 @@ Implemented TaskJuggler proof-of-concept:
   when capacity type is `periodic_capacity`, resource class is `human` or
   `ai_agent`, unit is `hour`, `hours`, `h` or `agent_hours`, and period is
   `week`;
+- represent demands in `hour`, `hours`, `h` and `agent_hours`, and weekly
+  capacities in those units for `human` and `ai_agent` resources;
+- skip demands in other units, with one warning per unit that has open work;
+  open work means a loading demand on a non-terminal task with positive
+  `remaining_amount`, or positive `planned_amount` when remaining is absent;
+- JSON lists all loading unsupported demands in `unsupported_demands`, grouped
+  by unit, with `count`, `open_count` and the full `demand_ids` list even when
+  `open_count` is zero;
+- do not export demands on `role` resources, such as a reviewer role in
+  `review_hours`, because this export has no role allocation;
+- warn per task with `taskjuggler_task_without_supported_demands` only when a
+  non-terminal task has loading demands but none can be exported;
+- do not warn when a task has no loading demands; for non-terminal tasks with
+  no demands at all, emit one grouped `taskjuggler_tasks_without_demands`
+  warning with the count and example task ids;
 - treat mapped weekly hour capacity scenario changes as represented in `.tjp`;
 - support `--unrepresented-assumptions warn|error` for TaskJuggler export;
 - default `--unrepresented-assumptions` mode is `warn`;

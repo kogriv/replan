@@ -19,13 +19,21 @@ type ExportTaskJugglerRequest struct {
 }
 
 type ExportTaskJugglerResult struct {
-	Metadata     ExportMetadata           `json:"metadata"`
-	Scenario     string                   `json:"scenario,omitempty"`
-	Calibrations []string                 `json:"calibrations,omitempty"`
-	Content      string                   `json:"content,omitempty"`
-	Mapping      TaskJugglerExportMapping `json:"mapping"`
-	Warnings     []Diagnostic             `json:"warnings"`
-	Errors       []Diagnostic             `json:"errors"`
+	Metadata           ExportMetadata                    `json:"metadata"`
+	Scenario           string                            `json:"scenario,omitempty"`
+	Calibrations       []string                          `json:"calibrations,omitempty"`
+	Content            string                            `json:"content,omitempty"`
+	Mapping            TaskJugglerExportMapping          `json:"mapping"`
+	UnsupportedDemands []TaskJugglerUnsupportedDemandSet `json:"unsupported_demands"`
+	Warnings           []Diagnostic                      `json:"warnings"`
+	Errors             []Diagnostic                      `json:"errors"`
+}
+
+type TaskJugglerUnsupportedDemandSet struct {
+	Unit      string   `json:"unit"`
+	Count     int      `json:"count"`
+	OpenCount int      `json:"open_count"`
+	DemandIDs []string `json:"demand_ids"`
 }
 
 type TaskJugglerExportMapping struct {
@@ -71,8 +79,9 @@ func (s ExportService) TaskJuggler(ctx context.Context, req ExportTaskJugglerReq
 			ExportedAt:  now.Format(time.RFC3339),
 			ProjectPath: s.loader.ProjectPath(),
 		},
-		Warnings: []Diagnostic{},
-		Errors:   []Diagnostic{},
+		UnsupportedDemands: []TaskJugglerUnsupportedDemandSet{},
+		Warnings:           []Diagnostic{},
+		Errors:             []Diagnostic{},
 	}
 	appendLoadDiagnostics(&result.Warnings, &result.Errors, loadDiags)
 	if req.ScenarioID != "" {
@@ -96,7 +105,7 @@ func (s ExportService) TaskJuggler(ctx context.Context, req ExportTaskJugglerReq
 	if !req.Raw {
 		calibrations = ApplicableDemandCalibrations(calibrationSelectionWorkspace(ws, result.Scenario))
 	}
-	result.Content, result.Calibrations = buildTaskJugglerContent(ws, result.Metadata, result.Scenario, result.Mapping, calibrations, &result.Warnings)
+	result.Content, result.Calibrations, result.UnsupportedDemands = buildTaskJugglerContent(ws, result.Metadata, result.Scenario, result.Mapping, calibrations, &result.Warnings)
 	return result, nil
 }
 
@@ -212,7 +221,7 @@ func taskJugglerCapacityChangeWarningMessage(scenarioID string, capacity domain.
 	return strings.Join(details, ", ") + "; this RePlan capacity amount is applied by workload reports but is not represented in the generated TaskJuggler .tjp export"
 }
 
-func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scenarioID string, mapping TaskJugglerExportMapping, calibrations map[string]DemandCalibration, warnings *[]Diagnostic) (string, []string) {
+func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scenarioID string, mapping TaskJugglerExportMapping, calibrations map[string]DemandCalibration, warnings *[]Diagnostic) (string, []string, []TaskJugglerUnsupportedDemandSet) {
 	resourceIDs := make(map[string]struct{}, len(ws.Resources))
 	for _, resource := range ws.Resources {
 		resourceIDs[resource.ID] = struct{}{}
@@ -228,8 +237,26 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 	vacationsByResource := taskJugglerVacationsByResource(ws.Availabilities)
 	limitsByResource := taskJugglerLimitsByResource(ws.Capacities, ws.Project.DefaultStatusDate, warnings)
 	demandsByTask := make(map[string][]taskJugglerDemand)
+	demandCountByTask := map[string]int{}
+	loadingDemandCountByTask := map[string]int{}
+	unsupportedDemandIDsByUnit := map[string][]string{}
+	openUnsupportedDemandIDsByUnit := map[string][]string{}
+	tasksByID := make(map[string]domain.Task, len(ws.Tasks))
+	for _, task := range ws.Tasks {
+		tasksByID[task.ID] = task
+	}
 	usedCalibrations := map[string]bool{}
 	for _, demand := range ws.ResourceDemands {
+		demandCountByTask[demand.TaskRef.ID]++
+		if domain.DemandLoads(demand.Status) {
+			loadingDemandCountByTask[demand.TaskRef.ID]++
+		}
+		if domain.DemandLoads(demand.Status) && !isTaskJugglerEffortUnit(demand.Unit) {
+			unsupportedDemandIDsByUnit[demand.Unit] = append(unsupportedDemandIDsByUnit[demand.Unit], demand.ID)
+			if task, ok := tasksByID[demand.TaskRef.ID]; ok && !isTerminalTrackingStatus(task.TrackingStatus) && taskJugglerDemandHasOpenWork(demand) {
+				openUnsupportedDemandIDsByUnit[demand.Unit] = append(openUnsupportedDemandIDsByUnit[demand.Unit], demand.ID)
+			}
+		}
 		mapped, ok := mapTaskJugglerDemand(demand, resourceIDs, calibrations[demand.ID], warnings)
 		if ok {
 			demandsByTask[demand.TaskRef.ID] = append(demandsByTask[demand.TaskRef.ID], mapped)
@@ -238,6 +265,8 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 			}
 		}
 	}
+	unsupportedDemands := appendTaskJugglerUnsupportedDemandDiagnostics(unsupportedDemandIDsByUnit, openUnsupportedDemandIDsByUnit, warnings)
+	appendTaskJugglerTasksWithoutDemandsDiagnostic(ws, demandCountByTask, warnings)
 
 	var b strings.Builder
 	fmt.Fprintf(&b, "# Generated by RePlan\n")
@@ -268,7 +297,7 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 	}
 
 	for _, task := range ws.Tasks {
-		writeTaskJugglerTask(&b, task, taskJugglerTaskIDs[task.ID], taskJugglerResourceIDs, demandsByTask[task.ID], warnings)
+		writeTaskJugglerTask(&b, task, taskJugglerTaskIDs[task.ID], taskJugglerResourceIDs, demandsByTask[task.ID], loadingDemandCountByTask[task.ID] > 0, warnings)
 	}
 	writeTaskJugglerParseableTaskReport(&b)
 
@@ -277,7 +306,98 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 		calibrationIDs = append(calibrationIDs, calibrationID)
 	}
 	sort.Strings(calibrationIDs)
-	return b.String(), calibrationIDs
+	return b.String(), calibrationIDs, unsupportedDemands
+}
+
+func appendTaskJugglerTasksWithoutDemandsDiagnostic(ws domain.Workspace, demandCountByTask map[string]int, warnings *[]Diagnostic) {
+	taskIDs := []string{}
+	for _, task := range ws.Tasks {
+		if demandCountByTask[task.ID] == 0 && !isTerminalTrackingStatus(task.TrackingStatus) {
+			taskIDs = append(taskIDs, task.ID)
+		}
+	}
+	if len(taskIDs) == 0 {
+		return
+	}
+	sort.Strings(taskIDs)
+	examples := taskIDs
+	if len(examples) > 3 {
+		examples = examples[:3]
+	}
+	message := fmt.Sprintf("%d non-terminal tasks have no resource demands; no effort is exported for them", len(taskIDs))
+	if len(taskIDs) == 1 {
+		message = "1 non-terminal task has no resource demands; no effort is exported for it"
+	}
+	message += fmt.Sprintf(" (for example %s)", strings.Join(examples, ", "))
+	*warnings = append(*warnings, Diagnostic{
+		Code:     "taskjuggler_tasks_without_demands",
+		Message:  message,
+		Severity: "warning",
+		Target:   Target{Kind: "project", ID: ws.Project.ID},
+	})
+}
+
+func isTerminalTrackingStatus(status string) bool {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case "accepted", "cancelled":
+		return true
+	default:
+		return false
+	}
+}
+
+func appendTaskJugglerUnsupportedDemandDiagnostics(demandIDsByUnit, openDemandIDsByUnit map[string][]string, warnings *[]Diagnostic) []TaskJugglerUnsupportedDemandSet {
+	units := make([]string, 0, len(demandIDsByUnit))
+	for unit := range demandIDsByUnit {
+		units = append(units, unit)
+	}
+	sort.Strings(units)
+
+	unsupportedDemands := make([]TaskJugglerUnsupportedDemandSet, 0, len(units))
+	for _, unit := range units {
+		demandIDs := demandIDsByUnit[unit]
+		sort.Strings(demandIDs)
+		openDemandIDs := openDemandIDsByUnit[unit]
+		sort.Strings(openDemandIDs)
+		unsupportedDemands = append(unsupportedDemands, TaskJugglerUnsupportedDemandSet{
+			Unit:      unit,
+			Count:     len(demandIDs),
+			OpenCount: len(openDemandIDs),
+			DemandIDs: demandIDs,
+		})
+
+		if len(openDemandIDs) == 0 {
+			continue
+		}
+		examples := openDemandIDs
+		if len(examples) > 3 {
+			examples = examples[:3]
+		}
+		message := fmt.Sprintf("%d resource demands with open work use unit %q, which TaskJuggler effort cannot represent; they are not exported", len(openDemandIDs), unit)
+		if len(openDemandIDs) == 1 {
+			message = fmt.Sprintf("1 resource demand uses unit %q, which TaskJuggler effort cannot represent; it is not exported", unit)
+		}
+		if len(examples) > 0 {
+			message += fmt.Sprintf(" (for example %s)", strings.Join(examples, ", "))
+		}
+		*warnings = append(*warnings, Diagnostic{
+			Code:     "taskjuggler_unsupported_demand_unit",
+			Message:  message,
+			Severity: "warning",
+			Target:   Target{Kind: "unit", ID: unit},
+		})
+	}
+	return unsupportedDemands
+}
+
+func taskJugglerDemandHasOpenWork(demand domain.ResourceDemand) bool {
+	if !domain.DemandLoads(demand.Status) {
+		return false
+	}
+	if demand.HasRemaining() {
+		return demand.Remaining() > 0
+	}
+	return demand.PlannedAmount > 0
 }
 
 // taskJugglerLimitsByResource maps weekly hour capacities to weeklymax. The
@@ -323,12 +443,6 @@ func mapTaskJugglerDemand(demand domain.ResourceDemand, resourceIDs map[string]s
 		return taskJugglerDemand{}, false
 	}
 	if !isTaskJugglerEffortUnit(demand.Unit) {
-		*warnings = append(*warnings, Diagnostic{
-			Code:     "taskjuggler_unsupported_demand_unit",
-			Message:  fmt.Sprintf("resource demand %s uses unit %q, which cannot be represented as TaskJuggler effort in this export slice", demand.ID, demand.Unit),
-			Severity: "warning",
-			Target:   Target{Kind: "resource_demand", ID: demand.ID},
-		})
 		return taskJugglerDemand{}, false
 	}
 	if demand.ResourceRef.ID == "" {
@@ -395,7 +509,7 @@ func writeTaskJugglerResource(b *strings.Builder, resource domain.Resource, task
 	fmt.Fprintf(b, "}\n")
 }
 
-func writeTaskJugglerTask(b *strings.Builder, task domain.Task, taskJugglerTaskID string, taskJugglerResourceIDs map[string]string, demands []taskJugglerDemand, warnings *[]Diagnostic) {
+func writeTaskJugglerTask(b *strings.Builder, task domain.Task, taskJugglerTaskID string, taskJugglerResourceIDs map[string]string, demands []taskJugglerDemand, hasLoadingDemands bool, warnings *[]Diagnostic) {
 	fmt.Fprintf(b, "task %s %q {\n", taskJugglerTaskID, task.Title)
 	if task.Description != "" {
 		fmt.Fprintf(b, "  note %q\n", task.Description)
@@ -420,7 +534,7 @@ func writeTaskJugglerTask(b *strings.Builder, task domain.Task, taskJugglerTaskI
 	for _, resourceID := range resourceIDs {
 		fmt.Fprintf(b, "  allocate %s\n", taskJugglerResourceIDs[resourceID])
 	}
-	if len(demands) == 0 {
+	if len(demands) == 0 && hasLoadingDemands && !isTerminalTrackingStatus(task.TrackingStatus) {
 		*warnings = append(*warnings, Diagnostic{
 			Code:     "taskjuggler_task_without_supported_demands",
 			Message:  fmt.Sprintf("task %s has no supported concrete hour-based resource demands for TaskJuggler export", task.ID),

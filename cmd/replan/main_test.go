@@ -1280,6 +1280,36 @@ func TestScenarioNotFoundUsesExitFourAcrossCommands(t *testing.T) {
 	}
 }
 
+func TestExportTaskJugglerJSONIncludesUnsupportedDemands(t *testing.T) {
+	stdout, stderr := tempOutputFiles(t)
+	defer stdout.Close()
+	defer stderr.Close()
+	if code := run([]string{"export", "taskjuggler", "--project", "../../examples/small-team", "--format", "json"}, stdout, stderr); code != exitSuccess {
+		t.Fatalf("exit = %d, want %d; stderr=%s stdout=%s", code, exitSuccess, readFileString(t, stderr.Name()), readFileString(t, stdout.Name()))
+	}
+	var result struct {
+		UnsupportedDemands []app.TaskJugglerUnsupportedDemandSet `json:"unsupported_demands"`
+	}
+	data, err := os.ReadFile(stdout.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(data, &result); err != nil {
+		t.Fatalf("parse TaskJuggler JSON: %v\n%s", err, data)
+	}
+	if len(result.UnsupportedDemands) == 0 {
+		t.Fatalf("unsupported_demands is empty: %s", data)
+	}
+	for _, group := range result.UnsupportedDemands {
+		if group.Count != len(group.DemandIDs) {
+			t.Fatalf("unsupported demand count mismatch: %#v", group)
+		}
+		if group.OpenCount > group.Count {
+			t.Fatalf("unsupported demand open count exceeds total: %#v", group)
+		}
+	}
+}
+
 func TestImportAcceptSnapshotReadFailures(t *testing.T) {
 	t.Run("missing", func(t *testing.T) {
 		stdout, stderr := tempOutputFiles(t)

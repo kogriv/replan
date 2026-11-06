@@ -3,6 +3,7 @@ package app_test
 import (
 	"context"
 	"errors"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -60,6 +61,165 @@ func TestExportTaskJugglerRawExportsAgentHours(t *testing.T) {
 	assertContains(t, result.Content, `effort 10.00h`)
 	assertContains(t, result.Content, `allocate resource_ai_codex_local`)
 	assertContains(t, result.Content, `limits { weeklymax 20.00h }`)
+}
+
+func TestExportTaskJugglerGroupsUnsupportedDemandsByUnit(t *testing.T) {
+	ws := domain.Workspace{
+		Project:   domain.Project{ID: "project.test", Name: "Test", Timezone: "UTC", DefaultStatusDate: "2026-11-06"},
+		Resources: []domain.Resource{{ID: "resource.test", Class: "service", Name: "Test resource"}},
+		Tasks:     []domain.Task{{ID: "task.test", Title: "Test task"}},
+		ResourceDemands: []domain.ResourceDemand{
+			{ID: "demand.ci.z", TaskRef: domain.Ref{ID: "task.test"}, ResourceRef: domain.Ref{ID: "resource.test"}, Unit: "ci_minutes", PlannedAmount: 1},
+			{ID: "demand.slot.b", TaskRef: domain.Ref{ID: "task.test"}, ResourceRef: domain.Ref{ID: "resource.test"}, Unit: "concurrent_slots", PlannedAmount: 1},
+			{ID: "demand.ci.a", TaskRef: domain.Ref{ID: "task.test"}, ResourceRef: domain.Ref{ID: "resource.test"}, Unit: "ci_minutes", PlannedAmount: 1},
+			{ID: "demand.ci.d", TaskRef: domain.Ref{ID: "task.test"}, ResourceRef: domain.Ref{ID: "resource.test"}, Unit: "ci_minutes", PlannedAmount: 1},
+			{ID: "demand.slot.a", TaskRef: domain.Ref{ID: "task.test"}, ResourceRef: domain.Ref{ID: "resource.test"}, Unit: "concurrent_slots", PlannedAmount: 1},
+			{ID: "demand.ci.c", TaskRef: domain.Ref{ID: "task.test"}, ResourceRef: domain.Ref{ID: "resource.test"}, Unit: "ci_minutes", PlannedAmount: 1},
+			{ID: "demand.cancelled", TaskRef: domain.Ref{ID: "task.test"}, ResourceRef: domain.Ref{ID: "resource.test"}, Unit: "tokens", PlannedAmount: 1, Status: "cancelled"},
+		},
+	}
+	wantUnsupported := []app.TaskJugglerUnsupportedDemandSet{
+		{Unit: "ci_minutes", Count: 4, OpenCount: 4, DemandIDs: []string{"demand.ci.a", "demand.ci.c", "demand.ci.d", "demand.ci.z"}},
+		{Unit: "concurrent_slots", Count: 2, OpenCount: 2, DemandIDs: []string{"demand.slot.a", "demand.slot.b"}},
+	}
+
+	for _, raw := range []bool{false, true} {
+		t.Run(map[bool]string{false: "default", true: "raw"}[raw], func(t *testing.T) {
+			result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{Raw: raw})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !reflect.DeepEqual(result.UnsupportedDemands, wantUnsupported) {
+				t.Fatalf("UnsupportedDemands = %#v, want %#v", result.UnsupportedDemands, wantUnsupported)
+			}
+			warnings := diagnosticsWithCode(result.Warnings, "taskjuggler_unsupported_demand_unit")
+			if len(warnings) != 2 {
+				t.Fatalf("unsupported warnings = %#v, want two", warnings)
+			}
+			if warnings[0].Target.Kind != "unit" || warnings[0].Target.ID != "ci_minutes" || warnings[1].Target.Kind != "unit" || warnings[1].Target.ID != "concurrent_slots" {
+				t.Fatalf("unsupported warning targets = %#v", warnings)
+			}
+			if warnings[0].Message != `4 resource demands with open work use unit "ci_minutes", which TaskJuggler effort cannot represent; they are not exported (for example demand.ci.a, demand.ci.c, demand.ci.d)` {
+				t.Fatalf("first warning message = %q", warnings[0].Message)
+			}
+			if warnings[1].Message != `2 resource demands with open work use unit "concurrent_slots", which TaskJuggler effort cannot represent; they are not exported (for example demand.slot.a, demand.slot.b)` {
+				t.Fatalf("second warning message = %q", warnings[1].Message)
+			}
+		})
+	}
+}
+
+func TestExportTaskJugglerUnsupportedDemandWarningsCountOnlyOpenWork(t *testing.T) {
+	ws := domain.Workspace{
+		Project:   domain.Project{ID: "project.test", Name: "Test", Timezone: "UTC", DefaultStatusDate: "2026-11-06"},
+		Resources: []domain.Resource{{ID: "resource.test", Class: "service", Name: "Test resource"}},
+		Tasks: []domain.Task{
+			{ID: "task.finished", Title: "Finished", TrackingStatus: "accepted"},
+			{ID: "task.open", Title: "Open", TrackingStatus: "in_progress"},
+		},
+		ResourceDemands: []domain.ResourceDemand{
+			{ID: "demand.consumed", TaskRef: domain.Ref{ID: "task.finished"}, ResourceRef: domain.Ref{ID: "resource.test"}, Unit: "ci_minutes", PlannedAmount: 10, RemainingAmount: domain.Amount(0), Status: "consumed"},
+			{ID: "demand.open", TaskRef: domain.Ref{ID: "task.open"}, ResourceRef: domain.Ref{ID: "resource.test"}, Unit: "tokens", PlannedAmount: 100, RemainingAmount: domain.Amount(50), Status: "active"},
+		},
+	}
+
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []app.TaskJugglerUnsupportedDemandSet{
+		{Unit: "ci_minutes", Count: 1, OpenCount: 0, DemandIDs: []string{"demand.consumed"}},
+		{Unit: "tokens", Count: 1, OpenCount: 1, DemandIDs: []string{"demand.open"}},
+	}
+	if !reflect.DeepEqual(result.UnsupportedDemands, want) {
+		t.Fatalf("UnsupportedDemands = %#v, want %#v", result.UnsupportedDemands, want)
+	}
+	warnings := diagnosticsWithCode(result.Warnings, "taskjuggler_unsupported_demand_unit")
+	if len(warnings) != 1 {
+		t.Fatalf("unsupported warnings = %#v, want one", warnings)
+	}
+	if warnings[0].Target != (app.Target{Kind: "unit", ID: "tokens"}) {
+		t.Fatalf("warning target = %#v", warnings[0].Target)
+	}
+	if warnings[0].Message != `1 resource demand uses unit "tokens", which TaskJuggler effort cannot represent; it is not exported (for example demand.open)` {
+		t.Fatalf("warning message = %q", warnings[0].Message)
+	}
+}
+
+func TestExportTaskJugglerKeepsSupportedAndPerDemandWarnings(t *testing.T) {
+	ws := domain.Workspace{
+		Project:   domain.Project{ID: "project.test", Name: "Test", Timezone: "UTC", DefaultStatusDate: "2026-11-06"},
+		Resources: []domain.Resource{{ID: "resource.human", Class: "human", Name: "Human"}},
+		Tasks:     []domain.Task{{ID: "task.test", Title: "Test task"}},
+		ResourceDemands: []domain.ResourceDemand{
+			{ID: "demand.supported", TaskRef: domain.Ref{ID: "task.test"}, ResourceRef: domain.Ref{ID: "resource.human"}, Unit: "hours", PlannedAmount: 2},
+			{ID: "demand.no-resource", TaskRef: domain.Ref{ID: "task.test"}, Unit: "hours", PlannedAmount: 1},
+			{ID: "demand.unknown", TaskRef: domain.Ref{ID: "task.test"}, ResourceRef: domain.Ref{ID: "resource.unknown"}, Unit: "hours", PlannedAmount: 1},
+			{ID: "demand.unsupported", TaskRef: domain.Ref{ID: "task.test"}, ResourceRef: domain.Ref{ID: "resource.human"}, Unit: "review_hours", PlannedAmount: 1},
+		},
+	}
+
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, result.Content, `effort 2.00h`)
+	assertContains(t, result.Content, `allocate resource_human`)
+	if !hasDiagnosticTarget(result.Warnings, "taskjuggler_demand_without_concrete_resource", "resource_demand", "demand.no-resource") {
+		t.Fatalf("missing per-demand no-resource warning: %#v", result.Warnings)
+	}
+	if !hasDiagnosticTarget(result.Warnings, "taskjuggler_unknown_resource", "resource_demand", "demand.unknown") {
+		t.Fatalf("missing per-demand unknown-resource warning: %#v", result.Warnings)
+	}
+	if warnings := diagnosticsWithCode(result.Warnings, "taskjuggler_unsupported_demand_unit"); len(warnings) != 1 || warnings[0].Target != (app.Target{Kind: "unit", ID: "review_hours"}) {
+		t.Fatalf("unsupported warnings = %#v", warnings)
+	}
+}
+
+func TestExportTaskJugglerWarnsOnlyForOpenTasksNeedingDemandAttention(t *testing.T) {
+	ws := domain.Workspace{
+		Project:   domain.Project{ID: "project.test", Name: "Test", Timezone: "UTC", DefaultStatusDate: "2026-11-06"},
+		Resources: []domain.Resource{{ID: "resource.test", Class: "human", Name: "Test resource"}},
+		Tasks: []domain.Task{
+			{ID: "task.finished", Title: "Finished", TrackingStatus: "accepted"},
+			{ID: "task.unsupported", Title: "Unsupported", TrackingStatus: "in_progress"},
+			{ID: "task.no-demand.z", Title: "No demand Z", TrackingStatus: "ready"},
+			{ID: "task.no-demand.a", Title: "No demand A", TrackingStatus: "not_started"},
+			{ID: "task.terminal-no-demand", Title: "Cancelled", TrackingStatus: "cancelled"},
+			{ID: "task.cancelled-demand", Title: "Cancelled demand", TrackingStatus: "ready"},
+		},
+		ResourceDemands: []domain.ResourceDemand{
+			{ID: "demand.finished", TaskRef: domain.Ref{ID: "task.finished"}, ResourceRef: domain.Ref{ID: "resource.test"}, Unit: "hours", PlannedAmount: 2, RemainingAmount: domain.Amount(0), Status: "consumed"},
+			{ID: "demand.unsupported", TaskRef: domain.Ref{ID: "task.unsupported"}, ResourceRef: domain.Ref{ID: "resource.test"}, Unit: "ci_minutes", PlannedAmount: 10, Status: "active"},
+			{ID: "demand.cancelled", TaskRef: domain.Ref{ID: "task.cancelled-demand"}, ResourceRef: domain.Ref{ID: "resource.test"}, Unit: "ci_minutes", PlannedAmount: 10, Status: "cancelled"},
+		},
+	}
+
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if hasDiagnosticTarget(result.Warnings, "taskjuggler_task_without_supported_demands", "task", "task.finished") {
+		t.Fatalf("finished task received unsupported-demands warning: %#v", result.Warnings)
+	}
+	if hasDiagnosticTarget(result.Warnings, "taskjuggler_task_without_supported_demands", "task", "task.cancelled-demand") {
+		t.Fatalf("task with no loading demands received unsupported-demands warning: %#v", result.Warnings)
+	}
+	if !hasDiagnosticTarget(result.Warnings, "taskjuggler_task_without_supported_demands", "task", "task.unsupported") {
+		t.Fatalf("open task with unsupported loading demand did not receive warning: %#v", result.Warnings)
+	}
+	grouped := diagnosticsWithCode(result.Warnings, "taskjuggler_tasks_without_demands")
+	if len(grouped) != 1 {
+		t.Fatalf("tasks-without-demands warnings = %#v, want one", grouped)
+	}
+	if grouped[0].Message != "2 non-terminal tasks have no resource demands; no effort is exported for them (for example task.no-demand.a, task.no-demand.z)" {
+		t.Fatalf("grouped warning message = %q", grouped[0].Message)
+	}
+	if grouped[0].Target != (app.Target{Kind: "project", ID: "project.test"}) {
+		t.Fatalf("grouped warning target = %#v", grouped[0].Target)
+	}
+	assertContains(t, result.Content, `task task_finished "Finished"`)
+	assertContains(t, result.Content, `task task_unsupported "Unsupported"`)
 }
 
 func TestExportTaskJugglerUsesCalibratedEffortAndNamesCalibration(t *testing.T) {
@@ -633,6 +793,16 @@ func hasDiagnosticCode(diags []app.Diagnostic, code string) bool {
 		}
 	}
 	return false
+}
+
+func diagnosticsWithCode(diags []app.Diagnostic, code string) []app.Diagnostic {
+	var matches []app.Diagnostic
+	for _, diag := range diags {
+		if diag.Code == code {
+			matches = append(matches, diag)
+		}
+	}
+	return matches
 }
 
 func hasDiagnosticTarget(diags []app.Diagnostic, code, kind, id string) bool {

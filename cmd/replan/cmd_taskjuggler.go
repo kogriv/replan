@@ -816,13 +816,14 @@ func runExportTaskJuggler(args []string, stdout, stderr *os.File) int {
 }
 
 type exportTaskJugglerCLIResult struct {
-	Metadata     app.ExportMetadata `json:"metadata"`
-	Scenario     string             `json:"scenario,omitempty"`
-	Calibrations []string           `json:"calibrations,omitempty"`
-	Content      string             `json:"content,omitempty"`
-	OutputPath   string             `json:"output_path,omitempty"`
-	Warnings     []app.Diagnostic   `json:"warnings"`
-	Errors       []app.Diagnostic   `json:"errors"`
+	Metadata           app.ExportMetadata                    `json:"metadata"`
+	Scenario           string                                `json:"scenario,omitempty"`
+	Calibrations       []string                              `json:"calibrations,omitempty"`
+	Content            string                                `json:"content,omitempty"`
+	OutputPath         string                                `json:"output_path,omitempty"`
+	UnsupportedDemands []app.TaskJugglerUnsupportedDemandSet `json:"unsupported_demands"`
+	Warnings           []app.Diagnostic                      `json:"warnings"`
+	Errors             []app.Diagnostic                      `json:"errors"`
 }
 
 func printExportTaskJugglerJSON(stdout *os.File, result app.ExportTaskJugglerResult, outputPath string) error {
@@ -833,12 +834,13 @@ func printExportTaskJugglerJSON(stdout *os.File, result app.ExportTaskJugglerRes
 	enc := json.NewEncoder(stdout)
 	enc.SetIndent("", "  ")
 	return enc.Encode(exportTaskJugglerCLIResult{
-		Metadata:     result.Metadata,
-		Scenario:     result.Scenario,
-		Calibrations: result.Calibrations,
-		Content:      content,
-		OutputPath:   outputPath,
-		Warnings:     result.Warnings,
-		Errors:       result.Errors,
+		Metadata:           result.Metadata,
+		Scenario:           result.Scenario,
+		Calibrations:       result.Calibrations,
+		Content:            content,
+		OutputPath:         outputPath,
+		UnsupportedDemands: result.UnsupportedDemands,
+		Warnings:           result.Warnings,
+		Errors:             result.Errors,
 	})
 }
