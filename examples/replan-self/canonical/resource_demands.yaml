@@ -12917,7 +12917,7 @@ resource_demands:
     planned_amount: 0.25
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.group-taskjuggler-unsupported-unit-warnings.codex
     task_ref:
       kind: task
@@ -12931,7 +12931,7 @@ resource_demands:
     planned_amount: 0.75
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.group-taskjuggler-unsupported-unit-warnings.maintainer
     task_ref:
       kind: task
@@ -12943,9 +12943,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.group-taskjuggler-unsupported-unit-warnings.local-dev
     task_ref:
       kind: task
@@ -12957,9 +12957,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.group-taskjuggler-unsupported-unit-warnings.ci
     task_ref:
       kind: task
@@ -12971,6 +12971,6 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed

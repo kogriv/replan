@@ -1075,3 +1075,16 @@ evidence:
     targets:
       - kind: task
         id: task.self.group-taskjuggler-unsupported-unit-warnings
+  - id: evidence.self.accept-group-taskjuggler-unsupported-unit-warnings
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-07T04:41:17Z"
+    confidence: observed
+    summary: 'Accepted by the operator on 2026-11-07: TaskJuggler unit warnings are grouped by unit with open work only, and finished tasks no longer warn.'
+    targets:
+      - kind: task
+        id: task.self.group-taskjuggler-unsupported-unit-warnings

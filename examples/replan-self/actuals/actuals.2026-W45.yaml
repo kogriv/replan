@@ -1666,3 +1666,24 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.group-taskjuggler-unsupported-unit-warnings
+  - id: actual.self-group-taskjuggler-unsupported-unit-warnings.ci-github-actions.20261107T044117Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.group-taskjuggler-unsupported-unit-warnings
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.group-taskjuggler-unsupported-unit-warnings.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-07T04:41:17Z"
+    status_date: "2026-11-07"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-group-taskjuggler-unsupported-unit-warnings
