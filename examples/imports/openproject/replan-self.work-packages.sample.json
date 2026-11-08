@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 245,
-  "count": 245,
+  "total": 246,
+  "count": 246,
   "_embedded": {
     "elements": [
       {
@@ -7036,8 +7036,8 @@
         },
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
-        "startDate": "2026-11-10",
-        "dueDate": "2026-11-10",
+        "startDate": "2026-11-08",
+        "dueDate": "2026-11-08",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2343"
@@ -7099,6 +7099,35 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2345"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2346,
+        "subject": "Write acknowledged overruns in the canonical YAML style",
+        "description": {
+          "raw": "Found on 2026-11-08 by Codex checking project format byte-identity for the lead time model. actual acknowledge-overrun writes the nested reviewed_by and evidence_refs of overrun_review with four-space indentation, so project format wants to rewrite those lines in the self plan's resource_demands.yaml (16 lines from four acknowledgements). Make the acknowledgement write the canonical style that project format produces, add a test that acknowledge-overrun followed by project format changes nothing, and reformat the existing records with project format."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-12",
+        "dueDate": "2026-11-12",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2346"
           },
           "status": {
             "title": "New"

@@ -719,6 +719,12 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2345"
         url: https://op.example.internal/work_packages/2345
+    - replan_task_id: task.self.acknowledge-overrun-writes-canonical-style
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2346"
+        url: https://op.example.internal/work_packages/2346
     - replan_task_id: task.self.fix-first-project-defects
       source_ref:
         source: openproject

@@ -2548,3 +2548,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.taskjuggler-import-skips-unchanged-dates
+  - id: actual.self-lead-time-and-priority-model.ai-codex-local.20261108T2318530700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.lead-time-and-priority-model
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.lead-time-and-priority-model.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.65
+    unit: agent_hours
+    occurred_at: "2026-11-08T23:18:53+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.lead-time-and-priority-model
+  - id: actual.self-lead-time-and-priority-model.ai-agent-executor.20261108T2318530700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.lead-time-and-priority-model
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.lead-time-and-priority-model.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.14
+    unit: agent_hours
+    occurred_at: "2026-11-08T23:18:53+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.lead-time-and-priority-model

@@ -488,6 +488,8 @@ current_plan:
     - kind: task
       id: task.self.rerun-consumer-scheduler-comparison
     - kind: task
+      id: task.self.acknowledge-overrun-writes-canonical-style
+    - kind: task
       id: task.self.fix-first-project-defects
     - kind: task
       id: task.self.implement-replan-init-and-resource-commands

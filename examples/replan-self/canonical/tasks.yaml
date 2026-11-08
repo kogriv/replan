@@ -7150,7 +7150,7 @@ tasks:
     title: Model lead time, unlevelled demands and task priority
     description: 'Agreed with the maintainer on 2026-11-08 (docs/spec/lead-time-and-queue-order.md, task 1). Add the task field lead_time with working_days or calendar_days and a reason, the demand field levelled (default true) and the task field priority (1 to 1000, default 500) to the canonical model, file format docs, validate (one of working_days or calendar_days, positive values, levelled false only on hour units, priority range, warn when planned dates are shorter than the lead time), project format and migrate, the OpenProject sample and import paths, with plans that do not use them byte-identical.'
     type: implementation
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-08"
     planned_finish: "2026-11-08"
     assignee_hint:
@@ -7179,15 +7179,17 @@ tasks:
     title: Show lead time, unlevelled hours and priority in workload and next
     description: 'Agreed with the maintainer on 2026-11-08 (docs/spec/lead-time-and-queue-order.md, task 2). Workload, weekly report and dashboard report unlevelled hours in their own column and never count them toward overload; lead time adds no load and shows the task in flight across its span; next and the dashboard''s next actions sort by priority after the person-waits-first rule. Tests and report docs.'
     type: implementation
-    tracking_status: not_started
-    planned_start: "2026-11-10"
-    planned_finish: "2026-11-10"
+    tracking_status: in_progress
+    planned_start: "2026-11-08"
+    planned_finish: "2026-11-08"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer
     resource_demands:
       - kind: resource_demand
         id: resource_demand.lead-time-in-workload-and-next.agent
+      - kind: resource_demand
+        id: resource_demand.lead-time-in-workload-and-next.codex
       - kind: resource_demand
         id: resource_demand.lead-time-in-workload-and-next.maintainer
       - kind: resource_demand
@@ -7256,3 +7258,30 @@ tasks:
         object_type: work_package
         object_id: "2345"
         url: https://op.example.internal/work_packages/2345
+  - id: task.self.acknowledge-overrun-writes-canonical-style
+    title: Write acknowledged overruns in the canonical YAML style
+    description: 'Found on 2026-11-08 by Codex checking project format byte-identity for the lead time model. actual acknowledge-overrun writes the nested reviewed_by and evidence_refs of overrun_review with four-space indentation, so project format wants to rewrite those lines in the self plan''s resource_demands.yaml (16 lines from four acknowledgements). Make the acknowledgement write the canonical style that project format produces, add a test that acknowledge-overrun followed by project format changes nothing, and reformat the existing records with project format.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-12"
+    planned_finish: "2026-11-12"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.acknowledge-overrun-writes-canonical-style.agent
+      - kind: resource_demand
+        id: resource_demand.acknowledge-overrun-writes-canonical-style.maintainer
+      - kind: resource_demand
+        id: resource_demand.acknowledge-overrun-writes-canonical-style.local-dev
+      - kind: resource_demand
+        id: resource_demand.acknowledge-overrun-writes-canonical-style.ci
+    tags:
+      - yaml-style
+      - gap
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2346"
+        url: https://op.example.internal/work_packages/2346
