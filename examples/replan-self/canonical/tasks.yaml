@@ -7007,7 +7007,7 @@ tasks:
     title: Export working days and holidays to TaskJuggler
     description: 'Found on 2026-11-08 by the check whether RePlan can draft a consumer plan''s dates (docs/spec/taskjuggler-run-import-experiment.md, Drafting a real plan''s dates). The export ignores canonical availability windows and exceptions; only scenario exceptions become vacation. Export each resource''s working days and hours from its availability windows and its unavailable exceptions as leaves or vacation, keep scenario exceptions working, and warn where a window cannot be represented.'
     type: implementation
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-08"
     planned_finish: "2026-11-08"
     assignee_hint:
@@ -7065,15 +7065,17 @@ tasks:
     title: Export not-before dates to TaskJuggler
     description: 'Found on 2026-11-08 by the check whether RePlan can draft a consumer plan''s dates (docs/spec/taskjuggler-run-import-experiment.md, Drafting a real plan''s dates). Demand earliest_start, the model''s not-before date for work that waits on people, is not exported. Export it as a start constraint on the task, choose the latest when a task has several, and show in a scenario how to schedule without them.'
     type: implementation
-    tracking_status: not_started
-    planned_start: "2026-11-11"
-    planned_finish: "2026-11-11"
+    tracking_status: in_progress
+    planned_start: "2026-11-08"
+    planned_finish: "2026-11-08"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer
     resource_demands:
       - kind: resource_demand
         id: resource_demand.taskjuggler-export-not-before-dates.agent
+      - kind: resource_demand
+        id: resource_demand.taskjuggler-export-not-before-dates.codex
       - kind: resource_demand
         id: resource_demand.taskjuggler-export-not-before-dates.maintainer
       - kind: resource_demand

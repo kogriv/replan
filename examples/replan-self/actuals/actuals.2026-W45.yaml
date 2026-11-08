@@ -2275,3 +2275,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.taskjuggler-export-status-date-and-finished-work-cancelled
+  - id: actual.self-taskjuggler-export-working-calendar.ai-codex-local.20261108T2015050700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-export-working-calendar
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-export-working-calendar.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.3
+    unit: agent_hours
+    occurred_at: "2026-11-08T20:15:05+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.taskjuggler-export-working-calendar
+  - id: actual.self-taskjuggler-export-working-calendar.ai-agent-executor.20261108T2015050700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-export-working-calendar
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-export-working-calendar.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.15
+    unit: agent_hours
+    occurred_at: "2026-11-08T20:15:05+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.taskjuggler-export-working-calendar

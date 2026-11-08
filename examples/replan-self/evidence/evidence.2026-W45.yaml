@@ -1668,3 +1668,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.taskjuggler-export-status-date-and-finished-work
+  - id: evidence.self.taskjuggler-export-working-calendar
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T20:15:05+07:00"
+    summary: 'Fix commit a847707: the TaskJuggler export writes availability windows as workinghours (split days, uncovered days off, 23:59 as 24:00, rounding warning), unavailable, access_closed, maintenance and manual_hold as vacation, a count warning for reduced_capacity, extra_capacity and quota_reset, and a timezone warning without conversion; resources without windows unchanged. Review fixed Codex''s real-tj3 test (it passed --raw, which taskjuggler run does not take) and singular wording; with tj3 the test passes, vacation dates outside the project window are accepted, and small-team and the self plan run. Gate green (lint 0, 54 kit, 83 live checks). Codex 19:37:24-19:55:32 (0.3 h); executor 18:52:20-18:57 availability model and tj3 checks, 19:56:21-19:59:17 review, plus this booking, 0.15 h by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-export-working-calendar
+  - id: evidence.self.start-taskjuggler-export-not-before-dates
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T19:59:27+07:00"
+    summary: Started on 2026-11-08, three days before plan, reading the timing model and writing the Codex brief (tool call 19:59:27) while the working calendar fix was gated; estimate 1 agent hour frozen in baseline.2026-11-08.taskjuggler-drafting-gaps, split into Codex 0.7 and agent 0.3. Start recorded at 2026-11-08T20:15:23+07:00.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-export-not-before-dates
