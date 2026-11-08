@@ -34,6 +34,50 @@ func TestApplyScenarioOverlaySetsTaskPlannedDatesWithoutMutatingInput(t *testing
 	}
 }
 
+func TestApplyScenarioOverlaySetsSchedulingFields(t *testing.T) {
+	ws := domain.Workspace{
+		Tasks:           []domain.Task{{ID: "task.a", Priority: 500, LeadTime: &domain.LeadTime{WorkingDays: 1}}},
+		ResourceDemands: []domain.ResourceDemand{{ID: "demand.a", Unit: "hours"}},
+		Scenarios: []domain.Scenario{{ID: "scenario.scheduling", Changes: []domain.ScenarioChange{
+			{Op: "set", Path: "tasks.task.a.priority", Value: 900},
+			{Op: "replace", Path: "tasks.task.a.lead_time", Value: map[string]any{"calendar_days": 3.5, "reason": "supplier"}},
+			{Op: "set", Path: "resource_demands.demand.a.levelled", Value: false},
+		}}},
+	}
+	result := app.ApplyScenarioOverlay(ws, "scenario.scheduling")
+	if len(result.Errors) != 0 {
+		t.Fatalf("errors = %#v", result.Errors)
+	}
+	if result.Workspace.Tasks[0].Priority != 900 || result.Workspace.Tasks[0].LeadTime.CalendarDays != 3.5 || result.Workspace.ResourceDemands[0].IsLevelled() {
+		t.Fatalf("overlay = %#v %#v", result.Workspace.Tasks[0], result.Workspace.ResourceDemands[0])
+	}
+	if ws.Tasks[0].Priority != 500 || ws.ResourceDemands[0].Levelled != nil {
+		t.Fatal("input mutated")
+	}
+}
+
+func TestApplyScenarioOverlayClearsLeadTimeAndRejectsBadSchedulingValues(t *testing.T) {
+	base := domain.Workspace{Tasks: []domain.Task{{ID: "task.a", LeadTime: &domain.LeadTime{WorkingDays: 1}}}}
+	for _, tc := range []struct {
+		path  string
+		value any
+	}{
+		{"tasks.task.a.priority", 1001},
+		{"tasks.task.a.lead_time", map[string]any{"working_days": 1, "calendar_days": 1}},
+		{"resource_demands.demand.a.levelled", "false"},
+	} {
+		ws := base
+		ws.Scenarios = []domain.Scenario{{ID: "scenario.bad", Changes: []domain.ScenarioChange{{Op: "set", Path: tc.path, Value: tc.value}}}}
+		if result := app.ApplyScenarioOverlay(ws, "scenario.bad"); !hasDiagnosticCode(result.Errors, "invalid_scenario_change_value") {
+			t.Fatalf("path %s errors=%#v", tc.path, result.Errors)
+		}
+	}
+	base.Scenarios = []domain.Scenario{{ID: "scenario.clear", Changes: []domain.ScenarioChange{{Op: "replace", Path: "tasks.task.a.lead_time", Value: nil}}}}
+	if result := app.ApplyScenarioOverlay(base, "scenario.clear"); len(result.Errors) != 0 || result.Workspace.Tasks[0].LeadTime != nil {
+		t.Fatalf("clear result=%#v", result)
+	}
+}
+
 func TestScenarioTaskDateOverlayMatchesApplyValidation(t *testing.T) {
 	tests := []struct {
 		name    string

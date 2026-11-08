@@ -42,6 +42,8 @@ func runTask(args []string, stdout, stderr *os.File) int {
 		return runTaskAdd(args[1:], stdout, stderr)
 	case "set-dates":
 		return runTaskSetDates(args[1:], stdout, stderr)
+	case "set-scheduling":
+		return runTaskSetScheduling(args[1:], stdout, stderr)
 	case "record-actual-window":
 		return runTaskRecordActualWindow(args[1:], stdout, stderr)
 	case "set-title":
@@ -69,6 +71,10 @@ func runTaskAdd(args []string, stdout, stderr *os.File) int {
 	taskType := fs.String("type", "implementation", "optional task type (default implementation)")
 	plannedStart := fs.String("planned-start", "", "optional planned start date (YYYY-MM-DD)")
 	plannedFinish := fs.String("planned-finish", "", "optional planned finish date (YYYY-MM-DD)")
+	priority := fs.Int("priority", 0, "optional scheduling priority from 1 to 1000")
+	leadWorking := fs.Float64("lead-time-working-days", 0, "optional positive working-day lead time")
+	leadCalendar := fs.Float64("lead-time-calendar-days", 0, "optional positive calendar-day lead time")
+	leadReason := fs.String("lead-time-reason", "", "optional explanation for the lead time")
 	var tags repeatedStringFlag
 	fs.Var(&tags, "tag", "optional repeatable task tag")
 	assignee := fs.String("assignee", "", "optional existing resource id used as assignee_hint")
@@ -89,7 +95,12 @@ func runTaskAdd(args []string, stdout, stderr *os.File) int {
 	if done {
 		return code
 	}
-	result, err := app.NewTaskService(newStore(*projectPath)).Add(context.Background(), app.TaskAddRequest{ID: *id, Title: *title, Description: *description, Type: *taskType, PlannedStart: *plannedStart, PlannedFinish: *plannedFinish, Tags: tags, AssigneeID: *assignee, AfterTaskID: *after, DemandSpecs: demands, ActorID: *actor, EvidenceID: *evidence, OccurredAt: *occurredAt, DryRun: dryRun})
+	set := visitedFlags(fs)
+	var leadTime *domain.LeadTime
+	if set["lead-time-working-days"] || set["lead-time-calendar-days"] || set["lead-time-reason"] {
+		leadTime = &domain.LeadTime{WorkingDays: *leadWorking, CalendarDays: *leadCalendar, Reason: *leadReason}
+	}
+	result, err := app.NewTaskService(newStore(*projectPath)).Add(context.Background(), app.TaskAddRequest{ID: *id, Title: *title, Description: *description, Type: *taskType, PlannedStart: *plannedStart, PlannedFinish: *plannedFinish, LeadTime: leadTime, Priority: *priority, PrioritySet: set["priority"], Tags: tags, AssigneeID: *assignee, AfterTaskID: *after, DemandSpecs: demands, ActorID: *actor, EvidenceID: *evidence, OccurredAt: *occurredAt, DryRun: dryRun})
 	env := envelope{OK: err == nil && len(result.Errors) == 0, Command: "task add", ProjectPath: *projectPath, Result: result, Warnings: result.Warnings, Errors: result.Errors}
 	if strings.EqualFold(*format, "text") && err == nil {
 		fmt.Fprintf(stdout, "Task `%s`\n", result.Task.ID)
@@ -111,6 +122,50 @@ func runTaskAdd(args []string, stdout, stderr *os.File) int {
 		return exitSuccess
 	}
 	return printScenarioEnvelope(stdout, stderr, *format, env, err)
+}
+
+func runTaskSetScheduling(args []string, stdout, stderr *os.File) int {
+	fs := newCLIFlagSet("task set-scheduling")
+	projectPath := fs.String("project", ".", "path to RePlan project")
+	fs.StringVar(projectPath, "p", ".", "path to RePlan project")
+	format := fs.String("format", "json", "output format: json, text")
+	taskID := fs.String("task", "", "required existing task id")
+	priority := fs.Int("priority", 0, "new scheduling priority from 1 to 1000")
+	clearPriority := fs.Bool("clear-priority", false, "clear the explicit priority")
+	leadWorking := fs.Float64("lead-time-working-days", 0, "new positive working-day lead time")
+	leadCalendar := fs.Float64("lead-time-calendar-days", 0, "new positive calendar-day lead time")
+	clearLead := fs.Bool("clear-lead-time", false, "clear the lead time")
+	leadReason := fs.String("lead-time-reason", "", "optional explanation for the new lead time")
+	reason := fs.String("reason", "", "required reason for changing scheduling metadata")
+	actor := fs.String("actor", "", "required existing audit actor")
+	evidence := fs.String("evidence", "", "required existing evidence id")
+	occurredAt := fs.String("occurred-at", "", "optional RFC3339 timestamp with an offset; defaults to now")
+	writeFlags := addCanonicalWriteFlags(fs)
+	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+		return code
+	}
+	if !supportedTaskFormat(*format) {
+		return printTaskFormatError("task set-scheduling", *projectPath, stdout, stderr)
+	}
+	dryRun, code, done := requireCanonicalWriteChoice("task set-scheduling", *projectPath, *format, writeFlags, stdout, stderr)
+	if done {
+		return code
+	}
+	set := visitedFlags(fs)
+	var leadTime *domain.LeadTime
+	if set["lead-time-working-days"] || set["lead-time-calendar-days"] {
+		leadTime = &domain.LeadTime{WorkingDays: *leadWorking, CalendarDays: *leadCalendar, Reason: *leadReason}
+	}
+	result, err := app.NewTaskService(newStore(*projectPath)).SetScheduling(context.Background(), app.TaskSetSchedulingRequest{TaskID: *taskID, Priority: intPtrIf(set["priority"], *priority), ClearPriority: *clearPriority, LeadTime: leadTime, ClearLeadTime: *clearLead, LeadTimeReasonSet: set["lead-time-reason"], Reason: *reason, ActorID: *actor, EvidenceID: *evidence, OccurredAt: *occurredAt, DryRun: dryRun})
+	env := envelope{OK: err == nil && len(result.Errors) == 0, Command: "task set-scheduling", ProjectPath: *projectPath, Result: result, Warnings: result.Warnings, Errors: result.Errors}
+	return printScenarioEnvelope(stdout, stderr, *format, env, err)
+}
+
+func intPtrIf(ok bool, value int) *int {
+	if !ok {
+		return nil
+	}
+	return &value
 }
 
 func runTaskSetDates(args []string, stdout, stderr *os.File) int {

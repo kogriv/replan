@@ -917,6 +917,10 @@ Exit behavior:
 - `2` when validation errors exist;
 - `8` for invalid command usage.
 
+Scheduling validation uses `invalid_task_lead_time`,
+`invalid_task_priority`, and `invalid_unlevelled_demand_unit` errors, plus the
+`task_planned_span_shorter_than_lead_time` warning.
+
 MVP requirement:
 
 This should be the first implemented command.
@@ -1851,7 +1855,8 @@ replan baseline show --project -p --bindings --format
 Rules:
 
 - `create` snapshots every current-plan task in plan order and every demand of
-  those tasks, using `planned_amount`, not remaining work. Repeatable `--task`
+  those tasks, including task dates, lead time and priority plus demand
+  `planned_amount` and `levelled`, not remaining work. Repeatable `--task`
   limits the snapshot to those current-plan tasks and writes `scope: tasks`;
   an unknown task returns `task_not_found` with exit 4;
 - the id and approving actor must already be unique and known respectively;
@@ -1886,13 +1891,16 @@ replan task add --project examples/small-team \
 Implemented command flags:
 
 ```text
-replan task add --project -p --bindings --format --actor --after --apply --assignee --demand --description --dry-run --evidence --id --occurred-at --planned-finish --planned-start --tag --title --type
+replan task add --project -p --bindings --format --actor --after --apply --assignee --demand --description --dry-run --evidence --id --lead-time-calendar-days --lead-time-reason --lead-time-working-days --occurred-at --planned-finish --planned-start --priority --tag --title --type
 ```
 
 Rules:
 
 - `--id`, `--title`, at least one repeatable `--demand`, `--actor` and
   `--evidence` are required. `--type` defaults to `implementation`;
+- optional `--priority` is 1..1000. Lead time accepts exactly one positive
+  `--lead-time-working-days` or `--lead-time-calendar-days` value plus an
+  optional `--lead-time-reason`;
 - a demand is `SUFFIX=RESOURCE_ID:AMOUNT:UNIT[:ROLE]`. The demand id is
   `resource_demand.<task-slug>.<SUFFIX>`, where `<task-slug>` is the task id
   after its leading `task.<namespace>.` (for example,
@@ -1943,8 +1951,8 @@ replan demand move resource_demand.task-op-1234.docs \
 Implemented command flags:
 
 ```text
-replan demand add --project -p --bindings --format --actor --amount --apply --criticality --dry-run --earliest-start --evidence --from-file --id --latest-finish --occurred-at --pool --reason --resource --resource-class --role --status --suffix --task --unit
-replan demand set --project -p --bindings --format --actor --amount --apply --criticality --dry-run --earliest-start --evidence --from-file --latest-finish --occurred-at --reason --remaining --role --status --unit
+replan demand add --project -p --bindings --format --actor --amount --apply --criticality --dry-run --earliest-start --evidence --from-file --id --latest-finish --levelled --occurred-at --pool --reason --resource --resource-class --role --status --suffix --task --unit
+replan demand set --project -p --bindings --format --actor --amount --apply --criticality --dry-run --earliest-start --evidence --from-file --latest-finish --levelled --occurred-at --reason --remaining --role --status --unit
 replan demand move --project -p --bindings --format --actor --amount --apply --dry-run --evidence --id --occurred-at --reason --suffix --to-pool --to-resource
 ```
 
@@ -1957,7 +1965,8 @@ planned, criticality defaults to `required`, and status defaults to `active`.
 The optional timing window uses `YYYY-MM-DD` and cannot finish before it starts.
 
 `set` accepts planned `--amount`, `--remaining`, `--unit`, `--role`,
-`--criticality`, `--status`, `--earliest-start` and `--latest-finish`. At least
+`--criticality`, `--status`, `--levelled`, `--earliest-start` and
+`--latest-finish`. At least
 one changed value is required. It does not change actuals or baselines. Its
 audit reason lists only the fields that changed; command JSON keeps the full
 before and after demands.
@@ -1980,7 +1989,8 @@ Refusal codes include `missing_demand`, `missing_demand_id`,
 `invalid_demand_role`, `invalid_demand_criticality`, `invalid_demand_status`,
 `invalid_demand_earliest_start`, `invalid_demand_latest_finish`,
 `invalid_demand_timing_range`, `missing_demand_change`, `demand_unchanged`,
-`demand_not_movable`, `demand_nothing_to_move` and `same_demand_target`.
+`invalid_unlevelled_demand_unit`, `demand_not_movable`,
+`demand_nothing_to_move` and `same_demand_target`.
 Common audited-write refusals also cover missing or unknown actor/evidence,
 missing reason, invalid occurrence time and the dry-run/apply gate.
 
@@ -2008,6 +2018,30 @@ demands:
 For `demand set`, items use `id` plus any changed fields from the set flags.
 All items are checked first and one staged commit writes the batch. Dry run
 writes nothing.
+
+`--levelled true|false` is available to add and set, including the batch key
+`levelled`. Unset means true. Explicit false is restricted to hour units:
+`hours`, `hour`, `h`, `agent_hours` or `minutes`.
+
+## `replan task set-scheduling`
+
+This audited command changes task priority and lead time without changing task
+dates. Workload, reports, `next` and the TaskJuggler export read them as
+`docs/spec/lead-time-and-queue-order.md` describes.
+
+Implemented command flags:
+
+```text
+replan task set-scheduling --project -p --bindings --format --actor --apply --clear-lead-time --clear-priority --dry-run --evidence --lead-time-calendar-days --lead-time-reason --lead-time-working-days --occurred-at --priority --reason --task
+```
+
+Priority is 1..1000 when set and defaults effectively to 500 when absent.
+Lead time contains exactly one positive working-day or calendar-day value and
+an optional reason. The clear flags remove the corresponding field. The
+command requires a task, reason, actor, evidence, a dry-run/apply choice and
+at least one change, and refuses a change that leaves both priority and lead
+time as they are (`task_scheduling_unchanged`); its audit entry records old
+and new values.
 
 ## `replan task set-dates`
 

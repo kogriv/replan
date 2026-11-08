@@ -30,12 +30,12 @@ func SealBaseline(baseline *Baseline) error {
 
 func BaselineCarriesEstimates(baseline Baseline) bool {
 	for _, task := range baseline.IncludedTasks {
-		if task.PlannedStart != "" || task.PlannedFinish != "" {
+		if task.PlannedStart != "" || task.PlannedFinish != "" || task.LeadTime != nil || task.Priority != 0 {
 			return true
 		}
 	}
 	for _, demand := range baseline.IncludedDemands {
-		if demand.Task != "" || demand.Resource != "" || demand.Unit != "" || demand.PlannedAmount != nil {
+		if demand.Task != "" || demand.Resource != "" || demand.Unit != "" || demand.PlannedAmount != nil || demand.Levelled != nil {
 			return true
 		}
 	}

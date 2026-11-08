@@ -111,6 +111,56 @@ func TestValidateSmallTeamFixture(t *testing.T) {
 	}
 }
 
+func TestValidateSchedulingRules(t *testing.T) {
+	falseValue := false
+	tests := []struct {
+		name, code string
+		task       domain.Task
+		demand     domain.ResourceDemand
+		warning    bool
+	}{
+		{name: "both lead-time units", code: "invalid_task_lead_time", task: domain.Task{LeadTime: &domain.LeadTime{WorkingDays: 1, CalendarDays: 1}}},
+		{name: "neither lead-time unit", code: "invalid_task_lead_time", task: domain.Task{LeadTime: &domain.LeadTime{}}},
+		{name: "non-positive lead time", code: "invalid_task_lead_time", task: domain.Task{LeadTime: &domain.LeadTime{WorkingDays: -1}}},
+		{name: "priority below range", code: "invalid_task_priority", task: domain.Task{Priority: -1}},
+		{name: "priority above range", code: "invalid_task_priority", task: domain.Task{Priority: 1001}},
+		{name: "unlevelled non-hour unit", code: "invalid_unlevelled_demand_unit", demand: domain.ResourceDemand{Unit: "tokens", Levelled: &falseValue}},
+		{name: "calendar span warning", code: "task_planned_span_shorter_than_lead_time", warning: true, task: domain.Task{PlannedStart: "2026-11-02", PlannedFinish: "2026-11-03", LeadTime: &domain.LeadTime{CalendarDays: 3}}},
+		{name: "calendar span is elapsed days", code: "task_planned_span_shorter_than_lead_time", warning: true, task: domain.Task{PlannedStart: "2026-11-02", PlannedFinish: "2026-11-03", LeadTime: &domain.LeadTime{CalendarDays: 2}}},
+		{name: "working span warning", code: "task_planned_span_shorter_than_lead_time", warning: true, task: domain.Task{PlannedStart: "2026-11-06", PlannedFinish: "2026-11-09", LeadTime: &domain.LeadTime{WorkingDays: 3}}},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			task := tc.task
+			task.ID, task.Title, task.TrackingStatus = "task.test", "Test", "not_started"
+			ws := domain.Workspace{Project: domain.Project{ID: "project.test", Name: "Test"}, Tasks: []domain.Task{task}}
+			if tc.demand.Unit != "" {
+				tc.demand.ID, tc.demand.TaskRef, tc.demand.ResourceClass = "demand.test", domain.Ref{Kind: "task", ID: task.ID}, "service"
+				ws.ResourceDemands = []domain.ResourceDemand{tc.demand}
+			}
+			result, _ := app.NewValidateService(stubLoader{ws: ws}).Validate(context.Background(), app.ValidateRequest{})
+			diagnostics := result.Errors
+			if tc.warning {
+				diagnostics = result.Warnings
+			}
+			if !hasDiagnostic(diagnostics, tc.code) {
+				t.Fatalf("missing %s: errors=%#v warnings=%#v", tc.code, result.Errors, result.Warnings)
+			}
+		})
+	}
+}
+
+func TestValidateAllowsUnlevelledHourUnits(t *testing.T) {
+	falseValue := false
+	for _, unit := range []string{"hours", "hour", "h", "agent_hours", "minutes"} {
+		ws := domain.Workspace{Project: domain.Project{ID: "project.test", Name: "Test"}, Tasks: []domain.Task{{ID: "task.test", Title: "Test", TrackingStatus: "not_started"}}, ResourceDemands: []domain.ResourceDemand{{ID: "demand.test", TaskRef: domain.Ref{Kind: "task", ID: "task.test"}, ResourceClass: "human", Unit: unit, Levelled: &falseValue}}}
+		result, _ := app.NewValidateService(stubLoader{ws: ws}).Validate(context.Background(), app.ValidateRequest{})
+		if hasDiagnostic(result.Errors, "invalid_unlevelled_demand_unit") {
+			t.Errorf("unit %s was rejected: %#v", unit, result.Errors)
+		}
+	}
+}
+
 func TestValidateRejectsMissingCurrentPlanBaseline(t *testing.T) {
 	ws := domain.Workspace{
 		Project:     domain.Project{ID: "project.test", Name: "Test", Timezone: "UTC"},

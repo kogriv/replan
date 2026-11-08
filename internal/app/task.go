@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -17,6 +18,7 @@ import (
 type TaskWriter interface {
 	AddTask(task domain.Task, demands []domain.ResourceDemand, afterTaskID string) ([]string, error)
 	SetTaskDates(taskID, plannedStart, plannedFinish string) (string, error)
+	SetTaskScheduling(taskID string, priority int, leadTime *domain.LeadTime) (string, error)
 	SetTaskTitle(taskID, title string) (string, error)
 	SetTaskDescription(taskID, description string) (string, error)
 	AppendAudit(record *domain.AuditRecord) (string, error)
@@ -25,12 +27,43 @@ type TaskWriter interface {
 type TaskAddRequest struct {
 	ID, Title, Description, Type string
 	PlannedStart, PlannedFinish  string
+	LeadTime                     *domain.LeadTime
+	Priority                     int
+	PrioritySet                  bool
 	Tags                         []string
 	AssigneeID, AfterTaskID      string
 	DemandSpecs                  []string
 	ActorID, EvidenceID          string
 	OccurredAt                   string
 	DryRun                       bool
+}
+
+type TaskSetSchedulingRequest struct {
+	TaskID, Reason, ActorID, EvidenceID string
+	Priority                            *int
+	ClearPriority                       bool
+	LeadTime                            *domain.LeadTime
+	ClearLeadTime                       bool
+	LeadTimeReasonSet                   bool
+	OccurredAt                          string
+	DryRun                              bool
+}
+
+type TaskSetSchedulingResult struct {
+	DryRun             bool               `json:"dry_run"`
+	Applied            bool               `json:"applied"`
+	TaskID             string             `json:"task_id"`
+	PreviousPriority   int                `json:"previous_priority"`
+	NewPriority        int                `json:"new_priority"`
+	PreviousLeadTime   *domain.LeadTime   `json:"previous_lead_time"`
+	NewLeadTime        *domain.LeadTime   `json:"new_lead_time"`
+	Reason             string             `json:"reason"`
+	PlannedWrites      []PlannedWrite     `json:"planned_writes"`
+	WrittenFiles       []string           `json:"written_files,omitempty"`
+	AuditRecordPreview domain.AuditRecord `json:"audit_record_preview"`
+	Validation         *ValidateResult    `json:"validation,omitempty"`
+	Warnings           []Diagnostic       `json:"warnings"`
+	Errors             []Diagnostic       `json:"errors"`
 }
 
 type TaskAddResult struct {
@@ -172,7 +205,7 @@ func (s TaskService) Add(ctx context.Context, req TaskAddRequest) (TaskAddResult
 	for _, demand := range demands {
 		refs = append(refs, domain.Ref{Kind: "resource_demand", ID: demand.ID})
 	}
-	task := domain.Task{ID: req.ID, Title: req.Title, Description: req.Description, Type: req.Type, TrackingStatus: "not_started", PlannedStart: req.PlannedStart, PlannedFinish: req.PlannedFinish, ResourceDemands: refs, Tags: append([]string(nil), req.Tags...)}
+	task := domain.Task{ID: req.ID, Title: req.Title, Description: req.Description, Type: req.Type, TrackingStatus: "not_started", PlannedStart: req.PlannedStart, PlannedFinish: req.PlannedFinish, LeadTime: req.LeadTime, Priority: req.Priority, ResourceDemands: refs, Tags: append([]string(nil), req.Tags...)}
 	if req.AssigneeID != "" {
 		task.AssigneeHint = domain.Ref{Kind: "resource", ID: req.AssigneeID}
 	}
@@ -216,6 +249,85 @@ func (s TaskService) Add(ctx context.Context, req TaskAddRequest) (TaskAddResult
 	}
 	result.Applied = true
 	return result, nil
+}
+
+func (s TaskService) SetScheduling(ctx context.Context, req TaskSetSchedulingRequest) (TaskSetSchedulingResult, error) {
+	ws, loadDiags := s.loader.Load(ctx)
+	result := TaskSetSchedulingResult{DryRun: req.DryRun, TaskID: req.TaskID, Reason: req.Reason, PlannedWrites: []PlannedWrite{}, WrittenFiles: []string{}, Warnings: []Diagnostic{}, Errors: []Diagnostic{}}
+	appendLoadDiagnostics(&result.Warnings, &result.Errors, loadDiags)
+	task, ok := validateTaskSetScheduling(&result.Errors, ws, req)
+	if len(result.Errors) > 0 || !ok {
+		return result, ErrValidationFailed
+	}
+	result.PreviousPriority, result.NewPriority = task.Priority, task.Priority
+	result.PreviousLeadTime, result.NewLeadTime = task.LeadTime, task.LeadTime
+	if req.Priority != nil {
+		result.NewPriority = *req.Priority
+	} else if req.ClearPriority {
+		result.NewPriority = 0
+	}
+	if req.LeadTime != nil {
+		result.NewLeadTime = req.LeadTime
+	} else if req.ClearLeadTime {
+		result.NewLeadTime = nil
+	}
+	if result.NewPriority == task.Priority && leadTimesEqual(result.NewLeadTime, task.LeadTime) {
+		result.Errors = append(result.Errors, taskDiag("task_scheduling_unchanged", "task scheduling values are unchanged", "task", req.TaskID))
+		return result, ErrValidationFailed
+	}
+	occurredAt := taskOccurredAt(req.OccurredAt)
+	auditReason := fmt.Sprintf("%s. Scheduling: priority %d -> %d; lead_time %s -> %s.", trimAuditReason(req.Reason), task.Priority, result.NewPriority, displayLeadTime(task.LeadTime), displayLeadTime(result.NewLeadTime))
+	audit := domain.AuditRecord{ID: "audit." + compactTimestamp(occurredAt) + ".task-set-scheduling." + slugID(req.TaskID), OccurredAt: occurredAt, ActorRef: domain.Ref{Kind: "actor", ID: req.ActorID}, Operation: "task_set_scheduling", TargetRef: domain.Ref{Kind: "task", ID: req.TaskID}, Reason: auditReason, EvidenceRefs: []domain.Ref{{Kind: "evidence", ID: req.EvidenceID}}, Result: "success"}
+	if req.DryRun {
+		audit.Result = "dry_run"
+	}
+	result.AuditRecordPreview = audit
+	patch, _ := yaml.Marshal(map[string]any{"task": req.TaskID, "priority": map[string]any{"before": task.Priority, "after": result.NewPriority}, "lead_time": map[string]any{"before": task.LeadTime, "after": result.NewLeadTime}, "reason": req.Reason})
+	result.PlannedWrites = []PlannedWrite{{Path: "canonical/tasks.yaml", Action: "replace_yaml_fields", Format: "yaml-patch-preview", Content: string(patch)}, auditPlannedWrite(audit)}
+	if req.DryRun {
+		return result, nil
+	}
+	session := beginWrite(s.loader)
+	writer, supported := session.target.(TaskWriter)
+	if !supported {
+		result.Errors = append(result.Errors, taskDiag("storage_write_not_supported", "configured project store does not support task writes", "project", s.loader.ProjectPath()))
+		return result, ErrValidationFailed
+	}
+	path, err := writer.SetTaskScheduling(req.TaskID, result.NewPriority, result.NewLeadTime)
+	if err != nil {
+		result.Errors = append(result.Errors, taskDiag("task_write_failed", err.Error(), "task", req.TaskID))
+		return result, err
+	}
+	result.WrittenFiles = append(result.WrittenFiles, path)
+	auditPath, err := writer.AppendAudit(&audit)
+	if err != nil {
+		result.Errors = append(result.Errors, taskDiag("audit_write_failed", err.Error(), "audit_record", audit.ID))
+		return result, err
+	}
+	result.WrittenFiles = append(result.WrittenFiles, auditPath)
+	validation, committed, err := session.finish(ctx, result.WrittenFiles)
+	result.Validation, result.WrittenFiles = &validation, committed
+	if err != nil {
+		result.Errors = append(result.Errors, validation.Errors...)
+		return result, err
+	}
+	result.Applied = true
+	return result, nil
+}
+
+func displayLeadTime(value *domain.LeadTime) string {
+	if value == nil {
+		return "unset"
+	}
+	data, _ := json.Marshal(value)
+	return string(data)
+}
+
+func leadTimesEqual(a, b *domain.LeadTime) bool {
+	if a == nil || b == nil {
+		return a == nil && b == nil
+	}
+	return *a == *b
 }
 
 func calibratedTaskValues(calibrations []domain.Calibration, task domain.Task, demands []domain.ResourceDemand) []TaskCalibratedValue {
@@ -554,11 +666,101 @@ func validateTaskAddBasics(errors *[]Diagnostic, ws domain.Workspace, req TaskAd
 		}
 	}
 	validateTaskDates(errors, req.PlannedStart, req.PlannedFinish)
+	if req.PrioritySet && req.Priority == 0 {
+		*errors = append(*errors, taskDiag("invalid_task_priority", "priority must be between 1 and 1000", "task", req.ID))
+	}
+	validateSchedulingValues(errors, req.ID, req.Priority, req.LeadTime)
 	if req.OccurredAt != "" {
 		validateTaskOccurredAt(errors, req.OccurredAt, req.ID)
 	}
 	if len(req.DemandSpecs) == 0 {
 		*errors = append(*errors, taskDiag("missing_demand", "at least one demand is required", "task", req.ID))
+	}
+}
+
+func validateTaskSetScheduling(errors *[]Diagnostic, ws domain.Workspace, req TaskSetSchedulingRequest) (domain.Task, bool) {
+	task, ok := findTask(ws.Tasks, req.TaskID)
+	if req.TaskID == "" {
+		*errors = append(*errors, taskDiag("missing_task", "task is required", "task", ""))
+	} else if !ok {
+		*errors = append(*errors, taskDiag("task_not_found", fmt.Sprintf("task %s not found", req.TaskID), "task", req.TaskID))
+	}
+	changes := 0
+	if req.Priority != nil {
+		changes++
+		if *req.Priority == 0 {
+			*errors = append(*errors, taskDiag("invalid_task_priority", "priority must be between 1 and 1000", "task", req.TaskID))
+		}
+	}
+	if req.ClearPriority {
+		changes++
+	}
+	if req.LeadTime != nil {
+		changes++
+	}
+	if req.ClearLeadTime {
+		changes++
+	}
+	if changes == 0 {
+		*errors = append(*errors, taskDiag("missing_scheduling_change", "at least one priority or lead-time change is required", "task", req.TaskID))
+	}
+	if req.Priority != nil && req.ClearPriority {
+		*errors = append(*errors, taskDiag("conflicting_priority_change", "priority and clear-priority cannot be used together", "task", req.TaskID))
+	}
+	if req.LeadTime != nil && req.ClearLeadTime {
+		*errors = append(*errors, taskDiag("conflicting_lead_time_change", "lead-time and clear-lead-time cannot be used together", "task", req.TaskID))
+	}
+	if req.LeadTimeReasonSet && req.LeadTime == nil {
+		*errors = append(*errors, taskDiag("lead_time_reason_without_value", "lead-time-reason requires a lead-time value", "task", req.TaskID))
+	}
+	priority := task.Priority
+	if req.Priority != nil {
+		priority = *req.Priority
+	} else if req.ClearPriority {
+		priority = 0
+	}
+	leadTime := task.LeadTime
+	if req.LeadTime != nil {
+		leadTime = req.LeadTime
+	} else if req.ClearLeadTime {
+		leadTime = nil
+	}
+	validateSchedulingValues(errors, req.TaskID, priority, leadTime)
+	if ok && changes > 0 && priority == task.Priority && reflect.DeepEqual(leadTime, task.LeadTime) {
+		*errors = append(*errors, taskDiag("task_scheduling_unchanged", "priority and lead time are unchanged", "task", req.TaskID))
+	}
+	validateTaskAuditFields(errors, ws, req.TaskID, req.Reason, req.ActorID, req.EvidenceID, req.OccurredAt)
+	return task, ok
+}
+
+func validateSchedulingValues(errors *[]Diagnostic, taskID string, priority int, leadTime *domain.LeadTime) {
+	if priority != 0 && (priority < 1 || priority > 1000) {
+		*errors = append(*errors, taskDiag("invalid_task_priority", "priority must be between 1 and 1000", "task", taskID))
+	}
+	if leadTime != nil {
+		w, c := leadTime.WorkingDays, leadTime.CalendarDays
+		if (w == 0) == (c == 0) || w < 0 || c < 0 || math.IsNaN(w) || math.IsNaN(c) || math.IsInf(w, 0) || math.IsInf(c, 0) {
+			*errors = append(*errors, taskDiag("invalid_task_lead_time", "lead time requires exactly one positive finite working-days or calendar-days value", "task", taskID))
+		}
+	}
+}
+
+func validateTaskAuditFields(errors *[]Diagnostic, ws domain.Workspace, taskID, reason, actorID, evidenceID, occurredAt string) {
+	if reason == "" {
+		*errors = append(*errors, taskDiag("missing_reason", "reason is required", "task", taskID))
+	}
+	if actorID == "" {
+		*errors = append(*errors, taskDiag("missing_actor", "actor is required", "actor", ""))
+	} else if !hasActor(ws.Actors, actorID) {
+		*errors = append(*errors, taskDiag("actor_not_found", fmt.Sprintf("actor %s not found", actorID), "actor", actorID))
+	}
+	if evidenceID == "" {
+		*errors = append(*errors, taskDiag("missing_evidence", "evidence is required", "evidence", ""))
+	} else if !hasEvidence(ws.Evidence, evidenceID) {
+		*errors = append(*errors, taskDiag("evidence_not_found", fmt.Sprintf("evidence %s not found", evidenceID), "evidence", evidenceID))
+	}
+	if occurredAt != "" {
+		validateTaskOccurredAt(errors, occurredAt, taskID)
 	}
 }
 

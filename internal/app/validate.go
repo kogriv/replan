@@ -258,6 +258,15 @@ func (v *workspaceValidator) tasks(tasks []domain.Task) {
 		if len(task.ResourceDemands) == 0 {
 			v.warn("task_without_resource_demands", "task has no resource demands", "task", task.ID)
 		}
+		if task.Priority != 0 && (task.Priority < 1 || task.Priority > 1000) {
+			v.errorf("invalid_task_priority", "task", task.ID, "task priority %d must be between 1 and 1000", task.Priority)
+		}
+		if task.LeadTime != nil {
+			working, calendar := task.LeadTime.WorkingDays, task.LeadTime.CalendarDays
+			if (working == 0) == (calendar == 0) || working < 0 || calendar < 0 || math.IsNaN(working) || math.IsNaN(calendar) || math.IsInf(working, 0) || math.IsInf(calendar, 0) {
+				v.errorf("invalid_task_lead_time", "task", task.ID, "task lead_time must contain exactly one positive finite working_days or calendar_days value")
+			}
+		}
 	}
 }
 
@@ -276,6 +285,9 @@ func (v *workspaceValidator) resourceDemand(demand domain.ResourceDemand) {
 	}
 	if demand.Unit == "" {
 		v.errorf("missing_unit", kind, demand.ID, "resource demand unit is required")
+	}
+	if !demand.IsLevelled() && !isHourUnit(demand.Unit) {
+		v.errorf("invalid_unlevelled_demand_unit", kind, demand.ID, "resource demand with levelled false must use an hour unit, got %q", demand.Unit)
 	}
 	if !validAmount(demand.PlannedAmount) {
 		v.errorf("invalid_planned_amount", kind, demand.ID, "resource demand planned_amount %v must be a finite number, zero or greater", demand.PlannedAmount)
@@ -460,12 +472,47 @@ func (v *workspaceValidator) taskDatesAndRefs(tasks []domain.Task) {
 		if task.PlannedFinish != "" && !validDate(task.PlannedFinish) {
 			v.errorf("invalid_task_planned_finish", "task", task.ID, "task planned_finish %q must use YYYY-MM-DD", task.PlannedFinish)
 		}
+		v.warnIfLeadTimeExceedsPlannedSpan(task)
 		for _, demandRef := range task.ResourceDemands {
 			v.resolves(demandRef, "task", task.ID, "task resource demand")
 		}
 		for _, dependencyRef := range task.Dependencies {
 			v.resolves(dependencyRef, "task", task.ID, "task dependency")
 		}
+	}
+}
+
+func isHourUnit(unit string) bool {
+	switch strings.ToLower(strings.TrimSpace(unit)) {
+	case "hours", "hour", "h", "agent_hours", "minutes":
+		return true
+	default:
+		return false
+	}
+}
+
+func (v *workspaceValidator) warnIfLeadTimeExceedsPlannedSpan(task domain.Task) {
+	if task.LeadTime == nil || !validDate(task.PlannedStart) || !validDate(task.PlannedFinish) {
+		return
+	}
+	start, _ := time.Parse("2006-01-02", task.PlannedStart)
+	finish, _ := time.Parse("2006-01-02", task.PlannedFinish)
+	if finish.Before(start) {
+		return
+	}
+	span := finish.Sub(start).Hours() / 24
+	required := task.LeadTime.CalendarDays
+	if task.LeadTime.WorkingDays > 0 {
+		span = 0
+		for day := start; !day.After(finish); day = day.AddDate(0, 0, 1) {
+			if day.Weekday() != time.Saturday && day.Weekday() != time.Sunday {
+				span++
+			}
+		}
+		required = task.LeadTime.WorkingDays
+	}
+	if required > 0 && span < required {
+		v.warn("task_planned_span_shorter_than_lead_time", fmt.Sprintf("task planned date span %.0f days is shorter than lead time %g days", span, required), "task", task.ID)
 	}
 }
 

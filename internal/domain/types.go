@@ -116,12 +116,28 @@ type Task struct {
 	TrackingStatus  string      `json:"tracking_status" yaml:"tracking_status"`
 	PlannedStart    string      `json:"planned_start,omitempty" yaml:"planned_start,omitempty"`
 	PlannedFinish   string      `json:"planned_finish,omitempty" yaml:"planned_finish,omitempty"`
+	LeadTime        *LeadTime   `json:"lead_time,omitempty" yaml:"lead_time,omitempty"`
+	Priority        int         `json:"priority,omitempty" yaml:"priority,omitempty"`
 	AssigneeHint    Ref         `json:"assignee_hint,omitempty" yaml:"assignee_hint,omitempty"`
 	ResourceDemands []Ref       `json:"resource_demands,omitempty" yaml:"resource_demands,omitempty"`
 	Dependencies    []Ref       `json:"dependencies,omitempty" yaml:"dependencies,omitempty"`
 	Deadlines       []Ref       `json:"deadlines,omitempty" yaml:"deadlines,omitempty"`
 	Tags            []string    `json:"tags,omitempty" yaml:"tags,omitempty"`
 	SourceRefs      []SourceRef `json:"source_refs,omitempty" yaml:"source_refs,omitempty"`
+}
+
+type LeadTime struct {
+	WorkingDays  float64 `json:"working_days,omitempty" yaml:"working_days,omitempty"`
+	CalendarDays float64 `json:"calendar_days,omitempty" yaml:"calendar_days,omitempty"`
+	Reason       string  `json:"reason,omitempty" yaml:"reason,omitempty"`
+}
+
+// EffectivePriority returns the scheduling default for an unset task.
+func (t Task) EffectivePriority() int {
+	if t.Priority == 0 {
+		return 500
+	}
+	return t.Priority
 }
 
 type ResourceDemand struct {
@@ -141,10 +157,16 @@ type ResourceDemand struct {
 	ActualAmount    float64        `json:"actual_amount,omitempty" yaml:"actual_amount,omitempty"`
 	Criticality     string         `json:"criticality,omitempty" yaml:"criticality,omitempty"`
 	Status          string         `json:"status,omitempty" yaml:"status,omitempty"`
+	Levelled        *bool          `json:"levelled,omitempty" yaml:"levelled,omitempty"`
 	Timing          Timing         `json:"timing,omitempty" yaml:"timing,omitempty"`
 	SupersededBy    Ref            `json:"superseded_by,omitempty" yaml:"superseded_by,omitempty"`
 	Supersedes      Ref            `json:"supersedes,omitempty" yaml:"supersedes,omitempty"`
 	OverrunReview   *OverrunReview `json:"overrun_review,omitempty" yaml:"overrun_review,omitempty"`
+}
+
+// IsLevelled preserves levelled capacity as the default for existing plans.
+func (d ResourceDemand) IsLevelled() bool {
+	return d.Levelled == nil || *d.Levelled
 }
 
 // OverrunReview records that an operator reviewed a forecast above plan and
@@ -275,8 +297,10 @@ type Baseline struct {
 
 type BaselineTaskEntry struct {
 	Ref           `yaml:",inline"`
-	PlannedStart  string `json:"planned_start,omitempty" yaml:"planned_start,omitempty"`
-	PlannedFinish string `json:"planned_finish,omitempty" yaml:"planned_finish,omitempty"`
+	PlannedStart  string    `json:"planned_start,omitempty" yaml:"planned_start,omitempty"`
+	PlannedFinish string    `json:"planned_finish,omitempty" yaml:"planned_finish,omitempty"`
+	LeadTime      *LeadTime `json:"lead_time,omitempty" yaml:"lead_time,omitempty"`
+	Priority      int       `json:"priority,omitempty" yaml:"priority,omitempty"`
 }
 
 type BaselineDemandEntry struct {
@@ -285,6 +309,7 @@ type BaselineDemandEntry struct {
 	Resource      string   `json:"resource,omitempty" yaml:"resource,omitempty"`
 	Unit          string   `json:"unit,omitempty" yaml:"unit,omitempty"`
 	PlannedAmount *float64 `json:"planned_amount,omitempty" yaml:"planned_amount,omitempty"`
+	Levelled      *bool    `json:"levelled,omitempty" yaml:"levelled,omitempty"`
 }
 
 type BaselineSeal struct {

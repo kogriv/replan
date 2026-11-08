@@ -421,6 +421,24 @@ func TestScenarioApplyReportsUnsupportedChange(t *testing.T) {
 	}
 }
 
+func TestScenarioApplyRefusesSchedulingOverlayFieldsForNow(t *testing.T) {
+	projectPath := copyScenarioProjectFixture(t)
+	writeScenarioFixture(t, projectPath, "scenario.scheduling", `scenario:
+  id: scenario.scheduling
+  name: Scheduling metadata
+  status: proposed
+  base_ref: {kind: current_plan, id: current}
+  changes:
+    - op: set
+      path: tasks.task.op.1234.priority
+      value: 800
+`)
+	result, err := app.NewScenarioService(filestore.New(projectPath)).Apply(context.Background(), app.ScenarioApplyRequest{ID: "scenario.scheduling", DryRun: true, Now: fixedScenarioApplyTestTime()})
+	if !errors.Is(err, app.ErrValidationFailed) || !hasScenarioDiagnostic(result.Errors, "unsupported_scenario_apply_change") {
+		t.Fatalf("want unsupported_scenario_apply_change, got %v %#v", err, result.Errors)
+	}
+}
+
 func writeScenarioFixture(t *testing.T, projectPath, scenarioID, content string) {
 	t.Helper()
 	path := filepath.Join(projectPath, "scenarios", scenarioID+".yaml")

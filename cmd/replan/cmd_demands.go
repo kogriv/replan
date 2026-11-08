@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/kogriv/replan/internal/app"
@@ -49,6 +50,7 @@ type demandAddBatchItem struct {
 	Amount        float64 `yaml:"amount"`
 	Criticality   string  `yaml:"criticality"`
 	Status        string  `yaml:"status"`
+	Levelled      *bool   `yaml:"levelled"`
 	EarliestStart string  `yaml:"earliest_start"`
 	LatestFinish  string  `yaml:"latest_finish"`
 }
@@ -64,6 +66,7 @@ type demandSetBatchItem struct {
 	Role          *string  `yaml:"role"`
 	Criticality   *string  `yaml:"criticality"`
 	Status        *string  `yaml:"status"`
+	Levelled      *bool    `yaml:"levelled"`
 	EarliestStart *string  `yaml:"earliest_start"`
 	LatestFinish  *string  `yaml:"latest_finish"`
 }
@@ -82,6 +85,7 @@ func runDemandAdd(args []string, stdout, stderr *os.File) int {
 	amount := fs.Float64("amount", 0, "planned amount")
 	criticality := fs.String("criticality", "required", "required, preferred, optional or substitute")
 	status := fs.String("status", "active", "demand status")
+	levelled := fs.String("levelled", "", "optional true or false; unset defaults to true")
 	earliest := fs.String("earliest-start", "", "optional YYYY-MM-DD")
 	latest := fs.String("latest-finish", "", "optional YYYY-MM-DD")
 	fromFile := fs.String("from-file", "", "YAML file containing a demands list")
@@ -97,7 +101,12 @@ func runDemandAdd(args []string, stdout, stderr *os.File) int {
 	if done {
 		return code
 	}
-	items := []app.DemandAddItem{{ID: *id, Suffix: *suffix, TaskID: *task, ResourceID: *resource, PoolID: *pool, ResourceClass: *resourceClass, Role: *role, Unit: *unit, Amount: *amount, Criticality: *criticality, Status: *status, EarliestStart: *earliest, LatestFinish: *latest}}
+	set := visitedFlags(fs)
+	levelledValue, err := optionalBoolValue(*levelled, set["levelled"])
+	if err != nil {
+		return printPositionalUsageError(stdout, stderr, *format, "demand add", *projectPath, "invalid_levelled", "levelled must be true or false")
+	}
+	items := []app.DemandAddItem{{ID: *id, Suffix: *suffix, TaskID: *task, ResourceID: *resource, PoolID: *pool, ResourceClass: *resourceClass, Role: *role, Unit: *unit, Amount: *amount, Criticality: *criticality, Status: *status, Levelled: levelledValue, EarliestStart: *earliest, LatestFinish: *latest}}
 	if *fromFile != "" {
 		var batch demandAddBatchDocument
 		if err := readYAMLBatch(*fromFile, &batch); err != nil {
@@ -105,7 +114,7 @@ func runDemandAdd(args []string, stdout, stderr *os.File) int {
 		}
 		items = make([]app.DemandAddItem, 0, len(batch.Demands))
 		for _, item := range batch.Demands {
-			items = append(items, app.DemandAddItem{ID: item.ID, Suffix: item.Suffix, TaskID: item.Task, ResourceID: item.Resource, PoolID: item.Pool, ResourceClass: item.ResourceClass, Role: item.Role, Unit: item.Unit, Amount: item.Amount, Criticality: item.Criticality, Status: item.Status, EarliestStart: item.EarliestStart, LatestFinish: item.LatestFinish})
+			items = append(items, app.DemandAddItem{ID: item.ID, Suffix: item.Suffix, TaskID: item.Task, ResourceID: item.Resource, PoolID: item.Pool, ResourceClass: item.ResourceClass, Role: item.Role, Unit: item.Unit, Amount: item.Amount, Criticality: item.Criticality, Status: item.Status, Levelled: item.Levelled, EarliestStart: item.EarliestStart, LatestFinish: item.LatestFinish})
 		}
 	}
 	result, err := app.NewDemandService(newStore(*projectPath)).Add(context.Background(), app.DemandAddRequest{Items: items, Reason: *reason, ActorID: *actor, EvidenceID: *evidence, OccurredAt: *occurredAt, DryRun: dryRun})
@@ -122,6 +131,7 @@ func runDemandSet(args []string, stdout, stderr *os.File) int {
 	role := fs.String("role", "", "new role")
 	criticality := fs.String("criticality", "", "new criticality")
 	status := fs.String("status", "", "new status")
+	levelled := fs.String("levelled", "", "new true or false value")
 	earliest := fs.String("earliest-start", "", "new earliest start YYYY-MM-DD")
 	latest := fs.String("latest-finish", "", "new latest finish YYYY-MM-DD")
 	fromFile := fs.String("from-file", "", "YAML file containing a demands list")
@@ -145,7 +155,11 @@ func runDemandSet(args []string, stdout, stderr *os.File) int {
 		return code
 	}
 	set := visitedFlags(fs)
-	item := app.DemandSetItem{ID: positional, Amount: floatPtrIf(set["amount"], *amount), Remaining: floatPtrIf(set["remaining"], *remaining), Unit: stringPtrIf(set["unit"], *unit), Role: stringPtrIf(set["role"], *role), Criticality: stringPtrIf(set["criticality"], *criticality), Status: stringPtrIf(set["status"], *status), EarliestStart: stringPtrIf(set["earliest-start"], *earliest), LatestFinish: stringPtrIf(set["latest-finish"], *latest)}
+	levelledValue, parseErr := optionalBoolValue(*levelled, set["levelled"])
+	if parseErr != nil {
+		return printPositionalUsageError(stdout, stderr, *format, "demand set", *projectPath, "invalid_levelled", "levelled must be true or false")
+	}
+	item := app.DemandSetItem{ID: positional, Amount: floatPtrIf(set["amount"], *amount), Remaining: floatPtrIf(set["remaining"], *remaining), Unit: stringPtrIf(set["unit"], *unit), Role: stringPtrIf(set["role"], *role), Criticality: stringPtrIf(set["criticality"], *criticality), Status: stringPtrIf(set["status"], *status), Levelled: levelledValue, EarliestStart: stringPtrIf(set["earliest-start"], *earliest), LatestFinish: stringPtrIf(set["latest-finish"], *latest)}
 	items := []app.DemandSetItem{item}
 	if *fromFile != "" {
 		var batch demandSetBatchDocument
@@ -154,7 +168,7 @@ func runDemandSet(args []string, stdout, stderr *os.File) int {
 		}
 		items = make([]app.DemandSetItem, 0, len(batch.Demands))
 		for _, item := range batch.Demands {
-			items = append(items, app.DemandSetItem{ID: item.ID, Amount: item.Amount, Remaining: item.Remaining, Unit: item.Unit, Role: item.Role, Criticality: item.Criticality, Status: item.Status, EarliestStart: item.EarliestStart, LatestFinish: item.LatestFinish})
+			items = append(items, app.DemandSetItem{ID: item.ID, Amount: item.Amount, Remaining: item.Remaining, Unit: item.Unit, Role: item.Role, Criticality: item.Criticality, Status: item.Status, Levelled: item.Levelled, EarliestStart: item.EarliestStart, LatestFinish: item.LatestFinish})
 		}
 	}
 	result, err := app.NewDemandService(newStore(*projectPath)).Set(context.Background(), app.DemandSetRequest{Items: items, Reason: *reason, ActorID: *actor, EvidenceID: *evidence, OccurredAt: *occurredAt, DryRun: dryRun})
@@ -213,6 +227,17 @@ func stringPtrIf(ok bool, value string) *string {
 		return nil
 	}
 	return &value
+}
+
+func optionalBoolValue(value string, supplied bool) (*bool, error) {
+	if !supplied {
+		return nil, nil
+	}
+	parsed, err := strconv.ParseBool(value)
+	if err != nil {
+		return nil, fmt.Errorf("must be true or false")
+	}
+	return &parsed, nil
 }
 func readYAMLBatch(path string, target any) error {
 	data, err := os.ReadFile(path)

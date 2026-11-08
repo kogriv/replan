@@ -113,7 +113,7 @@ func (s BaselineService) Create(ctx context.Context, req BaselineCreateRequest) 
 		}
 		task := tasksByID[ref.ID]
 		baseline.IncludedTasks = append(baseline.IncludedTasks, domain.BaselineTaskEntry{
-			Ref: domain.Ref{Kind: "task", ID: ref.ID}, PlannedStart: task.PlannedStart, PlannedFinish: task.PlannedFinish,
+			Ref: domain.Ref{Kind: "task", ID: ref.ID}, PlannedStart: task.PlannedStart, PlannedFinish: task.PlannedFinish, LeadTime: task.LeadTime, Priority: task.Priority,
 		})
 		included[ref.ID] = true
 	}
@@ -128,7 +128,7 @@ func (s BaselineService) Create(ctx context.Context, req BaselineCreateRequest) 
 		amount := demand.PlannedAmount
 		baseline.IncludedDemands = append(baseline.IncludedDemands, domain.BaselineDemandEntry{
 			Ref: domain.Ref{Kind: "resource_demand", ID: demand.ID}, Task: demand.TaskRef.ID,
-			Resource: resourceID, Unit: demand.Unit, PlannedAmount: &amount,
+			Resource: resourceID, Unit: demand.Unit, PlannedAmount: &amount, Levelled: demand.Levelled,
 		})
 	}
 	if err := domain.SealBaseline(&baseline); err != nil {

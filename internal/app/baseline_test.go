@@ -23,6 +23,18 @@ func baselineRequest() app.BaselineCreateRequest {
 
 func TestBaselineCreateDryRunSnapshotsPlanWithoutWriting(t *testing.T) {
 	projectPath := copyAppProjectFixture(t)
+	tasksPath := filepath.Join(projectPath, "canonical", "tasks.yaml")
+	tasks := readTestFile(t, tasksPath)
+	tasks = strings.Replace(tasks, "    tracking_status: ready\n", "    tracking_status: ready\n    lead_time:\n      working_days: 2\n      reason: review\n    priority: 800\n", 1)
+	if err := os.WriteFile(tasksPath, []byte(tasks), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	demandsPath := filepath.Join(projectPath, "canonical", "resource_demands.yaml")
+	demands := readTestFile(t, demandsPath)
+	demands = strings.Replace(demands, "    status: partially_consumed\n", "    status: partially_consumed\n    levelled: false\n", 1)
+	if err := os.WriteFile(demandsPath, []byte(demands), 0o644); err != nil {
+		t.Fatal(err)
+	}
 	req := baselineRequest()
 	req.DryRun = true
 	result, err := app.NewBaselineService(filestore.New(projectPath)).Create(context.Background(), req)
@@ -38,10 +50,20 @@ func TestBaselineCreateDryRunSnapshotsPlanWithoutWriting(t *testing.T) {
 	if result.Baseline.Seal == nil || result.Baseline.Seal.Digest == "" {
 		t.Fatal("dry-run baseline has no seal")
 	}
+	if result.Baseline.IncludedTasks[1].Priority != 800 || result.Baseline.IncludedTasks[1].LeadTime == nil {
+		t.Fatalf("task scheduling snapshot missing: %#v", result.Baseline.IncludedTasks)
+	}
+	foundLevelled := false
 	for _, demand := range result.Baseline.IncludedDemands {
 		if demand.Task == "" || demand.Resource == "" || demand.Unit == "" || demand.PlannedAmount == nil {
 			t.Fatalf("demand snapshot is incomplete: %#v", demand)
 		}
+		if demand.Levelled != nil && !*demand.Levelled {
+			foundLevelled = true
+		}
+	}
+	if !foundLevelled {
+		t.Fatal("baseline did not snapshot explicit levelled false")
 	}
 }
 

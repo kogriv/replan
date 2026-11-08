@@ -93,6 +93,15 @@
       }
     },
     {
+      "code": "task_planned_span_shorter_than_lead_time",
+      "message": "task planned date span 2 days is shorter than lead time 3 days",
+      "severity": "warning",
+      "target": {
+        "kind": "task",
+        "id": "task.c"
+      }
+    },
+    {
       "code": "demand_not_listed_by_task",
       "message": "resource demand demand.orphan points to task task.a, but the task does not list it",
       "severity": "warning",
@@ -478,6 +487,24 @@
       }
     },
     {
+      "code": "invalid_task_lead_time",
+      "message": "task lead_time must contain exactly one positive finite working_days or calendar_days value",
+      "severity": "error",
+      "target": {
+        "kind": "task",
+        "id": "task.b"
+      }
+    },
+    {
+      "code": "invalid_task_priority",
+      "message": "task priority 1001 must be between 1 and 1000",
+      "severity": "error",
+      "target": {
+        "kind": "task",
+        "id": "task.c"
+      }
+    },
+    {
       "code": "unresolved_reference",
       "message": "demand task_ref \"task.missing\" does not exist",
       "severity": "error",
@@ -496,8 +523,8 @@
       }
     },
     {
-      "code": "missing_unit",
-      "message": "resource demand unit is required",
+      "code": "invalid_unlevelled_demand_unit",
+      "message": "resource demand with levelled false must use an hour unit, got \"tokens\"",
       "severity": "error",
       "target": {
         "kind": "resource_demand",

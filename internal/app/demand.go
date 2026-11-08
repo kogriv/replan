@@ -20,6 +20,7 @@ type DemandAddItem struct {
 	ResourceClass, Role, Unit              string
 	Amount                                 float64
 	Criticality, Status                    string
+	Levelled                               *bool
 	EarliestStart, LatestFinish            string
 }
 
@@ -34,6 +35,7 @@ type DemandSetItem struct {
 	ID                              string
 	Amount, Remaining               *float64
 	Unit, Role, Criticality, Status *string
+	Levelled                        *bool
 	EarliestStart, LatestFinish     *string
 }
 
@@ -227,7 +229,7 @@ func demandFromAddItem(ws domain.Workspace, item DemandAddItem) domain.ResourceD
 	if role == "" {
 		role = item.Suffix
 	}
-	demand := domain.ResourceDemand{ID: id, TaskRef: domain.Ref{Kind: "task", ID: item.TaskID}, ResourceClass: item.ResourceClass, Role: role, Unit: item.Unit, PlannedAmount: item.Amount, RemainingAmount: domain.Amount(item.Amount), Criticality: criticality, Status: status, Timing: domain.Timing{EarliestStart: item.EarliestStart, LatestFinish: item.LatestFinish}}
+	demand := domain.ResourceDemand{ID: id, TaskRef: domain.Ref{Kind: "task", ID: item.TaskID}, ResourceClass: item.ResourceClass, Role: role, Unit: item.Unit, PlannedAmount: item.Amount, RemainingAmount: domain.Amount(item.Amount), Criticality: criticality, Status: status, Levelled: item.Levelled, Timing: domain.Timing{EarliestStart: item.EarliestStart, LatestFinish: item.LatestFinish}}
 	setDemandTarget(&demand, ws, item.ResourceID, item.PoolID)
 	return demand
 }
@@ -305,6 +307,9 @@ func validateDemandFields(errors *[]Diagnostic, ws domain.Workspace, demand doma
 	if demand.Status != "" && !domain.ValidResourceDemandStatus(demand.Status) {
 		*errors = append(*errors, demandDiag("invalid_demand_status", fmt.Sprintf("invalid demand status %q", demand.Status), demand.ID))
 	}
+	if !demand.IsLevelled() && !isHourUnit(demand.Unit) {
+		*errors = append(*errors, demandDiag("invalid_unlevelled_demand_unit", "levelled false requires an hour unit", demand.ID))
+	}
 	validateDemandTiming(errors, demand)
 }
 
@@ -327,6 +332,9 @@ func applyDemandSetItem(demand *domain.ResourceDemand, item DemandSetItem) {
 	if item.Status != nil {
 		demand.Status = *item.Status
 	}
+	if item.Levelled != nil {
+		demand.Levelled = item.Levelled
+	}
 	if item.EarliestStart != nil {
 		demand.Timing.EarliestStart = *item.EarliestStart
 	}
@@ -336,7 +344,7 @@ func applyDemandSetItem(demand *domain.ResourceDemand, item DemandSetItem) {
 }
 
 func validateDemandSetItem(errors *[]Diagnostic, ws domain.Workspace, before, after domain.ResourceDemand, item DemandSetItem) {
-	if item.Amount == nil && item.Remaining == nil && item.Unit == nil && item.Role == nil && item.Criticality == nil && item.Status == nil && item.EarliestStart == nil && item.LatestFinish == nil {
+	if item.Amount == nil && item.Remaining == nil && item.Unit == nil && item.Role == nil && item.Criticality == nil && item.Status == nil && item.Levelled == nil && item.EarliestStart == nil && item.LatestFinish == nil {
 		*errors = append(*errors, demandDiag("missing_demand_change", "at least one demand field change is required", before.ID))
 		return
 	}
@@ -354,14 +362,13 @@ func validateDemandSetItem(errors *[]Diagnostic, ws domain.Workspace, before, af
 
 func resourceDemandsEqual(before, after domain.ResourceDemand) bool {
 	beforeRemaining, afterRemaining := before.RemainingAmount, after.RemainingAmount
+	beforeLevelled, afterLevelled := before.Levelled, after.Levelled
 	before.RemainingAmount, after.RemainingAmount = nil, nil
+	before.Levelled, after.Levelled = nil, nil
 	if before != after {
 		return false
 	}
-	if beforeRemaining == nil || afterRemaining == nil {
-		return beforeRemaining == nil && afterRemaining == nil
-	}
-	return *beforeRemaining == *afterRemaining
+	return optionalAmountsEqual(beforeRemaining, afterRemaining) && optionalBoolsEqual(beforeLevelled, afterLevelled)
 }
 
 func validateDemandMove(errors *[]Diagnostic, ws domain.Workspace, old domain.ResourceDemand, newID string, req DemandMoveRequest) {
@@ -443,6 +450,9 @@ func demandSetChangeSummary(before, after domain.ResourceDemand) string {
 	if !optionalAmountsEqual(before.RemainingAmount, after.RemainingAmount) {
 		changes = append(changes, fmt.Sprintf("remaining_amount: %s -> %s", formatOptionalAmount(before.RemainingAmount), formatOptionalAmount(after.RemainingAmount)))
 	}
+	if !optionalBoolsEqual(before.Levelled, after.Levelled) {
+		changes = append(changes, fmt.Sprintf("levelled: %s -> %s", formatOptionalBool(before.Levelled), formatOptionalBool(after.Levelled)))
+	}
 	for _, field := range []struct{ name, before, after string }{
 		{"unit", before.Unit, after.Unit},
 		{"role", before.Role, after.Role},
@@ -463,6 +473,20 @@ func optionalAmountsEqual(left, right *float64) bool {
 		return left == nil && right == nil
 	}
 	return *left == *right
+}
+
+func optionalBoolsEqual(left, right *bool) bool {
+	if left == nil || right == nil {
+		return left == nil && right == nil
+	}
+	return *left == *right
+}
+
+func formatOptionalBool(value *bool) string {
+	if value == nil {
+		return "unset"
+	}
+	return fmt.Sprintf("%t", *value)
 }
 
 func formatOptionalAmount(amount *float64) string {

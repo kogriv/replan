@@ -9,6 +9,11 @@ additive changes:
 - add enum values when validation of every older value stays unchanged;
 - add diagnostics.
 
+Format 1 optional scheduling additions include task `lead_time` and `priority`
+and resource-demand `levelled`; all are omitted at their zero/unset values, so
+projects that do not use them retain byte-identical formatted output and old
+sealed-baseline digests.
+
 A change needs a new format version and an ordered `replan project migrate`
 step when it renames or removes a field, changes a field's type or meaning,
 makes an optional field required, moves files, or changes how ids are formed.

@@ -624,6 +624,19 @@ func (s Store) SetTaskDates(taskID, plannedStart, plannedFinish string) (string,
 	return tasksRel, err
 }
 
+func (s Store) SetTaskScheduling(taskID string, priority int, leadTime *domain.LeadTime) (string, error) {
+	err := updateYAML(s, tasksRel, false, func(doc *tasksDoc) error {
+		i, ok := taskIndex(doc.Tasks)[taskID]
+		if !ok {
+			return fmt.Errorf("task %s not found", taskID)
+		}
+		doc.Tasks[i].Priority = priority
+		doc.Tasks[i].LeadTime = leadTime
+		return nil
+	})
+	return tasksRel, err
+}
+
 func (s Store) SetTaskTitle(taskID, title string) (string, error) {
 	err := updateYAML(s, tasksRel, false, func(doc *tasksDoc) error {
 		i, ok := taskIndex(doc.Tasks)[taskID]

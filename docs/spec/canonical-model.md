@@ -673,6 +673,10 @@ task:
   tracking_status: in_progress
   planned_start: "2026-07-06"
   planned_finish: "2026-07-13"
+  lead_time:
+    working_days: 2
+    reason: external review
+  priority: 800
   assignee_hint:
     kind: resource
     id: resource.human.ivan
@@ -716,6 +720,10 @@ Required MVP fields:
 - `id`;
 - `title`;
 - `tracking_status`.
+
+Optional scheduling fields are `lead_time` and `priority`. Lead time contains
+exactly one positive `working_days` or `calendar_days` float plus an optional
+reason. Priority is 1..1000; absent means the effective default 500.
 
 Recommended MVP fields:
 
@@ -788,6 +796,7 @@ resource_demand:
   actual_amount: 3
   criticality: required
   status: active
+  levelled: false
   superseded_by:
     kind: resource_demand
     id: demand.task-op-1234.implementer-petr
@@ -804,6 +813,9 @@ resource
 resource_pool
 unresolved
 ```
+
+`levelled` is optional and defaults to true. Explicit false is preserved and
+is valid only for `hours`, `hour`, `h`, `agent_hours` and `minutes`.
 
 Criticality values:
 
@@ -1746,6 +1758,9 @@ Validation must reject:
 - invalid tracking status;
 - invalid proposal status;
 - invalid scenario status;
+- task `lead_time` with both or neither day value, or a non-positive value;
+- task priority outside 1..1000 when set;
+- `levelled: false` on a non-hour resource demand;
 - actual without accepted actor or policy-approved origin;
 - audit record without actor or operation;
 - source reference without source and object id when object id is available.
@@ -1764,6 +1779,9 @@ Validation should warn:
 - scenario with changes that cannot be calculated;
 - proposal without evidence for risky mutation;
 - source-specific metadata placed inside canonical fields.
+- `task_planned_span_shorter_than_lead_time` when the direct calendar-date span,
+  or the Monday-Friday count inclusive of both dates, is shorter than task lead
+  time;
 - `demand_not_listed_by_task` when a demand's `task_ref` resolves but that task
   does not list the demand in `resource_demands`;
 - `task_lists_demand_of_other_task` when a task lists a demand whose

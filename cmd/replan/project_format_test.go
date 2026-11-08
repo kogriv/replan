@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -63,6 +64,30 @@ func TestProjectFormatDryRunAndApplyAudit(t *testing.T) {
 	}
 	if !auditContainsOperation(t, project, "project_format") {
 		t.Fatal("project_format audit record not found")
+	}
+}
+
+func TestProjectFormatLeavesFixtureWithoutSchedulingFieldsByteIdentical(t *testing.T) {
+	project := copyCmdProjectFixture(t)
+	before := snapshotProjectFiles(t, project)
+	removeFormatArtifacts(before)
+	stdout, stderr := tempOutputFiles(t)
+	args := []string{"project", "format", "--project", project, "--actor", "actor.human.operator", "--reason", "Compatibility check", "--apply", "--format", "json"}
+	if code := run(args, stdout, stderr); code != exitSuccess {
+		t.Fatalf("format exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	after := snapshotProjectFiles(t, project)
+	removeFormatArtifacts(after)
+	if !reflect.DeepEqual(before, after) {
+		t.Fatal("format changed byte-canonical fixture without scheduling fields")
+	}
+}
+
+func removeFormatArtifacts(files map[string]string) {
+	for path := range files {
+		if path == filepath.Join(".replan", "write.lock") || strings.HasPrefix(filepath.ToSlash(path), "audit/") {
+			delete(files, path)
+		}
 	}
 }
 

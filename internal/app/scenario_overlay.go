@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 
@@ -44,52 +45,136 @@ func ApplyScenarioOverlay(ws domain.Workspace, scenarioID string) ScenarioOverla
 	return result
 }
 
+// scenarioSetHandlers maps a set or replace change's path, by prefix and
+// suffix, to the overlay rule that applies it.
+var scenarioSetHandlers = []struct {
+	prefix, suffix string
+	apply          func(*domain.Workspace, domain.Scenario, domain.ScenarioChange) (Diagnostic, bool)
+}{
+	{"resource_demands.", ".remaining_amount", func(ws *domain.Workspace, scenario domain.Scenario, change domain.ScenarioChange) (Diagnostic, bool) {
+		return applyScenarioDemandAmount(ws, scenario, change, "remaining_amount")
+	}},
+	{"resource_demands.", ".planned_amount", func(ws *domain.Workspace, scenario domain.Scenario, change domain.ScenarioChange) (Diagnostic, bool) {
+		return applyScenarioDemandAmount(ws, scenario, change, "planned_amount")
+	}},
+	{"resource_demands.", ".resource_ref", applyScenarioDemandResourceRef},
+	{"resource_demands.", ".earliest_start", applyScenarioDemandEarliestStart},
+	{"resource_demands.", ".levelled", applyScenarioDemandLevelled},
+	{"capacities.", ".amount", applyScenarioCapacityAmount},
+	{"dependencies.", ".status", applyScenarioDependencyStatus},
+	{"tasks.", ".planned_start", applyScenarioTaskDate},
+	{"tasks.", ".planned_finish", applyScenarioTaskDate},
+	{"tasks.", ".priority", applyScenarioTaskPriority},
+	{"tasks.", ".lead_time", applyScenarioTaskLeadTime},
+}
+
 func applyScenarioChange(ws *domain.Workspace, scenario domain.Scenario, change domain.ScenarioChange) (Diagnostic, bool) {
 	if change.Op == "add" && change.Path == "availability.exceptions" {
 		return applyScenarioAvailabilityException(ws, scenario, change)
 	}
-	if isSetOperation(change.Op) && strings.HasPrefix(change.Path, "resource_demands.") && strings.HasSuffix(change.Path, ".remaining_amount") {
-		return applyScenarioDemandAmount(ws, scenario, change, "remaining_amount")
-	}
-	if isSetOperation(change.Op) && strings.HasPrefix(change.Path, "resource_demands.") && strings.HasSuffix(change.Path, ".planned_amount") {
-		return applyScenarioDemandAmount(ws, scenario, change, "planned_amount")
-	}
-	if isSetOperation(change.Op) && strings.HasPrefix(change.Path, "resource_demands.") && strings.HasSuffix(change.Path, ".resource_ref") {
-		return applyScenarioDemandResourceRef(ws, scenario, change)
-	}
-	if isSetOperation(change.Op) && strings.HasPrefix(change.Path, "resource_demands.") && strings.HasSuffix(change.Path, ".earliest_start") {
-		return applyScenarioDemandEarliestStart(ws, scenario, change)
-	}
-	if isSetOperation(change.Op) && strings.HasPrefix(change.Path, "capacities.") && strings.HasSuffix(change.Path, ".amount") {
-		return applyScenarioCapacityAmount(ws, scenario, change)
-	}
-	if isSetOperation(change.Op) && strings.HasPrefix(change.Path, "dependencies.") && strings.HasSuffix(change.Path, ".status") {
-		return applyScenarioDependencyStatus(ws, scenario, change)
-	}
-	if isSetOperation(change.Op) && strings.HasPrefix(change.Path, "tasks.") && (strings.HasSuffix(change.Path, ".planned_start") || strings.HasSuffix(change.Path, ".planned_finish")) {
-		applyChange, ok := scenarioApplyTaskDateChange(*ws, scenario, change)
-		if !ok {
-			return unsupportedScenarioApplyChange(scenario, change), false
-		}
-		for i := range ws.Tasks {
-			if ws.Tasks[i].ID != applyChange.TargetID {
-				continue
+	if isSetOperation(change.Op) {
+		for _, handler := range scenarioSetHandlers {
+			if strings.HasPrefix(change.Path, handler.prefix) && strings.HasSuffix(change.Path, handler.suffix) {
+				return handler.apply(ws, scenario, change)
 			}
-			value := applyChange.NewValue.(string)
-			if applyChange.Field == "planned_start" {
-				ws.Tasks[i].PlannedStart = value
-			} else {
-				ws.Tasks[i].PlannedFinish = value
-			}
-			return Diagnostic{}, true
 		}
 	}
+	return unsupportedScenarioOverlayChange(scenario, change), false
+}
+
+func unsupportedScenarioOverlayChange(scenario domain.Scenario, change domain.ScenarioChange) Diagnostic {
 	return Diagnostic{
 		Code:     "unsupported_scenario_change",
 		Message:  fmt.Sprintf("scenario %s change %s %s is not supported by the in-memory overlay yet", scenario.ID, change.Op, change.Path),
 		Severity: "error",
 		Target:   Target{Kind: "scenario", ID: scenario.ID},
-	}, false
+	}
+}
+
+func applyScenarioTaskDate(ws *domain.Workspace, scenario domain.Scenario, change domain.ScenarioChange) (Diagnostic, bool) {
+	applyChange, ok := scenarioApplyTaskDateChange(*ws, scenario, change)
+	if !ok {
+		return unsupportedScenarioApplyChange(scenario, change), false
+	}
+	for i := range ws.Tasks {
+		if ws.Tasks[i].ID != applyChange.TargetID {
+			continue
+		}
+		value := applyChange.NewValue.(string)
+		if applyChange.Field == "planned_start" {
+			ws.Tasks[i].PlannedStart = value
+		} else {
+			ws.Tasks[i].PlannedFinish = value
+		}
+		return Diagnostic{}, true
+	}
+	return unsupportedScenarioOverlayChange(scenario, change), false
+}
+
+func applyScenarioTaskPriority(ws *domain.Workspace, scenario domain.Scenario, change domain.ScenarioChange) (Diagnostic, bool) {
+	taskID := strings.TrimSuffix(strings.TrimPrefix(change.Path, "tasks."), ".priority")
+	value, numeric := scenarioNumericAmount(change.Value)
+	priority := int(value)
+	if taskID == "" || !numeric || value != float64(priority) || priority < 1 || priority > 1000 {
+		return Diagnostic{Code: "invalid_scenario_change_value", Message: fmt.Sprintf("scenario %s priority change for %s must be an integer from 1 to 1000", scenario.ID, taskID), Severity: "error", Target: Target{Kind: "task", ID: taskID}}, false
+	}
+	for i := range ws.Tasks {
+		if ws.Tasks[i].ID == taskID {
+			ws.Tasks[i].Priority = priority
+			return Diagnostic{}, true
+		}
+	}
+	return Diagnostic{Code: "scenario_unknown_task", Message: fmt.Sprintf("scenario %s references unknown task %s", scenario.ID, taskID), Severity: "error", Target: Target{Kind: "task", ID: taskID}}, false
+}
+
+func applyScenarioTaskLeadTime(ws *domain.Workspace, scenario domain.Scenario, change domain.ScenarioChange) (Diagnostic, bool) {
+	taskID := strings.TrimSuffix(strings.TrimPrefix(change.Path, "tasks."), ".lead_time")
+	leadTime, ok := scenarioLeadTime(change.Value)
+	if taskID == "" || !ok {
+		return Diagnostic{Code: "invalid_scenario_change_value", Message: fmt.Sprintf("scenario %s lead_time change for %s must be null or contain exactly one positive working_days or calendar_days value", scenario.ID, taskID), Severity: "error", Target: Target{Kind: "task", ID: taskID}}, false
+	}
+	for i := range ws.Tasks {
+		if ws.Tasks[i].ID == taskID {
+			ws.Tasks[i].LeadTime = leadTime
+			return Diagnostic{}, true
+		}
+	}
+	return Diagnostic{Code: "scenario_unknown_task", Message: fmt.Sprintf("scenario %s references unknown task %s", scenario.ID, taskID), Severity: "error", Target: Target{Kind: "task", ID: taskID}}, false
+}
+
+func scenarioLeadTime(value any) (*domain.LeadTime, bool) {
+	if value == nil {
+		return nil, true
+	}
+	values, ok := value.(map[string]any)
+	if !ok {
+		return nil, false
+	}
+	working, hasWorking := scenarioNumericAmount(values["working_days"])
+	calendar, hasCalendar := scenarioNumericAmount(values["calendar_days"])
+	if hasWorking == hasCalendar || hasWorking && (working <= 0 || math.IsNaN(working) || math.IsInf(working, 0)) || hasCalendar && (calendar <= 0 || math.IsNaN(calendar) || math.IsInf(calendar, 0)) {
+		return nil, false
+	}
+	reason, _ := values["reason"].(string)
+	return &domain.LeadTime{WorkingDays: working, CalendarDays: calendar, Reason: reason}, true
+}
+
+func applyScenarioDemandLevelled(ws *domain.Workspace, scenario domain.Scenario, change domain.ScenarioChange) (Diagnostic, bool) {
+	demandID := strings.TrimSuffix(strings.TrimPrefix(change.Path, "resource_demands."), ".levelled")
+	value, ok := change.Value.(bool)
+	if demandID == "" || !ok {
+		return Diagnostic{Code: "invalid_scenario_change_value", Message: fmt.Sprintf("scenario %s levelled change for %s must be a boolean", scenario.ID, demandID), Severity: "error", Target: Target{Kind: "resource_demand", ID: demandID}}, false
+	}
+	for i := range ws.ResourceDemands {
+		if ws.ResourceDemands[i].ID == demandID {
+			if !value && !isHourUnit(ws.ResourceDemands[i].Unit) {
+				return Diagnostic{Code: "invalid_scenario_change_value", Message: fmt.Sprintf("scenario %s cannot set levelled false on non-hour resource demand %s", scenario.ID, demandID), Severity: "error", Target: Target{Kind: "resource_demand", ID: demandID}}, false
+			}
+			ws.ResourceDemands[i].Levelled = &value
+			return Diagnostic{}, true
+		}
+	}
+	return Diagnostic{Code: "scenario_unknown_resource_demand", Message: fmt.Sprintf("scenario %s references unknown resource demand %s", scenario.ID, demandID), Severity: "error", Target: Target{Kind: "resource_demand", ID: demandID}}, false
 }
 
 func applyScenarioDemandEarliestStart(ws *domain.Workspace, scenario domain.Scenario, change domain.ScenarioChange) (Diagnostic, bool) {
