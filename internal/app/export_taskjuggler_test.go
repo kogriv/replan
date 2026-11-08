@@ -3,6 +3,7 @@ package app_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -716,6 +717,126 @@ func TestExportTaskJugglerAppliesScenarioAvailabilityOverlay(t *testing.T) {
 	assertContains(t, result.Content, `# Scenario: scenario.ivan-unavailable-week-28`)
 	assertContains(t, result.Content, `resource resource_human_ivan "Ivan"`)
 	assertContains(t, result.Content, `vacation 2026-07-09`)
+}
+
+func TestExportTaskJugglerWritesAvailabilityWeekdayWindowAndUncoveredDaysOff(t *testing.T) {
+	ws := taskJugglerAvailabilityWorkspace()
+	ws.Availabilities = []domain.Availability{{
+		ID: "availability.test", ResourceRef: domain.Ref{ID: "resource.test"}, Timezone: "UTC",
+		Windows: []domain.AvailabilityWindow{{Days: []string{"monday", "wednesday"}, StartTime: "09:00", EndTime: "17:00"}},
+	}}
+	result := exportTaskJugglerWorkspace(t, ws)
+	assertContains(t, result.Content, "  workinghours mon, wed 9:00 - 17:00\n")
+	assertContains(t, result.Content, "  workinghours tue, thu, fri, sat, sun off\n")
+}
+
+func TestExportTaskJugglerCombinesSplitDayAndMergesAvailabilityRecords(t *testing.T) {
+	ws := taskJugglerAvailabilityWorkspace()
+	ws.Availabilities = []domain.Availability{
+		{ID: "availability.am", ResourceRef: domain.Ref{ID: "resource.test"}, Timezone: "UTC", Windows: []domain.AvailabilityWindow{
+			{Days: []string{"monday", "tuesday"}, StartTime: "09:00", EndTime: "12:00"},
+			{Days: []string{"monday", "tuesday"}, StartTime: "13:00", EndTime: "18:00"},
+		}},
+		{ID: "availability.overlap", ResourceRef: domain.Ref{ID: "resource.test"}, Timezone: "UTC", Windows: []domain.AvailabilityWindow{
+			{Days: []string{"monday", "tuesday"}, StartTime: "11:00", EndTime: "12:00"},
+		}},
+	}
+	result := exportTaskJugglerWorkspace(t, ws)
+	assertContains(t, result.Content, "  workinghours mon, tue 9:00 - 12:00, 13:00 - 18:00\n")
+}
+
+func TestExportTaskJugglerWritesEndOfDayAs24WithoutRoundingWarning(t *testing.T) {
+	ws := taskJugglerAvailabilityWorkspace()
+	ws.Availabilities = []domain.Availability{{
+		ID: "availability.full-day", ResourceRef: domain.Ref{ID: "resource.test"}, Timezone: "UTC",
+		Windows: []domain.AvailabilityWindow{{Days: []string{"monday"}, StartTime: "00:00", EndTime: "23:59"}},
+	}}
+	result := exportTaskJugglerWorkspace(t, ws)
+	assertContains(t, result.Content, "  workinghours mon 0:00 - 24:00\n")
+	if hasDiagnosticCode(result.Warnings, "taskjuggler_working_hours_rounded") {
+		t.Fatalf("23:59 end-of-day conversion should not warn: %#v", result.Warnings)
+	}
+}
+
+func TestExportTaskJugglerRoundsWorkingHoursToTimingResolution(t *testing.T) {
+	ws := taskJugglerAvailabilityWorkspace()
+	ws.ResourceDemands[0].RemainingAmount = domain.Amount(.25)
+	ws.Availabilities = []domain.Availability{{
+		ID: "availability.rounded", ResourceRef: domain.Ref{ID: "resource.test"}, Timezone: "UTC",
+		Windows: []domain.AvailabilityWindow{{Days: []string{"monday"}, StartTime: "09:07", EndTime: "10:02"}},
+	}}
+	result := exportTaskJugglerWorkspace(t, ws)
+	assertContains(t, result.Content, "  timingresolution 15min\n")
+	assertContains(t, result.Content, "  workinghours mon 9:00 - 10:15\n")
+	warnings := diagnosticsWithCode(result.Warnings, "taskjuggler_working_hours_rounded")
+	if len(warnings) != 1 || !strings.Contains(warnings[0].Message, "availability.rounded") {
+		t.Fatalf("rounding warnings = %#v", warnings)
+	}
+}
+
+func TestExportTaskJugglerResourceWithoutAvailabilityKeepsDefaultWorkingHours(t *testing.T) {
+	result := exportTaskJugglerWorkspace(t, taskJugglerAvailabilityWorkspace())
+	assertContains(t, result.Content, "resource resource_test \"Test resource\" {\n}")
+	assertNotContains(t, result.Content, "workinghours")
+}
+
+func TestExportTaskJugglerMapsAndReportsEveryAvailabilityExceptionClass(t *testing.T) {
+	ws := taskJugglerAvailabilityWorkspace()
+	types := []string{"unavailable", "access_closed", "maintenance", "manual_hold", "reduced_capacity", "extra_capacity", "quota_reset"}
+	exceptions := make([]domain.AvailabilityException, 0, len(types)+1)
+	for index, exceptionType := range types {
+		exceptions = append(exceptions, domain.AvailabilityException{Date: fmt.Sprintf("2026-11-%02d", index+9), Type: exceptionType})
+	}
+	exceptions = append(exceptions, domain.AvailabilityException{Date: "2026-11-09", Type: "manual_hold"})
+	ws.Availabilities = []domain.Availability{{ID: "availability.exceptions", ResourceRef: domain.Ref{ID: "resource.test"}, Timezone: "UTC", Exceptions: exceptions}}
+	result := exportTaskJugglerWorkspace(t, ws)
+	for _, date := range []string{"2026-11-09", "2026-11-10", "2026-11-11", "2026-11-12"} {
+		if strings.Count(result.Content, "  vacation "+date+"\n") != 1 {
+			t.Fatalf("vacation %s was not exported exactly once:\n%s", date, result.Content)
+		}
+	}
+	for _, date := range []string{"2026-11-13", "2026-11-14", "2026-11-15"} {
+		assertNotContains(t, result.Content, "  vacation "+date+"\n")
+	}
+	warnings := diagnosticsWithCode(result.Warnings, "taskjuggler_availability_exceptions_not_exported")
+	if len(warnings) != 1 || !strings.Contains(warnings[0].Message, "reduced_capacity: 1") || !strings.Contains(warnings[0].Message, "extra_capacity: 1") || !strings.Contains(warnings[0].Message, "quota_reset: 1") {
+		t.Fatalf("exception warnings = %#v", warnings)
+	}
+}
+
+func TestExportTaskJugglerWarnsWhenAvailabilityTimezoneDiffers(t *testing.T) {
+	ws := taskJugglerAvailabilityWorkspace()
+	ws.Project.Timezone = "Asia/Novosibirsk"
+	ws.Availabilities = []domain.Availability{{
+		ID: "availability.utc", ResourceRef: domain.Ref{ID: "resource.test"}, Timezone: "UTC",
+		Windows: []domain.AvailabilityWindow{{Days: []string{"monday"}, StartTime: "11:00", EndTime: "18:00"}},
+	}}
+	result := exportTaskJugglerWorkspace(t, ws)
+	assertContains(t, result.Content, "  workinghours mon 11:00 - 18:00\n")
+	warnings := diagnosticsWithCode(result.Warnings, "taskjuggler_availability_timezone_differs")
+	if len(warnings) != 1 || !strings.Contains(warnings[0].Message, "availability.utc") {
+		t.Fatalf("timezone warnings = %#v", warnings)
+	}
+}
+
+func taskJugglerAvailabilityWorkspace() domain.Workspace {
+	return domain.Workspace{
+		Project:   domain.Project{ID: "project.test", Name: "Test", Timezone: "UTC", DefaultStatusDate: "2026-11-08"},
+		Resources: []domain.Resource{{ID: "resource.test", Class: "human", Name: "Test resource"}},
+		Tasks:     []domain.Task{{ID: "task.test", Title: "Test task", TrackingStatus: "ready"}},
+		ResourceDemands: []domain.ResourceDemand{{
+			ID: "demand.test", TaskRef: domain.Ref{ID: "task.test"}, ResourceRef: domain.Ref{ID: "resource.test"}, Unit: "hours", PlannedAmount: 8, RemainingAmount: domain.Amount(8), Status: "active",
+		}},
+	}
+}
+
+func exportTaskJugglerWorkspace(t *testing.T, ws domain.Workspace) app.ExportTaskJugglerResult {
+	t.Helper()
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if err != nil {
+		t.Fatalf("TaskJuggler returned error: %v; errors=%#v", err, result.Errors)
+	}
+	return result
 }
 
 func TestExportTaskJugglerAcceptsTaskDateScenarioOverlay(t *testing.T) {

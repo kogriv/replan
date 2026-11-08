@@ -2829,7 +2829,24 @@ Implemented TaskJuggler proof-of-concept:
 - write `.tjp` when `--output` is provided;
 - support `--scenario <id>` with an in-memory overlay for
   `add availability.exceptions`;
-- export unavailable scenario exceptions as TaskJuggler `vacation` statements;
+- for a resource with availability windows, merge all of its records into
+  per-day interval unions, write days with the same intervals as one
+  `workinghours` line (including split-day ranges), and explicitly write every
+  uncovered day as `workinghours ... off`; a resource with no windows keeps
+  TaskJuggler's default working hours;
+- align availability windows to the export timing resolution by rounding starts
+  down and ends up; write the canonical end-of-day value `23:59` as `24:00`
+  without a warning, and emit one grouped
+  `taskjuggler_working_hours_rounded` warning for other adjustments;
+- treat availability exceptions `unavailable`, `access_closed`, `maintenance`
+  and `manual_hold` as whole-day TaskJuggler `vacation` dates, deduplicated and
+  sorted, including exceptions added by a scenario overlay;
+- do not export `reduced_capacity`, `extra_capacity` or `quota_reset` because
+  TaskJuggler vacations cannot represent them; emit one grouped
+  `taskjuggler_availability_exceptions_not_exported` warning with type counts;
+- when an availability timezone differs from the project timezone, keep the
+  authored clock values without conversion and emit one grouped
+  `taskjuggler_availability_timezone_differs` warning;
 - support scenario `set` and `replace` changes for
   `resource_demands.<resource_demand_id>.remaining_amount` and
   `resource_demands.<resource_demand_id>.planned_amount`;

@@ -3126,6 +3126,58 @@ func TestTaskJugglerRunSchedulesQuarterHourDemandWhenTJ3Available(t *testing.T) 
 	assertFileContains(t, filepath.Join(outputDir, "project.tjp"), "  effort 15min\n")
 }
 
+func TestTaskJugglerRunHonoursWorkingHoursAndVacationWhenTJ3Available(t *testing.T) {
+	tj3, err := exec.LookPath("tj3")
+	if err != nil {
+		t.Skip("tj3 is not installed")
+	}
+	projectPath := copyCmdProjectFixture(t)
+	demandsPath := filepath.Join(projectPath, "canonical", "resource_demands.yaml")
+	demands := readFileString(t, demandsPath)
+	demands = replaceTaskJugglerDemandRemaining(t, demands, "resource_demand.task-op-1234.ai-agent", "2", "0")
+	demands = replaceTaskJugglerDemandRemaining(t, demands, "resource_demand.task-op-1234.implementer", "8", "14")
+	if err := os.WriteFile(demandsPath, []byte(demands), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	availabilityPath := filepath.Join(projectPath, "canonical", "availability.yaml")
+	availability := readFileString(t, availabilityPath)
+	availability = strings.Replace(availability, `start_time: "10:00"`, `start_time: "11:00"`, 1)
+	availability = strings.Replace(availability, `date: "2026-07-08"
+        type: reduced_capacity`, `date: "2026-07-07"
+        type: unavailable`, 1)
+	if err := os.WriteFile(availabilityPath, []byte(availability), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	outputDir := filepath.Join(t.TempDir(), "run")
+	stdout, stderr := tempOutputFiles(t)
+	code := run([]string{
+		"taskjuggler", "run",
+		"--project", projectPath,
+		"--output-dir", outputDir,
+		"--taskjuggler-bin", tj3,
+		"--format", "json",
+	}, stdout, stderr)
+	if code != exitSuccess {
+		t.Fatalf("taskjuggler run exit = %d, stdout = %s, stderr = %s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	project := readFileString(t, filepath.Join(outputDir, "project.tjp"))
+	if !strings.Contains(project, "workinghours mon, tue, wed, thu 11:00 - 18:00") || !strings.Contains(project, "vacation 2026-07-07") {
+		t.Fatalf("export lacks working hours or vacation:\n%s", project)
+	}
+	for _, line := range strings.Split(readFileString(t, filepath.Join(outputDir, "reports", "replan-task-schedule.csv")), "\n") {
+		fields := strings.Split(line, ";")
+		if len(fields) >= 4 && strings.Trim(fields[0], `"`) == "task_op_1234" {
+			if finish := strings.Trim(fields[3], `"`); !strings.HasPrefix(finish, "2026-07-08") {
+				t.Fatalf("14h task finish = %q, want third working day 2026-07-08", finish)
+			}
+			return
+		}
+	}
+	t.Fatalf("task_op_1234 missing from TaskJuggler schedule report")
+}
+
 func TestTaskJugglerRunOrdersDependentTasksWhenTJ3Available(t *testing.T) {
 	tj3, err := exec.LookPath("tj3")
 	if err != nil {
