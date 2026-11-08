@@ -1414,3 +1414,47 @@ evidence:
     targets:
       - kind: task
         id: task.self.replace-consumer-scheduler-with-replan
+  - id: evidence.self.start-toolkit-sets-work-package-version
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T14:45:24+07:00"
+    summary: Started on 2026-11-08 after the help-ids round; estimate 1 agent hour frozen in baseline.2026-11-08.v0-4-1-fixes, split into agent 0.25 and Codex 0.75.
+    targets:
+      - kind: task
+        id: task.self.toolkit-sets-work-package-version
+  - id: evidence.self.positional-ids-in-command-help
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T15:01:22+07:00"
+    summary: 'Feature commit 8d2d96b: every command with a positional id names it in its own help; a missing required one exits 8 with missing_argument naming it, an extra one exits 8 with unexpected_argument, in JSON, Markdown and text; demand set with --from-file needs no id; table-driven tests for init, validate, demand set and move, baseline and estimate show, scenario show, diff and apply, proposal show, accept and reject, import accept. Executor review changed the message to name the argument without angle brackets, which the CLI''s JSON escapes. Gate green incl. kit 54 checks and 79 live kit checks. Codex 14:26:52-14:43:40 (0.28 h); executor review 14:43:40-14:45:19 and the commit at 15:01, booked 0.05 h; the brief written before 14:26:52 was not timed.'
+    targets:
+      - kind: task
+        id: task.self.positional-ids-in-command-help
+  - id: evidence.self.helpers-detect-help-only-as-an-argument
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T15:01:22+07:00"
+    summary: 'Fix commit 4a5426b: the toolkit and wiki wrappers detect help only as a whole argument before --; a test copies the scripts beside a .env.local and checks that a value mentioning -h and --help still loads settings (token_env_not_set, not missing_setting); it fails on the old wrappers for both helpers. No other wrapper used the pattern. Gate green. Executor 14:26:57-14:30:14, 0.05 h.'
+    targets:
+      - kind: task
+        id: task.self.helpers-detect-help-only-as-an-argument
+  - id: evidence.self.toolkit-sets-work-package-version
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T15:17:26+07:00"
+    summary: 'Feature commit 0fb8c0d: toolkit version list, --version by id or exact name on create and update-metadata, --clear-version, version_not_found and version_ambiguous, dry-run from and to versions, lock version on apply; six fake-server tests; the live kit check creates a version as administrator and a Member-role token sets and clears it (live checks 79 to 83). Gate green. Codex 14:45:19-14:57:10 (0.2 h); executor review 15:01:22-15:03 and the gate wait, booked 0.1 h from those timestamps; brief written 14:43:40-14:45:19 is in the help-ids task.'
+    targets:
+      - kind: task
+        id: task.self.toolkit-sets-work-package-version

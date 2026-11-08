@@ -1855,3 +1855,108 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.replace-consumer-scheduler-with-replan
+  - id: actual.self-positional-ids-in-command-help.ai-codex-local.20261108T1501220700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.positional-ids-in-command-help
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.positional-ids-in-command-help.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.28
+    unit: agent_hours
+    occurred_at: "2026-11-08T15:01:22+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.positional-ids-in-command-help
+  - id: actual.self-positional-ids-in-command-help.ai-agent-executor.20261108T1501220700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.positional-ids-in-command-help
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.positional-ids-in-command-help.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.05
+    unit: agent_hours
+    occurred_at: "2026-11-08T15:01:22+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.positional-ids-in-command-help
+  - id: actual.self-helpers-detect-help-only-as-an-argument.ai-agent-executor.20261108T1501220700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.helpers-detect-help-only-as-an-argument
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.helpers-detect-help-only-as-an-argument.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.05
+    unit: agent_hours
+    occurred_at: "2026-11-08T15:01:22+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.helpers-detect-help-only-as-an-argument
+  - id: actual.self-toolkit-sets-work-package-version.ai-codex-local.20261108T1517260700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.toolkit-sets-work-package-version
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.toolkit-sets-work-package-version.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.2
+    unit: agent_hours
+    occurred_at: "2026-11-08T15:17:26+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.toolkit-sets-work-package-version
+  - id: actual.self-toolkit-sets-work-package-version.ai-agent-executor.20261108T1517260700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.toolkit-sets-work-package-version
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.toolkit-sets-work-package-version.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.1
+    unit: agent_hours
+    occurred_at: "2026-11-08T15:17:26+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.toolkit-sets-work-package-version

@@ -6810,7 +6810,7 @@ tasks:
     title: Name positional ids in command help and refuse a missing id clearly
     description: 'Found by a consumer project on 2026-11-08 and confirmed: commands that take a positional id (demand set and demand move take the demand id; baseline show, estimate show, scenario show, proposal show, import accept and others take an id) do not name it in their own help (-h), and without it they fail with an unrelated or empty-id error such as resource demand not found with a blank name. Name the positional argument in each command''s help, refuse a missing positional id with a usage error that names it (exit 8), and cover every such command in tests. Agreed with the operator on 2026-11-08.'
     type: implementation
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-08"
     planned_finish: "2026-11-08"
     assignee_hint:
@@ -6839,7 +6839,7 @@ tasks:
     title: Set a work package's version with the work-package toolkit
     description: 'Found on 2026-11-08 while moving the consumer projects onto RePlan''s public surfaces: a consumer keeps its own OpenProject API client only to set a work package''s Version (the project stage), because the work-package toolkit cannot. Add a version option to work-package create and update-metadata (by version id or exact name within the project, with a clear refusal for an unknown or ambiguous name), dry run first as for the other fields, list the project''s versions read-only, document it in the agent kit README and test it on the throwaway OpenProject with an ordinary member''s token. Agreed with the operator on 2026-11-08.'
     type: implementation
-    tracking_status: not_started
+    tracking_status: review_ready
     planned_start: "2026-11-08"
     planned_finish: "2026-11-08"
     assignee_hint:
@@ -6922,7 +6922,7 @@ tasks:
     title: Treat help only as a separate helper argument, not text inside a value
     description: 'Found on 2026-11-08 creating a work package: the work-package toolkit and wiki wrappers look for help by matching the joined argument string, so a value that contains the text space-dash-h-space, such as a description mentioning a help flag, is taken as a help request; the wrapper then skips loading settings and the helper fails with missing_setting. Detect help only as a whole argument, check every helper wrapper for the same pattern, and test a description that contains the flag text. Planned with the release fixes agreed with the operator on 2026-11-08.'
     type: implementation
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-08"
     planned_finish: "2026-11-08"
     assignee_hint:
