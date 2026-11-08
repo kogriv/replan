@@ -2864,6 +2864,139 @@ REPORT
 	}
 	assertCandidateChange(t, result.Candidate.Changes, "tasks.task.op.1234.planned_start", "2026-07-06")
 	assertCandidateChange(t, result.Candidate.Changes, "tasks.task.op.1234.planned_finish", "2026-07-13")
+	for _, change := range result.Candidate.Changes {
+		if change.PreviousValue != "" {
+			t.Fatalf("PreviousValue = %#v, want empty string for task without current dates", change.PreviousValue)
+		}
+	}
+}
+
+func TestImportTaskJugglerResultUnchangedRowProducesNoChanges(t *testing.T) {
+	projectDir := copyCmdProjectFixture(t)
+	setCmdTaskJugglerTaskDates(t, projectDir, "ready", "2026-07-06", "2026-07-13")
+	runDir := t.TempDir()
+	writeTaskJugglerImportFixture(t, runDir, `"Id";"Name";"Start";"End";"Effort";"Effort Left";"Resources";"Status"
+"task_op_1234";"Implement validation command";"2026-07-06";"2026-07-13";1.0;0.0;"Ivan (resource_human_ivan)";"done"
+`)
+
+	result, err := importTaskJugglerResult(context.Background(), taskJugglerImportRequest{
+		ProjectPath: projectDir,
+		RunDir:      runDir,
+		DryRun:      true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.CandidateChanges != 0 || len(result.Candidate.Changes) != 0 || result.UnchangedRows != 1 || result.FixedRows != 0 {
+		t.Fatalf("unexpected unchanged result: %#v", result)
+	}
+	if warning := firstDiagnostic(result.Warnings, "taskjuggler_report_no_candidate_changes"); warning == nil || !strings.Contains(warning.Message, "1 unchanged rows, 0 fixed rows") {
+		t.Fatalf("no-change warning = %#v", warning)
+	}
+}
+
+func TestImportTaskJugglerResultChangedStartOnlyUsesPreviousValue(t *testing.T) {
+	projectDir := copyCmdProjectFixture(t)
+	setCmdTaskJugglerTaskDates(t, projectDir, "ready", "2026-07-06", "2026-07-13")
+	runDir := t.TempDir()
+	writeTaskJugglerImportFixture(t, runDir, `"Id";"Name";"Start";"End";"Effort";"Effort Left";"Resources";"Status"
+"task_op_1234";"Implement validation command";"2026-07-08";"2026-07-13";1.0;0.0;"Ivan (resource_human_ivan)";"done"
+`)
+
+	result, err := importTaskJugglerResult(context.Background(), taskJugglerImportRequest{
+		ProjectPath: projectDir,
+		RunDir:      runDir,
+		DryRun:      true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.CandidateChanges != 1 || result.UnchangedRows != 0 || result.FixedRows != 0 {
+		t.Fatalf("unexpected changed result: %#v", result)
+	}
+	change := result.Candidate.Changes[0]
+	if change.Path != "tasks.task.op.1234.planned_start" || change.Value != "2026-07-08" || change.PreviousValue != "2026-07-06" {
+		t.Fatalf("change = %#v", change)
+	}
+	if len(result.ScenarioPreview.Changes) != 1 {
+		t.Fatalf("scenario changes = %#v, want one", result.ScenarioPreview.Changes)
+	}
+}
+
+func TestImportTaskJugglerResultSkipsFinishedTaskRow(t *testing.T) {
+	projectDir := copyCmdProjectFixture(t)
+	setCmdTaskJugglerTaskDates(t, projectDir, "accepted", "2026-07-06", "2026-07-13")
+	runDir := t.TempDir()
+	writeTaskJugglerImportFixture(t, runDir, `"Id";"Name";"Start";"End";"Effort";"Effort Left";"Resources";"Status"
+"task_op_1234";"Implement validation command";"2026-07-01";"2026-07-02";0.0;0.0;"";"done"
+`)
+
+	result, err := importTaskJugglerResult(context.Background(), taskJugglerImportRequest{
+		ProjectPath: projectDir,
+		RunDir:      runDir,
+		DryRun:      true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.CandidateChanges != 0 || result.UnchangedRows != 0 || result.FixedRows != 1 {
+		t.Fatalf("unexpected fixed result: %#v", result)
+	}
+	if warning := firstDiagnostic(result.Warnings, "taskjuggler_report_no_candidate_changes"); warning == nil || !strings.Contains(warning.Message, "0 unchanged rows, 1 fixed rows") {
+		t.Fatalf("no-change warning = %#v", warning)
+	}
+}
+
+func TestTaskJugglerImportResultCountsJSONAndMarkdown(t *testing.T) {
+	projectDir := copyCmdProjectFixture(t)
+	setCmdTaskJugglerTaskDates(t, projectDir, "ready", "2026-07-06", "2026-07-13")
+	runDir := t.TempDir()
+	writeTaskJugglerImportFixture(t, runDir, `"Id";"Name";"Start";"End";"Effort";"Effort Left";"Resources";"Status"
+"task_op_1234";"Implement validation command";"2026-07-08";"2026-07-13";1.0;0.0;"Ivan (resource_human_ivan)";"done"
+`)
+
+	stdout, stderr := tempOutputFiles(t)
+	if code := run([]string{"taskjuggler", "import-result", "--project", projectDir, "--run-dir", runDir, "--dry-run", "--format", "json"}, stdout, stderr); code != exitSuccess {
+		t.Fatalf("json exit = %d, stderr = %s", code, readFileString(t, stderr.Name()))
+	}
+	env := readCLIEnvelope(t, stdout.Name())
+	assertResultNumberField(t, env, "rows_read", 1)
+	assertResultNumberField(t, env, "candidate_changes", 1)
+	assertResultNumberField(t, env, "unchanged_rows", 0)
+	assertResultNumberField(t, env, "fixed_rows", 0)
+
+	stdout, stderr = tempOutputFiles(t)
+	if code := run([]string{"taskjuggler", "import-result", "--project", projectDir, "--run-dir", runDir, "--dry-run", "--format", "markdown"}, stdout, stderr); code != exitSuccess {
+		t.Fatalf("markdown exit = %d, stderr = %s", code, readFileString(t, stderr.Name()))
+	}
+	if got := readFileString(t, stdout.Name()); !strings.Contains(got, "Rows read: 1 | Candidate changes: 1 | Unchanged rows: 0 | Fixed rows: 0") {
+		t.Fatalf("markdown counts missing from:\n%s", got)
+	}
+}
+
+func TestImportTaskJugglerResultWriteCandidateRefusesNoChanges(t *testing.T) {
+	projectDir := copyCmdProjectFixture(t)
+	setCmdTaskJugglerTaskDates(t, projectDir, "ready", "2026-07-06", "2026-07-13")
+	runDir := t.TempDir()
+	writeTaskJugglerImportFixture(t, runDir, `"Id";"Name";"Start";"End";"Effort";"Effort Left";"Resources";"Status"
+"task_op_1234";"Implement validation command";"2026-07-06";"2026-07-13";1.0;0.0;"Ivan (resource_human_ivan)";"done"
+`)
+
+	result, err := importTaskJugglerResult(context.Background(), taskJugglerImportRequest{
+		ProjectPath:    projectDir,
+		RunDir:         runDir,
+		WriteCandidate: true,
+		ActorID:        "actor.human.operator",
+	})
+	if !errors.Is(err, app.ErrValidationFailed) {
+		t.Fatalf("error = %v, want ErrValidationFailed", err)
+	}
+	if len(result.WrittenFiles) != 0 || result.Applied {
+		t.Fatalf("no-change write result = %#v", result)
+	}
+	if warning := firstDiagnostic(result.Warnings, "taskjuggler_report_no_candidate_changes"); warning == nil || !strings.Contains(warning.Message, "1 unchanged rows, 0 fixed rows") {
+		t.Fatalf("no-change warning = %#v", warning)
+	}
 }
 
 func TestImportTaskJugglerResultRequiresDryRun(t *testing.T) {
@@ -3472,6 +3605,24 @@ func writeTaskJugglerImportFixture(t *testing.T, runDir, report string) {
 	}
 	if err := writeTextFile(filepath.Join(runDir, "reports", "replan-task-schedule.csv"), report); err != nil {
 		t.Fatalf("write report: %v", err)
+	}
+}
+
+func setCmdTaskJugglerTaskDates(t *testing.T, projectDir, status, start, finish string) {
+	t.Helper()
+	path := filepath.Join(projectDir, "canonical", "tasks.yaml")
+	content, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	old := "    tracking_status: ready\n    assignee_hint:"
+	replacement := "    tracking_status: " + status + "\n    planned_start: " + start + "\n    planned_finish: " + finish + "\n    assignee_hint:"
+	updated := strings.Replace(string(content), old, replacement, 1)
+	if updated == string(content) {
+		t.Fatalf("task fixture marker not found in %s", path)
+	}
+	if err := os.WriteFile(path, []byte(updated), 0o644); err != nil {
+		t.Fatal(err)
 	}
 }
 

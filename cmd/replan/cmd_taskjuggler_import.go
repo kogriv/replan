@@ -23,6 +23,8 @@ type TaskJugglerImportResult struct {
 	NotBefore        string                       `json:"not_before,omitempty"`
 	RowsRead         int                          `json:"rows_read"`
 	CandidateChanges int                          `json:"candidate_changes"`
+	UnchangedRows    int                          `json:"unchanged_rows"`
+	FixedRows        int                          `json:"fixed_rows"`
 	Candidate        TaskJugglerScenarioCandidate `json:"candidate"`
 	ScenarioPreview  domain.Scenario              `json:"scenario_preview,omitempty"`
 	ProposalPreview  domain.Proposal              `json:"proposal_preview,omitempty"`
@@ -45,7 +47,7 @@ type TaskJugglerCandidateChange struct {
 	Op            string `json:"op"`
 	Path          string `json:"path"`
 	Value         any    `json:"value,omitempty"`
-	PreviousValue any    `json:"previous_value,omitempty"`
+	PreviousValue any    `json:"previous_value"`
 }
 
 func runTaskJugglerImportResult(args []string, stdout, stderr *os.File) int {
@@ -78,7 +80,36 @@ func runTaskJugglerImportResult(args []string, stdout, stderr *os.File) int {
 		Warnings:    result.Warnings,
 		Errors:      result.Errors,
 	}
-	return printScenarioEnvelope(stdout, stderr, *format, env, err)
+	return printCommandResult(stdout, stderr, *format, result, env, err, func(out *os.File, result TaskJugglerImportResult) error {
+		return writeTaskJugglerImportResult(out, *format, result, err == nil && len(result.Errors) == 0)
+	})
+}
+
+func writeTaskJugglerImportResult(out *os.File, format string, result TaskJugglerImportResult, ok bool) error {
+	if format == "markdown" {
+		if _, err := fmt.Fprintln(out, "# RePlan taskjuggler import-result"); err != nil {
+			return err
+		}
+		status := "FAILED"
+		if ok {
+			status = "OK"
+		}
+		if _, err := fmt.Fprintf(out, "\nStatus: %s\n\nRows read: %d | Candidate changes: %d | Unchanged rows: %d | Fixed rows: %d\n", status, result.RowsRead, result.CandidateChanges, result.UnchangedRows, result.FixedRows); err != nil {
+			return err
+		}
+		var diagnostics strings.Builder
+		writeDiagnosticsMarkdown(&diagnostics, result.Warnings, result.Errors)
+		_, err := fmt.Fprint(out, diagnostics.String())
+		return err
+	}
+	status := "failed"
+	if ok {
+		status = "ok"
+	}
+	if _, err := fmt.Fprintf(out, "taskjuggler import-result %s\nrows_read=%d candidate_changes=%d unchanged_rows=%d fixed_rows=%d\n", status, result.RowsRead, result.CandidateChanges, result.UnchangedRows, result.FixedRows); err != nil {
+		return err
+	}
+	return writeDiagnosticsText(out, result.Warnings, result.Errors)
 }
 
 type taskJugglerImportRequest struct {
@@ -223,9 +254,9 @@ func (s *taskJugglerImportState) loadWorkspace() error {
 }
 
 func (s *taskJugglerImportState) buildCandidateChanges() error {
-	taskIDs := map[string]struct{}{}
+	tasksByID := make(map[string]domain.Task, len(s.workspace.Tasks))
 	for _, task := range s.workspace.Tasks {
-		taskIDs[task.ID] = struct{}{}
+		tasksByID[task.ID] = task
 	}
 	for _, row := range s.rows {
 		replanTaskID, ok := s.taskIDMap[row.ID]
@@ -238,7 +269,8 @@ func (s *taskJugglerImportState) buildCandidateChanges() error {
 			})
 			continue
 		}
-		if _, exists := taskIDs[replanTaskID]; !exists {
+		task, exists := tasksByID[replanTaskID]
+		if !exists {
 			s.result.Warnings = append(s.result.Warnings, app.Diagnostic{
 				Code:     "taskjuggler_report_task_missing",
 				Message:  fmt.Sprintf("mapped RePlan task %s is not present in the project", replanTaskID),
@@ -247,28 +279,36 @@ func (s *taskJugglerImportState) buildCandidateChanges() error {
 			})
 			continue
 		}
-		if row.Start != "" {
+		if app.TaskJugglerTaskFixedByExport(s.workspace, task) {
+			s.result.FixedRows++
+			continue
+		}
+		changesBefore := len(s.result.Candidate.Changes)
+		if row.Start != "" && row.Start != task.PlannedStart {
 			s.result.Candidate.Changes = append(s.result.Candidate.Changes, TaskJugglerCandidateChange{
 				Op:            "set",
 				Path:          fmt.Sprintf("tasks.%s.planned_start", replanTaskID),
 				Value:         row.Start,
-				PreviousValue: "",
+				PreviousValue: task.PlannedStart,
 			})
 		}
-		if row.End != "" {
+		if row.End != "" && row.End != task.PlannedFinish {
 			s.result.Candidate.Changes = append(s.result.Candidate.Changes, TaskJugglerCandidateChange{
 				Op:            "set",
 				Path:          fmt.Sprintf("tasks.%s.planned_finish", replanTaskID),
 				Value:         row.End,
-				PreviousValue: "",
+				PreviousValue: task.PlannedFinish,
 			})
+		}
+		if len(s.result.Candidate.Changes) == changesBefore {
+			s.result.UnchangedRows++
 		}
 	}
 	s.result.CandidateChanges = len(s.result.Candidate.Changes)
 	if s.result.CandidateChanges == 0 {
 		s.result.Warnings = append(s.result.Warnings, app.Diagnostic{
 			Code:     "taskjuggler_report_no_candidate_changes",
-			Message:  "TaskJuggler report produced no candidate changes",
+			Message:  fmt.Sprintf("TaskJuggler report produced no candidate changes (%d unchanged rows, %d fixed rows)", s.result.UnchangedRows, s.result.FixedRows),
 			Severity: "warning",
 		})
 		if s.req.WriteCandidate {

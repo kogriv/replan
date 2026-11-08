@@ -3137,8 +3137,15 @@ Current import-result rules:
 - command parses TaskJuggler CSV with semicolon delimiter;
 - command maps TaskJuggler task ids back to RePlan task ids through the mapping
   artifact;
-- command returns preview-only scenario candidate changes for task planned
-  start and planned finish;
+- command returns preview-only scenario candidate changes only when a reported
+  task planned start or planned finish differs from the task's current value;
+  each change includes the current value as `previous_value`, or an empty
+  string when the task has no current date;
+- rows for tasks exported as fixed start/end dates without effort are skipped:
+  accepted and done tasks, review-ready tasks with no remaining work in loading
+  demands, and cancelled tasks with planned or actual dates;
+- the result reports `rows_read`, `candidate_changes`, `unchanged_rows` and
+  `fixed_rows`; Markdown and text put all four counts on one line;
 - command reads those dates from TaskJuggler and does not recalculate effort;
 - when the run manifest names calibrations, the import result repeats them in
   `calibrations`;
@@ -3147,6 +3154,9 @@ Current import-result rules:
 - command does not mutate canonical task/resource/current-plan state;
 - command does not import resource assignments, statuses, effort values,
   dependencies, actuals or source-system write-back.
+- when no changes remain, `taskjuggler_report_no_candidate_changes` reports
+  the unchanged-row and fixed-row counts; `--write-candidate` refuses to write
+  empty scenario and proposal candidates.
 
 Design:
 

@@ -294,8 +294,19 @@ Both modes must not write back to OpenProject, Plane, GitHub or GitLab.
 
 Candidate changes allowed in the first import dry-run:
 
-- task planned start date;
-- task planned finish date.
+- task planned start date when it differs from the current RePlan value;
+- task planned finish date when it differs from the current RePlan value.
+
+Each candidate change records the current RePlan date as `previous_value`, or
+the empty string when the task has no current value. A row whose reported dates
+produce no changes counts once in `unchanged_rows`.
+
+The importer skips rows for tasks that the export writes as fixed `start` and
+`end` without effort: accepted and done tasks, review-ready tasks with no
+remaining work in loading demands, and cancelled tasks with planned or actual
+dates. These rows count in `fixed_rows`, even when the fixed actual-derived
+dates differ from the task's planned dates. Export and import use the same
+application helper for this rule.
 
 Candidate changes not allowed in the first import dry-run:
 
@@ -319,6 +330,10 @@ Result shape:
   "run_dir": "exports/taskjuggler/scenario.ivan-capacity-6/run.20260713T200000Z",
   "report_path": "reports/replan-task-schedule.csv",
   "mapping_path": "taskjuggler.mapping.json",
+  "rows_read": 1,
+  "candidate_changes": 2,
+  "unchanged_rows": 0,
+  "fixed_rows": 0,
   "candidate": {
     "id": "scenario.taskjuggler.20260713T200000Z",
     "source": "taskjuggler",
@@ -344,6 +359,11 @@ Result shape:
 
 Exact canonical paths may change only if the canonical date fields are renamed
 in the canonical model.
+
+Markdown and text render `rows_read`, `candidate_changes`, `unchanged_rows` and
+`fixed_rows` together on one line. If no changes remain,
+`taskjuggler_report_no_candidate_changes` includes the unchanged and fixed row
+counts, and write-candidate mode refuses to write an empty candidate.
 
 ## Diagnostics
 

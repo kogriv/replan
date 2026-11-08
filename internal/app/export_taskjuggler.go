@@ -612,7 +612,7 @@ func taskJugglerTaskSchedules(ws domain.Workspace, demandIDsByTask map[string][]
 	schedules := make(map[string]taskJugglerTaskSchedule, len(ws.Tasks))
 	withoutDates := []string{}
 	for _, task := range ws.Tasks {
-		finished := taskJugglerTaskFinished(task, ws.ResourceDemands)
+		finished := TaskJugglerTaskFixedByExport(ws, task)
 		actual := deriveTaskActualWindow(ws, task.ID, demandIDsByTask[task.ID], false)
 		windowStart := task.PlannedStart
 		if actual.Start != "" && (windowStart == "" || actual.Start < windowStart) {
@@ -624,12 +624,6 @@ func taskJugglerTaskSchedules(ws domain.Workspace, demandIDsByTask map[string][]
 		}
 		if schedule.finish == "" {
 			schedule.finish = task.PlannedFinish
-		}
-		// A cancelled task with dates stays where it was, so a run does not
-		// propose moving it; one without dates is exported as before.
-		if strings.EqualFold(strings.TrimSpace(task.TrackingStatus), "cancelled") && (schedule.start != "" || schedule.finish != "") {
-			finished = true
-			schedule.finished = true
 		}
 		if finished {
 			if schedule.start == "" && schedule.finish == "" {
@@ -669,17 +663,32 @@ func taskJugglerTaskSchedules(ws domain.Workspace, demandIDsByTask map[string][]
 	return schedules
 }
 
-func taskJugglerTaskFinished(task domain.Task, demands []domain.ResourceDemand) bool {
+// TaskJugglerTaskFixedByExport reports whether TaskJuggler receives a task as
+// fixed start/end dates without effort. Importers must skip these rows because
+// they only echo dates selected by the export.
+func TaskJugglerTaskFixedByExport(ws domain.Workspace, task domain.Task) bool {
 	switch strings.ToLower(strings.TrimSpace(task.TrackingStatus)) {
 	case "accepted", "done":
 		return true
 	case "review_ready":
-		for _, demand := range demands {
+		for _, demand := range ws.ResourceDemands {
 			if demand.TaskRef.ID == task.ID && domain.DemandLoads(demand.Status) && taskJugglerDemandHasOpenWork(demand) {
 				return false
 			}
 		}
 		return true
+	case "cancelled":
+		if task.PlannedStart != "" || task.PlannedFinish != "" {
+			return true
+		}
+		demandIDs := make([]string, 0, len(task.ResourceDemands))
+		for _, demand := range ws.ResourceDemands {
+			if demand.TaskRef.ID == task.ID {
+				demandIDs = append(demandIDs, demand.ID)
+			}
+		}
+		actual := deriveTaskActualWindow(ws, task.ID, demandIDs, false)
+		return actual.Start != "" || actual.Finish != ""
 	default:
 		return false
 	}
