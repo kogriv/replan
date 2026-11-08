@@ -1225,3 +1225,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.consumer-contract-public-surfaces
+  - id: evidence.self.start-move-consumer-projects-to-public-surfaces
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T13:30:46+07:00"
+    summary: Started on 2026-11-08, a day before its planned date, right after the consumer contract was ready; estimate 1 agent hour frozen in baseline.2026-11-08.consumer-contract.
+    targets:
+      - kind: task
+        id: task.self.move-consumer-projects-to-public-surfaces

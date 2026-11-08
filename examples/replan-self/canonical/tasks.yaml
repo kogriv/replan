@@ -6783,9 +6783,9 @@ tasks:
     title: Move the consumer projects onto RePlan's public surfaces
     description: 'Agreed with the operator on 2026-11-08: after the consumer contract is published, give each project that plans with RePlan a concrete list of where it reaches under RePlan''s hood and what replaces each case (a local kit of the current release instead of helpers run from a RePlan checkout, its own settings and token instead of RePlan''s settings file, CLI commands instead of generated or hand-edited canonical YAML, the description helper instead of a private copy), refresh their kits to the current release where they keep one, and plan every capability they still lack as a RePlan task. Changes in those projects are made by their own sessions.'
     type: operations
-    tracking_status: not_started
-    planned_start: "2026-11-09"
-    planned_finish: "2026-11-09"
+    tracking_status: in_progress
+    planned_start: "2026-11-08"
+    planned_finish: "2026-11-08"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer
