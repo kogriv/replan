@@ -16,6 +16,9 @@ It contains:
 - `LICENSE` and `NOTICE.md`: the Apache-2.0 licence and repository notice;
 - `VERSION`: the build this archive was made from.
 
+Use RePlan only through these commands and helpers; "Use RePlan as a tool"
+below says what that means and what to do when a command is missing.
+
 ## What you need
 
 - Linux on x86-64, `sh` and `bash`;
@@ -351,6 +354,79 @@ so a what-if cannot be published to OpenProject as the plan.
 `REPLAN_PROJECT` is set only if you export it; the helpers read it from
 `.env.local` without that.
 
+## Use RePlan as a tool
+
+A project that plans with RePlan uses it like any installed tool: through
+the `bin/replan` commands and the `scripts/*.sh` helpers of this kit, never
+through RePlan's source code. Those surfaces are what each release keeps
+working and what its release notes describe; anything else can change in
+any commit without notice.
+
+Get RePlan from a release:
+
+- Use the agent kit of a tagged release, or for the CLI alone a release
+  archive or `go install` of the RePlan module at a release tag, as the
+  RePlan repository's README shows. `bin/replan version` says which build
+  you run; write it down in your project's notes.
+- Do not run helpers from a checkout of the RePlan repository. They read
+  that checkout's own settings file and default plan, and they change with
+  every commit.
+- To upgrade, unpack the new kit beside the old one, move your `.env.local`
+  into it, and keep the old directory until your dry runs pass.
+
+Supported:
+
+- `bin/replan` commands. With `--format json` each prints one JSON document
+  with `ok`, `result`, `warnings` and `errors`, and every warning and error
+  carries a stable `code`. Exit codes are listed in the CLI spec,
+  `docs/spec/cli.md` in the RePlan repository.
+- `scripts/*.sh` helpers. Each prints one JSON document, reads its settings
+  from the environment or `.env.local` (or the file `REPLAN_ENV_FILE`
+  names), and writes only with `REPLAN_APPLY=1`.
+- The project files. Their format is described in
+  `docs/spec/canonical-model.md` in the RePlan repository; your own tools may
+  read them. Write them through commands.
+
+Not supported:
+
+- Importing RePlan's Go packages or calling the modules under `scripts/lib/`
+  from your own code.
+- Reading the settings file or token of RePlan or of another project. Each
+  project keeps its own `.env.local` with its own OpenProject token.
+- Writing the project's YAML from a generator of your own or rewriting
+  whole files. Such writes skip the project lock, the audit log, the seals
+  of baselines and calibrations, and the file style; a passing `validate`
+  does not make them safe.
+- Editing YAML by hand where a command exists. Hand edits remain only for
+  what no command covers yet: availability windows, resource pools and
+  removing a resource; run `bin/replan validate` after each.
+- Calling the OpenProject API yourself for something a helper does.
+
+A script of your own is fine when it only calls these commands and helpers
+and reads their JSON, for example a list of tasks fed to `task add` one by
+one.
+
+| Need | Use |
+| --- | --- |
+| Start a plan | `bin/replan init`, `bin/replan resource add`, `bin/replan capacity set` |
+| Add tasks | `bin/replan task add`, or an import of your tracker with `bin/replan import openproject` and `bin/replan import accept` |
+| Change a task's title or description | `bin/replan task set-title`, `bin/replan task set-description`, then `scripts/push-openproject-description-drift.sh` |
+| Change demands or move work to another resource | `bin/replan demand add`, `bin/replan demand set`, `bin/replan demand move` |
+| Add dependencies and deadlines | `bin/replan dependency add`, `bin/replan deadline add`, each one item or a `--from-file` batch |
+| Set dates | `bin/replan task set-dates`, then `scripts/push-openproject-date-drift.sh` |
+| Draft dates from capacity and load | `bin/replan taskjuggler run`, `bin/replan taskjuggler import-result`, then review the scenario with `bin/replan scenario diff` and `bin/replan scenario apply` (needs TaskJuggler's `tj3`) |
+| Record work and accept a task | `bin/replan actual add-consumption`, `bin/replan actual add-status`, `scripts/accept-task.sh` |
+| Create work packages and relations | `scripts/apply-openproject-bootstrap.sh`, `scripts/apply-openproject-relations.sh` |
+| Change one work package | `scripts/openproject-work-package-toolkit.sh` |
+| Read and edit the project wiki | `scripts/openproject-wiki.sh` |
+| Bring files written by an older tool into the current style | `bin/replan project format` |
+
+When something is missing, do not work around RePlan's internals. Open an
+issue in the RePlan repository, or tell whoever gave you this kit, saying
+what you need, which command you tried and what its JSON said. Until the command exists,
+keep the workaround small and in your own repository, use your own token,
+and note it so it can be removed later.
+
 ## Surface map
 
 Use one primary surface for each loop step. Commands in the kit are relative
@@ -360,7 +436,7 @@ to its root. A write to OpenProject or the bindings file is a dry run unless
 | Loop step | Command | Note |
 | --- | --- | --- |
 | Inspect kit binary | `bin/replan version` | Reports the kit version, source commit, reproducible build date, toolchain, target and supported project format without loading a project. |
-| Plan and validate | `bin/replan validate "$REPLAN_PROJECT"` | Edit the canonical plan, validate it, then use `next`, `workload` and `report` to inspect it. |
+| Plan and validate | `bin/replan validate "$REPLAN_PROJECT"` | Change the plan with the commands below, validate it, then use `next`, `workload` and `report` to inspect it. Hand edits only where no command exists; see "Use RePlan as a tool". |
 | Upgrade the RePlan file format | `bin/replan project migrate --project "$REPLAN_PROJECT" --actor <id> --dry-run` | Reviews the ordered format steps and planned writes; replace `--dry-run` with `--apply`. It never downgrades. |
 | Format canonical YAML | `bin/replan project format --project "$REPLAN_PROJECT" --actor <id> --reason <text> --dry-run` | Lists files and changed-line counts; replace `--dry-run` with `--apply` after review. It refuses any data-changing round trip. |
 | Recover an interrupted RePlan write | `bin/replan project recover --project "$REPLAN_PROJECT" --dry-run` | Lists and validates the pending file set without writing; replace `--dry-run` with `--apply` to roll it forward under the project lock. |

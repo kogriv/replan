@@ -92,6 +92,24 @@ grep -rhoE 'scripts/[a-z-]+\.sh' "$KIT/scripts" "$KIT/README.md" | sort -u > "$W
 while IFS= read -r helper; do
   [ -x "$KIT/$helper" ] || fail "$helper is named in the kit but not in it"
 done < "$WORK_DIR/helpers"
+
+# The guide's public command names come only from the unpacked kit. The
+# binary's own usage is the command inventory; the archive is the helper
+# inventory. Keep library implementation files out of operator commands.
+"$KIT/bin/replan" --help > "$WORK_DIR/replan-help.txt" \
+  || fail "the kit binary did not print its usage"
+check
+command_issues="$(PYTHONPATH="$ROOT_DIR/scripts/lib" python3 -m check_agent_kit_readme commands \
+  "$KIT/README.md" --help-output "$WORK_DIR/replan-help.txt" || true)"
+[ -z "$command_issues" ] || fail "$command_issues"
+check
+helper_issues="$(PYTHONPATH="$ROOT_DIR/scripts/lib" python3 -m check_agent_kit_readme helpers \
+  "$KIT/README.md" --kit "$KIT" || true)"
+[ -z "$helper_issues" ] || fail "$helper_issues"
+check
+lib_issues="$(PYTHONPATH="$ROOT_DIR/scripts/lib" python3 -m check_agent_kit_readme lib \
+  "$KIT/README.md" || true)"
+[ -z "$lib_issues" ] || fail "$lib_issues"
 check
 for script in "$KIT"/scripts/*.sh; do
   sh -n "$script" 2>/dev/null || bash -n "$script" || fail "syntax: $script"

@@ -68,7 +68,10 @@ v0.1.0 comes first on your `PATH`: find it with `which -a replan` and remove
 or reinstall it.
 
 To start a plan of your own, follow [Your first project](docs/quickstart.md):
-an empty directory to a weekly workload report in a few commands.
+an empty directory to a weekly workload report in a few commands. A project
+that plans with RePlan uses a release through its commands and helpers, not
+its source; [Use RePlan as a tool](docs/agent-kit/README.md#use-replan-as-a-tool)
+says what is supported and how to ask for a missing command.
 
 To run the examples below, work from a clone:
 
