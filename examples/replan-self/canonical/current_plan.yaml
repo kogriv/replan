@@ -452,6 +452,10 @@ current_plan:
     - kind: task
       id: task.self.refresh-agent-kits-v0-4-0
     - kind: task
+      id: task.self.consumer-contract-public-surfaces
+    - kind: task
+      id: task.self.move-consumer-projects-to-public-surfaces
+    - kind: task
       id: task.self.fix-first-project-defects
     - kind: task
       id: task.self.implement-replan-init-and-resource-commands

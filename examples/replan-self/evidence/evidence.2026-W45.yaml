@@ -1181,3 +1181,36 @@ evidence:
     targets:
       - kind: task
         id: task.self.refresh-agent-kits-v0-4-0
+  - id: evidence.self.plan-consumer-contract-public-surfaces
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T12:47:42+07:00"
+    summary: The operator asked on 2026-11-08 that projects planning with RePlan use it as a finished tool through its commands and helpers, not its internals, and that the reference they need be kept current in the public repository. Agreement approves the estimate (contract and check 2 agent hours, moving the consumer projects 1).
+    targets:
+      - kind: task
+        id: task.self.consumer-contract-public-surfaces
+  - id: evidence.self.plan-move-consumer-projects-to-public-surfaces
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T12:47:42+07:00"
+    summary: The operator asked on 2026-11-08 that projects planning with RePlan use it as a finished tool through its commands and helpers, not its internals, and that the reference they need be kept current in the public repository. Agreement approves the estimate (contract and check 2 agent hours, moving the consumer projects 1).
+    targets:
+      - kind: task
+        id: task.self.move-consumer-projects-to-public-surfaces
+  - id: evidence.self.start-consumer-contract-public-surfaces
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T12:48:53+07:00"
+    summary: Started on 2026-11-08 right after planning; estimate 2 agent hours frozen in baseline.2026-11-08.consumer-contract, split into agent 1.25 (contract text, review) and Codex 0.75 (the reference check). Investigating how the consumer projects use RePlan and planning, 12:41:57 to 12:48:53 by tool timestamps, is booked to this task.
+    targets:
+      - kind: task
+        id: task.self.consumer-contract-public-surfaces

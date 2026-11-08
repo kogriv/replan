@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 227,
-  "count": 227,
+  "total": 229,
+  "count": 229,
   "_embedded": {
     "elements": [
       {
@@ -6577,6 +6577,64 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2327"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2328,
+        "subject": "Write the consumer contract for using RePlan through its public surfaces",
+        "description": {
+          "raw": "Agreed with the operator on 2026-11-08: projects that plan with RePlan must use it as a finished tool through its public surfaces (the replan CLI with its JSON results and exit codes, the kit helpers and their settings, the file format spec), not through its internals. Write the contract in the agent kit README: where to get RePlan (a release or kit, never a source checkout of the repository), what is supported, what is not (importing internal Go packages, calling scripts/lib modules, running helpers from a RePlan checkout, reading RePlan's own settings files, generating or rewriting canonical YAML wholesale, hand edits where a command exists), a need-to-command table, and how to ask for a missing command instead of working around it. Fix the surface map rows that still tell agents to edit the canonical plan. Add a check that keeps the reference current: every replan command and helper the README names must exist in the CLI usage and the kit. The repository is public: no consumer names, hosts or private details."
+        },
+        "status": {
+          "name": "In progress"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-08",
+        "dueDate": "2026-11-08",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2328"
+          },
+          "status": {
+            "title": "In progress"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2329,
+        "subject": "Move the consumer projects onto RePlan's public surfaces",
+        "description": {
+          "raw": "Agreed with the operator on 2026-11-08: after the consumer contract is published, give each project that plans with RePlan a concrete list of where it reaches under RePlan's hood and what replaces each case (a local kit of the current release instead of helpers run from a RePlan checkout, its own settings and token instead of RePlan's settings file, CLI commands instead of generated or hand-edited canonical YAML, the description helper instead of a private copy), refresh their kits to the current release where they keep one, and plan every capability they still lack as a RePlan task. Changes in those projects are made by their own sessions."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-09",
+        "dueDate": "2026-11-09",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2329"
           },
           "status": {
             "title": "New"

@@ -6750,3 +6750,59 @@ tasks:
         object_type: work_package
         object_id: "2327"
         url: https://op.example.internal/work_packages/2327
+  - id: task.self.consumer-contract-public-surfaces
+    title: Write the consumer contract for using RePlan through its public surfaces
+    description: 'Agreed with the operator on 2026-11-08: projects that plan with RePlan must use it as a finished tool through its public surfaces (the replan CLI with its JSON results and exit codes, the kit helpers and their settings, the file format spec), not through its internals. Write the contract in the agent kit README: where to get RePlan (a release or kit, never a source checkout of the repository), what is supported, what is not (importing internal Go packages, calling scripts/lib modules, running helpers from a RePlan checkout, reading RePlan''s own settings files, generating or rewriting canonical YAML wholesale, hand edits where a command exists), a need-to-command table, and how to ask for a missing command instead of working around it. Fix the surface map rows that still tell agents to edit the canonical plan. Add a check that keeps the reference current: every replan command and helper the README names must exist in the CLI usage and the kit. The repository is public: no consumer names, hosts or private details.'
+    type: documentation
+    tracking_status: in_progress
+    planned_start: "2026-11-08"
+    planned_finish: "2026-11-08"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.consumer-contract-public-surfaces.agent
+      - kind: resource_demand
+        id: resource_demand.consumer-contract-public-surfaces.codex
+      - kind: resource_demand
+        id: resource_demand.consumer-contract-public-surfaces.maintainer
+      - kind: resource_demand
+        id: resource_demand.consumer-contract-public-surfaces.local-dev
+      - kind: resource_demand
+        id: resource_demand.consumer-contract-public-surfaces.ci
+    tags:
+      - docs
+      - oss
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2328"
+        url: https://op.example.internal/work_packages/2328
+  - id: task.self.move-consumer-projects-to-public-surfaces
+    title: Move the consumer projects onto RePlan's public surfaces
+    description: 'Agreed with the operator on 2026-11-08: after the consumer contract is published, give each project that plans with RePlan a concrete list of where it reaches under RePlan''s hood and what replaces each case (a local kit of the current release instead of helpers run from a RePlan checkout, its own settings and token instead of RePlan''s settings file, CLI commands instead of generated or hand-edited canonical YAML, the description helper instead of a private copy), refresh their kits to the current release where they keep one, and plan every capability they still lack as a RePlan task. Changes in those projects are made by their own sessions.'
+    type: operations
+    tracking_status: not_started
+    planned_start: "2026-11-09"
+    planned_finish: "2026-11-09"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.move-consumer-projects-to-public-surfaces.agent
+      - kind: resource_demand
+        id: resource_demand.move-consumer-projects-to-public-surfaces.maintainer
+      - kind: resource_demand
+        id: resource_demand.move-consumer-projects-to-public-surfaces.local-dev
+      - kind: resource_demand
+        id: resource_demand.move-consumer-projects-to-public-surfaces.ci
+    tags:
+      - dogfood
+      - oss
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2329"
+        url: https://op.example.internal/work_packages/2329
