@@ -13,11 +13,14 @@ going. The task-level plan is RePlan's own project,
   weekly report, and the smoke test runs it.
 - **Model and storage.** Tasks, resources of any kind (people, agents, roles,
   environments, quotas, budgets), multi-resource demands, capacities and
-  availability, dependencies and non-scheduling links, all in YAML files that
-  live in Git. Writes to one project are serialized, and an interrupted write
-  is completed by the next one.
+  availability, dependencies and non-scheduling links, all in YAML files of
+  one style (`replan project format`) that live in Git. Tasks, demands,
+  dependencies, deadlines and names are edited with audited commands. Writes
+  to one project are serialized, and an interrupted write is completed by
+  the next one.
 - **Workload.** Weekly load per resource and unit, overloads, missing-data and
-  dependency warnings.
+  dependency warnings; agent load uses the approved calibration, `--raw`
+  the estimates as written.
 - **Scenarios.** What-if overlays for capacity, estimates, assignees and dates,
   with diffs against the current plan and an explicit apply.
 - **Proposals and audit.** Suggested changes that a person accepts or rejects;
@@ -26,20 +29,23 @@ going. The task-level plan is RePlan's own project,
 - **Tracking.** Actual consumption, remaining work, demand lifecycle and status
   changes, each backed by evidence; a mis-booked actual is corrected by an
   audited record.
-- **Baselines.** Sealed snapshots of the approved estimates, and a report of
-  how far the actuals drifted from them.
+- **Baselines.** Sealed snapshots of the approved estimates, of the whole plan
+  or of newly planned tasks, and a report of how far the actuals drifted
+  from them.
 - **Calibrated estimates.** A sealed, human-approved correction factor per
   resource group, or per task-size band once a band has enough tasks,
-  computed from what baselined tasks really took, shown next to new estimates
-  and applied only through a scenario.
+  computed from what baselined tasks really took, or a sealed starting
+  factor with its source for a new project. It is shown next to new
+  estimates, used for agent load and drafted dates, and written into the
+  plan only through a scenario.
 - **Reports.** Weekly (Markdown, JSON, CSV, HTML), project state, next actions
-  and a static HTML dashboard with workload, scenario, proposal and estimate
-  pages.
+  with what people are planned to do this week, and a static HTML dashboard
+  with workload, scenario, proposal and estimate pages.
 - **OpenProject.** Staged read-only import, drift checks, dry-run-first
-  write-back of dates, status and titles, and a read-only plugin with a
-  resource view and a per-task panel. The helpers also work on a project
-  tracked in OpenProject alone: work packages, comments, relations and
-  parents by number, with secrets read from files.
+  write-back of dates, status, titles and descriptions, and a read-only
+  plugin with a resource view and a per-task panel. The helpers also work
+  on a project tracked in OpenProject alone: work packages, comments,
+  relations and parents by number, with secrets read from files.
 - **GitHub Issues.** Read-only import from an exported file or over the API
   into the same staged review as OpenProject.
 - **TaskJuggler.** Optional export, run and import of the result as a scenario

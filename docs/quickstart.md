@@ -11,11 +11,12 @@ Check which binary you have before you start:
 replan version
 ```
 
-It prints the release, for example `replan v0.3.0 (...)`, and the project
-format version. If it answers `unknown command: version`, an old binary
-from before v0.1.0 comes first on your `PATH` (an early `go install` leaves
-one in `$(go env GOPATH)/bin`); it lacks `init`, `task` and `baseline`.
-Find it with `which -a replan`, then remove it or install again.
+It prints the release, for example `replan v0.4.0 (...)`, and the project
+format version; this page needs v0.4.0 or newer. If it answers
+`unknown command: version`, an old binary from before v0.1.0 comes first on
+your `PATH` (an early `go install` leaves one in `$(go env GOPATH)/bin`); it
+lacks `init`, `task` and `baseline`. Find it with `which -a replan`, then
+remove it or install again.
 
 <!-- The smoke test runs every `sh` block of this page in order, in one shell,
 in a temporary directory, and checks that each line of a `text` block that
