@@ -1712,3 +1712,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.design-lead-time-and-queue-order
+  - id: evidence.self.taskjuggler-export-not-before-dates
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T21:02:21+07:00"
+    summary: 'Feature commit a702ebd: open tasks depend on a reserved replan_not_before_<date> milestone for the latest demand earliest_start or start_no_earlier_than deadline after the status date; --ignore-not-before on export taskjuggler and taskjuggler run; not_before enforced or ignored in results, manifests and import previews; the scenario overlay sets or clears a demand''s earliest_start. Review fixed Codex''s real-tj3 test, which picked a Thursday for a resource working Monday, Wednesday and Friday (the calendar from the previous fix moved it to Friday, correctly). The self plan runs through tj3 both ways. Gate green (lint 0, 54 kit, 83 live checks). Codex 20:20:15-20:43:47 (0.39 h); executor 19:59:27-20:01 brief, 20:44:40-20:46:03 review, plus this booking, 0.1 h by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-export-not-before-dates

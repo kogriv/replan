@@ -7065,7 +7065,7 @@ tasks:
     title: Export not-before dates to TaskJuggler
     description: 'Found on 2026-11-08 by the check whether RePlan can draft a consumer plan''s dates (docs/spec/taskjuggler-run-import-experiment.md, Drafting a real plan''s dates). Demand earliest_start, the model''s not-before date for work that waits on people, is not exported. Export it as a start constraint on the task, choose the latest when a task has several, and show in a scenario how to schedule without them.'
     type: implementation
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-08"
     planned_finish: "2026-11-08"
     assignee_hint:

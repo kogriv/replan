@@ -2338,3 +2338,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.design-lead-time-and-queue-order
+  - id: actual.self-taskjuggler-export-not-before-dates.ai-codex-local.20261108T2102210700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-export-not-before-dates
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-export-not-before-dates.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.39
+    unit: agent_hours
+    occurred_at: "2026-11-08T21:02:21+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.taskjuggler-export-not-before-dates
+  - id: actual.self-taskjuggler-export-not-before-dates.ai-agent-executor.20261108T2102210700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-export-not-before-dates
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-export-not-before-dates.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.1
+    unit: agent_hours
+    occurred_at: "2026-11-08T21:02:21+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.taskjuggler-export-not-before-dates
