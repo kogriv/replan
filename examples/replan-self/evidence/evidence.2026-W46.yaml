@@ -1,0 +1,23 @@
+evidence:
+  - id: evidence.self.lead-time-in-workload-and-next
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T00:15:09+07:00"
+    summary: 'Feature commit 5622ca8: unlevelled demands leave load, overload and calibration everywhere load is summed and show as unlevelled_planned/unlevelled_remaining; actuals still count; reports show lead time; next and the dashboard sort by task priority after person-first. Checked on a copy of small-team: an unlevelled 8 h demand moves to the unlevelled columns and a priority 900 task''s actions show their priority. Review split the weekly markdown writer for gocognit. Gate green except that finding, fixed after (lint 0 issues, full go test, smoke). Codex 23:25:12-23:52:11 (0.45 h); executor 22:18:29-22:21 brief, 23:52:53-23:54:08 review, 00:10:28-00:15:09 lint fix and booking, 0.14 h by tool-call times (the brief end is the file write, about 22:21).'
+    targets:
+      - kind: task
+        id: task.self.lead-time-in-workload-and-next
+  - id: evidence.self.correct-lead-time-in-workload-and-next-agent
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T00:16:27+07:00"
+    summary: 'Correction: the executor''s brief for this task ran 22:17:49-22:18:29 by the session transcript, not 22:18:29 to about 22:21 as first booked (that end was a guess). Agent time 0.01 + 0.02 + the lint fix 00:10:28-00:15:09 = 0.11 h instead of 0.14 h; the start evidence''s 22:18:29 is 40 seconds late for the same reason.'
+    targets:
+      - kind: task
+        id: task.self.lead-time-in-workload-and-next

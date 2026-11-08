@@ -1,0 +1,68 @@
+actuals:
+  - id: actual.self-lead-time-in-workload-and-next.ai-codex-local.20261109T0015090700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.lead-time-in-workload-and-next
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.lead-time-in-workload-and-next.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.45
+    unit: agent_hours
+    occurred_at: "2026-11-09T00:15:09+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.lead-time-in-workload-and-next
+  - id: actual.self-lead-time-in-workload-and-next.ai-agent-executor.20261109T0015090700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.lead-time-in-workload-and-next
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.lead-time-in-workload-and-next.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.14
+    unit: agent_hours
+    occurred_at: "2026-11-09T00:15:09+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.lead-time-in-workload-and-next
+  - id: actual.actual-self-lead-time-in-workload-and-next-ai-agent-executor-20261109t0015090700-work-consumed.correction.20261109T0016270700
+    type: correction
+    corrects_ref:
+      kind: actual
+      id: actual.self-lead-time-in-workload-and-next.ai-agent-executor.20261109T0015090700.work-consumed
+    corrected_amount: 0.11
+    task_ref:
+      kind: task
+      id: task.self.lead-time-in-workload-and-next
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.lead-time-in-workload-and-next.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    unit: agent_hours
+    occurred_at: "2026-11-09T00:16:27+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.correct-lead-time-in-workload-and-next-agent
+    reason: The brief end was guessed; transcript times give 0.11 h.

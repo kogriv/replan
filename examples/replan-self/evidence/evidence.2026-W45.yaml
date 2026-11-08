@@ -1922,3 +1922,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.lead-time-in-workload-and-next
+  - id: evidence.self.start-lead-time-in-taskjuggler
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T23:26:12+07:00"
+    summary: Started on 2026-11-08, three days before plan, writing the Codex brief (file time 23:26:12) and checking containers, length and priority in tj3 while Codex worked on workload and next; estimate 2.5 agent hours frozen in baseline.2026-11-08.lead-time-and-priority, split into Codex 1.7 and agent 0.8. Start recorded at 2026-11-09T00:17:44+07:00.
+    targets:
+      - kind: task
+        id: task.self.lead-time-in-taskjuggler
