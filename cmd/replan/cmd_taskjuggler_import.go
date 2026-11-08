@@ -20,6 +20,7 @@ type TaskJugglerImportResult struct {
 	ReportPath       string                       `json:"report_path"`
 	MappingPath      string                       `json:"mapping_path"`
 	Calibrations     []string                     `json:"calibrations,omitempty"`
+	NotBefore        string                       `json:"not_before,omitempty"`
 	RowsRead         int                          `json:"rows_read"`
 	CandidateChanges int                          `json:"candidate_changes"`
 	Candidate        TaskJugglerScenarioCandidate `json:"candidate"`
@@ -150,6 +151,7 @@ func (s *taskJugglerImportState) loadManifest() error {
 	}
 	s.result.Candidate.SourceRunID = s.manifest.ID
 	s.result.Calibrations = append([]string(nil), s.manifest.Calibrations...)
+	s.result.NotBefore = s.manifest.NotBefore
 	if s.req.ScenarioID != "" {
 		s.result.Candidate.ID = s.req.ScenarioID
 	} else {

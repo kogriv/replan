@@ -1311,6 +1311,28 @@ func TestExportTaskJugglerJSONIncludesUnsupportedDemands(t *testing.T) {
 	}
 }
 
+func TestExportTaskJugglerIgnoreNotBeforeFlag(t *testing.T) {
+	stdout, stderr := tempOutputFiles(t)
+	defer stdout.Close()
+	defer stderr.Close()
+	if code := run([]string{"export", "taskjuggler", "--project", "../../examples/small-team", "--ignore-not-before", "--format", "json"}, stdout, stderr); code != exitSuccess {
+		t.Fatalf("exit = %d, want %d; stderr=%s stdout=%s", code, exitSuccess, readFileString(t, stderr.Name()), readFileString(t, stdout.Name()))
+	}
+	var result struct {
+		NotBefore string `json:"not_before"`
+	}
+	data, err := os.ReadFile(stdout.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(data, &result); err != nil {
+		t.Fatalf("parse TaskJuggler JSON: %v\n%s", err, data)
+	}
+	if result.NotBefore != "ignored" {
+		t.Fatalf("not_before = %q, want ignored", result.NotBefore)
+	}
+}
+
 func TestImportAcceptSnapshotReadFailures(t *testing.T) {
 	t.Run("missing", func(t *testing.T) {
 		stdout, stderr := tempOutputFiles(t)
@@ -2757,6 +2779,46 @@ echo run stderr >&2
 	assertFileContains(t, result.ManifestPath, `"canonical_state_mutated": false`)
 }
 
+func TestTaskJugglerRunIgnoreNotBeforeFlag(t *testing.T) {
+	fakeTJ3 := writeFakeTaskJuggler(t, `#!/bin/sh
+if [ "$1" = "--version" ]; then
+  echo "TaskJuggler vFAKE"
+  exit 0
+fi
+cat > reports/replan-task-schedule.csv <<'REPORT'
+"Id";"Name";"Start";"End";"Effort";"Effort Left";"Resources";"Status"
+"task_op_1234";"Implement validation command";"2026-07-06";"2026-07-13";1.0;0.0;"Ivan (resource_human_ivan)";"done"
+REPORT
+`)
+	outputDir := filepath.Join(t.TempDir(), "run")
+	stdout, stderr := tempOutputFiles(t)
+	code := run([]string{
+		"taskjuggler", "run",
+		"--project", "../../examples/small-team",
+		"--output-dir", outputDir,
+		"--taskjuggler-bin", fakeTJ3,
+		"--ignore-not-before",
+		"--format", "json",
+	}, stdout, stderr)
+	if code != exitSuccess {
+		t.Fatalf("taskjuggler run exit = %d, stdout = %s, stderr = %s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	assertResultField(t, readCLIEnvelope(t, stdout.Name()), "not_before", "ignored")
+	assertFileContains(t, filepath.Join(outputDir, "run.manifest.json"), `"not_before": "ignored"`)
+
+	result, err := importTaskJugglerResult(context.Background(), taskJugglerImportRequest{
+		ProjectPath: "../../examples/small-team",
+		RunDir:      outputDir,
+		DryRun:      true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.NotBefore != "ignored" {
+		t.Fatalf("import result not_before = %q, want ignored", result.NotBefore)
+	}
+}
+
 func TestImportTaskJugglerResultDryRunBuildsScenarioCandidate(t *testing.T) {
 	fakeTJ3 := writeFakeTaskJuggler(t, `#!/bin/sh
 if [ "$1" = "--version" ]; then
@@ -3124,6 +3186,48 @@ func TestTaskJugglerRunSchedulesQuarterHourDemandWhenTJ3Available(t *testing.T) 
 	}
 	assertFileContains(t, filepath.Join(outputDir, "project.tjp"), "  timingresolution 15min\n")
 	assertFileContains(t, filepath.Join(outputDir, "project.tjp"), "  effort 15min\n")
+}
+
+func TestTaskJugglerRunHonoursNotBeforeAndIgnoreFlagWhenTJ3Available(t *testing.T) {
+	tj3, err := exec.LookPath("tj3")
+	if err != nil {
+		t.Skip("tj3 is not installed")
+	}
+	projectPath := copyCmdProjectFixture(t)
+	demandsPath := filepath.Join(projectPath, "canonical", "resource_demands.yaml")
+	demands := readFileString(t, demandsPath)
+	demands = strings.Replace(demands, "    status: partially_consumed\n", "    status: partially_consumed\n    timing:\n      earliest_start: \"2026-07-08\"\n", 1)
+	if err := os.WriteFile(demandsPath, []byte(demands), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	runAndStart := func(name string, extra ...string) string {
+		t.Helper()
+		outputDir := filepath.Join(t.TempDir(), name)
+		args := []string{"taskjuggler", "run", "--project", projectPath, "--output-dir", outputDir, "--taskjuggler-bin", tj3, "--format", "json"}
+		args = append(args, extra...)
+		stdout, stderr := tempOutputFiles(t)
+		if code := run(args, stdout, stderr); code != exitSuccess {
+			t.Fatalf("taskjuggler run exit = %d, stdout = %s, stderr = %s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+		}
+		for _, line := range strings.Split(readFileString(t, filepath.Join(outputDir, "reports", "replan-task-schedule.csv")), "\n") {
+			fields := strings.Split(line, ";")
+			if len(fields) >= 4 && strings.Trim(fields[0], `"`) == "task_offline_repair_pump" {
+				return strings.Trim(fields[2], `"`)
+			}
+		}
+		t.Fatal("task_offline_repair_pump missing from TaskJuggler schedule report")
+		return ""
+	}
+
+	// Petr works Monday, Wednesday and Friday, so the not-before date is a
+	// Wednesday he works.
+	if got := runAndStart("enforced"); !strings.HasPrefix(got, "2026-07-08") {
+		t.Fatalf("not-before task start = %q, want 2026-07-08", got)
+	}
+	if got := runAndStart("ignored", "--ignore-not-before"); !strings.HasPrefix(got, "2026-07-06") {
+		t.Fatalf("ignored not-before task start = %q, want status date 2026-07-06", got)
+	}
 }
 
 func TestTaskJugglerRunHonoursWorkingHoursAndVacationWhenTJ3Available(t *testing.T) {

@@ -2747,6 +2747,7 @@ Examples:
 replan export json --project examples/small-team --output exports/snapshots/current.json --manifest exports/snapshots/current.manifest.json
 replan export taskjuggler --project examples/small-team --output exports/taskjuggler/current/project.tjp --manifest exports/taskjuggler/current/project.manifest.json --format json
 replan export taskjuggler --project examples/small-team --scenario scenario.openai-quota-300k --unrepresented-assumptions error --format json
+replan export taskjuggler --project examples/small-team --ignore-not-before --format json
 replan export csv --project examples/small-team --report workload --week 2026-W28 --scenario scenario.openai-quota-300k --output exports/workload/2026-W28/scenario.openai-quota-300k.csv --manifest exports/workload/2026-W28/scenario.openai-quota-300k.manifest.json
 ```
 
@@ -2754,7 +2755,7 @@ Implemented command flags:
 
 ```text
 replan export json --project -p --bindings --format --manifest --output
-replan export taskjuggler --project -p --bindings --format --manifest --output --raw --scenario --unrepresented-assumptions
+replan export taskjuggler --project -p --bindings --format --ignore-not-before --manifest --output --raw --scenario --unrepresented-assumptions
 replan export csv --project -p --bindings --manifest --output --report --scenario --week
 ```
 
@@ -2804,6 +2805,19 @@ Implemented TaskJuggler proof-of-concept:
   reserved (`taskjuggler_task_id_collision`); finished tasks write no
   `depends`; a cancelled task with planned dates is fixed at them like a
   finished task, and one without dates exports without effort as before;
+- for each task that is neither finished nor cancelled, take the latest date
+  from its loading demands' `timing.earliest_start` and its
+  `start_no_earlier_than` deadlines, regardless of deadline criticality;
+  ignore a selected date on or before the status date, otherwise write one
+  shared `replan_not_before_YYYY_MM_DD` internal milestone per distinct date
+  and make the task depend on it;
+- reserve the `replan_not_before_` TaskJuggler id prefix with
+  `taskjuggler_task_id_collision`; declare `replan_internal` and hide internal
+  tasks from the parseable report whenever either a status-date or not-before
+  milestone is written, including projects without a status date;
+- `--ignore-not-before` omits all not-before milestones and dependencies for a
+  what-if schedule; TaskJuggler export JSON reports `not_before` as `enforced`
+  or `ignored`;
 - start the project window one day before the earliest date, because
   TaskJuggler reads the project line before its timezone;
 - map active `finish_to_start`, `blocks`, `requires_input_from` and
@@ -2852,6 +2866,9 @@ Implemented TaskJuggler proof-of-concept:
   `resource_demands.<resource_demand_id>.planned_amount`;
 - support scenario `set` and `replace` changes for
   `resource_demands.<resource_demand_id>.resource_ref`;
+- support scenario `set` and `replace` changes for
+  `resource_demands.<resource_demand_id>.earliest_start`, using a valid
+  `YYYY-MM-DD` value or an empty string to clear it;
 - support scenario `set` and `replace` changes for
   `tasks.<task_id>.planned_start` and `tasks.<task_id>.planned_finish`;
 - support scenario `set` and `replace` changes for
@@ -2912,7 +2929,7 @@ Implemented TaskJuggler proof-of-concept:
 Current TaskJuggler scenario overlay limitation:
 
 - `add availability.exceptions`, resource demand `remaining_amount`,
-  `planned_amount` and `resource_ref`, task `planned_start` and
+  `planned_amount`, `resource_ref` and `earliest_start`, task `planned_start` and
   `planned_finish`, dependency `status`, plus
   capacity amount changes for workload, are supported by the shared overlay;
 - only narrow human or AI-agent weekly hour capacity amount changes are mapped
@@ -3046,12 +3063,13 @@ First command shape:
 
 ```bash
 replan taskjuggler run --project examples/small-team --scenario scenario.ivan-capacity-6 --output-dir exports/taskjuggler/scenario.ivan-capacity-6/run.20260713T200000Z --unrepresented-assumptions error --format json
+replan taskjuggler run --project examples/small-team --ignore-not-before --format json
 ```
 
 Implemented command flags:
 
 ```text
-replan taskjuggler run --project -p --bindings --format --output-dir --scenario --taskjuggler-bin --unrepresented-assumptions
+replan taskjuggler run --project -p --bindings --format --ignore-not-before --output-dir --scenario --taskjuggler-bin --unrepresented-assumptions
 replan taskjuggler import-result --project -p --bindings --format --actor --dry-run --run-dir --scenario-id --write-candidate
 ```
 
@@ -3066,6 +3084,10 @@ Rules:
   under explicit `--output-dir`;
 - run saves generated `.tjp`, stdout, stderr, TaskJuggler version, ID mapping,
   parseable CSV task schedule report and manifest;
+- `--ignore-not-before` produces the what-if run without demand or deadline
+  not-before constraints; run JSON and `run.manifest.json` record
+  `not_before: ignored` (the default is `enforced`), and import-result previews
+  repeat that field;
 - run does not mutate canonical state;
 - run does not import TaskJuggler results automatically;
 - `taskjuggler import-result` is implemented as dry-run preview plus explicit

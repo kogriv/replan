@@ -29,6 +29,7 @@ type TaskJugglerRunResult struct {
 	ID                     string   `json:"id"`
 	ProjectPath            string   `json:"project_path"`
 	ScenarioID             string   `json:"scenario_id,omitempty"`
+	NotBefore              string   `json:"not_before"`
 	Calibrations           []string `json:"calibrations,omitempty"`
 	OutputDir              string   `json:"output_dir"`
 	TaskJugglerPath        string   `json:"taskjuggler_path,omitempty"`
@@ -56,6 +57,7 @@ type TaskJugglerRunManifest struct {
 	Command                  string                         `json:"command"`
 	ProjectPath              string                         `json:"project_path"`
 	ScenarioID               string                         `json:"scenario_id,omitempty"`
+	NotBefore                string                         `json:"not_before"`
 	Calibrations             []string                       `json:"calibrations,omitempty"`
 	OutputDir                string                         `json:"output_dir"`
 	TaskJugglerPath          string                         `json:"taskjuggler_path"`
@@ -215,7 +217,15 @@ type taskJugglerRunRequest struct {
 	OutputDir                    string
 	TaskJugglerBinary            string
 	UnrepresentedAssumptionsMode string
+	IgnoreNotBefore              bool
 	Now                          time.Time
+}
+
+func taskJugglerNotBeforeMode(ignore bool) string {
+	if ignore {
+		return "ignored"
+	}
+	return "enforced"
 }
 
 func runTaskJugglerRun(args []string, stdout, stderr *os.File) int {
@@ -227,6 +237,7 @@ func runTaskJugglerRun(args []string, stdout, stderr *os.File) int {
 	format := fs.String("format", "json", "output format: json, markdown or text")
 	taskJugglerBinary := fs.String("taskjuggler-bin", "tj3", "TaskJuggler binary to run")
 	unrepresentedAssumptions := fs.String("unrepresented-assumptions", "warn", "how to handle scenario assumptions not represented in TaskJuggler .tjp: warn or error")
+	ignoreNotBefore := fs.Bool("ignore-not-before", false, "ignore demand and deadline not-before dates for this what-if schedule")
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
 	}
@@ -290,6 +301,7 @@ func runTaskJugglerRun(args []string, stdout, stderr *os.File) int {
 		OutputDir:                    *outputDir,
 		TaskJugglerBinary:            *taskJugglerBinary,
 		UnrepresentedAssumptionsMode: *unrepresentedAssumptions,
+		IgnoreNotBefore:              *ignoreNotBefore,
 		Now:                          time.Now(),
 	})
 	env := envelope{
@@ -328,6 +340,7 @@ func runTaskJugglerRunArtifacts(ctx context.Context, req taskJugglerRunRequest) 
 		ID:                    runID,
 		ProjectPath:           req.ProjectPath,
 		ScenarioID:            req.ScenarioID,
+		NotBefore:             taskJugglerNotBeforeMode(req.IgnoreNotBefore),
 		OutputDir:             outputDir,
 		ExitCode:              -1,
 		Artifacts:             []string{},
@@ -339,6 +352,7 @@ func runTaskJugglerRunArtifacts(ctx context.Context, req taskJugglerRunRequest) 
 	exportResult, exportErr := app.NewExportService(newStore(req.ProjectPath)).TaskJuggler(ctx, app.ExportTaskJugglerRequest{
 		ScenarioID:                   req.ScenarioID,
 		UnrepresentedAssumptionsMode: req.UnrepresentedAssumptionsMode,
+		IgnoreNotBefore:              req.IgnoreNotBefore,
 	})
 	warnings = append(warnings, exportResult.Warnings...)
 	errorsOut = append(errorsOut, exportResult.Errors...)
@@ -496,6 +510,7 @@ func runTaskJugglerRunArtifacts(ctx context.Context, req taskJugglerRunRequest) 
 		Command:                  "taskjuggler run",
 		ProjectPath:              req.ProjectPath,
 		ScenarioID:               req.ScenarioID,
+		NotBefore:                taskJugglerNotBeforeMode(req.IgnoreNotBefore),
 		Calibrations:             append([]string(nil), exportResult.Calibrations...),
 		OutputDir:                outputDir,
 		TaskJugglerPath:          taskJugglerPath,
@@ -707,6 +722,7 @@ func runExportTaskJuggler(args []string, stdout, stderr *os.File) int {
 	format := fs.String("format", "text", "output format: text or json")
 	scenarioID := fs.String("scenario", "", "scenario id to apply as an in-memory overlay")
 	raw := fs.Bool("raw", false, "export raw demand effort without estimate calibration")
+	ignoreNotBefore := fs.Bool("ignore-not-before", false, "ignore demand and deadline not-before dates for this what-if schedule")
 	unrepresentedAssumptions := fs.String("unrepresented-assumptions", "warn", "how to handle scenario assumptions not represented in TaskJuggler .tjp: warn or error")
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
@@ -762,6 +778,7 @@ func runExportTaskJuggler(args []string, stdout, stderr *os.File) int {
 		ScenarioID:                   *scenarioID,
 		UnrepresentedAssumptionsMode: *unrepresentedAssumptions,
 		Raw:                          *raw,
+		IgnoreNotBefore:              *ignoreNotBefore,
 	})
 	if err != nil && diagnosticsContainNotFound(result.Errors) {
 		env := envelope{OK: false, Command: "export taskjuggler", ProjectPath: *projectPath, Result: result, Warnings: result.Warnings, Errors: result.Errors}
@@ -785,6 +802,7 @@ func runExportTaskJuggler(args []string, stdout, stderr *os.File) int {
 				ProjectPath: *projectPath,
 				OutputPath:  *output,
 				ScenarioID:  result.Scenario,
+				NotBefore:   result.NotBefore,
 				SHA256:      sha256Hex(content),
 				CreatedAt:   result.Metadata.ExportedAt,
 				Warnings:    result.Warnings,
@@ -818,6 +836,7 @@ func runExportTaskJuggler(args []string, stdout, stderr *os.File) int {
 type exportTaskJugglerCLIResult struct {
 	Metadata           app.ExportMetadata                    `json:"metadata"`
 	Scenario           string                                `json:"scenario,omitempty"`
+	NotBefore          string                                `json:"not_before"`
 	Calibrations       []string                              `json:"calibrations,omitempty"`
 	Content            string                                `json:"content,omitempty"`
 	OutputPath         string                                `json:"output_path,omitempty"`
@@ -836,6 +855,7 @@ func printExportTaskJugglerJSON(stdout *os.File, result app.ExportTaskJugglerRes
 	return enc.Encode(exportTaskJugglerCLIResult{
 		Metadata:           result.Metadata,
 		Scenario:           result.Scenario,
+		NotBefore:          result.NotBefore,
 		Calibrations:       result.Calibrations,
 		Content:            content,
 		OutputPath:         outputPath,

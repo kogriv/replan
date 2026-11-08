@@ -16,12 +16,14 @@ type ExportTaskJugglerRequest struct {
 	ScenarioID                   string
 	UnrepresentedAssumptionsMode string
 	Raw                          bool
+	IgnoreNotBefore              bool
 	Now                          time.Time
 }
 
 type ExportTaskJugglerResult struct {
 	Metadata           ExportMetadata                    `json:"metadata"`
 	Scenario           string                            `json:"scenario,omitempty"`
+	NotBefore          string                            `json:"not_before"`
 	Calibrations       []string                          `json:"calibrations,omitempty"`
 	Content            string                            `json:"content,omitempty"`
 	Mapping            TaskJugglerExportMapping          `json:"mapping"`
@@ -78,8 +80,9 @@ type taskJugglerTimeRange struct {
 }
 
 const (
-	taskJugglerInternalFlag     = "replan_internal"
-	taskJugglerStatusDateTaskID = "replan_status_date"
+	taskJugglerInternalFlag          = "replan_internal"
+	taskJugglerStatusDateTaskID      = "replan_status_date"
+	taskJugglerNotBeforeTaskIDPrefix = "replan_not_before_"
 )
 
 type taskJugglerTaskSchedule struct {
@@ -103,6 +106,7 @@ func (s ExportService) TaskJuggler(ctx context.Context, req ExportTaskJugglerReq
 			ProjectPath: s.loader.ProjectPath(),
 		},
 		UnsupportedDemands: []TaskJugglerUnsupportedDemandSet{},
+		NotBefore:          taskJugglerNotBeforeMode(req.IgnoreNotBefore),
 		Warnings:           []Diagnostic{},
 		Errors:             []Diagnostic{},
 	}
@@ -132,7 +136,7 @@ func (s ExportService) TaskJuggler(ctx context.Context, req ExportTaskJugglerReq
 	if !req.Raw {
 		calibrations = ApplicableDemandCalibrations(calibrationSelectionWorkspace(ws, result.Scenario))
 	}
-	result.Content, result.Calibrations, result.UnsupportedDemands = buildTaskJugglerContent(ws, result.Metadata, result.Scenario, result.Mapping, dependenciesByTask, calibrations, &result.Warnings)
+	result.Content, result.Calibrations, result.UnsupportedDemands = buildTaskJugglerContent(ws, result.Metadata, result.Scenario, result.Mapping, dependenciesByTask, calibrations, req.IgnoreNotBefore, &result.Warnings)
 	return result, nil
 }
 
@@ -307,10 +311,19 @@ func buildTaskJugglerExportMapping(ws domain.Workspace, projectPath, scenarioID 
 		TaskIDMap:     []TaskJugglerTaskIDMapping{},
 		ResourceIDMap: []TaskJugglerResourceIDMapping{},
 	}
-	// The status-date milestone's id is reserved.
+	// Internal milestone ids are reserved.
 	taskJugglerTaskIDs := map[string]string{taskJugglerStatusDateTaskID: "the status-date milestone"}
 	for _, task := range ws.Tasks {
 		taskJugglerTaskID := taskJugglerID(task.ID, "task")
+		if strings.HasPrefix(taskJugglerTaskID, taskJugglerNotBeforeTaskIDPrefix) {
+			*errors = append(*errors, Diagnostic{
+				Code:     "taskjuggler_task_id_collision",
+				Message:  fmt.Sprintf("task %s maps to TaskJuggler id %s, which uses the reserved not-before milestone prefix %s", task.ID, taskJugglerTaskID, taskJugglerNotBeforeTaskIDPrefix),
+				Severity: "error",
+				Target:   Target{Kind: "task", ID: task.ID},
+			})
+			continue
+		}
 		if previous, exists := taskJugglerTaskIDs[taskJugglerTaskID]; exists {
 			*errors = append(*errors, Diagnostic{
 				Code:     "taskjuggler_task_id_collision",
@@ -412,7 +425,7 @@ func taskJugglerCapacityChangeWarningMessage(scenarioID string, capacity domain.
 	return strings.Join(details, ", ") + "; this RePlan capacity amount is applied by workload reports but is not represented in the generated TaskJuggler .tjp export"
 }
 
-func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scenarioID string, mapping TaskJugglerExportMapping, dependenciesByTask map[string][]string, calibrations map[string]DemandCalibration, warnings *[]Diagnostic) (string, []string, []TaskJugglerUnsupportedDemandSet) {
+func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scenarioID string, mapping TaskJugglerExportMapping, dependenciesByTask map[string][]string, calibrations map[string]DemandCalibration, ignoreNotBefore bool, warnings *[]Diagnostic) (string, []string, []TaskJugglerUnsupportedDemandSet) {
 	resourceIDs := make(map[string]struct{}, len(ws.Resources))
 	for _, resource := range ws.Resources {
 		resourceIDs[resource.ID] = struct{}{}
@@ -440,6 +453,8 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 		demandIDsByTask[demand.TaskRef.ID] = append(demandIDsByTask[demand.TaskRef.ID], demand.ID)
 	}
 	taskSchedules := taskJugglerTaskSchedules(ws, demandIDsByTask, warnings)
+	statusDate := ws.Project.DefaultStatusDate
+	notBeforeByTask, notBeforeDates := taskJugglerNotBeforeDates(ws, taskSchedules, statusDate, ignoreNotBefore)
 	usedCalibrations := map[string]bool{}
 	for _, demand := range ws.ResourceDemands {
 		demandCountByTask[demand.TaskRef.ID]++
@@ -479,10 +494,10 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 		fmt.Fprintf(&b, "# Scenario: %s\n\n", scenarioID)
 	}
 
-	statusDate := ws.Project.DefaultStatusDate
 	writeTaskJugglerProject(&b, ws.Project, statusDate, taskSchedules, timingResolution, warnings)
 
-	if statusDate != "" {
+	hasInternalTasks := statusDate != "" || len(notBeforeDates) > 0
+	if hasInternalTasks {
 		fmt.Fprintf(&b, "flags %s\n\n", taskJugglerInternalFlag)
 	}
 	for _, resource := range ws.Resources {
@@ -498,11 +513,14 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 		// that taskjuggler import reads.
 		fmt.Fprintf(&b, "task %s \"Status date\" {\n  start %s\n  milestone\n  flags %s\n}\n", taskJugglerStatusDateTaskID, statusDate, taskJugglerInternalFlag)
 	}
+	for _, date := range notBeforeDates {
+		fmt.Fprintf(&b, "task %s %q {\n  start %s\n  milestone\n  flags %s\n}\n", taskJugglerNotBeforeTaskID(date), "Not before "+date, date, taskJugglerInternalFlag)
+	}
 
 	for _, task := range ws.Tasks {
-		writeTaskJugglerTask(&b, task, taskJugglerTaskIDs[task.ID], taskJugglerResourceIDs, dependenciesByTask[task.ID], demandsByTask[task.ID], taskEfforts[task.ID], loadingDemandCountByTask[task.ID] > 0, taskSchedules[task.ID], statusDate, warnings)
+		writeTaskJugglerTask(&b, task, taskJugglerTaskIDs[task.ID], taskJugglerResourceIDs, dependenciesByTask[task.ID], notBeforeByTask[task.ID], demandsByTask[task.ID], taskEfforts[task.ID], loadingDemandCountByTask[task.ID] > 0, taskSchedules[task.ID], statusDate, warnings)
 	}
-	writeTaskJugglerParseableTaskReport(&b, statusDate != "")
+	writeTaskJugglerParseableTaskReport(&b, hasInternalTasks)
 
 	calibrationIDs := make([]string, 0, len(usedCalibrations))
 	for calibrationID := range usedCalibrations {
@@ -510,6 +528,57 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 	}
 	sort.Strings(calibrationIDs)
 	return b.String(), calibrationIDs, unsupportedDemands
+}
+
+func taskJugglerNotBeforeMode(ignore bool) string {
+	if ignore {
+		return "ignored"
+	}
+	return "enforced"
+}
+
+func taskJugglerNotBeforeTaskID(date string) string {
+	return taskJugglerNotBeforeTaskIDPrefix + strings.ReplaceAll(date, "-", "_")
+}
+
+func taskJugglerNotBeforeDates(ws domain.Workspace, schedules map[string]taskJugglerTaskSchedule, statusDate string, ignore bool) (map[string]string, []string) {
+	byTask := map[string]string{}
+	if ignore {
+		return byTask, nil
+	}
+	for _, demand := range ws.ResourceDemands {
+		date := demand.Timing.EarliestStart
+		if domain.DemandLoads(demand.Status) && validDate(date) {
+			byTask[demand.TaskRef.ID] = laterDate(byTask[demand.TaskRef.ID], date)
+		}
+	}
+	for _, deadline := range ws.Deadlines {
+		if deadline.TargetRef.Kind == "task" && deadline.Type == "start_no_earlier_than" && validDate(deadline.DueDate) {
+			byTask[deadline.TargetRef.ID] = laterDate(byTask[deadline.TargetRef.ID], deadline.DueDate)
+		}
+	}
+	dates := map[string]struct{}{}
+	for _, task := range ws.Tasks {
+		date := byTask[task.ID]
+		if schedules[task.ID].finished || strings.EqualFold(strings.TrimSpace(task.TrackingStatus), "cancelled") || date == "" || (statusDate != "" && date <= statusDate) {
+			delete(byTask, task.ID)
+			continue
+		}
+		dates[date] = struct{}{}
+	}
+	distinct := make([]string, 0, len(dates))
+	for date := range dates {
+		distinct = append(distinct, date)
+	}
+	sort.Strings(distinct)
+	return byTask, distinct
+}
+
+func laterDate(current, candidate string) string {
+	if candidate > current {
+		return candidate
+	}
+	return current
 }
 
 // writeTaskJugglerProject writes the project block: window, timezone, the
@@ -909,7 +978,7 @@ func writeTaskJugglerResource(b *strings.Builder, resource domain.Resource, task
 	fmt.Fprintf(b, "}\n")
 }
 
-func writeTaskJugglerTask(b *strings.Builder, task domain.Task, taskJugglerTaskID string, taskJugglerResourceIDs map[string]string, predecessorIDs []string, demands []taskJugglerDemand, totalEffort float64, hasLoadingDemands bool, schedule taskJugglerTaskSchedule, statusDate string, warnings *[]Diagnostic) {
+func writeTaskJugglerTask(b *strings.Builder, task domain.Task, taskJugglerTaskID string, taskJugglerResourceIDs map[string]string, predecessorIDs []string, notBeforeDate string, demands []taskJugglerDemand, totalEffort float64, hasLoadingDemands bool, schedule taskJugglerTaskSchedule, statusDate string, warnings *[]Diagnostic) {
 	fmt.Fprintf(b, "task %s %q {\n", taskJugglerTaskID, task.Title)
 	if task.Description != "" {
 		fmt.Fprintf(b, "  note %q\n", task.Description)
@@ -925,6 +994,9 @@ func writeTaskJugglerTask(b *strings.Builder, task domain.Task, taskJugglerTaskI
 		}
 		if statusDate != "" {
 			fmt.Fprintf(b, "  depends %s\n", taskJugglerStatusDateTaskID)
+		}
+		if notBeforeDate != "" {
+			fmt.Fprintf(b, "  depends %s\n", taskJugglerNotBeforeTaskID(notBeforeDate))
 		}
 	}
 	allocated := map[string]struct{}{}

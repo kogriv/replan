@@ -57,6 +57,9 @@ func applyScenarioChange(ws *domain.Workspace, scenario domain.Scenario, change 
 	if isSetOperation(change.Op) && strings.HasPrefix(change.Path, "resource_demands.") && strings.HasSuffix(change.Path, ".resource_ref") {
 		return applyScenarioDemandResourceRef(ws, scenario, change)
 	}
+	if isSetOperation(change.Op) && strings.HasPrefix(change.Path, "resource_demands.") && strings.HasSuffix(change.Path, ".earliest_start") {
+		return applyScenarioDemandEarliestStart(ws, scenario, change)
+	}
 	if isSetOperation(change.Op) && strings.HasPrefix(change.Path, "capacities.") && strings.HasSuffix(change.Path, ".amount") {
 		return applyScenarioCapacityAmount(ws, scenario, change)
 	}
@@ -86,6 +89,40 @@ func applyScenarioChange(ws *domain.Workspace, scenario domain.Scenario, change 
 		Message:  fmt.Sprintf("scenario %s change %s %s is not supported by the in-memory overlay yet", scenario.ID, change.Op, change.Path),
 		Severity: "error",
 		Target:   Target{Kind: "scenario", ID: scenario.ID},
+	}, false
+}
+
+func applyScenarioDemandEarliestStart(ws *domain.Workspace, scenario domain.Scenario, change domain.ScenarioChange) (Diagnostic, bool) {
+	demandID := strings.TrimSuffix(strings.TrimPrefix(change.Path, "resource_demands."), ".earliest_start")
+	if demandID == "" {
+		return Diagnostic{
+			Code:     "invalid_scenario_change_path",
+			Message:  fmt.Sprintf("scenario %s earliest_start change has invalid path %s", scenario.ID, change.Path),
+			Severity: "error",
+			Target:   Target{Kind: "scenario", ID: scenario.ID},
+		}, false
+	}
+	value, ok := change.Value.(string)
+	if !ok || (value != "" && !validDate(value)) {
+		return Diagnostic{
+			Code:     "invalid_scenario_change_value",
+			Message:  fmt.Sprintf("scenario %s earliest_start change for %s must be a YYYY-MM-DD date or an empty string", scenario.ID, demandID),
+			Severity: "error",
+			Target:   Target{Kind: "resource_demand", ID: demandID},
+		}, false
+	}
+	for i := range ws.ResourceDemands {
+		if ws.ResourceDemands[i].ID != demandID {
+			continue
+		}
+		ws.ResourceDemands[i].Timing.EarliestStart = value
+		return Diagnostic{}, true
+	}
+	return Diagnostic{
+		Code:     "scenario_unknown_resource_demand",
+		Message:  fmt.Sprintf("scenario %s references unknown resource demand %s", scenario.ID, demandID),
+		Severity: "error",
+		Target:   Target{Kind: "resource_demand", ID: demandID},
 	}, false
 }
 

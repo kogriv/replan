@@ -23,6 +23,7 @@ type ExportManifest struct {
 	ProjectPath string           `json:"project_path"`
 	OutputPath  string           `json:"output_path"`
 	ScenarioID  string           `json:"scenario_id,omitempty"`
+	NotBefore   string           `json:"not_before,omitempty"`
 	Week        string           `json:"week,omitempty"`
 	SHA256      string           `json:"sha256"`
 	CreatedAt   string           `json:"created_at"`

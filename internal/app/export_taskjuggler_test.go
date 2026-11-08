@@ -132,6 +132,178 @@ func TestExportTaskJugglerOpenTaskStartsAtStatusDate(t *testing.T) {
 	assertContains(t, result.Content, "  hidetask replan_internal\n")
 }
 
+func TestExportTaskJugglerDemandEarliestStartCreatesNotBeforeMilestone(t *testing.T) {
+	ws := taskJugglerWorkspaceWithEffort(8)
+	ws.ResourceDemands[0].Timing.EarliestStart = "2026-11-11"
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, result.Content, "task replan_not_before_2026_11_11 \"Not before 2026-11-11\" {\n  start 2026-11-11\n  milestone\n  flags replan_internal\n}")
+	assertContains(t, result.Content, "task task_test \"Test task\" {\n  depends replan_status_date\n  depends replan_not_before_2026_11_11\n")
+}
+
+func TestExportTaskJugglerUsesLatestDemandEarliestStart(t *testing.T) {
+	ws := taskJugglerWorkspaceWithEffort(8)
+	ws.ResourceDemands[0].Timing.EarliestStart = "2026-11-10"
+	second := ws.ResourceDemands[0]
+	second.ID = "demand.second"
+	second.Timing.EarliestStart = "2026-11-13"
+	ws.ResourceDemands = append(ws.ResourceDemands, second)
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, result.Content, "depends replan_not_before_2026_11_13")
+	assertNotContains(t, result.Content, "replan_not_before_2026_11_10")
+}
+
+func TestExportTaskJugglerStartNoEarlierThanDeadlineCreatesNotBeforeMilestone(t *testing.T) {
+	ws := taskJugglerWorkspaceWithEffort(8)
+	ws.Deadlines = []domain.Deadline{{
+		ID: "deadline.test", TargetRef: domain.Ref{Kind: "task", ID: "task.test"}, Type: "start_no_earlier_than", DueDate: "2026-11-12", Criticality: "soft",
+	}}
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, result.Content, "task replan_not_before_2026_11_12 \"Not before 2026-11-12\"")
+	assertContains(t, result.Content, "depends replan_not_before_2026_11_12")
+}
+
+func TestExportTaskJugglerIgnoresNotBeforeOnOrBeforeStatusDate(t *testing.T) {
+	for _, date := range []string{"2026-11-07", "2026-11-08"} {
+		t.Run(date, func(t *testing.T) {
+			ws := taskJugglerWorkspaceWithEffort(8)
+			ws.ResourceDemands[0].Timing.EarliestStart = date
+			result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			assertNotContains(t, result.Content, "replan_not_before_")
+		})
+	}
+}
+
+func TestExportTaskJugglerTasksShareNotBeforeMilestone(t *testing.T) {
+	ws := taskJugglerWorkspaceWithEffort(8)
+	ws.Tasks = append(ws.Tasks, domain.Task{ID: "task.second", Title: "Second task"})
+	second := ws.ResourceDemands[0]
+	second.ID = "demand.second"
+	second.TaskRef.ID = "task.second"
+	ws.ResourceDemands[0].Timing.EarliestStart = "2026-11-11"
+	second.Timing.EarliestStart = "2026-11-11"
+	ws.ResourceDemands = append(ws.ResourceDemands, second)
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.Count(result.Content, "task replan_not_before_2026_11_11 "); got != 1 {
+		t.Fatalf("not-before milestone count = %d, want 1\n%s", got, result.Content)
+	}
+	if got := strings.Count(result.Content, "depends replan_not_before_2026_11_11"); got != 2 {
+		t.Fatalf("not-before dependency count = %d, want 2\n%s", got, result.Content)
+	}
+}
+
+func TestExportTaskJugglerFinishedAndCancelledTasksHaveNoNotBefore(t *testing.T) {
+	ws := taskJugglerWorkspaceWithEffort(8)
+	ws.Tasks[0].TrackingStatus = "accepted"
+	ws.Tasks[0].PlannedStart = "2026-11-01"
+	ws.Tasks[0].PlannedFinish = "2026-11-02"
+	ws.Tasks = append(ws.Tasks, domain.Task{ID: "task.cancelled", Title: "Cancelled", TrackingStatus: "cancelled"})
+	ws.ResourceDemands[0].Timing.EarliestStart = "2026-11-11"
+	cancelled := ws.ResourceDemands[0]
+	cancelled.ID = "demand.cancelled"
+	cancelled.TaskRef.ID = "task.cancelled"
+	cancelled.Timing.EarliestStart = "2026-11-12"
+	ws.ResourceDemands = append(ws.ResourceDemands, cancelled)
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertNotContains(t, result.Content, "replan_not_before_")
+}
+
+func TestExportTaskJugglerIgnoreNotBeforeWritesNoMilestones(t *testing.T) {
+	ws := taskJugglerWorkspaceWithEffort(8)
+	ws.ResourceDemands[0].Timing.EarliestStart = "2026-11-11"
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{IgnoreNotBefore: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.NotBefore != "ignored" {
+		t.Fatalf("NotBefore = %q, want ignored", result.NotBefore)
+	}
+	assertNotContains(t, result.Content, "replan_not_before_")
+}
+
+func TestExportTaskJugglerWritesNotBeforeInternalTaskWithoutStatusDate(t *testing.T) {
+	ws := taskJugglerWorkspaceWithEffort(8)
+	ws.Project.DefaultStatusDate = ""
+	ws.ResourceDemands[0].Timing.EarliestStart = "2026-11-11"
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, result.Content, "flags replan_internal")
+	assertContains(t, result.Content, "task replan_not_before_2026_11_11")
+	assertContains(t, result.Content, "  hidetask replan_internal\n")
+}
+
+func TestScenarioOverlaySetsAndClearsDemandEarliestStart(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		op    string
+		value string
+		want  string
+	}{
+		{name: "set", op: "set", value: "2026-11-11", want: "2026-11-11"},
+		{name: "clear", op: "replace", value: "", want: ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ws := taskJugglerWorkspaceWithEffort(8)
+			ws.ResourceDemands[0].Timing.EarliestStart = "2026-11-10"
+			ws.Scenarios = []domain.Scenario{{ID: "scenario.test", Changes: []domain.ScenarioChange{{
+				Op: tc.op, Path: "resource_demands.demand.test.earliest_start", Value: tc.value,
+			}}}}
+			result := app.ApplyScenarioOverlay(ws, "scenario.test")
+			if len(result.Errors) != 0 {
+				t.Fatalf("overlay errors = %#v", result.Errors)
+			}
+			if got := result.Workspace.ResourceDemands[0].Timing.EarliestStart; got != tc.want {
+				t.Fatalf("EarliestStart = %q, want %q", got, tc.want)
+			}
+			if ws.ResourceDemands[0].Timing.EarliestStart != "2026-11-10" {
+				t.Fatal("overlay mutated input workspace")
+			}
+		})
+	}
+}
+
+func TestScenarioOverlayDemandEarliestStartUsesExistingErrorCodes(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		path     string
+		value    any
+		wantCode string
+	}{
+		{name: "invalid date", path: "resource_demands.demand.test.earliest_start", value: "tomorrow", wantCode: "invalid_scenario_change_value"},
+		{name: "unknown demand", path: "resource_demands.demand.missing.earliest_start", value: "2026-11-11", wantCode: "scenario_unknown_resource_demand"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ws := taskJugglerWorkspaceWithEffort(8)
+			ws.Scenarios = []domain.Scenario{{ID: "scenario.test", Changes: []domain.ScenarioChange{{
+				Op: "set", Path: tc.path, Value: tc.value,
+			}}}}
+			result := app.ApplyScenarioOverlay(ws, "scenario.test")
+			if !hasDiagnosticCode(result.Errors, tc.wantCode) {
+				t.Fatalf("errors = %#v, want %s", result.Errors, tc.wantCode)
+			}
+		})
+	}
+}
+
 func TestExportTaskJugglerFinishedTaskWithoutDatesUsesStatusDateWarning(t *testing.T) {
 	ws := domain.Workspace{
 		Project: domain.Project{ID: "project.test", Name: "Test", DefaultStatusDate: "2026-11-08"},
@@ -1201,6 +1373,23 @@ func TestExportTaskJugglerReportsTaskIDCollision(t *testing.T) {
 	}
 	if result.Content != "" {
 		t.Fatalf("Content should be empty when mapping collides, got:\n%s", result.Content)
+	}
+}
+
+func TestExportTaskJugglerReservesNotBeforeTaskIDPrefix(t *testing.T) {
+	service := app.NewExportService(staticWorkspaceLoader{
+		workspace: domain.Workspace{
+			Project: domain.Project{ID: "project.test", Name: "Test project", DefaultStatusDate: "2026-11-08"},
+			Tasks:   []domain.Task{{ID: "replan.not.before.custom", Title: "Collision"}},
+		},
+	})
+
+	result, err := service.TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if !errors.Is(err, app.ErrValidationFailed) {
+		t.Fatalf("TaskJuggler error = %v, want ErrValidationFailed", err)
+	}
+	if !hasDiagnosticCode(result.Errors, "taskjuggler_task_id_collision") {
+		t.Fatalf("expected taskjuggler_task_id_collision error, got %#v", result.Errors)
 	}
 }
 
