@@ -6783,7 +6783,7 @@ tasks:
     title: Move the consumer projects onto RePlan's public surfaces
     description: 'Agreed with the operator on 2026-11-08: after the consumer contract is published, give each project that plans with RePlan a concrete list of where it reaches under RePlan''s hood and what replaces each case (a local kit of the current release instead of helpers run from a RePlan checkout, its own settings and token instead of RePlan''s settings file, CLI commands instead of generated or hand-edited canonical YAML, the description helper instead of a private copy), refresh their kits to the current release where they keep one, and plan every capability they still lack as a RePlan task. Changes in those projects are made by their own sessions.'
     type: operations
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-08"
     planned_finish: "2026-11-08"
     assignee_hint:
@@ -6895,7 +6895,7 @@ tasks:
     title: Publish release v0.4.1 and refresh the agent kits
     description: 'Agreed with the operator on 2026-11-08: after the help and toolkit fixes, publish release v0.4.1 so the agent kits carry the Use RePlan as a tool section, its reference check, the positional-id fix and the toolkit version option: release notes, tag after green CI, six archives built locally and compared with the CI build and its attestation, GitHub release, go install check; then refresh the second and third projects'' kits and the fourth project''s local kit the same way as for v0.4.0 and tell each session what changed.'
     type: release
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-08"
     planned_finish: "2026-11-08"
     assignee_hint:

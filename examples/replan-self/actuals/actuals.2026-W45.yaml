@@ -1960,3 +1960,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.toolkit-sets-work-package-version
+  - id: actual.self-publish-release-v0-4-1.ai-agent-executor.20261108T1549560700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-4-1
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.publish-release-v0-4-1.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.39
+    unit: agent_hours
+    occurred_at: "2026-11-08T15:49:56+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.publish-release-v0-4-1
+  - id: actual.self-move-consumer-projects-to-public-surfaces.ai-agent-executor.20261108T1549560700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.move-consumer-projects-to-public-surfaces
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.move-consumer-projects-to-public-surfaces.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.12
+    unit: agent_hours
+    occurred_at: "2026-11-08T15:49:56+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.move-consumer-projects-to-public-surfaces

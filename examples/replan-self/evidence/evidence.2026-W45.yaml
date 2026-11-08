@@ -1469,3 +1469,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-4-1
+  - id: evidence.self.publish-release-v0-4-1
+    type: command_result
+    source: ci
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T15:49:56+07:00"
+    summary: 'Release v0.4.1 published from a4eaa8f after its CI run passed: six archives built locally (v0.4.1, a4eaa8f, go1.24.1); the tag''s Release build workflow (run 42463550882) matches the local SHA256SUMS byte for byte and attested every archive and SHA256SUMS; downloaded archives match, gh attestation verify passes for an archive and SHA256SUMS (refs/tags/v0.4.1), go install of v0.4.1 reports v0.4.1. Kits built from the tag carry the Use RePlan as a tool section and pass the gate on the same code (54 offline, 83 live checks). Second project: kit uploaded to its tools wiki page after dry runs, the download matches its checksum, the plan snapshot validates, v0.4.0 kept locally and removed from the page as the operator approved for v0.3.0 the same day, page text updated. Third project: server kit moved to v0.4.1 with v0.4.0 kept for rollback and v0.3.0 removed; dry runs of list, status, relations and version list pass. Fourth project: kit built and offered. Each session was told. Executor 15:26:38 to 15:49:56, 0.39 h.'
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-4-1
+  - id: evidence.self.move-consumer-projects-to-public-surfaces
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T15:49:56+07:00"
+    summary: 'Each consumer project got a concrete list of where it reaches under RePlan''s hood and what replaces it. The second project runs helpers from a RePlan checkout with its settings and token, keeps a private API client, a private description sync and a scheduler that rewrites its YAML; it now formats and validates after each scheduler run, pushes descriptions with the helper, and moves to its own kit after a client go-live on 19 November. The fourth project moved to the v0.4.0 kit with dry runs passing and rewrote its plan notes to use commands. The third project already uses a release kit only. Gaps raised became tasks: help ids, the helper help-flag fix and toolkit versions (done in v0.4.1), and six TaskJuggler drafting tasks. Executor 13:30:46-13:38:09 by message times, 0.12 h; the v0.4.1 kit messages are in the release task.'
+    targets:
+      - kind: task
+        id: task.self.move-consumer-projects-to-public-surfaces
