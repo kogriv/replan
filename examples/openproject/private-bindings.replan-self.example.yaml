@@ -689,6 +689,12 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2340"
         url: https://op.example.internal/work_packages/2340
+    - replan_task_id: task.self.taskjuggler-import-skips-unchanged-dates
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2341"
+        url: https://op.example.internal/work_packages/2341
     - replan_task_id: task.self.fix-first-project-defects
       source_ref:
         source: openproject

@@ -1646,3 +1646,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.taskjuggler-export-working-calendar
+  - id: evidence.self.plan-taskjuggler-import-skips-unchanged-dates
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T19:44:12+07:00"
+    summary: Found on 2026-11-08 checking the status date fix with import-result on the self plan (466 of 480 candidate changes left a date as it was). Planned at 1 agent hour after the TaskJuggler drafting gaps; waits for the maintainer's agreement before a baseline and start.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-import-skips-unchanged-dates
+  - id: evidence.self.taskjuggler-export-status-date-and-finished-work-cancelled
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T19:44:58+07:00"
+    summary: 'Follow-up commit 67d8722 after review_ready: a dry-run import-result of the self plan proposed moving a cancelled task to the status date; a cancelled task with planned dates is now fixed at them. Unit test added; full go test, lint 0 issues and smoke pass; the self plan reruns through tj3 with only open tasks moved. Executor 19:37:53-19:43:05 by tool-call and commit times, 0.09 h.'
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-export-status-date-and-finished-work

@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 240,
-  "count": 240,
+  "total": 241,
+  "count": 241,
   "_embedded": {
     "elements": [
       {
@@ -6954,6 +6954,35 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2340"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2341,
+        "subject": "Propose only changed dates from a TaskJuggler run",
+        "description": {
+          "raw": "Found on 2026-11-08 reviewing the TaskJuggler status date fix on the self plan. taskjuggler import-result put 480 date changes into its candidate scenario for 240 tasks, and 466 of them set a planned date to the value it already has, so the 14 real moves are hidden in noise. Write only changed planned_start and planned_finish values into the candidate, report how many rows were unchanged, and decide with a test whether finished tasks fixed by the export can appear at all."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-12",
+        "dueDate": "2026-11-12",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2341"
           },
           "status": {
             "title": "New"
