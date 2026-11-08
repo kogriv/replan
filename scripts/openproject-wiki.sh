@@ -43,11 +43,9 @@ case "${1:-}" in
     PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m openproject_wiki "$@"
     ;;
 esac
-case " $* " in
-  *" -h "*|*" --help "*)
-    PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m openproject_wiki "$@"
-    ;;
-esac
+if replan_has_help_arg "$@"; then
+  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m openproject_wiki "$@"
+fi
 . "$ROOT_DIR/scripts/lib/load-dotenv.sh"
 replan_load_openproject_dotenv "$ROOT_DIR"
 replan_resolve_openproject_settings "openproject wiki" invalid

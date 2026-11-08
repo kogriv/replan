@@ -98,12 +98,16 @@ func runBaselineList(args []string, stdout, stderr *os.File) int {
 
 func runBaselineShow(args []string, stdout, stderr *os.File) int {
 	fs := newCLIFlagSet("baseline show")
+	setCommandUsage(fs, "replan baseline show <id> [flags]")
 	projectPath, format := addProjectFormatFlags(fs, "json")
 	leadingID, filteredArgs := splitSinglePositional(args, fs)
 	if code, done := parseCommandFlags(fs, filteredArgs, stdout, stderr); done {
 		return code
 	}
-	id := positionalArg(leadingID, fs)
+	id, code, done := requireSinglePositional(fs, leadingID, "baseline show", "<id>", *projectPath, *format, true, stdout, stderr)
+	if done {
+		return code
+	}
 	result, err := app.NewBaselineService(newStore(*projectPath)).Show(context.Background(), id)
 	env := envelope{OK: err == nil && len(result.Errors) == 0, Command: "baseline show", ProjectPath: *projectPath, Result: result, Warnings: result.Warnings, Errors: result.Errors}
 	if strings.EqualFold(*format, "markdown") || strings.EqualFold(*format, "text") {

@@ -56,16 +56,16 @@ func runScenarioList(args []string, stdout, stderr *os.File) int {
 
 func runScenarioShow(args []string, stdout, stderr *os.File) int {
 	fs := newCLIFlagSet("scenario show")
+	setCommandUsage(fs, "replan scenario show <scenario-id> [flags]")
 	projectPath, format := addProjectFormatFlags(fs, "json")
 
 	positionalID, args := splitSinglePositional(args, fs)
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
 	}
-	positionalID = positionalArg(positionalID, fs)
-	if positionalID == "" {
-		fmt.Fprintln(stderr, "missing scenario id")
-		return exitInvalidUsage
+	positionalID, code, done := requireSinglePositional(fs, positionalID, "scenario show", "<scenario-id>", *projectPath, *format, true, stdout, stderr)
+	if done {
+		return code
 	}
 
 	result, err := app.NewScenarioService(newStore(*projectPath)).Show(context.Background(), app.ScenarioShowRequest{ID: positionalID})
@@ -82,6 +82,7 @@ func runScenarioShow(args []string, stdout, stderr *os.File) int {
 
 func runScenarioDiff(args []string, stdout, stderr *os.File) int {
 	fs := newCLIFlagSet("scenario diff")
+	setCommandUsage(fs, "replan scenario diff <scenario-id> [flags]")
 	projectPath, format := addProjectFormatFlags(fs, "json")
 	against := fs.String("against", "current", "comparison base")
 	week := fs.String("week", "", "ISO week, for example 2026-W28")
@@ -90,10 +91,9 @@ func runScenarioDiff(args []string, stdout, stderr *os.File) int {
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
 	}
-	positionalID = positionalArg(positionalID, fs)
-	if positionalID == "" {
-		fmt.Fprintln(stderr, "missing scenario id")
-		return exitInvalidUsage
+	positionalID, code, done := requireSinglePositional(fs, positionalID, "scenario diff", "<scenario-id>", *projectPath, *format, true, stdout, stderr)
+	if done {
+		return code
 	}
 
 	if *week != "" && !validISOWeek(*week) {
@@ -128,6 +128,7 @@ func runScenarioDiff(args []string, stdout, stderr *os.File) int {
 
 func runScenarioApply(args []string, stdout, stderr *os.File) int {
 	fs := newCLIFlagSet("scenario apply")
+	setCommandUsage(fs, "replan scenario apply <scenario-id> [flags]")
 	projectPath, format := addProjectFormatFlags(fs, "json")
 	writeFlags := addCanonicalWriteFlags(fs)
 	actorID := fs.String("actor", "", "actor id applying the scenario; required unless --dry-run is used")
@@ -138,14 +139,13 @@ func runScenarioApply(args []string, stdout, stderr *os.File) int {
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
 	}
-	dryRun, code, done := requireCanonicalWriteChoice("scenario apply", *projectPath, *format, writeFlags, stdout, stderr)
+	positionalID, code, done := requireSinglePositional(fs, positionalID, "scenario apply", "<scenario-id>", *projectPath, *format, true, stdout, stderr)
 	if done {
 		return code
 	}
-	positionalID = positionalArg(positionalID, fs)
-	if positionalID == "" {
-		fmt.Fprintln(stderr, "missing scenario id")
-		return exitInvalidUsage
+	dryRun, code, done := requireCanonicalWriteChoice("scenario apply", *projectPath, *format, writeFlags, stdout, stderr)
+	if done {
+		return code
 	}
 	result, err := app.NewScenarioService(newStore(*projectPath)).Apply(context.Background(), app.ScenarioApplyRequest{
 		ID:         positionalID,

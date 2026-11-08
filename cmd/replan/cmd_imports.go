@@ -279,6 +279,7 @@ func defaultOpenProjectRequestRetryDelaySeconds() (float64, error) {
 
 func runImportAccept(args []string, stdout, stderr *os.File) int {
 	fs := newCLIFlagSet("import accept")
+	setCommandUsage(fs, "replan import accept <source-snapshot-id> [flags]")
 	projectPath, format := addProjectFormatFlags(fs, "json")
 	writeFlags := addCanonicalWriteFlags(fs)
 	acceptTimeEntries := fs.Bool("accept-time-entries", false, "accept tracker time-entry candidates as actual consumption with evidence (currently OpenProject snapshots only)")
@@ -293,11 +294,14 @@ func runImportAccept(args []string, stdout, stderr *os.File) int {
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
 	}
+	snapshotID, code, done := requireSinglePositional(fs, positionalSnapshotID, "import accept", "<source-snapshot-id>", *projectPath, *format, true, stdout, stderr)
+	if done {
+		return code
+	}
 	dryRun, code, done := requireCanonicalWriteChoice("import accept", *projectPath, *format, writeFlags, stdout, stderr)
 	if done {
 		return code
 	}
-	snapshotID := positionalArg(positionalSnapshotID, fs)
 	result, err := app.NewImportAcceptService(newStore(*projectPath)).Accept(context.Background(), app.ImportAcceptRequest{
 		SnapshotID:            snapshotID,
 		DryRun:                dryRun,

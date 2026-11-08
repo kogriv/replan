@@ -30,6 +30,15 @@ func newCLIFlagSet(name string) *flag.FlagSet {
 	return fs
 }
 
+// setCommandUsage gives a command's own help the same positional synopsis as
+// the general usage list while keeping flag definitions in one place.
+func setCommandUsage(fs *flag.FlagSet, synopsis string) {
+	fs.Usage = func() {
+		fmt.Fprintf(fs.Output(), "Usage: %s\n\nFlags:\n", synopsis)
+		fs.PrintDefaults()
+	}
+}
+
 func refuseBindingsOutputInsideProject(command, projectPath, outputPath string, stdout, stderr *os.File) (int, bool) {
 	if !bindingsLayerActive() || !pathInsideProject(projectPath, outputPath) {
 		return exitSuccess, false
@@ -203,6 +212,41 @@ func positionalArg(leading string, fs *flag.FlagSet) string {
 		return ""
 	}
 	return fs.Arg(0)
+}
+
+func requireSinglePositional(fs *flag.FlagSet, leading, command, argument, projectPath, format string, required bool, stdout, stderr *os.File) (string, int, bool) {
+	value := positionalArg(leading, fs)
+	extra := fs.Args()
+	if leading == "" && len(extra) > 0 {
+		extra = extra[1:]
+	}
+	if required && value == "" {
+		return "", printPositionalUsageError(stdout, stderr, format, command, projectPath, "missing_argument", fmt.Sprintf("%s needs %s", command, argument)), true
+	}
+	if len(extra) > 0 {
+		return "", printPositionalUsageError(stdout, stderr, format, command, projectPath, "unexpected_argument", fmt.Sprintf("%s got unexpected argument %q", command, extra[0])), true
+	}
+	return value, exitSuccess, false
+}
+
+func printPositionalUsageError(stdout, stderr *os.File, format, command, projectPath, code, message string) int {
+	env := envelope{
+		OK:          false,
+		Command:     command,
+		ProjectPath: projectPath,
+		Result:      nil,
+		Warnings:    []app.Diagnostic{},
+		Errors: []app.Diagnostic{{
+			Code:     code,
+			Message:  message,
+			Severity: "error",
+		}},
+	}
+	if err := printEnvelope(stdout, strings.ToLower(format), env); err != nil {
+		fmt.Fprintf(stderr, "failed to write output: %v\n", err)
+		return exitGeneralError
+	}
+	return exitInvalidUsage
 }
 
 // validISOWeek reports whether week is a well-formed ISO week label such as

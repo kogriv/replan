@@ -129,12 +129,16 @@ func runEstimateList(args []string, stdout, stderr *os.File) int {
 
 func runEstimateShow(args []string, stdout, stderr *os.File) int {
 	fs := newCLIFlagSet("estimate show")
+	setCommandUsage(fs, "replan estimate show --project <path> <id> [flags]")
 	projectPath, format := addProjectFormatFlags(fs, "json")
 	leadingID, filteredArgs := splitSinglePositional(args, fs)
 	if code, done := parseCommandFlags(fs, filteredArgs, stdout, stderr); done {
 		return code
 	}
-	id := positionalArg(leadingID, fs)
+	id, code, done := requireSinglePositional(fs, leadingID, "estimate show", "<id>", *projectPath, *format, true, stdout, stderr)
+	if done {
+		return code
+	}
 	result, err := app.NewCalibrationService(newStore(*projectPath)).Show(context.Background(), id)
 	if (strings.EqualFold(*format, "markdown") || strings.EqualFold(*format, "text")) && err == nil {
 		writeCalibrationMarkdown(stdout, result.Calibration)

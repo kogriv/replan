@@ -2088,6 +2088,96 @@ func TestPositionalArgSupportsBeforeAndAfterFlags(t *testing.T) {
 	}
 }
 
+func TestPositionalCommandHelpAndMissingArguments(t *testing.T) {
+	tests := []struct {
+		name     string
+		command  []string
+		argument string
+		formats  []string
+		optional bool
+	}{
+		{name: "init", command: []string{"init"}, argument: "<dir>", formats: []string{"json", "text"}},
+		{name: "validate", command: []string{"validate"}, argument: "[project-path]", formats: []string{"json", "markdown", "text"}, optional: true},
+		{name: "demand set", command: []string{"demand", "set"}, argument: "<demand-id>", formats: []string{"json", "text"}},
+		{name: "demand move", command: []string{"demand", "move"}, argument: "<demand-id>", formats: []string{"json", "text"}},
+		{name: "baseline show", command: []string{"baseline", "show"}, argument: "<id>", formats: []string{"json", "markdown", "text"}},
+		{name: "estimate show", command: []string{"estimate", "show"}, argument: "<id>", formats: []string{"json", "markdown", "text"}},
+		{name: "scenario show", command: []string{"scenario", "show"}, argument: "<scenario-id>", formats: []string{"json", "markdown", "text"}},
+		{name: "scenario diff", command: []string{"scenario", "diff"}, argument: "<scenario-id>", formats: []string{"json", "markdown", "text"}},
+		{name: "scenario apply", command: []string{"scenario", "apply"}, argument: "<scenario-id>", formats: []string{"json", "markdown", "text"}},
+		{name: "proposal show", command: []string{"proposal", "show"}, argument: "<proposal-id>", formats: []string{"json", "markdown", "text"}},
+		{name: "proposal accept", command: []string{"proposal", "accept"}, argument: "<proposal-id>", formats: []string{"json", "markdown", "text"}},
+		{name: "proposal reject", command: []string{"proposal", "reject"}, argument: "<proposal-id>", formats: []string{"json", "markdown", "text"}},
+		{name: "import accept", command: []string{"import", "accept"}, argument: "<source-snapshot-id>", formats: []string{"json", "markdown", "text"}},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			for _, helpFlag := range []string{"-h", "--help"} {
+				stdout, stderr := tempOutputFiles(t)
+				args := append(append([]string{}, tc.command...), helpFlag)
+				if code := run(args, stdout, stderr); code != exitSuccess {
+					t.Fatalf("%v exit = %d; stderr=%s", args, code, readFileString(t, stderr.Name()))
+				}
+				help := readFileString(t, stdout.Name())
+				if !strings.HasPrefix(help, "Usage: replan "+strings.Join(tc.command, " ")+" ") || !strings.Contains(strings.SplitN(help, "\n", 2)[0], tc.argument) {
+					t.Errorf("help first line does not name %s: %q", tc.argument, strings.SplitN(help, "\n", 2)[0])
+				}
+			}
+			if tc.optional {
+				return
+			}
+			for _, format := range tc.formats {
+				stdout, stderr := tempOutputFiles(t)
+				args := append(append([]string{}, tc.command...), "--format", format)
+				if code := run(args, stdout, stderr); code != exitInvalidUsage {
+					t.Fatalf("%v exit = %d, want %d; stdout=%s stderr=%s", args, code, exitInvalidUsage, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+				}
+				output := readFileString(t, stdout.Name())
+				messageFound := strings.Contains(output, tc.name+" needs "+tc.argument)
+				if format == "json" {
+					env := readCLIEnvelope(t, stdout.Name())
+					messageFound = len(env.Errors) == 1 && env.Errors[0].Message == tc.name+" needs "+tc.argument
+				}
+				if !strings.Contains(output, "missing_argument") || !messageFound {
+					t.Errorf("%v missing-argument output = %s", args, output)
+				}
+			}
+		})
+	}
+}
+
+func TestPositionalCommandsRefuseExtraArguments(t *testing.T) {
+	tests := [][]string{
+		{"init", "one", "two"},
+		{"validate", "one", "two"},
+		{"demand", "set", "one", "two"},
+		{"demand", "move", "one", "two"},
+		{"baseline", "show", "one", "two"},
+		{"estimate", "show", "one", "two"},
+		{"scenario", "show", "one", "two"},
+		{"scenario", "diff", "one", "two"},
+		{"scenario", "apply", "one", "two"},
+		{"proposal", "show", "one", "two"},
+		{"proposal", "accept", "one", "two"},
+		{"proposal", "reject", "one", "two"},
+		{"import", "accept", "one", "two"},
+	}
+	for _, base := range tests {
+		name := strings.Join(base[:len(base)-2], " ")
+		t.Run(name, func(t *testing.T) {
+			stdout, stderr := tempOutputFiles(t)
+			args := append(append([]string{}, base[:len(base)-2]...), "--format", "json")
+			args = append(args, base[len(base)-2:]...)
+			if code := run(args, stdout, stderr); code != exitInvalidUsage {
+				t.Fatalf("%v exit = %d, want %d; stdout=%s stderr=%s", args, code, exitInvalidUsage, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+			}
+			if output := readFileString(t, stdout.Name()); !strings.Contains(output, `"code": "unexpected_argument"`) {
+				t.Errorf("%v output = %s", args, output)
+			}
+		})
+	}
+}
+
 func TestCLIExitCodesClassifyNotFound(t *testing.T) {
 	stdout, stderr := tempOutputFiles(t)
 	defer stdout.Close()

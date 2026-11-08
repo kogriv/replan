@@ -41,11 +41,8 @@ var initCanonicalPaths = []string{
 }
 
 func runInit(args []string, stdout, stderr *os.File) int {
-	leading := ""
-	if len(args) > 0 && !strings.HasPrefix(args[0], "-") {
-		leading, args = args[0], args[1:]
-	}
 	fs := newCLIFlagSet("init")
+	setCommandUsage(fs, "replan init <dir> [flags]")
 	name := fs.String("name", "", "required project name")
 	ownerName := fs.String("owner", "", "required owner display name")
 	ownerID := fs.String("owner-id", "", "optional owner id component, letters, digits and dashes; default from --owner")
@@ -54,12 +51,13 @@ func runInit(args []string, stdout, stderr *os.File) int {
 	openProjectProjectID := fs.String("openproject-project-id", "", "optional OpenProject project identifier")
 	format := fs.String("format", "json", "output format: json, text")
 	writeFlags := addCanonicalWriteFlags(fs)
+	leading, args := splitSinglePositional(args, fs)
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
 	}
-	projectPath := leading
-	if projectPath == "" && fs.NArg() > 0 {
-		projectPath = fs.Arg(0)
+	projectPath, code, done := requireSinglePositional(fs, leading, "init", "<dir>", "", *format, true, stdout, stderr)
+	if done {
+		return code
 	}
 	if *format != "json" && *format != "text" {
 		return printInitUsageError("supported formats are json and text", projectPath, *format, stdout, stderr)
@@ -67,9 +65,6 @@ func runInit(args []string, stdout, stderr *os.File) int {
 	dryRun, code, done := requireCanonicalWriteChoice("init", projectPath, *format, writeFlags, stdout, stderr)
 	if done {
 		return code
-	}
-	if projectPath == "" || fs.NArg() > 0 {
-		return printInitUsageError("init requires exactly one directory argument", projectPath, *format, stdout, stderr)
 	}
 	if strings.TrimSpace(*name) == "" {
 		return printInitUsageError("--name is required", projectPath, *format, stdout, stderr)

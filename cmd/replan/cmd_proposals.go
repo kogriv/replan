@@ -199,16 +199,16 @@ func runProposalList(args []string, stdout, stderr *os.File) int {
 
 func runProposalShow(args []string, stdout, stderr *os.File) int {
 	fs := newCLIFlagSet("proposal show")
+	setCommandUsage(fs, "replan proposal show <proposal-id> [flags]")
 	projectPath, format := addProjectFormatFlags(fs, "json")
 
 	positionalID, args := splitSinglePositional(args, fs)
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
 	}
-	positionalID = positionalArg(positionalID, fs)
-	if positionalID == "" {
-		fmt.Fprintln(stderr, "missing proposal id")
-		return exitInvalidUsage
+	positionalID, code, done := requireSinglePositional(fs, positionalID, "proposal show", "<proposal-id>", *projectPath, *format, true, stdout, stderr)
+	if done {
+		return code
 	}
 	result, err := app.NewProposalService(newStore(*projectPath)).Show(context.Background(), app.ProposalShowRequest{ID: positionalID})
 	env := envelope{
@@ -281,6 +281,7 @@ func runProposalReject(args []string, stdout, stderr *os.File) int {
 
 func runProposalDecision(args []string, stdout, stderr *os.File, decision string) int {
 	fs := newCLIFlagSet("proposal " + decision)
+	setCommandUsage(fs, "replan proposal "+decision+" <proposal-id> [flags]")
 	projectPath, format := addProjectFormatFlags(fs, "json")
 	writeFlags := addCanonicalWriteFlags(fs)
 	actorID := fs.String("actor", "", "actor id performing proposal decision; required unless --dry-run is used")
@@ -290,14 +291,13 @@ func runProposalDecision(args []string, stdout, stderr *os.File, decision string
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
 	}
-	dryRun, code, done := requireCanonicalWriteChoice("proposal "+decision, *projectPath, *format, writeFlags, stdout, stderr)
+	positionalID, code, done := requireSinglePositional(fs, positionalID, "proposal "+decision, "<proposal-id>", *projectPath, *format, true, stdout, stderr)
 	if done {
 		return code
 	}
-	positionalID = positionalArg(positionalID, fs)
-	if positionalID == "" {
-		fmt.Fprintln(stderr, "missing proposal id")
-		return exitInvalidUsage
+	dryRun, code, done := requireCanonicalWriteChoice("proposal "+decision, *projectPath, *format, writeFlags, stdout, stderr)
+	if done {
+		return code
 	}
 	req := app.ProposalDecisionRequest{
 		ID:      positionalID,

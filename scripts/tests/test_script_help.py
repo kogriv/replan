@@ -81,6 +81,38 @@ class ScriptHelpTest(unittest.TestCase):
                 self.assertNotIn(purpose_line(script), proc.stdout)
                 self.assertEqual(proc.stderr, "")
 
+    def test_help_text_inside_a_value_is_not_a_help_request(self):
+        import shutil
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            # The wrappers read .env.local beside the kit; a value that only
+            # mentions a help flag must not make them skip it.
+            shutil.copytree(os.path.join(ROOT, "scripts"), os.path.join(tmp, "scripts"))
+            with open(os.path.join(tmp, ".env.local"), "w", encoding="utf-8") as stream:
+                stream.write(
+                    f"REPLAN_PROJECT={ROOT}/examples/small-team\n"
+                    "REPLAN_OPENPROJECT_PROJECT_ID=demo\n"
+                    "REPLAN_OPENPROJECT_BASE_URL=http://127.0.0.1:9\n"
+                )
+            text = "mentions -h and --help inside"
+            cases = (
+                ("openproject-work-package-toolkit.sh",
+                 ["work-package", "create", "--subject", "S", "--description", text]),
+                ("openproject-wiki.sh",
+                 ["page", "create", "--title", text, "--text-file", os.devnull]),
+            )
+            for name, args in cases:
+                with self.subTest(script=name):
+                    proc = subprocess.run(
+                        [os.path.join(tmp, "scripts", name), *args],
+                        capture_output=True, text=True, env=empty_environment(), timeout=30,
+                    )
+                    self.assertFalse(proc.stdout.startswith("usage:"), proc.stdout[:300])
+                    out = json.loads(proc.stdout)
+                    codes = out["error_codes"] + out["warning_codes"]
+                    self.assertNotIn("missing_setting", codes)
+                    self.assertIn("token_env_not_set", codes)
+
     def test_toolkit_and_wiki_argument_errors_use_the_envelope(self):
         cases = (
             ("openproject-work-package-toolkit.sh", ["work-package", "create"], "--subject"),

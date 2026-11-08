@@ -3,6 +3,19 @@
 # The shared JSON envelope for shell wrappers (scripts/lib/helper_envelope.py).
 # Source it after ROOT_DIR is set.
 
+# replan_has_help_arg [ARG...] succeeds when one whole argument before `--` is
+# -h or --help. Text inside a value, such as a description that mentions
+# " -h ", is not a help request.
+replan_has_help_arg() {
+  for _replan_help_arg in "$@"; do
+    case "$_replan_help_arg" in
+      --) return 1 ;;
+      -h|--help) return 0 ;;
+    esac
+  done
+  return 1
+}
+
 # replan_help SCRIPT [ARG...] prints SCRIPT's leading comment block for a
 # first -h or --help argument. It must run before settings, builds, temporary
 # directories, containers or network access.

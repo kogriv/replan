@@ -114,6 +114,7 @@ func runDemandAdd(args []string, stdout, stderr *os.File) int {
 
 func runDemandSet(args []string, stdout, stderr *os.File) int {
 	fs := newCLIFlagSet("demand set")
+	setCommandUsage(fs, "replan demand set <demand-id> [flags]")
 	projectPath, format := addProjectFormatFlags(fs, "json")
 	amount := fs.Float64("amount", 0, "new planned amount")
 	remaining := fs.Float64("remaining", 0, "new remaining amount")
@@ -130,7 +131,12 @@ func runDemandSet(args []string, stdout, stderr *os.File) int {
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
 	}
-	positional = positionalArg(positional, fs)
+	var code int
+	var done bool
+	positional, code, done = requireSinglePositional(fs, positional, "demand set", "<demand-id>", *projectPath, *format, *fromFile == "", stdout, stderr)
+	if done {
+		return code
+	}
 	if !supportedTaskFormat(*format) {
 		return printTaskFormatError("demand set", *projectPath, stdout, stderr)
 	}
@@ -157,6 +163,7 @@ func runDemandSet(args []string, stdout, stderr *os.File) int {
 
 func runDemandMove(args []string, stdout, stderr *os.File) int {
 	fs := newCLIFlagSet("demand move")
+	setCommandUsage(fs, "replan demand move <demand-id> [flags]")
 	projectPath, format := addProjectFormatFlags(fs, "json")
 	id := fs.String("id", "", "optional full id for the new demand")
 	suffix := fs.String("suffix", "", "suffix used to derive the new demand id")
@@ -169,7 +176,12 @@ func runDemandMove(args []string, stdout, stderr *os.File) int {
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
 	}
-	positional = positionalArg(positional, fs)
+	var code int
+	var done bool
+	positional, code, done = requireSinglePositional(fs, positional, "demand move", "<demand-id>", *projectPath, *format, true, stdout, stderr)
+	if done {
+		return code
+	}
 	if !supportedTaskFormat(*format) {
 		return printTaskFormatError("demand move", *projectPath, stdout, stderr)
 	}

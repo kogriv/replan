@@ -27,7 +27,11 @@ func TestEveryCanonicalWriterUsesSharedApplyGate(t *testing.T) {
 			} {
 				t.Run(tc.name, func(t *testing.T) {
 					stdout, stderr := tempOutputFiles(t)
-					args := append(strings.Fields(command), tc.args...)
+					args := strings.Fields(command)
+					if positional := canonicalWriterTestPositional(command); positional != "" {
+						args = append(args, positional)
+					}
+					args = append(args, tc.args...)
 					args = append(args, "--format", "json")
 					if code := run(args, stdout, stderr); code != exitInvalidUsage {
 						t.Fatalf("run(%q) exit = %d, want %d; stdout=%s stderr=%s", args, code, exitInvalidUsage, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
@@ -51,6 +55,23 @@ func TestEveryCanonicalWriterUsesSharedApplyGate(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func canonicalWriterTestPositional(command string) string {
+	switch command {
+	case "init":
+		return "test-project"
+	case "demand set", "demand move":
+		return "resource_demand.test"
+	case "scenario apply":
+		return "scenario.test"
+	case "proposal accept", "proposal reject":
+		return "proposal.test"
+	case "import accept":
+		return "source_snapshot.test"
+	default:
+		return ""
 	}
 }
 

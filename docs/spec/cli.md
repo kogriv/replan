@@ -588,8 +588,9 @@ Rules:
 
 ## Positional arguments
 
-Commands that take a primary object id as a positional argument must accept the
-id both before and after flags.
+Commands that take a positional argument must name it in the first line of
+their own `-h` and `--help` output, before the command's flag list. They accept
+the argument both before and after flags.
 
 These forms must be equivalent:
 
@@ -601,6 +602,14 @@ replan proposal accept --project examples/small-team proposal.adjust-remaining-t
 
 The same rule applies to:
 
+- `replan init <dir>`;
+- `replan validate [project-path]` (optional; defaults to the current
+  directory when neither this argument nor `--project` is supplied);
+- `replan demand set <demand-id>` (the id is omitted only by the existing
+  `--from-file` batch form);
+- `replan demand move <demand-id>`;
+- `replan baseline show <id>`;
+- `replan estimate show <id>`;
 - `replan scenario show`;
 - `replan scenario diff`;
 - `replan scenario apply`;
@@ -609,6 +618,14 @@ The same rule applies to:
 - `replan proposal reject`;
 - `replan import accept`.
 
+A missing required positional is an invalid-usage failure before format,
+apply-gate, workspace loading or object lookup. It exits `8` and emits the
+stable diagnostic code `missing_argument` in JSON, Markdown and text, with a
+message that names the command and placeholder, for example `demand set needs
+<demand-id>`. An extra positional also exits `8` before workspace loading and
+uses `unexpected_argument`. `audit list` and `audit verify` take no positional
+argument.
+
 Reason:
 
 - humans naturally use both CLI styles;
@@ -616,12 +633,15 @@ Reason:
 - command behavior should not depend on fragile argument ordering when the
   intent is unambiguous.
 
-Implemented 2026-07-17:
+Implemented 2026-07-17 and hardened 2026-11-08:
 
-- id-based commands listed above support a single positional identifier before
-  flags, after flags or between flags;
+- commands listed above support a single positional value before flags, after
+  flags or between flags;
 - flag values such as `--project examples/small-team` are not mistaken for
-  positional identifiers.
+  positional identifiers;
+- command-local help uses the shared positional synopsis helper;
+- missing and extra positionals use the shared usage-error envelope instead of
+  falling through to unrelated validation or not-found errors.
 
 ## Read-only versus mutating commands
 

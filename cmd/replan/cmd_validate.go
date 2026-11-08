@@ -12,6 +12,7 @@ import (
 
 func runValidate(args []string, stdout, stderr *os.File) int {
 	fs := newCLIFlagSet("validate")
+	setCommandUsage(fs, "replan validate [project-path] [flags]")
 
 	var (
 		projectPath string
@@ -24,21 +25,18 @@ func runValidate(args []string, stdout, stderr *os.File) int {
 	fs.StringVar(&format, "format", "text", "output format: json, markdown, text")
 	fs.BoolVar(&strict, "strict", false, "treat validation warnings as errors")
 
-	positionalProject := ""
-	if len(args) > 0 && !strings.HasPrefix(args[0], "-") {
-		positionalProject = args[0]
-		args = args[1:]
-	}
+	positionalProject, args := splitSinglePositional(args, fs)
 
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
 	}
 
-	if projectPath == "" && positionalProject != "" {
-		projectPath = positionalProject
+	positionalProject, code, done := requireSinglePositional(fs, positionalProject, "validate", "[project-path]", projectPath, format, false, stdout, stderr)
+	if done {
+		return code
 	}
-	if projectPath == "" && fs.NArg() > 0 {
-		projectPath = fs.Arg(0)
+	if projectPath == "" {
+		projectPath = positionalProject
 	}
 	if projectPath == "" {
 		projectPath = "."
