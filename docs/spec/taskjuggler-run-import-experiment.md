@@ -458,3 +458,6 @@ no RePlan concept yet:
 
 Each gap is a task in the self plan. The comparison used a copy of the plan
 only and wrote nothing to the consumer project.
+
+The proposed design for the two missing concepts is in
+[`lead-time-and-queue-order.md`](lead-time-and-queue-order.md).

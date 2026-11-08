@@ -7094,9 +7094,9 @@ tasks:
     title: Design lead time without load and queue order within a resource
     description: 'Found on 2026-11-08 by the check whether RePlan can draft a consumer plan''s dates (docs/spec/taskjuggler-run-import-experiment.md, Drafting a real plan''s dates). Two rules of the consumer''s scheduler have no RePlan concept: a task that takes working days without consuming levelled capacity (a waiting period, a person''s decision whose time is not levelled), and running a resource''s tasks strictly in plan order. Design how the model, validate, workload and the TaskJuggler export would express both, compare with TaskJuggler''s duration, length and priority attributes, and plan the implementation tasks.'
     type: design
-    tracking_status: not_started
-    planned_start: "2026-11-11"
-    planned_finish: "2026-11-11"
+    tracking_status: review_ready
+    planned_start: "2026-11-08"
+    planned_finish: "2026-11-08"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer

@@ -2317,3 +2317,24 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.taskjuggler-export-working-calendar
+  - id: actual.self-design-lead-time-and-queue-order.ai-agent-executor.20261108T2025000700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.design-lead-time-and-queue-order
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.design-lead-time-and-queue-order.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.06
+    unit: agent_hours
+    occurred_at: "2026-11-08T20:25:00+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.design-lead-time-and-queue-order

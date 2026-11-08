@@ -1690,3 +1690,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.taskjuggler-export-not-before-dates
+  - id: evidence.self.start-design-lead-time-and-queue-order
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T20:21:11+07:00"
+    summary: Started on 2026-11-08, three days before plan, while Codex worked on not-before dates; estimate 1.5 agent hours frozen in baseline.2026-11-08.taskjuggler-drafting-gaps. The result is a design for the maintainer to discuss before any model change.
+    targets:
+      - kind: task
+        id: task.self.design-lead-time-and-queue-order
+  - id: evidence.self.design-lead-time-and-queue-order
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T20:25:00+07:00"
+    summary: 'Design docs/spec/lead-time-and-queue-order.md, linked from the TaskJuggler experiment''s gap list: TaskJuggler effort, length, duration and priority checked with tj3 (one duration criterion per task; length with allocate still books the resource; priority reorders ASAP softly); proposes a task lead_time (working or calendar days), a demand levelled flag, a task priority now and a strict resource queue later, their effects on validate, workload, next, the export and OpenProject, five implementation tasks with estimates and three questions for the maintainer. No model change made. Executor 20:21:11-20:25:00, 0.06 h.'
+    targets:
+      - kind: task
+        id: task.self.design-lead-time-and-queue-order
