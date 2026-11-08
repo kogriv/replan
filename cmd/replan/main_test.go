@@ -3172,6 +3172,53 @@ func TestTaskJugglerRunOrdersDependentTasksWhenTJ3Available(t *testing.T) {
 	}
 }
 
+func TestTaskJugglerRunKeepsFinishedPredecessorAndOpenSuccessorAtStatusDateWhenTJ3Available(t *testing.T) {
+	tj3, err := exec.LookPath("tj3")
+	if err != nil {
+		t.Skip("tj3 is not installed")
+	}
+	projectPath := copyCmdProjectFixture(t)
+	tasksPath := filepath.Join(projectPath, "canonical", "tasks.yaml")
+	tasks := readFileString(t, tasksPath)
+	tasks = strings.Replace(tasks, "tracking_status: in_progress", "tracking_status: accepted\n    planned_start: \"2026-07-01\"\n    planned_finish: \"2026-07-02\"", 1)
+	if err := os.WriteFile(tasksPath, []byte(tasks), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	outputDir := filepath.Join(t.TempDir(), "run")
+	stdout, stderr := tempOutputFiles(t)
+	code := run([]string{
+		"taskjuggler", "run",
+		"--project", projectPath,
+		"--output-dir", outputDir,
+		"--taskjuggler-bin", tj3,
+		"--format", "json",
+	}, stdout, stderr)
+	if code != exitSuccess {
+		t.Fatalf("taskjuggler run exit = %d, stdout = %s, stderr = %s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	project := readFileString(t, filepath.Join(outputDir, "project.tjp"))
+	// The fixture records the pump work on 2026-07-06, and actual dates win
+	// over the planned ones.
+	if !strings.Contains(project, "task task_offline_repair_pump") || !strings.Contains(project, "  start 2026-07-06\n  end 2026-07-06\n") {
+		t.Fatalf("finished predecessor is not fixed at its own dates:\n%s", project)
+	}
+	if strings.Contains(project[strings.Index(project, "task task_offline_repair_pump"):strings.Index(project, "task task_op_1234")], "effort ") {
+		t.Fatalf("finished predecessor still has effort:\n%s", project)
+	}
+
+	starts := map[string]string{}
+	for _, line := range strings.Split(readFileString(t, filepath.Join(outputDir, "reports", "replan-task-schedule.csv")), "\n") {
+		fields := strings.Split(line, ";")
+		if len(fields) >= 4 {
+			starts[strings.Trim(fields[0], `"`)] = strings.Trim(fields[2], `"`)
+		}
+	}
+	if got := starts["task_op_1234"]; got < "2026-07-06" {
+		t.Fatalf("open successor starts %q before status date 2026-07-06; starts=%v", got, starts)
+	}
+}
+
 func replaceTaskJugglerDemandRemaining(t *testing.T, content, demandID, oldAmount, newAmount string) string {
 	t.Helper()
 	pattern := regexp.MustCompile(`(?s)(  - id: ` + regexp.QuoteMeta(demandID) + `\n.*?\n    remaining_amount: )` + regexp.QuoteMeta(oldAmount) + `(\n)`)

@@ -2783,6 +2783,28 @@ Implemented TaskJuggler proof-of-concept:
 - `replan export taskjuggler`;
 - generate `.tjp` only;
 - map RePlan resources and tasks/resource demands where safe;
+- use `project.default_status_date` as TaskJuggler's `now`;
+  without one, retain TaskJuggler's run-time `today` behavior and
+  emit `taskjuggler_status_date_missing`;
+- start the TaskJuggler project window at the earliest of the status date and
+  every exported task's planned or derived actual start, and end it at least
+  one year after the status date;
+- export `accepted` and `done` tasks, plus `review_ready` tasks whose loading
+  demands have no remaining work, as fixed `start`/`end` leaves without
+  `effort` or `allocate`; dates use the estimate report's derived actual
+  window first and planned dates as fallback;
+- fix a finished task with no actual or planned dates at the status date and
+  emit the grouped count warning
+  `taskjuggler_finished_task_without_dates`;
+- keep work that is not finished from starting before the status date with a
+  `replan_status_date` milestone fixed at that date, which every such task
+  depends on (TaskJuggler takes `start` together with `depends` as a fixed
+  date the dependency can contradict); the milestone carries the
+  `replan_internal` flag, which the parseable task report hides, and its id is
+  reserved (`taskjuggler_task_id_collision`); finished tasks write no
+  `depends`; cancelled tasks continue to export without effort;
+- start the project window one day before the earliest date, because
+  TaskJuggler reads the project line before its timezone;
 - map active `finish_to_start`, `blocks`, `requires_input_from` and
   `requires_resource_from` task-to-task dependencies to one TaskJuggler
   `depends <predecessor-id>` line in the successor task block; predecessor ids
@@ -2873,8 +2895,8 @@ Current TaskJuggler scenario overlay limitation:
 
 - `add availability.exceptions`, resource demand `remaining_amount`,
   `planned_amount` and `resource_ref`, task `planned_start` and
-  `planned_finish`, dependency `status`, plus capacity amount changes for
-  workload, are supported by the shared overlay;
+  `planned_finish`, dependency `status`, plus
+  capacity amount changes for workload, are supported by the shared overlay;
 - only narrow human or AI-agent weekly hour capacity amount changes are mapped
   into TaskJuggler `.tjp` as `limits { weeklymax ... }`;
 - quota, budget, rate-limit, subscription, stock, review-hour,
@@ -2894,6 +2916,15 @@ TaskJuggler dependency diagnostic codes:
 - error `taskjuggler_dependency_cycle`: the exported `depends` graph contains
   a cycle, so export stops through the validation-failure path before
   TaskJuggler is invoked.
+
+TaskJuggler status-date and finished-task diagnostic codes:
+
+- warning `taskjuggler_status_date_missing`: the project has no
+  `default_status_date`, so the export keeps the prior
+  run-time `today` behavior and does not write `now`;
+- warning `taskjuggler_finished_task_without_dates`: one or more finished
+  tasks have neither derived actual dates nor planned dates and are fixed at
+  the status date; the warning reports the count and example task ids.
 
 Later:
 

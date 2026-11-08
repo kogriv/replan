@@ -67,6 +67,18 @@ type taskJugglerResourceLimit struct {
 	weeklyMax    float64
 }
 
+const (
+	taskJugglerInternalFlag     = "replan_internal"
+	taskJugglerStatusDateTaskID = "replan_status_date"
+)
+
+type taskJugglerTaskSchedule struct {
+	finished    bool
+	start       string
+	finish      string
+	windowStart string
+}
+
 func (s ExportService) TaskJuggler(ctx context.Context, req ExportTaskJugglerRequest) (ExportTaskJugglerResult, error) {
 	ws, loadDiags := s.loader.Load(ctx)
 	now := req.Now
@@ -285,7 +297,8 @@ func buildTaskJugglerExportMapping(ws domain.Workspace, projectPath, scenarioID 
 		TaskIDMap:     []TaskJugglerTaskIDMapping{},
 		ResourceIDMap: []TaskJugglerResourceIDMapping{},
 	}
-	taskJugglerTaskIDs := map[string]string{}
+	// The status-date milestone's id is reserved.
+	taskJugglerTaskIDs := map[string]string{taskJugglerStatusDateTaskID: "the status-date milestone"}
 	for _, task := range ws.Tasks {
 		taskJugglerTaskID := taskJugglerID(task.ID, "task")
 		if previous, exists := taskJugglerTaskIDs[taskJugglerTaskID]; exists {
@@ -410,9 +423,14 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 	unsupportedDemandIDsByUnit := map[string][]string{}
 	openUnsupportedDemandIDsByUnit := map[string][]string{}
 	tasksByID := make(map[string]domain.Task, len(ws.Tasks))
+	demandIDsByTask := make(map[string][]string)
 	for _, task := range ws.Tasks {
 		tasksByID[task.ID] = task
 	}
+	for _, demand := range ws.ResourceDemands {
+		demandIDsByTask[demand.TaskRef.ID] = append(demandIDsByTask[demand.TaskRef.ID], demand.ID)
+	}
+	taskSchedules := taskJugglerTaskSchedules(ws, demandIDsByTask, warnings)
 	usedCalibrations := map[string]bool{}
 	for _, demand := range ws.ResourceDemands {
 		demandCountByTask[demand.TaskRef.ID]++
@@ -421,20 +439,23 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 		}
 		if domain.DemandLoads(demand.Status) && !isTaskJugglerEffortUnit(demand.Unit) {
 			unsupportedDemandIDsByUnit[demand.Unit] = append(unsupportedDemandIDsByUnit[demand.Unit], demand.ID)
-			if task, ok := tasksByID[demand.TaskRef.ID]; ok && !isTerminalTrackingStatus(task.TrackingStatus) && taskJugglerDemandHasOpenWork(demand) {
+			if task, ok := tasksByID[demand.TaskRef.ID]; ok && !taskSchedules[task.ID].finished && !isTerminalTrackingStatus(task.TrackingStatus) && taskJugglerDemandHasOpenWork(demand) {
 				openUnsupportedDemandIDsByUnit[demand.Unit] = append(openUnsupportedDemandIDsByUnit[demand.Unit], demand.ID)
 			}
 		}
 		mapped, ok := mapTaskJugglerDemand(demand, resourceIDs, calibrations[demand.ID], warnings)
 		if ok {
-			demandsByTask[demand.TaskRef.ID] = append(demandsByTask[demand.TaskRef.ID], mapped)
-			if mapped.calibrationID != "" {
+			task := tasksByID[demand.TaskRef.ID]
+			if !taskSchedules[demand.TaskRef.ID].finished && !strings.EqualFold(strings.TrimSpace(task.TrackingStatus), "cancelled") {
+				demandsByTask[demand.TaskRef.ID] = append(demandsByTask[demand.TaskRef.ID], mapped)
+			}
+			if mapped.calibrationID != "" && !taskSchedules[demand.TaskRef.ID].finished && !strings.EqualFold(strings.TrimSpace(task.TrackingStatus), "cancelled") {
 				usedCalibrations[mapped.calibrationID] = true
 			}
 		}
 	}
 	unsupportedDemands := appendTaskJugglerUnsupportedDemandDiagnostics(unsupportedDemandIDsByUnit, openUnsupportedDemandIDsByUnit, warnings)
-	appendTaskJugglerTasksWithoutDemandsDiagnostic(ws, demandCountByTask, warnings)
+	appendTaskJugglerTasksWithoutDemandsDiagnostic(ws, demandCountByTask, taskSchedules, warnings)
 	taskEfforts, roundedUpTaskIDs, timingResolution := taskJugglerTaskEfforts(ws.Tasks, demandsByTask)
 	appendTaskJugglerRoundedUpEffortDiagnostic(ws.Project.ID, roundedUpTaskIDs, warnings)
 
@@ -447,32 +468,30 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 		fmt.Fprintf(&b, "# Scenario: %s\n\n", scenarioID)
 	}
 
-	startDate := ws.Project.DefaultStatusDate
-	if startDate == "" {
-		startDate = "today"
-	}
-	timezone := ws.Project.Timezone
-	if timezone == "" {
-		timezone = "UTC"
-	}
-	fmt.Fprintf(&b, "project %s %q \"1.0\" %s +1y {\n", taskJugglerID(ws.Project.ID, "project_replan"), ws.Project.Name, startDate)
-	fmt.Fprintf(&b, "  timezone %q\n", timezone)
-	if timingResolution < 60 {
-		fmt.Fprintf(&b, "  timingresolution %dmin\n", timingResolution)
-	}
-	fmt.Fprintf(&b, "}\n\n")
+	statusDate := ws.Project.DefaultStatusDate
+	writeTaskJugglerProject(&b, ws.Project, statusDate, taskSchedules, timingResolution, warnings)
 
+	if statusDate != "" {
+		fmt.Fprintf(&b, "flags %s\n\n", taskJugglerInternalFlag)
+	}
 	for _, resource := range ws.Resources {
 		writeTaskJugglerResource(&b, resource, taskJugglerResourceIDs[resource.ID], vacationsByResource[resource.ID], limitsByResource[resource.ID])
 	}
 	if len(ws.Resources) > 0 {
 		b.WriteString("\n")
 	}
+	if statusDate != "" {
+		// TaskJuggler takes a task's start together with depends as a fixed
+		// date that the dependency may contradict, so open work waits for a
+		// status-date milestone instead. The flag hides it from the report
+		// that taskjuggler import reads.
+		fmt.Fprintf(&b, "task %s \"Status date\" {\n  start %s\n  milestone\n  flags %s\n}\n", taskJugglerStatusDateTaskID, statusDate, taskJugglerInternalFlag)
+	}
 
 	for _, task := range ws.Tasks {
-		writeTaskJugglerTask(&b, task, taskJugglerTaskIDs[task.ID], taskJugglerResourceIDs, dependenciesByTask[task.ID], demandsByTask[task.ID], taskEfforts[task.ID], loadingDemandCountByTask[task.ID] > 0, warnings)
+		writeTaskJugglerTask(&b, task, taskJugglerTaskIDs[task.ID], taskJugglerResourceIDs, dependenciesByTask[task.ID], demandsByTask[task.ID], taskEfforts[task.ID], loadingDemandCountByTask[task.ID] > 0, taskSchedules[task.ID], statusDate, warnings)
 	}
-	writeTaskJugglerParseableTaskReport(&b)
+	writeTaskJugglerParseableTaskReport(&b, statusDate != "")
 
 	calibrationIDs := make([]string, 0, len(usedCalibrations))
 	for calibrationID := range usedCalibrations {
@@ -480,6 +499,132 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 	}
 	sort.Strings(calibrationIDs)
 	return b.String(), calibrationIDs, unsupportedDemands
+}
+
+// writeTaskJugglerProject writes the project block: window, timezone, the
+// status date as now and the timing resolution.
+func writeTaskJugglerProject(b *strings.Builder, project domain.Project, statusDate string, taskSchedules map[string]taskJugglerTaskSchedule, timingResolution int, warnings *[]Diagnostic) {
+	startDate, endDate := taskJugglerProjectWindow(statusDate, taskSchedules)
+	if statusDate == "" {
+		*warnings = append(*warnings, Diagnostic{
+			Code:     "taskjuggler_status_date_missing",
+			Message:  "project has no default status date; TaskJuggler keeps its run-time today as the project start and progress date",
+			Severity: "warning",
+			Target:   Target{Kind: "project", ID: project.ID},
+		})
+	}
+	timezone := project.Timezone
+	if timezone == "" {
+		timezone = "UTC"
+	}
+	fmt.Fprintf(b, "project %s %q \"1.0\" %s %s {\n", taskJugglerID(project.ID, "project_replan"), project.Name, startDate, taskJugglerProjectEnd(endDate))
+	fmt.Fprintf(b, "  timezone %q\n", timezone)
+	if statusDate != "" {
+		fmt.Fprintf(b, "  now %s\n", statusDate)
+	}
+	if timingResolution < 60 {
+		fmt.Fprintf(b, "  timingresolution %dmin\n", timingResolution)
+	}
+	fmt.Fprintf(b, "}\n\n")
+}
+
+func taskJugglerTaskSchedules(ws domain.Workspace, demandIDsByTask map[string][]string, warnings *[]Diagnostic) map[string]taskJugglerTaskSchedule {
+	schedules := make(map[string]taskJugglerTaskSchedule, len(ws.Tasks))
+	withoutDates := []string{}
+	for _, task := range ws.Tasks {
+		finished := taskJugglerTaskFinished(task, ws.ResourceDemands)
+		actual := deriveTaskActualWindow(ws, task.ID, demandIDsByTask[task.ID], false)
+		windowStart := task.PlannedStart
+		if actual.Start != "" && (windowStart == "" || actual.Start < windowStart) {
+			windowStart = actual.Start
+		}
+		schedule := taskJugglerTaskSchedule{finished: finished, start: actual.Start, finish: actual.Finish, windowStart: windowStart}
+		if schedule.start == "" {
+			schedule.start = task.PlannedStart
+		}
+		if schedule.finish == "" {
+			schedule.finish = task.PlannedFinish
+		}
+		if finished {
+			if schedule.start == "" && schedule.finish == "" {
+				schedule.start, schedule.finish = ws.Project.DefaultStatusDate, ws.Project.DefaultStatusDate
+				if schedule.start == "" {
+					schedule.start, schedule.finish = "today", "today"
+				}
+				withoutDates = append(withoutDates, task.ID)
+			} else if schedule.start == "" {
+				schedule.start = schedule.finish
+			} else if schedule.finish == "" || schedule.finish < schedule.start {
+				// An actual start after the planned finish leaves no planned
+				// finish to trust; TaskJuggler refuses an end before the start.
+				schedule.finish = schedule.start
+			}
+		}
+		schedules[task.ID] = schedule
+	}
+	if len(withoutDates) > 0 {
+		sort.Strings(withoutDates)
+		examples := withoutDates
+		if len(examples) > 3 {
+			examples = examples[:3]
+		}
+		message := fmt.Sprintf("%d finished tasks have no actual or planned dates; they are fixed at the TaskJuggler status date", len(withoutDates))
+		if len(withoutDates) == 1 {
+			message = "1 finished task has no actual or planned dates; it is fixed at the TaskJuggler status date"
+		}
+		message += fmt.Sprintf(" (for example %s)", strings.Join(examples, ", "))
+		*warnings = append(*warnings, Diagnostic{
+			Code:     "taskjuggler_finished_task_without_dates",
+			Message:  message,
+			Severity: "warning",
+			Target:   Target{Kind: "project", ID: ws.Project.ID},
+		})
+	}
+	return schedules
+}
+
+func taskJugglerTaskFinished(task domain.Task, demands []domain.ResourceDemand) bool {
+	switch strings.ToLower(strings.TrimSpace(task.TrackingStatus)) {
+	case "accepted", "done":
+		return true
+	case "review_ready":
+		for _, demand := range demands {
+			if demand.TaskRef.ID == task.ID && domain.DemandLoads(demand.Status) && taskJugglerDemandHasOpenWork(demand) {
+				return false
+			}
+		}
+		return true
+	default:
+		return false
+	}
+}
+
+func taskJugglerProjectWindow(statusDate string, schedules map[string]taskJugglerTaskSchedule) (string, string) {
+	if statusDate == "" {
+		return "today", "+1y"
+	}
+	start := statusDate
+	for _, schedule := range schedules {
+		if schedule.windowStart != "" && schedule.windowStart < start {
+			start = schedule.windowStart
+		}
+	}
+	// The project line is read before its timezone, as UTC, so a task date
+	// at local midnight east of UTC would fall before the window: start the
+	// window a day early.
+	first, _ := time.Parse("2006-01-02", start)
+	parsed, _ := time.Parse("2006-01-02", statusDate)
+	return first.AddDate(0, 0, -1).Format("2006-01-02"), parsed.AddDate(1, 0, 0).Format("2006-01-02")
+}
+
+// taskJugglerProjectEnd writes the project end: a relative duration such as
+// +1y follows the start directly, an absolute date needs the "- " TaskJuggler
+// expects between the two dates.
+func taskJugglerProjectEnd(end string) string {
+	if strings.HasPrefix(end, "+") {
+		return end
+	}
+	return "- " + end
 }
 
 func taskJugglerTaskEfforts(tasks []domain.Task, demandsByTask map[string][]taskJugglerDemand) (map[string]float64, map[string]struct{}, int) {
@@ -546,10 +691,10 @@ func appendTaskJugglerRoundedUpEffortDiagnostic(projectID string, roundedUpTaskI
 	})
 }
 
-func appendTaskJugglerTasksWithoutDemandsDiagnostic(ws domain.Workspace, demandCountByTask map[string]int, warnings *[]Diagnostic) {
+func appendTaskJugglerTasksWithoutDemandsDiagnostic(ws domain.Workspace, demandCountByTask map[string]int, schedules map[string]taskJugglerTaskSchedule, warnings *[]Diagnostic) {
 	taskIDs := []string{}
 	for _, task := range ws.Tasks {
-		if demandCountByTask[task.ID] == 0 && !isTerminalTrackingStatus(task.TrackingStatus) {
+		if demandCountByTask[task.ID] == 0 && !schedules[task.ID].finished && !isTerminalTrackingStatus(task.TrackingStatus) {
 			taskIDs = append(taskIDs, task.ID)
 		}
 	}
@@ -746,13 +891,23 @@ func writeTaskJugglerResource(b *strings.Builder, resource domain.Resource, task
 	fmt.Fprintf(b, "}\n")
 }
 
-func writeTaskJugglerTask(b *strings.Builder, task domain.Task, taskJugglerTaskID string, taskJugglerResourceIDs map[string]string, predecessorIDs []string, demands []taskJugglerDemand, totalEffort float64, hasLoadingDemands bool, warnings *[]Diagnostic) {
+func writeTaskJugglerTask(b *strings.Builder, task domain.Task, taskJugglerTaskID string, taskJugglerResourceIDs map[string]string, predecessorIDs []string, demands []taskJugglerDemand, totalEffort float64, hasLoadingDemands bool, schedule taskJugglerTaskSchedule, statusDate string, warnings *[]Diagnostic) {
 	fmt.Fprintf(b, "task %s %q {\n", taskJugglerTaskID, task.Title)
 	if task.Description != "" {
 		fmt.Fprintf(b, "  note %q\n", task.Description)
 	}
-	for _, predecessorID := range predecessorIDs {
-		fmt.Fprintf(b, "  depends %s\n", predecessorID)
+	if schedule.finished {
+		// Finished work is fixed at its own dates; a dependency on it, or
+		// from it on open work, cannot move it.
+		fmt.Fprintf(b, "  start %s\n", schedule.start)
+		fmt.Fprintf(b, "  end %s\n", schedule.finish)
+	} else {
+		for _, predecessorID := range predecessorIDs {
+			fmt.Fprintf(b, "  depends %s\n", predecessorID)
+		}
+		if statusDate != "" {
+			fmt.Fprintf(b, "  depends %s\n", taskJugglerStatusDateTaskID)
+		}
 	}
 	allocated := map[string]struct{}{}
 	for _, demand := range demands {
@@ -776,7 +931,7 @@ func writeTaskJugglerTask(b *strings.Builder, task domain.Task, taskJugglerTaskI
 	for _, resourceID := range resourceIDs {
 		fmt.Fprintf(b, "  allocate %s\n", taskJugglerResourceIDs[resourceID])
 	}
-	if len(demands) == 0 && hasLoadingDemands && !isTerminalTrackingStatus(task.TrackingStatus) {
+	if len(demands) == 0 && hasLoadingDemands && !schedule.finished && !isTerminalTrackingStatus(task.TrackingStatus) {
 		*warnings = append(*warnings, Diagnostic{
 			Code:     "taskjuggler_task_without_supported_demands",
 			Message:  fmt.Sprintf("task %s has no supported concrete hour-based resource demands for TaskJuggler export", task.ID),
@@ -787,11 +942,14 @@ func writeTaskJugglerTask(b *strings.Builder, task domain.Task, taskJugglerTaskI
 	fmt.Fprintf(b, "}\n")
 }
 
-func writeTaskJugglerParseableTaskReport(b *strings.Builder) {
+func writeTaskJugglerParseableTaskReport(b *strings.Builder, hideInternal bool) {
 	fmt.Fprintf(b, "\ntaskreport replan_task_schedule \"reports/replan-task-schedule\" {\n")
 	fmt.Fprintf(b, "  formats csv\n")
 	fmt.Fprintf(b, "  columns id, name, start, end, effort, effortleft, resources, status\n")
 	fmt.Fprintf(b, "  sorttasks seqno.up\n")
+	if hideInternal {
+		fmt.Fprintf(b, "  hidetask %s\n", taskJugglerInternalFlag)
+	}
 	fmt.Fprintf(b, "}\n")
 }
 

@@ -26,7 +26,8 @@ func TestExportTaskJugglerSmallTeamFixture(t *testing.T) {
 	if result.Metadata.ID != "export.replan.taskjuggler.20260710T120000Z" {
 		t.Fatalf("Metadata.ID = %q", result.Metadata.ID)
 	}
-	assertContains(t, result.Content, `project project_replan_mvp "RePlan MVP example" "1.0" 2026-07-06 +1y`)
+	assertContains(t, result.Content, `project project_replan_mvp "RePlan MVP example" "1.0" 2026-07-05 - 2027-07-06`)
+	assertContains(t, result.Content, "  now 2026-07-06\n")
 	assertContains(t, result.Content, `resource resource_human_ivan "Ivan"`)
 	assertContains(t, result.Content, `limits { weeklymax 32.00h }`)
 	assertNotContains(t, result.Content, `note "RePlan class: human"`)
@@ -48,6 +49,115 @@ func TestExportTaskJugglerSmallTeamFixture(t *testing.T) {
 	}
 	if !hasDiagnosticCode(result.Warnings, "taskjuggler_unsupported_demand_unit") {
 		t.Fatalf("expected unsupported demand unit warning, got %#v", result.Warnings)
+	}
+}
+
+func TestExportTaskJugglerProjectWindowIncludesEarlierTaskStarts(t *testing.T) {
+	for _, tc := range []struct {
+		name      string
+		task      domain.Task
+		audits    []domain.AuditRecord
+		wantStart string
+	}{
+		{
+			name:      "planned start",
+			task:      domain.Task{ID: "task.test", Title: "Test", TrackingStatus: "ready", PlannedStart: "2026-11-01"},
+			wantStart: "2026-10-31",
+		},
+		{
+			name: "actual start",
+			task: domain.Task{ID: "task.test", Title: "Test", TrackingStatus: "in_progress", PlannedStart: "2026-11-07"},
+			audits: []domain.AuditRecord{{
+				Operation: "actual_add_status", TargetRef: domain.Ref{Kind: "task", ID: "task.test"}, NewStatus: "in_progress", StatusDate: "2026-10-30",
+			}},
+			wantStart: "2026-10-29",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ws := domain.Workspace{
+				Project:      domain.Project{ID: "project.test", Name: "Test", DefaultStatusDate: "2026-11-08"},
+				Tasks:        []domain.Task{tc.task},
+				AuditRecords: tc.audits,
+			}
+			result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			assertContains(t, result.Content, `"1.0" `+tc.wantStart+` - 2027-11-08 {`)
+			assertContains(t, result.Content, "  now 2026-11-08\n")
+		})
+	}
+}
+
+func TestExportTaskJugglerFinishedTasksUseActualThenPlannedDatesWithoutEffort(t *testing.T) {
+	remaining := 8.0
+	ws := domain.Workspace{
+		Project:   domain.Project{ID: "project.test", Name: "Test", DefaultStatusDate: "2026-11-08"},
+		Resources: []domain.Resource{{ID: "resource.test", Name: "Test"}},
+		Tasks: []domain.Task{
+			{ID: "task.accepted", Title: "Accepted", TrackingStatus: "accepted", PlannedStart: "2026-11-01", PlannedFinish: "2026-11-02"},
+			{ID: "task.done", Title: "Done", TrackingStatus: "done", PlannedStart: "2026-11-03", PlannedFinish: "2026-11-04"},
+			{ID: "task.review", Title: "Review ready", TrackingStatus: "review_ready", PlannedStart: "2026-11-05", PlannedFinish: "2026-11-06"},
+		},
+		ResourceDemands: []domain.ResourceDemand{
+			{ID: "demand.accepted", TaskRef: domain.Ref{ID: "task.accepted"}, ResourceRef: domain.Ref{ID: "resource.test"}, Unit: "hours", PlannedAmount: 8, RemainingAmount: &remaining, Status: "active"},
+			{ID: "demand.review", TaskRef: domain.Ref{ID: "task.review"}, ResourceRef: domain.Ref{ID: "resource.test"}, Unit: "hours", PlannedAmount: 2, RemainingAmount: domain.Amount(0), Status: "active"},
+		},
+		AuditRecords: []domain.AuditRecord{
+			{Operation: "actual_add_status", TargetRef: domain.Ref{ID: "task.accepted"}, NewStatus: "in_progress", StatusDate: "2026-10-28"},
+			{Operation: "actual_add_status", TargetRef: domain.Ref{ID: "task.accepted"}, NewStatus: "accepted", StatusDate: "2026-10-31"},
+		},
+	}
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, result.Content, "task task_accepted \"Accepted\" {\n  start 2026-10-28\n  end 2026-10-31\n}")
+	assertContains(t, result.Content, "task task_done \"Done\" {\n  start 2026-11-03\n  end 2026-11-04\n}")
+	assertContains(t, result.Content, "task task_review \"Review ready\" {\n  start 2026-11-05\n  end 2026-11-06\n}")
+	assertNotContains(t, result.Content, "effort 8.00h")
+	assertNotContains(t, result.Content, "allocate resource_test")
+}
+
+func TestExportTaskJugglerOpenTaskStartsAtStatusDate(t *testing.T) {
+	ws := taskJugglerWorkspaceWithEffort(8)
+	ws.Tasks[0].TrackingStatus = "ready"
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, result.Content, "task replan_status_date \"Status date\" {\n  start 2026-11-08\n  milestone\n  flags replan_internal\n}\n")
+	assertContains(t, result.Content, "task task_test \"Test task\" {\n  depends replan_status_date\n  effort 8.00h")
+	assertContains(t, result.Content, "  hidetask replan_internal\n")
+}
+
+func TestExportTaskJugglerFinishedTaskWithoutDatesUsesStatusDateWarning(t *testing.T) {
+	ws := domain.Workspace{
+		Project: domain.Project{ID: "project.test", Name: "Test", DefaultStatusDate: "2026-11-08"},
+		Tasks:   []domain.Task{{ID: "task.accepted", Title: "Accepted", TrackingStatus: "accepted"}},
+	}
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, result.Content, "  start 2026-11-08\n  end 2026-11-08\n")
+	if warnings := diagnosticsWithCode(result.Warnings, "taskjuggler_finished_task_without_dates"); len(warnings) != 1 || !strings.Contains(warnings[0].Message, "1 finished task") {
+		t.Fatalf("finished-task warnings = %#v", warnings)
+	}
+}
+
+func TestExportTaskJugglerWarnsWhenStatusDateMissing(t *testing.T) {
+	ws := domain.Workspace{Project: domain.Project{ID: "project.test", Name: "Test"}}
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, result.Content, `"1.0" today +1y {`)
+	assertNotContains(t, result.Content, "  now ")
+	assertNotContains(t, result.Content, "replan_status_date")
+	assertNotContains(t, result.Content, "replan_internal")
+	if !hasDiagnosticCode(result.Warnings, "taskjuggler_status_date_missing") {
+		t.Fatalf("warnings = %#v", result.Warnings)
 	}
 }
 
@@ -443,7 +553,7 @@ func TestExportTaskJugglerSkipsInactiveDependencies(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assertNotContains(t, result.Content, "depends ")
+	assertNotContains(t, result.Content, "depends task_")
 	if hasDiagnosticCode(result.Warnings, "taskjuggler_dependencies_not_exported") {
 		t.Fatalf("inactive dependencies should not warn: %#v", result.Warnings)
 	}
@@ -538,6 +648,30 @@ func TestExportTaskJugglerHonoursScenarioDependencyStatus(t *testing.T) {
 		t.Fatalf("TaskJuggler returned error: %v; errors=%#v", err, result.Errors)
 	}
 	assertContains(t, result.Content, "task task_b \"B\" {\n  depends task_a\n")
+}
+
+func TestExportTaskJugglerFinishedSuccessorKeepsItsDatesWithoutDepends(t *testing.T) {
+	ws := taskJugglerDependencyWorkspace()
+	ws.Tasks[1].TrackingStatus = "accepted"
+	ws.Tasks[1].PlannedStart, ws.Tasks[1].PlannedFinish = "2026-07-01", "2026-07-02"
+	ws.Dependencies = []domain.Dependency{
+		{ID: "dependency.open", Type: "finish_to_start", Status: "open", PredecessorRef: domain.Ref{Kind: "task", ID: "task.a"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.b"}},
+	}
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, result.Content, "task task_b \"B\" {\n  start 2026-07-01\n  end 2026-07-02\n}")
+	assertContains(t, result.Content, "task task_a \"A\" {\n  depends replan_status_date\n}")
+}
+
+func TestExportTaskJugglerReservesTheStatusDateTaskID(t *testing.T) {
+	ws := taskJugglerDependencyWorkspace()
+	ws.Tasks = append(ws.Tasks, domain.Task{ID: "replan.status-date", Title: "Clash", TrackingStatus: "ready"})
+	_, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if !errors.Is(err, app.ErrValidationFailed) {
+		t.Fatalf("err = %v, want validation failure for the reserved id", err)
+	}
 }
 
 func taskJugglerDependencyWorkspace() domain.Workspace {
