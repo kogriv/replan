@@ -46,12 +46,17 @@ fail() {
 REPLAN_AGENT_KIT_KEEP="$WORK_DIR/kit" "$ROOT_DIR/scripts/check-agent-kit.sh" > /dev/null
 KIT="$WORK_DIR/kit"
 
-# A project and a member with the seeded "Member" role; the token goes into a
-# protected file named by the kit's settings file.
+# A project, an open version and a member with the seeded "Member" role; the
+# version is created during administrator setup before the member token is
+# used. The token goes into a protected file named by the kit's settings file.
 docker exec -e PROJECT="$PROJECT" "$WEB_CONTAINER" bundle exec rails runner '
+  administrator = User.where(admin: true).first
+  raise "administrator missing" unless administrator
+  User.current = administrator
   project = Project.create!(name: "Agent kit check", identifier: ENV.fetch("PROJECT"), workspace_type: "project",
                             enabled_module_names: %w[work_package_tracking wiki])
   Type.order(:id).first(2).each { |type| project.types << type unless project.types.include?(type) }
+  version = Version.create!(project: project, name: "Agent kit stage", status: "open", sharing: "none")
   user = User.create!(login: "#{project.identifier}-member", firstname: "Kit", lastname: "Member", mail: "#{project.identifier}-member@example.invalid",
                       admin: false, password: "Agent-kit-member-2026!", password_confirmation: "Agent-kit-member-2026!")
   Member.create!(project: project, principal: user, roles: [ProjectRole.find_by!(name: "Member")])
@@ -60,7 +65,7 @@ docker exec -e PROJECT="$PROJECT" "$WEB_CONTAINER" bundle exec rails runner '
                         admin: false, password: "Agent-kit-reader-2026!", password_confirmation: "Agent-kit-reader-2026!")
   Member.create!(project: project, principal: reader, roles: [ProjectRole.find_by!(name: "Reader")])
   reader_token = Token::API.create!(user: reader, data: { name: "agent kit check" })
-  puts "FACTS user=#{user.id} admin=#{user.admin?} token=#{token.plain_value} reader_token=#{reader_token.plain_value}"
+  puts "FACTS user=#{user.id} admin=#{user.admin?} token=#{token.plain_value} reader_token=#{reader_token.plain_value} version=#{version.id}"
 ' 2>/dev/null | grep '^FACTS ' > "$WORK_DIR/facts" || fail "runner did not set up the member"
 fact() { tr ' ' '\n' < "$WORK_DIR/facts" | sed -n "s/^$1=//p"; }
 [ "$(fact admin)" = "false" ] || fail "the check user is an administrator"
@@ -138,6 +143,15 @@ run "" "$TOOLKIT" user list
 expect "the project's assignees are readable by a member" "d['ok'] and any(item.get('name') == 'Kit Member' for item in d['items'])"
 run "" "$TOOLKIT" work-package inspect --task "$TASK"
 expect "the member is the assignee of its own plan" "d['ok'] and 'Kit Member' in json.dumps(d['items'])"
+
+run "" "$TOOLKIT" version list
+expect "the project versions are readable by a member" "d['ok'] and any(item['id'] == '$(fact version)' and item['name'] == 'Agent kit stage' for item in d['items'])"
+run "" "$TOOLKIT" work-package update-metadata --task "$TASK" --version "Agent kit stage"
+expect "a version dry run shows the old and new version" "d['ok'] and d['mode'] == 'dry_run' and d['actions'][0]['from_version']['id'] == '' and d['actions'][0]['to_version']['id'] == '$(fact version)'"
+run 1 "$TOOLKIT" work-package update-metadata --task "$TASK" --version "Agent kit stage"
+expect "a member sets a work-package version" "d['ok'] and d['counts']['applied_actions'] == 1"
+run 1 "$TOOLKIT" work-package update-metadata --task "$TASK" --clear-version
+expect "a member clears a work-package version" "d['ok'] and d['counts']['applied_actions'] == 1"
 
 run "" "$TOOLKIT" work-package update-text --task "$TASK" --description "Agent kit description v2."
 expect "a text dry run reports the current lock version" "d['ok'] and d['mode'] == 'dry_run' and isinstance(d['actions'][0]['current_lock_version'], int)"

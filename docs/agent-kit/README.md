@@ -417,7 +417,7 @@ one.
 | Draft dates from capacity and load | `bin/replan taskjuggler run`, `bin/replan taskjuggler import-result`, then review the scenario with `bin/replan scenario diff` and `bin/replan scenario apply` (needs TaskJuggler's `tj3`) |
 | Record work and accept a task | `bin/replan actual add-consumption`, `bin/replan actual add-status`, `scripts/accept-task.sh` |
 | Create work packages and relations | `scripts/apply-openproject-bootstrap.sh`, `scripts/apply-openproject-relations.sh` |
-| Change one work package | `scripts/openproject-work-package-toolkit.sh` |
+| Change one work package | `scripts/openproject-work-package-toolkit.sh` for status, dates, text, metadata and Version (stage); list project versions with `version list` |
 | Read and edit the project wiki | `scripts/openproject-wiki.sh` |
 | Bring files written by an older tool into the current style | `bin/replan project format` |
 
@@ -462,6 +462,7 @@ to its root. A write to OpenProject or the bindings file is a dry run unless
 | Dates from OpenProject | `bin/replan task set-dates ... --dry-run` | Reviewed one-task acceptance. For a stored snapshot use `bin/replan import accept <snapshot-id> --accept-dates --dry-run`. The live batch helper keeps private-binding matching, then writes audited `task set-dates` changes and requires `REPLAN_ACTOR` with `REPLAN_APPLY=1`. |
 | Change and push a task description | `bin/replan task set-description ... --dry-run`, then `scripts/push-openproject-description-drift.sh` | The CLI changes the audited canonical description. The helper previews bound work-package differences, preserves an existing bootstrap trailer and all OpenProject text below it byte-for-byte, and pushes only with `REPLAN_APPLY=1`; `REPLAN_TASKS` optionally limits the task ids. |
 | Correct subject or description | `scripts/openproject-work-package-toolkit.sh work-package update-text ...` | Shows old/new text and the current lock version. A bound subject is preflighted and synchronized with audited `bin/replan task set-title`; an OpenProject description is not copied into the separate RePlan planning note. |
+| Set or clear one work package's Version (stage) | `scripts/openproject-work-package-toolkit.sh work-package update-metadata --task <id> --version <id-or-exact-name>` | Use `version list` to inspect the selected project's versions; use `--clear-version` to remove one. Both are dry-run first and use the work package's current lock version on apply. |
 | Drift check | `scripts/check-openproject-drift.sh` | Read-only comparison; a person chooses the direction. |
 | Overlay build and publish | `scripts/build-openproject-live-overlay.sh`, then `scripts/publish-openproject-overlay.sh` | Builds locally with private bindings, then publishes only to the selected project's directory. Publish is a dry run unless `REPLAN_APPLY=1`; the private target comes only from the environment or ignored `.env.local`. |
 | Wiki | `scripts/openproject-wiki.sh page list` | Use its page and attachment subcommands; writes are gated. |
@@ -641,6 +642,9 @@ scripts/openproject-work-package-toolkit.sh work-package bind --task <task id> -
 scripts/openproject-work-package-toolkit.sh work-package update-status --task <task id> --status "In progress"
 scripts/openproject-work-package-toolkit.sh work-package update-dates --task <task id> --start-date 2026-10-12 --due-date 2026-10-14
 scripts/openproject-work-package-toolkit.sh work-package update-text --task <task id> --subject "Corrected subject" --evidence <evidence id>
+scripts/openproject-work-package-toolkit.sh version list
+scripts/openproject-work-package-toolkit.sh work-package update-metadata --task <task id> --version "Stage 2"
+scripts/openproject-work-package-toolkit.sh work-package update-metadata --task <task id> --clear-version
 scripts/openproject-work-package-toolkit.sh comment add --task <task id> --text "..."
 scripts/openproject-work-package-toolkit.sh status list
 scripts/openproject-work-package-toolkit.sh user list
@@ -654,9 +658,9 @@ For an OpenProject-only project, omit `REPLAN_PROJECT`. Keep
 "none"`, omits `private_binding_layer`, and does not read or write a bindings
 file.
 
-The catalog commands `status list`, `type list`, `user list` and `priority
-list` work in this mode, as do `work-package list`, `work-package inspect
---work-package <id>`, `work-package create` without `--task`, every
+The catalog commands `status list`, `type list`, `user list`, `priority list`
+and `version list` work in this mode, as do `work-package list`,
+`work-package inspect --work-package <id>`, `work-package create` without `--task`, every
 `work-package update-* --work-package <id>` command, and `comment add
 --work-package <id>`. Create still rejects an existing subject unless
 `--allow-duplicate` is supplied.
@@ -718,6 +722,15 @@ scripts/openproject-work-package-toolkit.sh work-package list
 (`not_started`, `ready`, `in_progress`, `blocked`, `review_ready`, `accepted`,
 `cancelled`) or its exact OpenProject name (`New`, `To be scheduled`,
 `In progress`, `On hold`, `Developed`, `Closed`, `Rejected`).
+
+`version list` reads every page of the selected project's versions and reports
+each version's id, exact name, status and sharing mode. `work-package create`
+and `work-package update-metadata` accept `--version <id-or-exact-name>`;
+`update-metadata --clear-version` removes it. A duplicate exact name is refused
+with `version_ambiguous` and the matching ids, and an unknown id or name with
+`version_not_found`. Dry runs show `from_version` and `to_version`; apply still
+requires `REPLAN_APPLY=1` and sends the work package's current `lockVersion`.
+OpenProject remains authoritative for refusing a closed or locked version.
 
 `update-text` accepts `--subject`, `--description` or `--description-file`,
 with at least one required. Its dry run reports each changed field's old and

@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Inspect and safely change OpenProject work packages, catalogs, relations and comments.
+# Inspect and safely change OpenProject work packages, versions, catalogs, relations and comments.
 # Dated creates and updates preserve instance non-working weekdays.
 #
 # Settings:
@@ -36,6 +36,10 @@
 #
 #   scripts/openproject-work-package-toolkit.sh --help
 #   scripts/openproject-work-package-toolkit.sh work-package list
+#   scripts/openproject-work-package-toolkit.sh version list
+#   scripts/openproject-work-package-toolkit.sh work-package create --subject "Task" --version "Release 1"
+#   scripts/openproject-work-package-toolkit.sh work-package update-metadata --task task.example --version "Release 1"
+#   scripts/openproject-work-package-toolkit.sh work-package update-metadata --task task.example --clear-version
 set -eu
 
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P)"
