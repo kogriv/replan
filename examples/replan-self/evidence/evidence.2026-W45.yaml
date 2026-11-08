@@ -1624,3 +1624,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.taskjuggler-export-status-date-and-finished-work
+  - id: evidence.self.taskjuggler-export-status-date-and-finished-work
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T19:32:22+07:00"
+    summary: 'Fix commit 45584fc: the TaskJuggler export writes now from the status date, starts the project window a day before the earliest planned or actual start, fixes finished tasks at their actual (else planned) dates without effort or depends, and keeps open work after the status date through a reserved replan_status_date milestone hidden from the parseable report; warnings taskjuggler_status_date_missing and taskjuggler_finished_task_without_dates. Review with a real tj3 found three things Codex could not test: the project line needs ''-'' between dates, the project line is read before its timezone, and start with depends is a fixed date a dependency can contradict (small-team failed); review also dropped an unasked scenario path for the status date and split a function for gocyclo. The self plan (240 tasks) now runs through tj3 and import-result reads it with no unmapped rows. Gate green except that gocyclo finding, fixed and linted after (0 issues, full go test). Codex 18:51:41-19:07:47 (0.27 h); executor 18:29:18-18:51:41 tj3 checks and brief, 19:08:15-19:15:11 review, 19:30:29-19:32:22 lint fix and booking, 0.53 h by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-export-status-date-and-finished-work
+  - id: evidence.self.start-taskjuggler-export-working-calendar
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T18:52:20+07:00"
+    summary: Started on 2026-11-08, two days before plan, reading the availability model and checking workinghours and vacation in tj3 (tool call 18:52:20) while Codex worked on the status date fix; estimate 1.5 agent hours frozen in baseline.2026-11-08.taskjuggler-drafting-gaps, split into Codex 1.0 and agent 0.5. Start recorded at 2026-11-08T19:32:45+07:00.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-export-working-calendar

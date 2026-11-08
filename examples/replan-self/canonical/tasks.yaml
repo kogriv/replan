@@ -6978,7 +6978,7 @@ tasks:
     title: Export the status date and finished work to TaskJuggler
     description: 'Found on 2026-11-08 by the check whether RePlan can draft a consumer plan''s dates (docs/spec/taskjuggler-run-import-experiment.md, Drafting a real plan''s dates). The export starts the project at the default status date, so earlier tasks fall outside the project window, sets no now, and schedules finished tasks again with any remaining effort. Start the project window at the earliest planned or actual date, set now from the status date, keep open work from starting before it, and fix finished tasks at their actual or planned dates without effort.'
     type: implementation
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-08"
     planned_finish: "2026-11-08"
     assignee_hint:
@@ -7007,15 +7007,17 @@ tasks:
     title: Export working days and holidays to TaskJuggler
     description: 'Found on 2026-11-08 by the check whether RePlan can draft a consumer plan''s dates (docs/spec/taskjuggler-run-import-experiment.md, Drafting a real plan''s dates). The export ignores canonical availability windows and exceptions; only scenario exceptions become vacation. Export each resource''s working days and hours from its availability windows and its unavailable exceptions as leaves or vacation, keep scenario exceptions working, and warn where a window cannot be represented.'
     type: implementation
-    tracking_status: not_started
-    planned_start: "2026-11-10"
-    planned_finish: "2026-11-10"
+    tracking_status: in_progress
+    planned_start: "2026-11-08"
+    planned_finish: "2026-11-08"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer
     resource_demands:
       - kind: resource_demand
         id: resource_demand.taskjuggler-export-working-calendar.agent
+      - kind: resource_demand
+        id: resource_demand.taskjuggler-export-working-calendar.codex
       - kind: resource_demand
         id: resource_demand.taskjuggler-export-working-calendar.maintainer
       - kind: resource_demand

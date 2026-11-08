@@ -2212,3 +2212,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.taskjuggler-export-dependencies
+  - id: actual.self-taskjuggler-export-status-date-and-finished-work.ai-codex-local.20261108T1932220700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-export-status-date-and-finished-work
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-export-status-date-and-finished-work.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.27
+    unit: agent_hours
+    occurred_at: "2026-11-08T19:32:22+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.taskjuggler-export-status-date-and-finished-work
+  - id: actual.self-taskjuggler-export-status-date-and-finished-work.ai-agent-executor.20261108T1932220700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-export-status-date-and-finished-work
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-export-status-date-and-finished-work.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.53
+    unit: agent_hours
+    occurred_at: "2026-11-08T19:32:22+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.taskjuggler-export-status-date-and-finished-work
