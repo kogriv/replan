@@ -1602,3 +1602,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.taskjuggler-export-dependencies
+  - id: evidence.self.taskjuggler-export-dependencies
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T18:45:28+07:00"
+    summary: 'Fix commit e26a495: active ordering dependencies between exported tasks become TaskJuggler depends lines, sorted and deduplicated; resolved, cancelled and relates skipped; external and missing endpoints counted in taskjuggler_dependencies_not_exported; cycles and self-loops refused with taskjuggler_dependency_cycle; the scenario overlay honours dependency status changes. Review added a real-tj3 test (a three-day predecessor, successor starts after it ends; it fails without the depends line). small-team runs through tj3 with one depends; the self plan has only resolved and cancelled dependencies. Gate green (lint 0, 54 kit, 83 live checks). Codex 18:07:54-18:22:19 (0.24 h); executor merge, review and test 18:26:06-18:29:05 by tool-call times, plus this booking, 0.1 h.'
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-export-dependencies
+  - id: evidence.self.start-taskjuggler-export-status-date-and-finished-work
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T18:29:18+07:00"
+    summary: Started on 2026-11-08, two days before plan, with tj3 checks of now, start with depends and fixed done tasks (tool call 18:29:18) while the dependencies fix was gated; estimate frozen in baseline.2026-11-08.taskjuggler-drafting-gaps, split into Codex 1.0 and agent 1.0 (2 agent hours). Start recorded at 2026-11-08T18:45:48+07:00.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-export-status-date-and-finished-work
