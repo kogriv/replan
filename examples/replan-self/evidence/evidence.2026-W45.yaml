@@ -1155,3 +1155,29 @@ evidence:
     targets:
       - kind: task
         id: task.self.refresh-agent-kits-v0-4-0
+  - id: evidence.self.accept-publish-release-v0-4-0
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T05:38:57Z"
+    confidence: observed
+    summary: Release v0.4.0 published with archives matching CI byte for byte and attested; accepted by the operator on 2026-11-08.
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-4-0
+  - id: evidence.self.accept-refresh-agent-kits-v0-4-0
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T05:39:33Z"
+    confidence: observed
+    summary: Both agent kits moved to v0.4.0 and checked; accepted by the operator on 2026-11-08.
+    targets:
+      - kind: task
+        id: task.self.refresh-agent-kits-v0-4-0
