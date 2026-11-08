@@ -6949,15 +6949,17 @@ tasks:
     title: Export dependencies to TaskJuggler
     description: 'Found on 2026-11-08 by the check whether RePlan can draft a consumer plan''s dates (docs/spec/taskjuggler-run-import-experiment.md, Drafting a real plan''s dates). The TaskJuggler export writes no depends, so every dependency is dropped without a warning. Export finish_to_start dependencies between exported tasks as depends, warn once with counts for dependency types or endpoints the export cannot represent, and cover cycles and external dependencies in tests.'
     type: implementation
-    tracking_status: not_started
-    planned_start: "2026-11-09"
-    planned_finish: "2026-11-09"
+    tracking_status: in_progress
+    planned_start: "2026-11-08"
+    planned_finish: "2026-11-08"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer
     resource_demands:
       - kind: resource_demand
         id: resource_demand.taskjuggler-export-dependencies.agent
+      - kind: resource_demand
+        id: resource_demand.taskjuggler-export-dependencies.codex
       - kind: resource_demand
         id: resource_demand.taskjuggler-export-dependencies.maintainer
       - kind: resource_demand
@@ -7030,7 +7032,7 @@ tasks:
     title: Keep sub-hour efforts schedulable in TaskJuggler
     description: 'Found on 2026-11-08 by the check whether RePlan can draft a consumer plan''s dates (docs/spec/taskjuggler-run-import-experiment.md, Drafting a real plan''s dates). The export writes efforts below one hour (effort 0.40h), which TaskJuggler refuses at its default 60-minute timing resolution, so taskjuggler run fails. Set a timing resolution that represents every exported effort, or round up with a warning, and test a 0.25-hour demand through taskjuggler run.'
     type: implementation
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-08"
     planned_finish: "2026-11-08"
     assignee_hint:
@@ -7039,6 +7041,8 @@ tasks:
     resource_demands:
       - kind: resource_demand
         id: resource_demand.taskjuggler-export-sub-hour-effort.agent
+      - kind: resource_demand
+        id: resource_demand.taskjuggler-export-sub-hour-effort.codex
       - kind: resource_demand
         id: resource_demand.taskjuggler-export-sub-hour-effort.maintainer
       - kind: resource_demand

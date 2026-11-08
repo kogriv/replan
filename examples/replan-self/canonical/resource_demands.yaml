@@ -13541,8 +13541,22 @@ resource_demands:
     resource_class: ai_agent
     role: implementation_agent
     unit: agent_hours
-    planned_amount: 1.5
-    remaining_amount: 1.5
+    planned_amount: 0.5
+    remaining_amount: 0.5
+    criticality: required
+    status: active
+  - id: resource_demand.taskjuggler-export-dependencies.codex
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-export-dependencies
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 1
+    remaining_amount: 1
     criticality: required
     status: active
   - id: resource_demand.taskjuggler-export-dependencies.maintainer
@@ -13709,10 +13723,35 @@ resource_demands:
     resource_class: ai_agent
     role: implementation_agent
     unit: agent_hours
-    planned_amount: 0.5
-    remaining_amount: 0.5
+    planned_amount: 0.2
+    remaining_amount: 0
     criticality: required
     status: active
+  - id: resource_demand.taskjuggler-export-sub-hour-effort.codex
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-export-sub-hour-effort
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 0.3
+    remaining_amount: 0
+    criticality: required
+    status: active
+    overrun_review:
+      acknowledged_forecast: 0.31
+      unit: agent_hours
+      reason: 'Real: the Codex round took 0.31 h against the 0.3 h Codex share; the task total 0.41 h is within the 0.5 h estimate.'
+      reviewed_by:
+          kind: actor
+          id: actor.ai.agent.executor
+      reviewed_at: "2026-11-08T18:27:26+07:00"
+      evidence_refs:
+          - kind: evidence
+            id: evidence.self.taskjuggler-export-sub-hour-effort
   - id: resource_demand.taskjuggler-export-sub-hour-effort.maintainer
     task_ref:
       kind: task

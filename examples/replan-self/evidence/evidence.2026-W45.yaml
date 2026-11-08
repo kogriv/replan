@@ -1580,3 +1580,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.taskjuggler-export-sub-hour-effort
+  - id: evidence.self.taskjuggler-export-sub-hour-effort
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T18:26:06+07:00"
+    summary: 'Fix commit 7a15a4c: the TaskJuggler export sets the coarsest timingresolution not larger than the smallest task effort, writes sub-hour efforts in whole minutes rounded up, raises efforts below 5 minutes with taskjuggler_effort_rounded_up, and leaves hour-scale exports unchanged. A 0.25-hour demand goes through replan taskjuggler run with a real tj3 (15min, effort 15min). Review changed Codex''s float effort text (0.30000000000000004h was possible) to whole minutes. Gate green (lint 0, 54 kit, 83 live checks). Codex 17:46:23-18:04:43 (0.31 h); executor 17:45:30-17:46:23 brief and 18:04:43-18:07:54 review, plus this booking, 0.1 h.'
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-export-sub-hour-effort
+  - id: evidence.self.start-taskjuggler-export-dependencies
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T18:07:54+07:00"
+    summary: Started on 2026-11-08, a day before plan, when the Codex brief was handed over (prompt file time 18:07:54) while the sub-hour fix was gated; estimate 1.5 agent hours frozen in baseline.2026-11-08.taskjuggler-drafting-gaps, split into Codex 1.0 and agent 0.5. Start recorded at 2026-11-08T18:26:06+07:00.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-export-dependencies
