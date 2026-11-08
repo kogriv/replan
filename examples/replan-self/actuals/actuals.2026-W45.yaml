@@ -1813,3 +1813,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.consumer-contract-public-surfaces
+  - id: actual.self-consumer-contract-public-surfaces.ci-github-actions.20261108T072223Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.consumer-contract-public-surfaces
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.consumer-contract-public-surfaces.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-08T07:22:23Z"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-consumer-contract-public-surfaces
+  - id: actual.self-replace-consumer-scheduler-with-replan.ai-agent-executor.20261108T1438370700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.replace-consumer-scheduler-with-replan
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.replace-consumer-scheduler-with-replan.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.14
+    unit: agent_hours
+    occurred_at: "2026-11-08T14:38:37+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.replace-consumer-scheduler-with-replan

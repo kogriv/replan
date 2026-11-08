@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 229,
-  "count": 229,
+  "total": 240,
+  "count": 240,
   "_embedded": {
     "elements": [
       {
@@ -6635,6 +6635,325 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2329"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2330,
+        "subject": "Name positional ids in command help and refuse a missing id clearly",
+        "description": {
+          "raw": "Found by a consumer project on 2026-11-08 and confirmed: commands that take a positional id (demand set and demand move take the demand id; baseline show, estimate show, scenario show, proposal show, import accept and others take an id) do not name it in their own help (-h), and without it they fail with an unrelated or empty-id error such as resource demand not found with a blank name. Name the positional argument in each command's help, refuse a missing positional id with a usage error that names it (exit 8), and cover every such command in tests. Agreed with the operator on 2026-11-08."
+        },
+        "status": {
+          "name": "In progress"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-08",
+        "dueDate": "2026-11-08",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2330"
+          },
+          "status": {
+            "title": "In progress"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2331,
+        "subject": "Set a work package's version with the work-package toolkit",
+        "description": {
+          "raw": "Found on 2026-11-08 while moving the consumer projects onto RePlan's public surfaces: a consumer keeps its own OpenProject API client only to set a work package's Version (the project stage), because the work-package toolkit cannot. Add a version option to work-package create and update-metadata (by version id or exact name within the project, with a clear refusal for an unknown or ambiguous name), dry run first as for the other fields, list the project's versions read-only, document it in the agent kit README and test it on the throwaway OpenProject with an ordinary member's token. Agreed with the operator on 2026-11-08."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-08",
+        "dueDate": "2026-11-08",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2331"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2332,
+        "subject": "Check whether RePlan can draft a consumer's dates instead of its private scheduler",
+        "description": {
+          "raw": "Found on 2026-11-08: a consumer project computes its task dates with a private script that rewrites its RePlan files wholesale. Its rules: one queue per agent stream in list order with dependencies, Monday to Friday with a holiday list, duration as estimate times a tempo plus a fixed review share, open work not before the status date, not-before dates for tasks that wait on people (and a scenario without them), done tasks placed at their actual dates, and milestone tasks. On a copy of that plan, check which rules RePlan already covers through its public surfaces (TaskJuggler run and import, availability, calibration, demand earliest start, deadlines, actual windows), compare the dates, and plan every missing capability as its own task. Agreed with the operator on 2026-11-08."
+        },
+        "status": {
+          "name": "Developed"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-08",
+        "dueDate": "2026-11-08",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2332"
+          },
+          "status": {
+            "title": "Developed"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2333,
+        "subject": "Publish release v0.4.1 and refresh the agent kits",
+        "description": {
+          "raw": "Agreed with the operator on 2026-11-08: after the help and toolkit fixes, publish release v0.4.1 so the agent kits carry the Use RePlan as a tool section, its reference check, the positional-id fix and the toolkit version option: release notes, tag after green CI, six archives built locally and compared with the CI build and its attestation, GitHub release, go install check; then refresh the second and third projects' kits and the fourth project's local kit the same way as for v0.4.0 and tell each session what changed."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-09",
+        "dueDate": "2026-11-09",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2333"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2334,
+        "subject": "Treat help only as a separate helper argument, not text inside a value",
+        "description": {
+          "raw": "Found on 2026-11-08 creating a work package: the work-package toolkit and wiki wrappers look for help by matching the joined argument string, so a value that contains the text space-dash-h-space, such as a description mentioning a help flag, is taken as a help request; the wrapper then skips loading settings and the helper fails with missing_setting. Detect help only as a whole argument, check every helper wrapper for the same pattern, and test a description that contains the flag text. Planned with the release fixes agreed with the operator on 2026-11-08."
+        },
+        "status": {
+          "name": "In progress"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-08",
+        "dueDate": "2026-11-08",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2334"
+          },
+          "status": {
+            "title": "In progress"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2335,
+        "subject": "Export dependencies to TaskJuggler",
+        "description": {
+          "raw": "Found on 2026-11-08 by the check whether RePlan can draft a consumer plan's dates (docs/spec/taskjuggler-run-import-experiment.md, Drafting a real plan's dates). The TaskJuggler export writes no depends, so every dependency is dropped without a warning. Export finish_to_start dependencies between exported tasks as depends, warn once with counts for dependency types or endpoints the export cannot represent, and cover cycles and external dependencies in tests."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-09",
+        "dueDate": "2026-11-09",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2335"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2336,
+        "subject": "Export the status date and finished work to TaskJuggler",
+        "description": {
+          "raw": "Found on 2026-11-08 by the check whether RePlan can draft a consumer plan's dates (docs/spec/taskjuggler-run-import-experiment.md, Drafting a real plan's dates). The export starts the project at the default status date, so earlier tasks fall outside the project window, sets no now, and schedules finished tasks again with any remaining effort. Start the project window at the earliest planned or actual date, set now from the status date, keep open work from starting before it, and fix finished tasks at their actual or planned dates without effort."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-10",
+        "dueDate": "2026-11-10",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2336"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2337,
+        "subject": "Export working days and holidays to TaskJuggler",
+        "description": {
+          "raw": "Found on 2026-11-08 by the check whether RePlan can draft a consumer plan's dates (docs/spec/taskjuggler-run-import-experiment.md, Drafting a real plan's dates). The export ignores canonical availability windows and exceptions; only scenario exceptions become vacation. Export each resource's working days and hours from its availability windows and its unavailable exceptions as leaves or vacation, keep scenario exceptions working, and warn where a window cannot be represented."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-10",
+        "dueDate": "2026-11-10",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2337"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2338,
+        "subject": "Keep sub-hour efforts schedulable in TaskJuggler",
+        "description": {
+          "raw": "Found on 2026-11-08 by the check whether RePlan can draft a consumer plan's dates (docs/spec/taskjuggler-run-import-experiment.md, Drafting a real plan's dates). The export writes efforts below one hour (effort 0.40h), which TaskJuggler refuses at its default 60-minute timing resolution, so taskjuggler run fails. Set a timing resolution that represents every exported effort, or round up with a warning, and test a 0.25-hour demand through taskjuggler run."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-09",
+        "dueDate": "2026-11-09",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2338"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2339,
+        "subject": "Export not-before dates to TaskJuggler",
+        "description": {
+          "raw": "Found on 2026-11-08 by the check whether RePlan can draft a consumer plan's dates (docs/spec/taskjuggler-run-import-experiment.md, Drafting a real plan's dates). Demand earliest_start, the model's not-before date for work that waits on people, is not exported. Export it as a start constraint on the task, choose the latest when a task has several, and show in a scenario how to schedule without them."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-11",
+        "dueDate": "2026-11-11",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2339"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2340,
+        "subject": "Design lead time without load and queue order within a resource",
+        "description": {
+          "raw": "Found on 2026-11-08 by the check whether RePlan can draft a consumer plan's dates (docs/spec/taskjuggler-run-import-experiment.md, Drafting a real plan's dates). Two rules of the consumer's scheduler have no RePlan concept: a task that takes working days without consuming levelled capacity (a waiting period, a person's decision whose time is not levelled), and running a resource's tasks strictly in plan order. Design how the model, validate, workload and the TaskJuggler export would express both, compare with TaskJuggler's duration, length and priority attributes, and plan the implementation tasks."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-11",
+        "dueDate": "2026-11-11",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2340"
           },
           "status": {
             "title": "New"

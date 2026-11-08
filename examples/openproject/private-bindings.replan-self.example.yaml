@@ -623,6 +623,72 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2329"
         url: https://op.example.internal/work_packages/2329
+    - replan_task_id: task.self.positional-ids-in-command-help
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2330"
+        url: https://op.example.internal/work_packages/2330
+    - replan_task_id: task.self.toolkit-sets-work-package-version
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2331"
+        url: https://op.example.internal/work_packages/2331
+    - replan_task_id: task.self.helpers-detect-help-only-as-an-argument
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2334"
+        url: https://op.example.internal/work_packages/2334
+    - replan_task_id: task.self.replace-consumer-scheduler-with-replan
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2332"
+        url: https://op.example.internal/work_packages/2332
+    - replan_task_id: task.self.publish-release-v0-4-1
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2333"
+        url: https://op.example.internal/work_packages/2333
+    - replan_task_id: task.self.taskjuggler-export-dependencies
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2335"
+        url: https://op.example.internal/work_packages/2335
+    - replan_task_id: task.self.taskjuggler-export-status-date-and-finished-work
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2336"
+        url: https://op.example.internal/work_packages/2336
+    - replan_task_id: task.self.taskjuggler-export-working-calendar
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2337"
+        url: https://op.example.internal/work_packages/2337
+    - replan_task_id: task.self.taskjuggler-export-sub-hour-effort
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2338"
+        url: https://op.example.internal/work_packages/2338
+    - replan_task_id: task.self.taskjuggler-export-not-before-dates
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2339"
+        url: https://op.example.internal/work_packages/2339
+    - replan_task_id: task.self.design-lead-time-and-queue-order
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2340"
+        url: https://op.example.internal/work_packages/2340
     - replan_task_id: task.self.fix-first-project-defects
       source_ref:
         source: openproject

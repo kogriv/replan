@@ -1236,3 +1236,181 @@ evidence:
     targets:
       - kind: task
         id: task.self.move-consumer-projects-to-public-surfaces
+  - id: evidence.self.accept-consumer-contract-public-surfaces
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T07:22:23Z"
+    confidence: observed
+    summary: Consumer contract in the agent kit README and the reference check accepted by the operator on 2026-11-08.
+    targets:
+      - kind: task
+        id: task.self.consumer-contract-public-surfaces
+  - id: evidence.self.plan-positional-ids-in-command-help
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T14:26:13+07:00"
+    summary: The operator accepted the consumer contract on 2026-11-08 and agreed to the four proposed tasks (help ids 1, toolkit version 1, scheduler check 2, release v0.4.1 1.5 agent hours). Agreement approves the estimates.
+    targets:
+      - kind: task
+        id: task.self.positional-ids-in-command-help
+  - id: evidence.self.plan-toolkit-sets-work-package-version
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T14:26:13+07:00"
+    summary: The operator accepted the consumer contract on 2026-11-08 and agreed to the four proposed tasks (help ids 1, toolkit version 1, scheduler check 2, release v0.4.1 1.5 agent hours). Agreement approves the estimates.
+    targets:
+      - kind: task
+        id: task.self.toolkit-sets-work-package-version
+  - id: evidence.self.plan-replace-consumer-scheduler-with-replan
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T14:26:13+07:00"
+    summary: The operator accepted the consumer contract on 2026-11-08 and agreed to the four proposed tasks (help ids 1, toolkit version 1, scheduler check 2, release v0.4.1 1.5 agent hours). Agreement approves the estimates.
+    targets:
+      - kind: task
+        id: task.self.replace-consumer-scheduler-with-replan
+  - id: evidence.self.plan-publish-release-v0-4-1
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T14:26:13+07:00"
+    summary: The operator accepted the consumer contract on 2026-11-08 and agreed to the four proposed tasks (help ids 1, toolkit version 1, scheduler check 2, release v0.4.1 1.5 agent hours). Agreement approves the estimates.
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-4-1
+  - id: evidence.self.plan-helpers-detect-help-only-as-an-argument
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T14:26:13+07:00"
+    summary: Found on 2026-11-08 creating the work package of the help-ids task; planned at 0.5 agent hours into the v0.4.1 fixes under the operator's instruction of the same day to proceed as recommended.
+    targets:
+      - kind: task
+        id: task.self.helpers-detect-help-only-as-an-argument
+  - id: evidence.self.start-positional-ids-in-command-help
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T14:26:57+07:00"
+    summary: Started on 2026-11-08 right after planning; estimate frozen in baseline.2026-11-08.v0-4-1-fixes. The help-ids round runs in Codex while the executor fixes the helper wrappers and studies the consumer scheduler.
+    targets:
+      - kind: task
+        id: task.self.positional-ids-in-command-help
+  - id: evidence.self.start-helpers-detect-help-only-as-an-argument
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T14:26:57+07:00"
+    summary: Started on 2026-11-08 right after planning; estimate frozen in baseline.2026-11-08.v0-4-1-fixes. The help-ids round runs in Codex while the executor fixes the helper wrappers and studies the consumer scheduler.
+    targets:
+      - kind: task
+        id: task.self.helpers-detect-help-only-as-an-argument
+  - id: evidence.self.start-replace-consumer-scheduler-with-replan
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T14:26:57+07:00"
+    summary: Started on 2026-11-08 right after planning; estimate frozen in baseline.2026-11-08.v0-4-1-fixes. The help-ids round runs in Codex while the executor fixes the helper wrappers and studies the consumer scheduler.
+    targets:
+      - kind: task
+        id: task.self.replace-consumer-scheduler-with-replan
+  - id: evidence.self.plan-taskjuggler-export-dependencies
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T14:38:11+07:00"
+    summary: Planned on 2026-11-08 by the scheduler check, whose task the operator agreed on the same day with the instruction to plan every missing capability as its own task; estimate approved with that agreement.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-export-dependencies
+  - id: evidence.self.plan-taskjuggler-export-status-date-and-finished-work
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T14:38:11+07:00"
+    summary: Planned on 2026-11-08 by the scheduler check, whose task the operator agreed on the same day with the instruction to plan every missing capability as its own task; estimate approved with that agreement.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-export-status-date-and-finished-work
+  - id: evidence.self.plan-taskjuggler-export-working-calendar
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T14:38:11+07:00"
+    summary: Planned on 2026-11-08 by the scheduler check, whose task the operator agreed on the same day with the instruction to plan every missing capability as its own task; estimate approved with that agreement.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-export-working-calendar
+  - id: evidence.self.plan-taskjuggler-export-sub-hour-effort
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T14:38:11+07:00"
+    summary: Planned on 2026-11-08 by the scheduler check, whose task the operator agreed on the same day with the instruction to plan every missing capability as its own task; estimate approved with that agreement.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-export-sub-hour-effort
+  - id: evidence.self.plan-taskjuggler-export-not-before-dates
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T14:38:11+07:00"
+    summary: Planned on 2026-11-08 by the scheduler check, whose task the operator agreed on the same day with the instruction to plan every missing capability as its own task; estimate approved with that agreement.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-export-not-before-dates
+  - id: evidence.self.plan-design-lead-time-and-queue-order
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T14:38:11+07:00"
+    summary: Planned on 2026-11-08 by the scheduler check, whose task the operator agreed on the same day with the instruction to plan every missing capability as its own task; estimate approved with that agreement.
+    targets:
+      - kind: task
+        id: task.self.design-lead-time-and-queue-order
+  - id: evidence.self.replace-consumer-scheduler-with-replan
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T14:38:37+07:00"
+    summary: On a copy of the consumer plan (360 tasks, 771 dependencies) taskjuggler run with TaskJuggler 3.8.4 failed on a 0.40-hour effort. The export writes no dependencies, no now, a project window that misses earlier tasks, schedules finished tasks again, and exports neither canonical working days and holidays nor demand earliest_start. With those six added to the .tjp by hand TaskJuggler scheduled the plan, but the 23 open tasks finished from 28 days earlier to 42 days later than the consumer script (median 6 earlier), because RePlan has no lead time without load and no strict queue order within a resource. Findings written to docs/spec/taskjuggler-run-import-experiment.md; six tasks planned (dependencies, status date and finished work, working calendar, sub-hour effort, not-before dates, and a design for lead time and queue order) with a limited baseline. Nothing was written to the consumer project. Executor 14:30:14 to 14:38:37, 0.14 h.
+    targets:
+      - kind: task
+        id: task.self.replace-consumer-scheduler-with-replan

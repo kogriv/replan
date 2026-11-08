@@ -456,6 +456,28 @@ current_plan:
     - kind: task
       id: task.self.move-consumer-projects-to-public-surfaces
     - kind: task
+      id: task.self.positional-ids-in-command-help
+    - kind: task
+      id: task.self.toolkit-sets-work-package-version
+    - kind: task
+      id: task.self.helpers-detect-help-only-as-an-argument
+    - kind: task
+      id: task.self.replace-consumer-scheduler-with-replan
+    - kind: task
+      id: task.self.publish-release-v0-4-1
+    - kind: task
+      id: task.self.taskjuggler-export-dependencies
+    - kind: task
+      id: task.self.taskjuggler-export-status-date-and-finished-work
+    - kind: task
+      id: task.self.taskjuggler-export-working-calendar
+    - kind: task
+      id: task.self.taskjuggler-export-sub-hour-effort
+    - kind: task
+      id: task.self.taskjuggler-export-not-before-dates
+    - kind: task
+      id: task.self.design-lead-time-and-queue-order
+    - kind: task
       id: task.self.fix-first-project-defects
     - kind: task
       id: task.self.implement-replan-init-and-resource-commands

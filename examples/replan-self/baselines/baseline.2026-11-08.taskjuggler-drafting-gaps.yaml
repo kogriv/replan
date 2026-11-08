@@ -1,0 +1,182 @@
+baseline:
+  id: baseline.2026-11-08.taskjuggler-drafting-gaps
+  name: TaskJuggler drafting gaps
+  scope: tasks
+  created_at: "2026-11-08T14:38:11+07:00"
+  approved_at: "2026-11-08T14:38:11+07:00"
+  approved_by:
+    kind: actor
+    id: actor.human.maintainer
+  included_tasks:
+    - kind: task
+      id: task.self.taskjuggler-export-dependencies
+      planned_start: "2026-11-09"
+      planned_finish: "2026-11-09"
+    - kind: task
+      id: task.self.taskjuggler-export-status-date-and-finished-work
+      planned_start: "2026-11-10"
+      planned_finish: "2026-11-10"
+    - kind: task
+      id: task.self.taskjuggler-export-working-calendar
+      planned_start: "2026-11-10"
+      planned_finish: "2026-11-10"
+    - kind: task
+      id: task.self.taskjuggler-export-sub-hour-effort
+      planned_start: "2026-11-09"
+      planned_finish: "2026-11-09"
+    - kind: task
+      id: task.self.taskjuggler-export-not-before-dates
+      planned_start: "2026-11-11"
+      planned_finish: "2026-11-11"
+    - kind: task
+      id: task.self.design-lead-time-and-queue-order
+      planned_start: "2026-11-11"
+      planned_finish: "2026-11-11"
+  included_demands:
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-export-dependencies.agent
+      task: task.self.taskjuggler-export-dependencies
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 1.5
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-export-dependencies.maintainer
+      task: task.self.taskjuggler-export-dependencies
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-export-dependencies.local-dev
+      task: task.self.taskjuggler-export-dependencies
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-export-dependencies.ci
+      task: task.self.taskjuggler-export-dependencies
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-export-status-date-and-finished-work.agent
+      task: task.self.taskjuggler-export-status-date-and-finished-work
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 2
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-export-status-date-and-finished-work.maintainer
+      task: task.self.taskjuggler-export-status-date-and-finished-work
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-export-status-date-and-finished-work.local-dev
+      task: task.self.taskjuggler-export-status-date-and-finished-work
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-export-status-date-and-finished-work.ci
+      task: task.self.taskjuggler-export-status-date-and-finished-work
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-export-working-calendar.agent
+      task: task.self.taskjuggler-export-working-calendar
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 1.5
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-export-working-calendar.maintainer
+      task: task.self.taskjuggler-export-working-calendar
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-export-working-calendar.local-dev
+      task: task.self.taskjuggler-export-working-calendar
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-export-working-calendar.ci
+      task: task.self.taskjuggler-export-working-calendar
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-export-sub-hour-effort.agent
+      task: task.self.taskjuggler-export-sub-hour-effort
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 0.5
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-export-sub-hour-effort.maintainer
+      task: task.self.taskjuggler-export-sub-hour-effort
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-export-sub-hour-effort.local-dev
+      task: task.self.taskjuggler-export-sub-hour-effort
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-export-sub-hour-effort.ci
+      task: task.self.taskjuggler-export-sub-hour-effort
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-export-not-before-dates.agent
+      task: task.self.taskjuggler-export-not-before-dates
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-export-not-before-dates.maintainer
+      task: task.self.taskjuggler-export-not-before-dates
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-export-not-before-dates.local-dev
+      task: task.self.taskjuggler-export-not-before-dates
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-export-not-before-dates.ci
+      task: task.self.taskjuggler-export-not-before-dates
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+    - kind: resource_demand
+      id: resource_demand.design-lead-time-and-queue-order.agent
+      task: task.self.design-lead-time-and-queue-order
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 1.5
+    - kind: resource_demand
+      id: resource_demand.design-lead-time-and-queue-order.maintainer
+      task: task.self.design-lead-time-and-queue-order
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.design-lead-time-and-queue-order.local-dev
+      task: task.self.design-lead-time-and-queue-order
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.design-lead-time-and-queue-order.ci
+      task: task.self.design-lead-time-and-queue-order
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  seal:
+    algorithm: sha256
+    digest: 9a764ada7763df05b605a2057ed08c8750c2d260c5c2eb7f055d4f027398e356
