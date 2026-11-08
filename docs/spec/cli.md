@@ -2836,6 +2836,15 @@ Implemented TaskJuggler proof-of-concept:
 - calibrate that effort by default with the workload selection rule, add a
   task comment naming each calibration, and list used ids in the JSON
   `calibrations` field;
+- after summing the exported, calibrated demands for each task, choose the
+  coarsest TaskJuggler timing resolution no larger than the smallest task
+  effort: `60`, `30`, `20`, `15`, `10` or `5` minutes; omit
+  `timingresolution` when every exported task effort is at least one hour so
+  existing hour-scale exports remain unchanged; a task effort below one hour
+  is written in whole minutes, rounded up (`effort 24min`);
+- round an exported task effort below TaskJuggler's 5-minute minimum up to
+  `effort 5min` and emit one grouped `taskjuggler_effort_rounded_up` warning
+  with the task count and up to three example task ids;
 - `--raw` exports uncalibrated effort; `agent_hours` demands are exported in
   both modes;
 - use overlaid `resource_ref` for TaskJuggler `allocate`;

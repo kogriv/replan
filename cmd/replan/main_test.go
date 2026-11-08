@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"regexp"
@@ -3093,6 +3094,46 @@ grep 'weeklymax 6.00h' "$1" >/dev/null
 	if hasDiagnosticCode(warnings, "taskjuggler_capacity_change_not_represented") {
 		t.Fatalf("human weekly capacity should be represented, got warnings %#v", warnings)
 	}
+}
+
+func TestTaskJugglerRunSchedulesQuarterHourDemandWhenTJ3Available(t *testing.T) {
+	tj3, err := exec.LookPath("tj3")
+	if err != nil {
+		t.Skip("tj3 is not installed")
+	}
+	projectPath := copyCmdProjectFixture(t)
+	demandsPath := filepath.Join(projectPath, "canonical", "resource_demands.yaml")
+	demands := readFileString(t, demandsPath)
+	demands = replaceTaskJugglerDemandRemaining(t, demands, "resource_demand.task-op-1234.ai-agent", "2", "0")
+	demands = replaceTaskJugglerDemandRemaining(t, demands, "resource_demand.task-op-1234.implementer", "8", "0.25")
+	if err := os.WriteFile(demandsPath, []byte(demands), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	outputDir := filepath.Join(t.TempDir(), "run")
+	stdout, stderr := tempOutputFiles(t)
+	code := run([]string{
+		"taskjuggler", "run",
+		"--project", projectPath,
+		"--output-dir", outputDir,
+		"--taskjuggler-bin", tj3,
+		"--format", "json",
+	}, stdout, stderr)
+	if code != exitSuccess {
+		t.Fatalf("taskjuggler run exit = %d, stdout = %s, stderr = %s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	assertFileContains(t, filepath.Join(outputDir, "project.tjp"), "  timingresolution 15min\n")
+	assertFileContains(t, filepath.Join(outputDir, "project.tjp"), "  effort 15min\n")
+}
+
+func replaceTaskJugglerDemandRemaining(t *testing.T, content, demandID, oldAmount, newAmount string) string {
+	t.Helper()
+	pattern := regexp.MustCompile(`(?s)(  - id: ` + regexp.QuoteMeta(demandID) + `\n.*?\n    remaining_amount: )` + regexp.QuoteMeta(oldAmount) + `(\n)`)
+	updated := pattern.ReplaceAllString(content, "${1}"+newAmount+"${2}")
+	if updated == content {
+		t.Fatalf("remaining amount for %s was not replaced", demandID)
+	}
+	return updated
 }
 
 func TestRunTaskJugglerValidationReportsTaskJugglerFailure(t *testing.T) {

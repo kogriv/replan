@@ -32,6 +32,7 @@ func TestExportTaskJugglerSmallTeamFixture(t *testing.T) {
 	assertNotContains(t, result.Content, `note "RePlan class: human"`)
 	assertContains(t, result.Content, `task task_op_1234 "Implement validation command"`)
 	assertContains(t, result.Content, `effort 10.00h`)
+	assertNotContains(t, result.Content, `timingresolution`)
 	assertContains(t, result.Content, `allocate resource_human_ivan`)
 	assertContains(t, result.Content, `allocate resource_ai_codex_local`)
 	assertContains(t, result.Content, `taskreport replan_task_schedule "reports/replan-task-schedule"`)
@@ -47,6 +48,64 @@ func TestExportTaskJugglerSmallTeamFixture(t *testing.T) {
 	}
 	if !hasDiagnosticCode(result.Warnings, "taskjuggler_unsupported_demand_unit") {
 		t.Fatalf("expected unsupported demand unit warning, got %#v", result.Warnings)
+	}
+}
+
+func TestExportTaskJugglerChoosesTimingResolutionFromSmallestTaskEffort(t *testing.T) {
+	tests := []struct {
+		name       string
+		effort     float64
+		resolution string
+		written    string
+	}{
+		{name: "quarter hour", effort: .25, resolution: "15min", written: "15min"},
+		{name: "twenty four minutes", effort: .40, resolution: "20min", written: "24min"},
+		{name: "a third of an hour rounds up to whole minutes", effort: 1.0 / 3, resolution: "20min", written: "20min"},
+		{name: "a fraction of a minute rounds up", effort: .301, resolution: "15min", written: "19min"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := app.NewExportService(staticWorkspaceLoader{workspace: taskJugglerWorkspaceWithEffort(tt.effort)}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			assertContains(t, result.Content, "  timingresolution "+tt.resolution+"\n")
+			assertContains(t, result.Content, "  effort "+tt.written+"\n")
+			if hasDiagnosticCode(result.Warnings, "taskjuggler_effort_rounded_up") {
+				t.Fatalf("unexpected rounded-up warning: %#v", result.Warnings)
+			}
+		})
+	}
+}
+
+func TestExportTaskJugglerRoundsEffortBelowFiveMinutes(t *testing.T) {
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: taskJugglerWorkspaceWithEffort(.05)}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, result.Content, "  timingresolution 5min\n")
+	assertContains(t, result.Content, "  effort 5min\n")
+	warnings := diagnosticsWithCode(result.Warnings, "taskjuggler_effort_rounded_up")
+	if len(warnings) != 1 {
+		t.Fatalf("rounded-up warnings = %#v, want one", warnings)
+	}
+	if warnings[0].Message != "1 exported task effort is below TaskJuggler's 5-minute minimum and was rounded up to 5min (for example task.test)" {
+		t.Fatalf("warning message = %q", warnings[0].Message)
+	}
+	if warnings[0].Target != (app.Target{Kind: "project", ID: "project.test"}) {
+		t.Fatalf("warning target = %#v", warnings[0].Target)
+	}
+}
+
+func taskJugglerWorkspaceWithEffort(effort float64) domain.Workspace {
+	return domain.Workspace{
+		Project:   domain.Project{ID: "project.test", Name: "Test", Timezone: "UTC", DefaultStatusDate: "2026-11-08"},
+		Resources: []domain.Resource{{ID: "resource.test", Class: "human", Name: "Test resource"}},
+		Tasks:     []domain.Task{{ID: "task.test", Title: "Test task"}},
+		ResourceDemands: []domain.ResourceDemand{{
+			ID: "demand.test", TaskRef: domain.Ref{ID: "task.test"}, ResourceRef: domain.Ref{ID: "resource.test"},
+			ResourceClass: "human", Unit: "hours", PlannedAmount: effort, RemainingAmount: domain.Amount(effort), Status: "active",
+		}},
 	}
 }
 
@@ -231,7 +290,8 @@ func TestExportTaskJugglerUsesCalibratedEffortAndNamesCalibration(t *testing.T) 
 		t.Fatal(err)
 	}
 	assertContains(t, result.Content, `# calibrated by calibration.agent: 4.00h -> 0.75h`)
-	assertContains(t, result.Content, `effort 0.75h`)
+	assertContains(t, result.Content, `effort 45min`)
+	assertContains(t, result.Content, `timingresolution 30min`)
 	assertContains(t, result.Content, `limits { weeklymax 10.00h }`)
 	if len(result.Calibrations) != 1 || result.Calibrations[0] != "calibration.agent" {
 		t.Fatalf("calibrations = %#v", result.Calibrations)
@@ -298,7 +358,7 @@ func TestExportTaskJugglerDoesNotReapplyScenarioAppliedCalibration(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	assertContains(t, result.Content, `effort 0.75h`)
+	assertContains(t, result.Content, `effort 45min`)
 	assertNotContains(t, result.Content, `# calibrated by`)
 	if len(result.Calibrations) != 0 {
 		t.Fatalf("calibrations = %#v", result.Calibrations)
@@ -313,7 +373,7 @@ func TestExportTaskJugglerClosedDemandIsNotCalibratedOrScheduled(t *testing.T) {
 		t.Fatal(err)
 	}
 	assertNotContains(t, result.Content, `# calibrated by`)
-	assertNotContains(t, result.Content, `effort 0.75h`)
+	assertNotContains(t, result.Content, `effort 45min`)
 	if len(result.Calibrations) != 0 {
 		t.Fatalf("calibrations = %#v", result.Calibrations)
 	}
