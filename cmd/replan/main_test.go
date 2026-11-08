@@ -3126,6 +3126,52 @@ func TestTaskJugglerRunSchedulesQuarterHourDemandWhenTJ3Available(t *testing.T) 
 	assertFileContains(t, filepath.Join(outputDir, "project.tjp"), "  effort 15min\n")
 }
 
+func TestTaskJugglerRunOrdersDependentTasksWhenTJ3Available(t *testing.T) {
+	tj3, err := exec.LookPath("tj3")
+	if err != nil {
+		t.Skip("tj3 is not installed")
+	}
+	projectPath := copyCmdProjectFixture(t)
+	demandsPath := filepath.Join(projectPath, "canonical", "resource_demands.yaml")
+	demands := readFileString(t, demandsPath)
+	// Three working days for the predecessor, so a successor that ignored
+	// the dependency would start days before it ends.
+	demands = replaceTaskJugglerDemandRemaining(t, demands, "resource_demand.repair-pump.operator", "2", "24")
+	if err := os.WriteFile(demandsPath, []byte(demands), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	outputDir := filepath.Join(t.TempDir(), "run")
+	stdout, stderr := tempOutputFiles(t)
+	code := run([]string{
+		"taskjuggler", "run",
+		"--project", projectPath,
+		"--output-dir", outputDir,
+		"--taskjuggler-bin", tj3,
+		"--format", "json",
+	}, stdout, stderr)
+	if code != exitSuccess {
+		t.Fatalf("taskjuggler run exit = %d, stdout = %s, stderr = %s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	assertFileContains(t, filepath.Join(outputDir, "project.tjp"), "  depends task_offline_repair_pump\n")
+	starts, ends := map[string]string{}, map[string]string{}
+	for _, line := range strings.Split(readFileString(t, filepath.Join(outputDir, "reports", "replan-task-schedule.csv")), "\n") {
+		fields := strings.Split(line, ";")
+		if len(fields) < 4 {
+			continue
+		}
+		id := strings.Trim(fields[0], `"`)
+		starts[id], ends[id] = strings.Trim(fields[2], `"`), strings.Trim(fields[3], `"`)
+	}
+	predecessorEnd, successorStart := ends["task_offline_repair_pump"], starts["task_op_1234"]
+	if predecessorEnd == "" || successorStart == "" {
+		t.Fatalf("schedule report lacks the tasks: starts %v, ends %v", starts, ends)
+	}
+	if successorStart < predecessorEnd {
+		t.Fatalf("successor starts %s before its predecessor ends %s", successorStart, predecessorEnd)
+	}
+}
+
 func replaceTaskJugglerDemandRemaining(t *testing.T, content, demandID, oldAmount, newAmount string) string {
 	t.Helper()
 	pattern := regexp.MustCompile(`(?s)(  - id: ` + regexp.QuoteMeta(demandID) + `\n.*?\n    remaining_amount: )` + regexp.QuoteMeta(oldAmount) + `(\n)`)

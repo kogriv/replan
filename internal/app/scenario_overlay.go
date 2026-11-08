@@ -60,6 +60,9 @@ func applyScenarioChange(ws *domain.Workspace, scenario domain.Scenario, change 
 	if isSetOperation(change.Op) && strings.HasPrefix(change.Path, "capacities.") && strings.HasSuffix(change.Path, ".amount") {
 		return applyScenarioCapacityAmount(ws, scenario, change)
 	}
+	if isSetOperation(change.Op) && strings.HasPrefix(change.Path, "dependencies.") && strings.HasSuffix(change.Path, ".status") {
+		return applyScenarioDependencyStatus(ws, scenario, change)
+	}
 	if isSetOperation(change.Op) && strings.HasPrefix(change.Path, "tasks.") && (strings.HasSuffix(change.Path, ".planned_start") || strings.HasSuffix(change.Path, ".planned_finish")) {
 		applyChange, ok := scenarioApplyTaskDateChange(*ws, scenario, change)
 		if !ok {
@@ -83,6 +86,32 @@ func applyScenarioChange(ws *domain.Workspace, scenario domain.Scenario, change 
 		Message:  fmt.Sprintf("scenario %s change %s %s is not supported by the in-memory overlay yet", scenario.ID, change.Op, change.Path),
 		Severity: "error",
 		Target:   Target{Kind: "scenario", ID: scenario.ID},
+	}, false
+}
+
+func applyScenarioDependencyStatus(ws *domain.Workspace, scenario domain.Scenario, change domain.ScenarioChange) (Diagnostic, bool) {
+	dependencyID := strings.TrimSuffix(strings.TrimPrefix(change.Path, "dependencies."), ".status")
+	status, ok := change.Value.(string)
+	if dependencyID == "" || !ok || !domain.ValidDependencyStatus(status) {
+		return Diagnostic{
+			Code:     "invalid_scenario_change_value",
+			Message:  fmt.Sprintf("scenario %s dependency status change for %s must be a valid dependency status", scenario.ID, dependencyID),
+			Severity: "error",
+			Target:   Target{Kind: "dependency", ID: dependencyID},
+		}, false
+	}
+	for i := range ws.Dependencies {
+		if ws.Dependencies[i].ID != dependencyID {
+			continue
+		}
+		ws.Dependencies[i].Status = status
+		return Diagnostic{}, true
+	}
+	return Diagnostic{
+		Code:     "scenario_unknown_dependency",
+		Message:  fmt.Sprintf("scenario %s references unknown dependency %s", scenario.ID, dependencyID),
+		Severity: "error",
+		Target:   Target{Kind: "dependency", ID: dependencyID},
 	}, false
 }
 

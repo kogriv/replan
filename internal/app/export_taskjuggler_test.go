@@ -416,6 +416,140 @@ func TestExportTaskJugglerOmitsRelates(t *testing.T) {
 	assertNotContains(t, result.Content, "relates")
 }
 
+func TestExportTaskJugglerExportsOrderingDependencies(t *testing.T) {
+	for _, dependencyType := range []string{"finish_to_start", "blocks", "requires_input_from", "requires_resource_from"} {
+		t.Run(dependencyType, func(t *testing.T) {
+			ws := taskJugglerDependencyWorkspace()
+			ws.Dependencies = []domain.Dependency{{
+				ID: "dependency.ordering", Type: dependencyType, Status: "open", Criticality: "required",
+				PredecessorRef: domain.Ref{Kind: "task", ID: "task.a"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.b"},
+			}}
+			result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+			if err != nil {
+				t.Fatalf("TaskJuggler returned error: %v; errors=%#v", err, result.Errors)
+			}
+			assertContains(t, result.Content, "task task_b \"B\" {\n  depends task_a\n")
+		})
+	}
+}
+
+func TestExportTaskJugglerSkipsInactiveDependencies(t *testing.T) {
+	ws := taskJugglerDependencyWorkspace()
+	ws.Dependencies = []domain.Dependency{
+		{ID: "dependency.resolved", Type: "finish_to_start", Status: "resolved", PredecessorRef: domain.Ref{Kind: "task", ID: "task.a"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.b"}},
+		{ID: "dependency.cancelled", Type: "blocks", Status: "cancelled", PredecessorRef: domain.Ref{Kind: "task", ID: "task.a"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.b"}},
+	}
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertNotContains(t, result.Content, "depends ")
+	if hasDiagnosticCode(result.Warnings, "taskjuggler_dependencies_not_exported") {
+		t.Fatalf("inactive dependencies should not warn: %#v", result.Warnings)
+	}
+}
+
+func TestExportTaskJugglerDeduplicatesAndSortsPredecessors(t *testing.T) {
+	ws := taskJugglerDependencyWorkspace()
+	ws.Tasks = append(ws.Tasks, domain.Task{ID: "task.c", Title: "C", TrackingStatus: "ready"})
+	ws.Dependencies = []domain.Dependency{
+		{ID: "dependency.c-b", Type: "finish_to_start", Status: "open", PredecessorRef: domain.Ref{Kind: "task", ID: "task.c"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.b"}},
+		{ID: "dependency.a-b.blocks", Type: "blocks", Status: "blocked", PredecessorRef: domain.Ref{Kind: "task", ID: "task.a"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.b"}},
+		{ID: "dependency.a-b.input", Type: "requires_input_from", Status: "unknown", PredecessorRef: domain.Ref{Kind: "task", ID: "task.a"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.b"}},
+	}
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Count(result.Content, "  depends task_a\n") != 1 {
+		t.Fatalf("duplicate pair was not collapsed:\n%s", result.Content)
+	}
+	assertContains(t, result.Content, "task task_b \"B\" {\n  depends task_a\n  depends task_c\n")
+}
+
+func TestExportTaskJugglerWarnsOnceForDependenciesNotExported(t *testing.T) {
+	ws := taskJugglerDependencyWorkspace()
+	ws.Dependencies = []domain.Dependency{
+		{ID: "dependency.external", Type: "external_dependency", Status: "open", SuccessorRef: domain.Ref{Kind: "task", ID: "task.b"}},
+		{ID: "dependency.missing-predecessor", Type: "finish_to_start", Status: "blocked", PredecessorRef: domain.Ref{Kind: "task", ID: "task.missing"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.b"}},
+		{ID: "dependency.missing-successor", Type: "requires_resource_from", Status: "unknown", PredecessorRef: domain.Ref{Kind: "task", ID: "task.a"}, SuccessorRef: domain.Ref{Kind: "resource", ID: "resource.external"}},
+	}
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	warnings := diagnosticsWithCode(result.Warnings, "taskjuggler_dependencies_not_exported")
+	if len(warnings) != 1 {
+		t.Fatalf("warnings = %#v, want one count warning", warnings)
+	}
+	want := "3 active dependencies cannot be represented in the TaskJuggler export (external_dependency: 1, predecessor not a task in the export: 1, successor not a task in the export: 1); they are not exported (for example dependency.external, dependency.missing-predecessor, dependency.missing-successor)"
+	if warnings[0].Message != want {
+		t.Fatalf("message = %q, want %q", warnings[0].Message, want)
+	}
+}
+
+func TestExportTaskJugglerRefusesDependencyCycle(t *testing.T) {
+	ws := taskJugglerDependencyWorkspace()
+	ws.Dependencies = []domain.Dependency{
+		{ID: "dependency.a-b", Type: "finish_to_start", Status: "open", PredecessorRef: domain.Ref{Kind: "task", ID: "task.a"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.b"}},
+		{ID: "dependency.b-a", Type: "blocks", Status: "open", PredecessorRef: domain.Ref{Kind: "task", ID: "task.b"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.a"}},
+	}
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if !errors.Is(err, app.ErrValidationFailed) {
+		t.Fatalf("error = %v, want ErrValidationFailed", err)
+	}
+	cycleErrors := diagnosticsWithCode(result.Errors, "taskjuggler_dependency_cycle")
+	if len(cycleErrors) != 1 || !strings.Contains(cycleErrors[0].Message, "task.a -> task.b -> task.a") {
+		t.Fatalf("cycle errors = %#v", cycleErrors)
+	}
+	if result.Content != "" {
+		t.Fatalf("content generated for cyclic dependencies:\n%s", result.Content)
+	}
+}
+
+func TestExportTaskJugglerRefusesDependencySelfLoop(t *testing.T) {
+	ws := taskJugglerDependencyWorkspace()
+	ws.Dependencies = []domain.Dependency{{
+		ID: "dependency.self", Type: "finish_to_start", Status: "open",
+		PredecessorRef: domain.Ref{Kind: "task", ID: "task.a"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.a"},
+	}}
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if !errors.Is(err, app.ErrValidationFailed) {
+		t.Fatalf("error = %v, want ErrValidationFailed", err)
+	}
+	cycleErrors := diagnosticsWithCode(result.Errors, "taskjuggler_dependency_cycle")
+	if len(cycleErrors) != 1 || !strings.Contains(cycleErrors[0].Message, "task.a -> task.a") {
+		t.Fatalf("cycle errors = %#v", cycleErrors)
+	}
+}
+
+func TestExportTaskJugglerHonoursScenarioDependencyStatus(t *testing.T) {
+	ws := taskJugglerDependencyWorkspace()
+	ws.Dependencies = []domain.Dependency{{
+		ID: "dependency.a-b", Type: "finish_to_start", Status: "resolved",
+		PredecessorRef: domain.Ref{Kind: "task", ID: "task.a"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.b"},
+	}}
+	ws.Scenarios = []domain.Scenario{{
+		ID: "scenario.reopen-dependency", Status: "proposed",
+		Changes: []domain.ScenarioChange{{Op: "set", Path: "dependencies.dependency.a-b.status", Value: "open"}},
+	}}
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{ScenarioID: "scenario.reopen-dependency"})
+	if err != nil {
+		t.Fatalf("TaskJuggler returned error: %v; errors=%#v", err, result.Errors)
+	}
+	assertContains(t, result.Content, "task task_b \"B\" {\n  depends task_a\n")
+}
+
+func taskJugglerDependencyWorkspace() domain.Workspace {
+	return domain.Workspace{
+		Project: domain.Project{ID: "project.test", Name: "Test", Timezone: "UTC", DefaultStatusDate: "2026-07-10"},
+		Tasks: []domain.Task{
+			{ID: "task.a", Title: "A", TrackingStatus: "ready"},
+			{ID: "task.b", Title: "B", TrackingStatus: "ready"},
+		},
+	}
+}
+
 func TestExportTaskJugglerAppliesScenarioAvailabilityOverlay(t *testing.T) {
 	service := app.NewExportService(filestore.New("../../examples/small-team"))
 

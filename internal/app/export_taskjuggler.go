@@ -102,12 +102,179 @@ func (s ExportService) TaskJuggler(ctx context.Context, req ExportTaskJugglerReq
 	if len(result.Errors) > 0 {
 		return result, ErrValidationFailed
 	}
+	dependenciesByTask := buildTaskJugglerDependencies(ws, result.Mapping, &result.Warnings, &result.Errors)
+	if len(result.Errors) > 0 {
+		return result, ErrValidationFailed
+	}
 	calibrations := map[string]DemandCalibration{}
 	if !req.Raw {
 		calibrations = ApplicableDemandCalibrations(calibrationSelectionWorkspace(ws, result.Scenario))
 	}
-	result.Content, result.Calibrations, result.UnsupportedDemands = buildTaskJugglerContent(ws, result.Metadata, result.Scenario, result.Mapping, calibrations, &result.Warnings)
+	result.Content, result.Calibrations, result.UnsupportedDemands = buildTaskJugglerContent(ws, result.Metadata, result.Scenario, result.Mapping, dependenciesByTask, calibrations, &result.Warnings)
 	return result, nil
+}
+
+func buildTaskJugglerDependencies(ws domain.Workspace, mapping TaskJugglerExportMapping, warnings, errors *[]Diagnostic) map[string][]string {
+	exportedTaskIDs := make(map[string]string, len(mapping.TaskIDMap))
+	for _, entry := range mapping.TaskIDMap {
+		exportedTaskIDs[entry.RePlanTaskID] = entry.TaskJugglerTaskID
+	}
+
+	predecessorsByTask := map[string]map[string]struct{}{}
+	graph := map[string][]string{}
+	notExportedIDs := []string{}
+	reasonCounts := map[string]int{}
+	for _, dependency := range ws.Dependencies {
+		if !dependencyActive(dependency.Status) || dependency.Type == "relates" {
+			continue
+		}
+		if dependency.Type == "external_dependency" {
+			notExportedIDs = append(notExportedIDs, dependency.ID)
+			reasonCounts["external_dependency"]++
+			continue
+		}
+		if !taskJugglerOrderingDependency(dependency.Type) {
+			continue
+		}
+
+		predecessorTaskJugglerID, predecessorOK := exportedTaskIDs[dependency.PredecessorRef.ID]
+		predecessorOK = predecessorOK && dependency.PredecessorRef.Kind == "task"
+		_, successorOK := exportedTaskIDs[dependency.SuccessorRef.ID]
+		successorOK = successorOK && dependency.SuccessorRef.Kind == "task"
+		if !predecessorOK || !successorOK {
+			notExportedIDs = append(notExportedIDs, dependency.ID)
+			if !predecessorOK {
+				reasonCounts["predecessor not a task in the export"]++
+			}
+			if !successorOK {
+				reasonCounts["successor not a task in the export"]++
+			}
+			continue
+		}
+
+		if predecessorsByTask[dependency.SuccessorRef.ID] == nil {
+			predecessorsByTask[dependency.SuccessorRef.ID] = map[string]struct{}{}
+		}
+		predecessorsByTask[dependency.SuccessorRef.ID][predecessorTaskJugglerID] = struct{}{}
+		graph[dependency.PredecessorRef.ID] = appendTaskJugglerUniqueString(graph[dependency.PredecessorRef.ID], dependency.SuccessorRef.ID)
+		if _, ok := graph[dependency.SuccessorRef.ID]; !ok {
+			graph[dependency.SuccessorRef.ID] = nil
+		}
+	}
+
+	appendTaskJugglerDependenciesNotExportedDiagnostic(ws.Project.ID, notExportedIDs, reasonCounts, warnings)
+	if cycle := taskJugglerDependencyCycle(graph); len(cycle) > 0 {
+		*errors = append(*errors, Diagnostic{
+			Code:     "taskjuggler_dependency_cycle",
+			Message:  fmt.Sprintf("TaskJuggler dependency cycle contains tasks %s", strings.Join(cycle, " -> ")),
+			Severity: "error",
+			Target:   Target{Kind: "task", ID: cycle[0]},
+		})
+	}
+
+	result := make(map[string][]string, len(predecessorsByTask))
+	for taskID, predecessors := range predecessorsByTask {
+		result[taskID] = make([]string, 0, len(predecessors))
+		for predecessorID := range predecessors {
+			result[taskID] = append(result[taskID], predecessorID)
+		}
+		sort.Strings(result[taskID])
+	}
+	return result
+}
+
+func taskJugglerOrderingDependency(dependencyType string) bool {
+	switch dependencyType {
+	case "finish_to_start", "blocks", "requires_input_from", "requires_resource_from":
+		return true
+	default:
+		return false
+	}
+}
+
+func appendTaskJugglerDependenciesNotExportedDiagnostic(projectID string, dependencyIDs []string, reasonCounts map[string]int, warnings *[]Diagnostic) {
+	if len(dependencyIDs) == 0 {
+		return
+	}
+	sort.Strings(dependencyIDs)
+	reasons := make([]string, 0, len(reasonCounts))
+	for _, reason := range []string{"external_dependency", "predecessor not a task in the export", "successor not a task in the export"} {
+		if count := reasonCounts[reason]; count > 0 {
+			reasons = append(reasons, fmt.Sprintf("%s: %d", reason, count))
+		}
+	}
+	examples := dependencyIDs
+	if len(examples) > 3 {
+		examples = examples[:3]
+	}
+	message := fmt.Sprintf("%d active dependencies cannot be represented in the TaskJuggler export (%s); they are not exported", len(dependencyIDs), strings.Join(reasons, ", "))
+	if len(dependencyIDs) == 1 {
+		message = fmt.Sprintf("1 active dependency cannot be represented in the TaskJuggler export (%s); it is not exported", strings.Join(reasons, ", "))
+	}
+	message += fmt.Sprintf(" (for example %s)", strings.Join(examples, ", "))
+	*warnings = append(*warnings, Diagnostic{
+		Code:     "taskjuggler_dependencies_not_exported",
+		Message:  message,
+		Severity: "warning",
+		Target:   Target{Kind: "project", ID: projectID},
+	})
+}
+
+func appendTaskJugglerUniqueString(values []string, value string) []string {
+	for _, existing := range values {
+		if existing == value {
+			return values
+		}
+	}
+	return append(values, value)
+}
+
+func taskJugglerDependencyCycle(graph map[string][]string) []string {
+	const (
+		unvisited = iota
+		visiting
+		visited
+	)
+	state := map[string]int{}
+	stack := []string{}
+	stackIndex := map[string]int{}
+	var cycle []string
+	var visit func(string) bool
+	visit = func(taskID string) bool {
+		state[taskID] = visiting
+		stackIndex[taskID] = len(stack)
+		stack = append(stack, taskID)
+		successors := append([]string(nil), graph[taskID]...)
+		sort.Strings(successors)
+		for _, successorID := range successors {
+			switch state[successorID] {
+			case unvisited:
+				if visit(successorID) {
+					return true
+				}
+			case visiting:
+				cycle = append(cycle, stack[stackIndex[successorID]:]...)
+				cycle = append(cycle, successorID)
+				return true
+			}
+		}
+		stack = stack[:len(stack)-1]
+		delete(stackIndex, taskID)
+		state[taskID] = visited
+		return false
+	}
+
+	taskIDs := make([]string, 0, len(graph))
+	for taskID := range graph {
+		taskIDs = append(taskIDs, taskID)
+	}
+	sort.Strings(taskIDs)
+	for _, taskID := range taskIDs {
+		if state[taskID] == unvisited && visit(taskID) {
+			return cycle
+		}
+	}
+	return nil
 }
 
 func buildTaskJugglerExportMapping(ws domain.Workspace, projectPath, scenarioID string, errors *[]Diagnostic) TaskJugglerExportMapping {
@@ -222,7 +389,7 @@ func taskJugglerCapacityChangeWarningMessage(scenarioID string, capacity domain.
 	return strings.Join(details, ", ") + "; this RePlan capacity amount is applied by workload reports but is not represented in the generated TaskJuggler .tjp export"
 }
 
-func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scenarioID string, mapping TaskJugglerExportMapping, calibrations map[string]DemandCalibration, warnings *[]Diagnostic) (string, []string, []TaskJugglerUnsupportedDemandSet) {
+func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scenarioID string, mapping TaskJugglerExportMapping, dependenciesByTask map[string][]string, calibrations map[string]DemandCalibration, warnings *[]Diagnostic) (string, []string, []TaskJugglerUnsupportedDemandSet) {
 	resourceIDs := make(map[string]struct{}, len(ws.Resources))
 	for _, resource := range ws.Resources {
 		resourceIDs[resource.ID] = struct{}{}
@@ -303,7 +470,7 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 	}
 
 	for _, task := range ws.Tasks {
-		writeTaskJugglerTask(&b, task, taskJugglerTaskIDs[task.ID], taskJugglerResourceIDs, demandsByTask[task.ID], taskEfforts[task.ID], loadingDemandCountByTask[task.ID] > 0, warnings)
+		writeTaskJugglerTask(&b, task, taskJugglerTaskIDs[task.ID], taskJugglerResourceIDs, dependenciesByTask[task.ID], demandsByTask[task.ID], taskEfforts[task.ID], loadingDemandCountByTask[task.ID] > 0, warnings)
 	}
 	writeTaskJugglerParseableTaskReport(&b)
 
@@ -579,10 +746,13 @@ func writeTaskJugglerResource(b *strings.Builder, resource domain.Resource, task
 	fmt.Fprintf(b, "}\n")
 }
 
-func writeTaskJugglerTask(b *strings.Builder, task domain.Task, taskJugglerTaskID string, taskJugglerResourceIDs map[string]string, demands []taskJugglerDemand, totalEffort float64, hasLoadingDemands bool, warnings *[]Diagnostic) {
+func writeTaskJugglerTask(b *strings.Builder, task domain.Task, taskJugglerTaskID string, taskJugglerResourceIDs map[string]string, predecessorIDs []string, demands []taskJugglerDemand, totalEffort float64, hasLoadingDemands bool, warnings *[]Diagnostic) {
 	fmt.Fprintf(b, "task %s %q {\n", taskJugglerTaskID, task.Title)
 	if task.Description != "" {
 		fmt.Fprintf(b, "  note %q\n", task.Description)
+	}
+	for _, predecessorID := range predecessorIDs {
+		fmt.Fprintf(b, "  depends %s\n", predecessorID)
 	}
 	allocated := map[string]struct{}{}
 	for _, demand := range demands {

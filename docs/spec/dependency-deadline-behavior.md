@@ -998,9 +998,32 @@ Scenario calculation should show changed dependency and deadline warnings.
 
 ## Relationship to TaskJuggler
 
-TaskJuggler can later be useful for advanced scheduling.
+TaskJuggler is optional and is used for advanced scheduling. The implemented
+export maps active task-to-task ordering dependencies as follows:
 
-Possible future use:
+| RePlan dependency type | TaskJuggler mapping |
+| --- | --- |
+| `finish_to_start` | `depends <predecessor TaskJuggler id>` in the successor task |
+| `blocks` | `depends <predecessor TaskJuggler id>` in the successor task |
+| `requires_input_from` | `depends <predecessor TaskJuggler id>` in the successor task |
+| `requires_resource_from` | `depends <predecessor TaskJuggler id>` in the successor task |
+| `relates` | ignored because it has no ordering meaning |
+| `external_dependency` | not exported; counted in `taskjuggler_dependencies_not_exported` |
+
+`open`, `blocked` and `unknown` are active for export. `resolved` and
+`cancelled` are omitted without a warning. Both endpoints of an ordering
+dependency must be tasks present in the export; otherwise it is included in
+the same count warning, with the endpoint reason. Predecessor ids come from
+the export's `TaskIDMap`, are sorted in each successor block, and repeated
+dependency records for the same pair produce one `depends` line.
+
+The exporter checks this filtered graph before it writes `.tjp` content. A
+cycle, including a self-dependency, fails validation with
+`taskjuggler_dependency_cycle` and names the tasks in one cycle. Scenario
+dependency-status overlays are applied before this filtering, so the scenario
+status determines whether a dependency is exported.
+
+The wider scheduling flow remains:
 
 - export tasks, resources and dependencies to TaskJuggler;
 - run advanced schedule calculation;

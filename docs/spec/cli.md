@@ -2783,6 +2783,20 @@ Implemented TaskJuggler proof-of-concept:
 - `replan export taskjuggler`;
 - generate `.tjp` only;
 - map RePlan resources and tasks/resource demands where safe;
+- map active `finish_to_start`, `blocks`, `requires_input_from` and
+  `requires_resource_from` task-to-task dependencies to one TaskJuggler
+  `depends <predecessor-id>` line in the successor task block; predecessor ids
+  use `task_id_map`, are sorted, and duplicate predecessor/successor pairs are
+  emitted once;
+- treat dependency statuses `open`, `blocked` and `unknown` as active;
+  `resolved` and `cancelled` dependencies are omitted without a warning, and
+  `relates` remains non-ordering and is also omitted without a warning;
+- emit one `taskjuggler_dependencies_not_exported` count warning for active
+  `external_dependency` records and ordering dependencies whose predecessor or
+  successor is not a task in the export, including reason counts and up to
+  three dependency ids;
+- reject a cycle in the exported dependency graph, including a self-loop, with
+  `taskjuggler_dependency_cycle` before generating `.tjp` content;
 - do not export RePlan resource class as TaskJuggler `note`, because
   TaskJuggler resource blocks do not support `note`;
 - emit warnings for unsupported mappings;
@@ -2800,6 +2814,9 @@ Implemented TaskJuggler proof-of-concept:
   `resource_demands.<resource_demand_id>.resource_ref`;
 - support scenario `set` and `replace` changes for
   `tasks.<task_id>.planned_start` and `tasks.<task_id>.planned_finish`;
+- support scenario `set` and `replace` changes for
+  `dependencies.<dependency_id>.status`, and build exported dependencies from
+  the overlaid status;
 - support scenario `set` and `replace` changes for
   `capacities.<capacity_id>.amount` in workload overlays, including service
   quota capacities;
@@ -2856,8 +2873,8 @@ Current TaskJuggler scenario overlay limitation:
 
 - `add availability.exceptions`, resource demand `remaining_amount`,
   `planned_amount` and `resource_ref`, task `planned_start` and
-  `planned_finish`, plus capacity amount changes for workload, are supported by
-  the shared overlay;
+  `planned_finish`, dependency `status`, plus capacity amount changes for
+  workload, are supported by the shared overlay;
 - only narrow human or AI-agent weekly hour capacity amount changes are mapped
   into TaskJuggler `.tjp` as `limits { weeklymax ... }`;
 - quota, budget, rate-limit, subscription, stock, review-hour,
@@ -2869,6 +2886,14 @@ Current TaskJuggler scenario overlay limitation:
   `taskjuggler_capacity_effective_range_simplified`;
 - unsupported scenario operations and paths must fail with explicit diagnostics;
 - broader overlay support should be added incrementally.
+
+TaskJuggler dependency diagnostic codes:
+
+- warning `taskjuggler_dependencies_not_exported`: active dependencies exist
+  that the `.tjp` dependency model cannot represent;
+- error `taskjuggler_dependency_cycle`: the exported `depends` graph contains
+  a cycle, so export stops through the validation-failure path before
+  TaskJuggler is invoked.
 
 Later:
 
