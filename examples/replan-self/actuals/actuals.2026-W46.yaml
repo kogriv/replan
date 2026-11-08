@@ -66,3 +66,66 @@ actuals:
       - kind: evidence
         id: evidence.self.correct-lead-time-in-workload-and-next-agent
     reason: The brief end was guessed; transcript times give 0.11 h.
+  - id: actual.self-lead-time-in-taskjuggler.ai-codex-local.20261109T0109140700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.lead-time-in-taskjuggler
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.lead-time-in-taskjuggler.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.43
+    unit: agent_hours
+    occurred_at: "2026-11-09T01:09:14+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.lead-time-in-taskjuggler
+  - id: actual.self-lead-time-in-taskjuggler.ai-agent-executor.20261109T0109140700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.lead-time-in-taskjuggler
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.lead-time-in-taskjuggler.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.06
+    unit: agent_hours
+    occurred_at: "2026-11-09T01:09:14+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.lead-time-in-taskjuggler
+  - id: actual.self-rerun-consumer-scheduler-comparison.ai-agent-executor.20261109T0116490700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.rerun-consumer-scheduler-comparison
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.rerun-consumer-scheduler-comparison.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.12
+    unit: agent_hours
+    occurred_at: "2026-11-09T01:16:49+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.rerun-consumer-scheduler-comparison

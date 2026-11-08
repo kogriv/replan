@@ -461,3 +461,44 @@ only and wrote nothing to the consumer project.
 
 The proposed design for the two missing concepts is in
 [`lead-time-and-queue-order.md`](lead-time-and-queue-order.md).
+
+## Rerun with lead time and priority: 2026-11-09
+
+After the export gaps above were fixed and the lead time design was
+implemented, the comparison was repeated on a fresh copy of the same plan
+(362 tasks, 773 dependencies, 23 open tasks, TaskJuggler 3.8.4). The
+consumer's script was run on its own copy with the status date 2026-11-09 to
+give the reference dates. Nothing was written to the consumer project.
+
+Two copies were scheduled with `replan taskjuggler run`:
+
+- **As the script writes it.** Open tasks finished between 3 days earlier
+  and 62 days later than the script (median 33 days later). Almost all of
+  that comes from one data habit: the script writes every demand with its
+  full remaining amount, also for work that is done and waits for review, and
+  fixes those tasks at their actual dates itself. RePlan schedules remaining
+  work wherever it is, so the done work was queued again.
+- **With the script's rules expressed in RePlan** (35 commands and two
+  availability edits):
+  - remaining work set to zero with `actual set-remaining` on the demands of
+    done and review-ready tasks, the RePlan way to say "done, review left";
+  - owner tasks as `lead_time` working days with the owner's hours on a
+    `levelled: false` demand;
+  - each agent stream's order as `priority` falling with the position in
+    the script's list;
+  - the script's not-before dates as demand `earliest_start`;
+  - its holidays as `unavailable` availability exceptions, and its six agent
+    hours per working day as a 09:00-15:00 availability window.
+
+  19 of the 23 open tasks finished on the script's date. The other four, all
+  in one agent stream, finished 15 to 16 days earlier: in the script the
+  stream waits strictly behind an earlier task that waits on an owner
+  decision, while TaskJuggler's soft priority lets the agent take the next
+  tasks in the meantime. That is the strict queue the design left until a
+  consumer asks for it; the project's final milestone date is the same.
+
+Two smaller findings: the script rewrites `.replan/project.yaml` without
+`format_version`, so `project migrate` (or the consumer's own `project
+format` step) must follow each run before RePlan reads the plan; and the
+plan's dependency statuses are left `open` behind finished predecessors,
+which `validate` reports as unresolved required dependencies.

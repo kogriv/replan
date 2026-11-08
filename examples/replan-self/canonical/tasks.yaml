@@ -7208,7 +7208,7 @@ tasks:
     title: Export lead time, unlevelled demands and priority to TaskJuggler
     description: 'Agreed with the maintainer on 2026-11-08 (docs/spec/lead-time-and-queue-order.md, task 3). The TaskJuggler export writes a lead-time task without levelled demands as length or duration with no allocation, a lead-time task with levelled demands as a wait-then-work container whose mapping and import use the container''s dates, leaves unlevelled demands out of allocate and effort with a comment naming them, and writes priority. Real-tj3 tests for each case.'
     type: implementation
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-08"
     planned_finish: "2026-11-09"
     assignee_hint:
@@ -7237,9 +7237,9 @@ tasks:
     title: Rerun the consumer scheduler comparison with lead time and priority
     description: 'Agreed with the maintainer on 2026-11-08 (docs/spec/lead-time-and-queue-order.md, task 4). On a fresh copy of the consumer plan, express its waits and owner decisions with lead time and unlevelled demands and its order with priority, run taskjuggler run, compare the open tasks'' dates with the consumer''s script again, and record the remaining difference and its causes in docs/spec/taskjuggler-run-import-experiment.md without private narrative. Nothing is written to the consumer project.'
     type: research
-    tracking_status: not_started
-    planned_start: "2026-11-12"
-    planned_finish: "2026-11-12"
+    tracking_status: review_ready
+    planned_start: "2026-11-09"
+    planned_finish: "2026-11-09"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer

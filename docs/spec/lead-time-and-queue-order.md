@@ -181,6 +181,11 @@ other; priority, and a strict queue if needed, address reordering. The
 script's "estimate times a tempo plus a fixed review
 share" is already a calibration factor in RePlan and needs nothing new.
 
+Measured on 2026-11-09 after tasks 1 to 3: with the script's rules expressed
+in RePlan, 19 of the 23 open tasks land on the script's dates and four in one
+agent stream land 15 to 16 days earlier because the queue is soft; see
+"Rerun with lead time and priority" in `taskjuggler-run-import-experiment.md`.
+
 ## Proposed implementation tasks
 
 1. Canonical model and validate: `lead_time`, `levelled`, `priority`, with

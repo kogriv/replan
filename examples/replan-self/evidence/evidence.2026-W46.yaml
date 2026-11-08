@@ -21,3 +21,36 @@ evidence:
     targets:
       - kind: task
         id: task.self.lead-time-in-workload-and-next
+  - id: evidence.self.lead-time-in-taskjuggler
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T01:09:14+07:00"
+    summary: 'Feature commit 490737b: lead time as length or duration, wait-then-work containers with dependencies, milestones and priority on the container, import-result reading the container row, unlevelled demands as comments outside effort and allocation, priority on open tasks. All 11 real-tj3 tests pass here; review relaxed one that wanted work to start the day after a wait ending in the evening (the report has dates only; Ivan''s last hour that day is valid). Gate green (lint 0, 54 kit, 83 live checks). Codex 00:22:41-00:48:37 (0.43 h); executor 23:25:51-23:26:12 brief (its tool call; the start evidence named the file''s later mtime 23:26:12), 00:49:22-00:52:09 review, 01:08:33-01:09:14 booking, 0.06 h by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.lead-time-in-taskjuggler
+  - id: evidence.self.start-rerun-consumer-scheduler-comparison
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T01:09:42+07:00"
+    summary: Started on 2026-11-09, three days before plan, once the TaskJuggler lead time export was gated; estimate 1 agent hour frozen in baseline.2026-11-08.lead-time-and-priority. Works on a read-only copy of the consumer plan; nothing is written to that project.
+    targets:
+      - kind: task
+        id: task.self.rerun-consumer-scheduler-comparison
+  - id: evidence.self.rerun-consumer-scheduler-comparison
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T01:16:49+07:00"
+    summary: 'Rerun on a fresh read-only copy (362 tasks, 773 dependencies, 23 open); the consumer''s script run on its own copy for status date 2026-11-09 gave the reference dates. As written by the script: -3 to +62 days, median +33, because done work keeps its full remaining amount. With the rules expressed in RePlan (remaining zero on done work, owner lead time with unlevelled hours, priority by list order, not-before dates, holidays and a six-hour agent day as availability): 19 of 23 on the script''s date, four in one stream 15-16 days earlier from the soft queue (the deferred strict queue); final milestone the same. Recorded in docs/spec/taskjuggler-run-import-experiment.md without private narrative. Executor 01:09:42-01:16:49, 0.12 h.'
+    targets:
+      - kind: task
+        id: task.self.rerun-consumer-scheduler-comparison
