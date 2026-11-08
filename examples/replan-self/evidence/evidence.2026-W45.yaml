@@ -1214,3 +1214,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.consumer-contract-public-surfaces
+  - id: evidence.self.consumer-contract-public-surfaces
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T13:26:04+07:00"
+    summary: 'Feature commit 63246e2: the agent kit README has a Use RePlan as a tool section (release or kit, never a source checkout; supported CLI, helpers and file format; unsupported internals, scripts/lib, another project''s settings or token, generated or hand-edited YAML where a command exists; need-to-command table; how to ask for a missing command), the surface map no longer says to edit the canonical plan, and the root README links to it. check-agent-kit.sh checks every bin/replan command and subcommand the kit README names against the kit binary''s usage, every named helper against the kit, and that no scripts/lib module is named to run; probes with a fake command, subcommand, helper and lib module each fail with the README line. The kit''s leak check caught the repository owner''s account name in the first draft; the section names the repository generically, as the kit already does. Gate green: kit 54 checks, live kit 79. Codex 12:50:44-13:07:06 (0.27 h); executor 12:41:57-13:26:04 (0.74 h): investigation of the consumer projects, planning, the contract text in parallel with Codex, review and gate.'
+    targets:
+      - kind: task
+        id: task.self.consumer-contract-public-surfaces

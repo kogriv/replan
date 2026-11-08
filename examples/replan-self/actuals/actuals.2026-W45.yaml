@@ -1771,3 +1771,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-refresh-agent-kits-v0-4-0
+  - id: actual.self-consumer-contract-public-surfaces.ai-agent-executor.20261108T1326040700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.consumer-contract-public-surfaces
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.consumer-contract-public-surfaces.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.74
+    unit: agent_hours
+    occurred_at: "2026-11-08T13:26:04+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.consumer-contract-public-surfaces
+  - id: actual.self-consumer-contract-public-surfaces.ai-codex-local.20261108T1326040700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.consumer-contract-public-surfaces
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.consumer-contract-public-surfaces.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.27
+    unit: agent_hours
+    occurred_at: "2026-11-08T13:26:04+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.consumer-contract-public-surfaces
