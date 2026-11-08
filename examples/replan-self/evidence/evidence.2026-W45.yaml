@@ -1867,3 +1867,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.taskjuggler-import-skips-unchanged-dates
+  - id: evidence.self.taskjuggler-import-skips-unchanged-dates
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T22:07:44+07:00"
+    summary: 'Fix commit af2c2a8: import-result proposes only dates that differ, with previous_value, skips rows of tasks the export fixed through one shared rule, and reports unchanged_rows and fixed_rows. On the self plan a real tj3 run now gives 8 changes from 245 rows (1 unchanged, 240 fixed) instead of 480. Gate green (lint 0, 54 kit, 83 live checks). Codex 21:30:20-21:50:26 (0.34 h); executor 21:25:51-21:30:20 brief and start, 21:51:08-21:53 review and self-plan check, plus this booking, 0.15 h by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-import-skips-unchanged-dates
+  - id: evidence.self.start-lead-time-and-priority-model
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T21:30:49+07:00"
+    summary: Started on 2026-11-08, a day before plan, reading the model, validate and write paths for the Codex brief (tool call 21:30:49) while Codex worked on the changed-only import; estimate 2 agent hours frozen in baseline.2026-11-08.lead-time-and-priority, split into Codex 1.3 and agent 0.7. Start recorded at 2026-11-08T22:10:21+07:00.
+    targets:
+      - kind: task
+        id: task.self.lead-time-and-priority-model

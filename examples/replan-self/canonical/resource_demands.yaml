@@ -13959,7 +13959,7 @@ resource_demands:
     role: implementation_agent
     unit: agent_hours
     planned_amount: 0.4
-    remaining_amount: 0.4
+    remaining_amount: 0
     criticality: required
     status: active
   - id: resource_demand.taskjuggler-import-skips-unchanged-dates.codex
@@ -13973,7 +13973,7 @@ resource_demands:
     role: implementation_agent
     unit: agent_hours
     planned_amount: 0.6
-    remaining_amount: 0.6
+    remaining_amount: 0
     criticality: required
     status: active
   - id: resource_demand.taskjuggler-import-skips-unchanged-dates.maintainer
@@ -14028,8 +14028,22 @@ resource_demands:
     resource_class: ai_agent
     role: implementation_agent
     unit: agent_hours
-    planned_amount: 2
-    remaining_amount: 2
+    planned_amount: 0.7
+    remaining_amount: 0.7
+    criticality: required
+    status: active
+  - id: resource_demand.lead-time-and-priority-model.codex
+    task_ref:
+      kind: task
+      id: task.self.lead-time-and-priority-model
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 1.3
+    remaining_amount: 1.3
     criticality: required
     status: active
   - id: resource_demand.lead-time-and-priority-model.maintainer

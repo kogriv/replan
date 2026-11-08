@@ -2506,3 +2506,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-design-lead-time-and-queue-order
+  - id: actual.self-taskjuggler-import-skips-unchanged-dates.ai-codex-local.20261108T2207440700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-import-skips-unchanged-dates
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-import-skips-unchanged-dates.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.34
+    unit: agent_hours
+    occurred_at: "2026-11-08T22:07:44+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.taskjuggler-import-skips-unchanged-dates
+  - id: actual.self-taskjuggler-import-skips-unchanged-dates.ai-agent-executor.20261108T2207440700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-import-skips-unchanged-dates
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-import-skips-unchanged-dates.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.15
+    unit: agent_hours
+    occurred_at: "2026-11-08T22:07:44+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.taskjuggler-import-skips-unchanged-dates

@@ -7121,7 +7121,7 @@ tasks:
     title: Propose only changed dates from a TaskJuggler run
     description: 'Found on 2026-11-08 reviewing the TaskJuggler status date fix on the self plan. taskjuggler import-result put 480 date changes into its candidate scenario for 240 tasks, and 466 of them set a planned date to the value it already has, so the 14 real moves are hidden in noise. Write only changed planned_start and planned_finish values into the candidate, report how many rows were unchanged, and decide with a test whether finished tasks fixed by the export can appear at all.'
     type: implementation
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-08"
     planned_finish: "2026-11-08"
     assignee_hint:
@@ -7150,15 +7150,17 @@ tasks:
     title: Model lead time, unlevelled demands and task priority
     description: 'Agreed with the maintainer on 2026-11-08 (docs/spec/lead-time-and-queue-order.md, task 1). Add the task field lead_time with working_days or calendar_days and a reason, the demand field levelled (default true) and the task field priority (1 to 1000, default 500) to the canonical model, file format docs, validate (one of working_days or calendar_days, positive values, levelled false only on hour units, priority range, warn when planned dates are shorter than the lead time), project format and migrate, the OpenProject sample and import paths, with plans that do not use them byte-identical.'
     type: implementation
-    tracking_status: not_started
-    planned_start: "2026-11-09"
-    planned_finish: "2026-11-09"
+    tracking_status: in_progress
+    planned_start: "2026-11-08"
+    planned_finish: "2026-11-08"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer
     resource_demands:
       - kind: resource_demand
         id: resource_demand.lead-time-and-priority-model.agent
+      - kind: resource_demand
+        id: resource_demand.lead-time-and-priority-model.codex
       - kind: resource_demand
         id: resource_demand.lead-time-and-priority-model.maintainer
       - kind: resource_demand
