@@ -2133,10 +2133,10 @@ func TestPositionalCommandHelpAndMissingArguments(t *testing.T) {
 					t.Fatalf("%v exit = %d, want %d; stdout=%s stderr=%s", args, code, exitInvalidUsage, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
 				}
 				output := readFileString(t, stdout.Name())
-				messageFound := strings.Contains(output, tc.name+" needs "+tc.argument)
+				messageFound := strings.Contains(output, tc.name+" needs the "+strings.Trim(tc.argument, "<>[]")+" argument")
 				if format == "json" {
 					env := readCLIEnvelope(t, stdout.Name())
-					messageFound = len(env.Errors) == 1 && env.Errors[0].Message == tc.name+" needs "+tc.argument
+					messageFound = len(env.Errors) == 1 && env.Errors[0].Message == tc.name+" needs the "+strings.Trim(tc.argument, "<>[]")+" argument"
 				}
 				if !strings.Contains(output, "missing_argument") || !messageFound {
 					t.Errorf("%v missing-argument output = %s", args, output)

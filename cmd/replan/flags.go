@@ -221,7 +221,7 @@ func requireSinglePositional(fs *flag.FlagSet, leading, command, argument, proje
 		extra = extra[1:]
 	}
 	if required && value == "" {
-		return "", printPositionalUsageError(stdout, stderr, format, command, projectPath, "missing_argument", fmt.Sprintf("%s needs %s", command, argument)), true
+		return "", printPositionalUsageError(stdout, stderr, format, command, projectPath, "missing_argument", fmt.Sprintf("%s needs the %s argument", command, strings.Trim(argument, "<>[]"))), true
 	}
 	if len(extra) > 0 {
 		return "", printPositionalUsageError(stdout, stderr, format, command, projectPath, "unexpected_argument", fmt.Sprintf("%s got unexpected argument %q", command, extra[0])), true

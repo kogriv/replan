@@ -621,8 +621,8 @@ The same rule applies to:
 A missing required positional is an invalid-usage failure before format,
 apply-gate, workspace loading or object lookup. It exits `8` and emits the
 stable diagnostic code `missing_argument` in JSON, Markdown and text, with a
-message that names the command and placeholder, for example `demand set needs
-<demand-id>`. An extra positional also exits `8` before workspace loading and
+message that names the command and argument, for example `demand set needs
+the demand-id argument`. An extra positional also exits `8` before workspace loading and
 uses `unexpected_argument`. `audit list` and `audit verify` take no positional
 argument.
 
