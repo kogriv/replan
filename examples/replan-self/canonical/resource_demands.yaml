@@ -12708,6 +12708,17 @@ resource_demands:
     remaining_amount: 0
     criticality: required
     status: consumed
+    overrun_review:
+      acknowledged_forecast: 0.52
+      unit: agent_hours
+      reason: Real overrun of 0.02 agent hours measured from timestamps. It went unnoticed at finish and acceptance because the suggestion count check read a missing JSON field and always printed 0 (from 2026-11-05); found on 2026-11-08 and the check now reads result.suggestions.
+      reviewed_by:
+          kind: actor
+          id: actor.ai.agent.executor
+      reviewed_at: "2026-11-08T11:25:36+07:00"
+      evidence_refs:
+          - kind: evidence
+            id: evidence.self.one-yaml-style-for-canonical-files
   - id: resource_demand.one-yaml-style-for-canonical-files.codex
     task_ref:
       kind: task
@@ -12974,3 +12985,115 @@ resource_demands:
     remaining_amount: 0
     criticality: required
     status: consumed
+  - id: resource_demand.publish-release-v0-4-0.agent
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-4-0
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 1.25
+    remaining_amount: 1.25
+    criticality: required
+    status: active
+  - id: resource_demand.publish-release-v0-4-0.maintainer
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-4-0
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    resource_class: human
+    role: maintainer
+    unit: hours
+    planned_amount: 0.25
+    remaining_amount: 0.25
+    criticality: required
+    status: active
+  - id: resource_demand.publish-release-v0-4-0.local-dev
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-4-0
+    resource_ref:
+      kind: resource
+      id: resource.environment.local-dev
+    resource_class: environment
+    role: development_environment
+    unit: concurrent_slots
+    planned_amount: 1
+    remaining_amount: 1
+    criticality: required
+    status: active
+  - id: resource_demand.publish-release-v0-4-0.ci
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-4-0
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    resource_class: service_quota
+    role: ci_runtime
+    unit: ci_minutes
+    planned_amount: 10
+    remaining_amount: 10
+    criticality: required
+    status: active
+  - id: resource_demand.refresh-agent-kits-v0-4-0.agent
+    task_ref:
+      kind: task
+      id: task.self.refresh-agent-kits-v0-4-0
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 0.75
+    remaining_amount: 0.75
+    criticality: required
+    status: active
+  - id: resource_demand.refresh-agent-kits-v0-4-0.maintainer
+    task_ref:
+      kind: task
+      id: task.self.refresh-agent-kits-v0-4-0
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    resource_class: human
+    role: maintainer
+    unit: hours
+    planned_amount: 0.25
+    remaining_amount: 0.25
+    criticality: required
+    status: active
+  - id: resource_demand.refresh-agent-kits-v0-4-0.local-dev
+    task_ref:
+      kind: task
+      id: task.self.refresh-agent-kits-v0-4-0
+    resource_ref:
+      kind: resource
+      id: resource.environment.local-dev
+    resource_class: environment
+    role: development_environment
+    unit: concurrent_slots
+    planned_amount: 1
+    remaining_amount: 1
+    criticality: required
+    status: active
+  - id: resource_demand.refresh-agent-kits-v0-4-0.ci
+    task_ref:
+      kind: task
+      id: task.self.refresh-agent-kits-v0-4-0
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    resource_class: service_quota
+    role: ci_runtime
+    unit: ci_minutes
+    planned_amount: 10
+    remaining_amount: 10
+    criticality: required
+    status: active

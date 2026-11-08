@@ -6696,3 +6696,57 @@ tasks:
         object_type: work_package
         object_id: "2325"
         url: https://op.example.internal/work_packages/2325
+  - id: task.self.publish-release-v0-4-0
+    title: Publish release v0.4.0
+    description: 'Agreed with the operator on 2026-11-08: publish release v0.4.0, the first release since v0.3.0 (94 commits). Update the roadmap, write the release notes (demand and task-description commands, description push to OpenProject, project format and one YAML style, unique audit ids and the actual retry refusal, calibrated agent load, TaskJuggler export fixes), tag the reviewed main commit after its CI run passed, build the six archives locally with build-release.sh, verify them, push the tag so the Release build workflow rebuilds and attests them, compare its SHA256SUMS with the local build, create the GitHub release with the local archives and notes, and check gh attestation verify and go install on the published release.'
+    type: release
+    tracking_status: in_progress
+    planned_start: "2026-11-08"
+    planned_finish: "2026-11-08"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.publish-release-v0-4-0.agent
+      - kind: resource_demand
+        id: resource_demand.publish-release-v0-4-0.maintainer
+      - kind: resource_demand
+        id: resource_demand.publish-release-v0-4-0.local-dev
+      - kind: resource_demand
+        id: resource_demand.publish-release-v0-4-0.ci
+    tags:
+      - release
+      - oss
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2326"
+        url: https://op.example.internal/work_packages/2326
+  - id: task.self.refresh-agent-kits-v0-4-0
+    title: Refresh the second and third projects' agent kits to v0.4.0
+    description: 'Agreed with the operator on 2026-11-08: after release v0.4.0, refresh the agent kits of the second project (archive and checksum on its tools wiki page, dry run first, page text updated with what changed) and of the third project (versioned directory on the server with the current link moved, settings kept, previous version kept for rollback), check each kit by dry runs only, and tell each project''s session what changed. Deleting older kit attachments stays the operator''s decision.'
+    type: operations
+    tracking_status: not_started
+    planned_start: "2026-11-08"
+    planned_finish: "2026-11-08"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.refresh-agent-kits-v0-4-0.agent
+      - kind: resource_demand
+        id: resource_demand.refresh-agent-kits-v0-4-0.maintainer
+      - kind: resource_demand
+        id: resource_demand.refresh-agent-kits-v0-4-0.local-dev
+      - kind: resource_demand
+        id: resource_demand.refresh-agent-kits-v0-4-0.ci
+    tags:
+      - release
+      - dogfood
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2327"
+        url: https://op.example.internal/work_packages/2327

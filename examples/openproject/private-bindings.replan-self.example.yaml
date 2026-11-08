@@ -599,6 +599,18 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2325"
         url: https://op.example.internal/work_packages/2325
+    - replan_task_id: task.self.publish-release-v0-4-0
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2326"
+        url: https://op.example.internal/work_packages/2326
+    - replan_task_id: task.self.refresh-agent-kits-v0-4-0
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2327"
+        url: https://op.example.internal/work_packages/2327
     - replan_task_id: task.self.fix-first-project-defects
       source_ref:
         source: openproject
