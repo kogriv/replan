@@ -413,3 +413,48 @@ Backlog:
    acceptance and scenario apply.
 
 Do not skip directly to import before run artifacts are stable.
+
+## Drafting a real plan's dates: gaps found on 2026-11-08
+
+A consumer project drafts its dates with a private script instead of
+`taskjuggler run`. The script's rules: one queue per agent resource in list
+order, honouring finish-to-start dependencies; Monday to Friday with a
+holiday list; duration as the estimate times a tempo plus a fixed review
+share; open work not before the status date; not-before dates for tasks that
+wait on people, and a scenario without them; finished tasks fixed at their
+actual dates; milestone tasks for stage gates. The owner's own time is not
+levelled.
+
+`taskjuggler run` on a copy of that plan (360 tasks, 771 dependencies,
+TaskJuggler 3.8.4) failed, and its export showed what the run cannot express
+yet. The export:
+
+- writes no `depends`, so all 771 dependencies are dropped without a
+  warning;
+- starts the project at the default status date, so tasks planned earlier
+  are outside the project window, and sets no `now`;
+- schedules finished tasks again with their full remaining effort, when the
+  demands still carry it, instead of fixing them at their dates;
+- exports no working days or holidays from availability windows and
+  exceptions (only scenario exceptions become `vacation`);
+- exports no demand `earliest_start`;
+- writes efforts below one hour, which TaskJuggler's default 60-minute
+  timing resolution refuses (`effort 0.40h`).
+
+With those six added by hand to the `.tjp` (dependencies, a project window
+and `now`, finished tasks fixed, holidays as `leaves`, not-before dates as
+start milestones, 15-minute resolution) TaskJuggler scheduled the plan, but
+the 23 open tasks finished between 28 days earlier and 42 days later than
+the script's dates (median 6 days earlier). Two of the script's rules have
+no RePlan concept yet:
+
+- **Lead time without load.** A task that takes a number of working days
+  but does not consume levelled capacity: a waiting period, or a person's
+  decision whose time the plan does not level. TaskJuggler levels every
+  allocation against capacity, so the owner's tasks queue behind each other.
+- **Queue order within a resource.** The script runs each resource's tasks
+  strictly in list order; TaskJuggler's ASAP scheduling reorders them by
+  priority and slack.
+
+Each gap is a task in the self plan. The comparison used a copy of the plan
+only and wrote nothing to the consumer project.
