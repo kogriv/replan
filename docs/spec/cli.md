@@ -2886,6 +2886,23 @@ Implemented TaskJuggler proof-of-concept:
   three dependency ids;
 - reject a cycle in the exported dependency graph, including a self-loop, with
   `taskjuggler_dependency_cycle` before generating `.tjp` content;
+- leave every demand whose `levelled` value is false out of TaskJuggler
+  `effort`, `allocate`, unsupported-demand accounting, timing-resolution
+  selection and `taskjuggler_task_without_supported_demands`; retain it as
+  one explanatory task comment in the form
+  `# not levelled: <demand id> <amount> <unit> on <resource>`;
+- export an open task with `lead_time` and no exported levelled effort as
+  `length <days>d` for working days or `duration <days>d` for calendar days,
+  without `allocate`;
+- export an open task with both `lead_time` and exported levelled effort as a
+  container at the task's mapped id: child `wait` carries `length` or
+  `duration`, child `work` carries `depends !wait`, `effort` and `allocate`;
+  task dependencies, status-date and not-before dependencies stay on the
+  container, and other tasks depend on the container id;
+- keep finished tasks fixed at their exported dates regardless of lead time;
+- write `priority <N>` on every open task whose effective priority differs
+  from TaskJuggler's default 500; in the wait-then-work shape it belongs to
+  the container;
 - do not export RePlan resource class as TaskJuggler `note`, because
   TaskJuggler resource blocks do not support `note`;
 - emit warnings for unsupported mappings;
@@ -2971,6 +2988,10 @@ Implemented TaskJuggler proof-of-concept:
 - round an exported task effort below TaskJuggler's 5-minute minimum up to
   `effort 5min` and emit one grouped `taskjuggler_effort_rounded_up` warning
   with the task count and up to three example task ids;
+- include fractional lead-time days in timing-resolution selection, using the
+  default eight-hour working day for the day fraction; when a fraction cannot
+  fit even the five-minute minimum, round it up and emit grouped warning
+  `taskjuggler_lead_time_rounded_up` with the task count and examples;
 - `--raw` exports uncalibrated effort; `agent_hours` demands are exported in
   both modes;
 - use overlaid `resource_ref` for TaskJuggler `allocate`;
@@ -3189,6 +3210,10 @@ Current import-result rules:
 - command parses TaskJuggler CSV with semicolon delimiter;
 - command maps TaskJuggler task ids back to RePlan task ids through the mapping
   artifact;
+- for a wait-then-work export, the mapping continues to map the RePlan task to
+  its container id; the importer uses the container row and discards the
+  generated `<container>.wait` and `<container>.work` rows before `rows_read`
+  accounting, without unmapped-row warnings;
 - command returns preview-only scenario candidate changes only when a reported
   task planned start or planned finish differs from the task's current value;
   each change includes the current value as `previous_value`, or an empty

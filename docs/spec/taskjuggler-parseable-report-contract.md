@@ -153,6 +153,15 @@ The parser must resolve it through `taskjuggler.mapping.json`.
 Rows without a mapping must become diagnostics and must not become scenario
 changes.
 
+A RePlan task with both lead time and levelled effort is exported as a
+TaskJuggler container at its mapped id, with generated `wait` and `work`
+children. The report therefore contains three rows such as
+`task_op_1234`, `task_op_1234.wait` and `task_op_1234.work`. The mapped
+container row is the RePlan task's calculated span and is the only one the
+importer uses. The importer discards those two generated child rows before
+`rows_read` accounting and does not emit `taskjuggler_report_task_unmapped`
+for them. Other genuinely unmapped rows retain that diagnostic.
+
 ### `Name`
 
 Human-readable TaskJuggler task name.
@@ -248,6 +257,9 @@ Rules:
 - mapping must not be hand-authored;
 - mapping must be included in `run.manifest.json`;
 - mapping must be treated as required input for `import-result`;
+- a wait-then-work task maps to the container id only; generated `wait` and
+  `work` child ids are intentionally absent, so mapping `version: 1` remains
+  compatible;
 - if two RePlan IDs map to the same TaskJuggler ID, export must fail before
   running TaskJuggler.
 
@@ -307,6 +319,11 @@ remaining work in loading demands, and cancelled tasks with planned or actual
 dates. These rows count in `fixed_rows`, even when the fixed actual-derived
 dates differ from the task's planned dates. Export and import use the same
 application helper for this rule.
+
+For a mapped wait-then-work container, the importer proposes the container's
+`Start` and `End` as the RePlan task dates. Its generated child rows are not
+candidate rows and do not contribute to `rows_read`, `unchanged_rows` or
+`fixed_rows`.
 
 Candidate changes not allowed in the first import dry-run:
 

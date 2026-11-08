@@ -2871,6 +2871,33 @@ REPORT
 	}
 }
 
+func TestImportTaskJugglerResultUsesContainerAndIgnoresGeneratedChildren(t *testing.T) {
+	projectDir := copyCmdProjectFixture(t)
+	runDir := t.TempDir()
+	writeTaskJugglerImportFixture(t, runDir, `"Id";"Name";"Start";"End";"Effort";"Effort Left";"Resources";"Status"
+"task_op_1234";"Implement validation command";"2026-07-06";"2026-07-13";1.0;0.0;"Ivan (resource_human_ivan)";"done"
+"task_op_1234.wait";"Wait";"2026-07-06";"2026-07-08";0.0;0.0;"";"done"
+"task_op_1234.work";"Work";"2026-07-09";"2026-07-13";1.0;0.0;"Ivan (resource_human_ivan)";"done"
+`)
+
+	result, err := importTaskJugglerResult(context.Background(), taskJugglerImportRequest{
+		ProjectPath: projectDir,
+		RunDir:      runDir,
+		DryRun:      true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.RowsRead != 1 || result.CandidateChanges != 2 {
+		t.Fatalf("container import counts = rows %d changes %d, want 1 and 2; result %#v", result.RowsRead, result.CandidateChanges, result)
+	}
+	assertCandidateChange(t, result.Candidate.Changes, "tasks.task.op.1234.planned_start", "2026-07-06")
+	assertCandidateChange(t, result.Candidate.Changes, "tasks.task.op.1234.planned_finish", "2026-07-13")
+	if hasDiagnosticCode(result.Warnings, "taskjuggler_report_task_unmapped") {
+		t.Fatalf("generated child rows produced unmapped warnings: %#v", result.Warnings)
+	}
+}
+
 func TestImportTaskJugglerResultUnchangedRowProducesNoChanges(t *testing.T) {
 	projectDir := copyCmdProjectFixture(t)
 	setCmdTaskJugglerTaskDates(t, projectDir, "ready", "2026-07-06", "2026-07-13")
@@ -3288,6 +3315,218 @@ grep 'weeklymax 6.00h' "$1" >/dev/null
 	}
 	if hasDiagnosticCode(warnings, "taskjuggler_capacity_change_not_represented") {
 		t.Fatalf("human weekly capacity should be represented, got warnings %#v", warnings)
+	}
+}
+
+func TestTaskJugglerRunSchedulesWorkingLeadTimeWhenTJ3Available(t *testing.T) {
+	tj3 := taskJugglerBinaryWhenAvailable(t)
+	projectPath := writeTaskJugglerSchedulingProject(t, `
+  - id: task.wait
+    title: Working wait
+    tracking_status: ready
+    lead_time:
+      working_days: 3
+`, "\n")
+	rows, _ := runTaskJugglerSchedulingProject(t, tj3, projectPath)
+	row := rows["task_wait"]
+	if row.Start != "2026-07-06" || row.End != "2026-07-08" {
+		t.Fatalf("working wait = %s..%s, want 2026-07-06..2026-07-08", row.Start, row.End)
+	}
+}
+
+func TestTaskJugglerRunSchedulesCalendarLeadTimeWhenTJ3Available(t *testing.T) {
+	tj3 := taskJugglerBinaryWhenAvailable(t)
+	projectPath := writeTaskJugglerSchedulingProject(t, `
+  - id: task.wait
+    title: Calendar wait
+    tracking_status: ready
+    lead_time:
+      calendar_days: 3
+`, "\n")
+	rows, _ := runTaskJugglerSchedulingProject(t, tj3, projectPath)
+	row := rows["task_wait"]
+	if row.Start != "2026-07-06" || row.End != "2026-07-09" {
+		t.Fatalf("calendar wait = %s..%s, want 2026-07-06..2026-07-09", row.Start, row.End)
+	}
+}
+
+func TestTaskJugglerRunSchedulesWorkAfterLeadTimeWhenTJ3Available(t *testing.T) {
+	tj3 := taskJugglerBinaryWhenAvailable(t)
+	projectPath := writeTaskJugglerWaitThenWorkProject(t)
+	rows, project := runTaskJugglerSchedulingProject(t, tj3, projectPath)
+	wait, work := rows["task_wait_work.wait"], rows["task_wait_work.work"]
+	if wait.ID == "" || work.ID == "" {
+		t.Fatalf("container child rows missing: %#v", rows)
+	}
+	// The report has dates only: work may begin later on the day the wait
+	// ends (Ivan works until 18:00), but never on an earlier day.
+	if work.Start < wait.End || !strings.Contains(project, "depends !wait") {
+		t.Fatalf("work starts %s, want on or after wait end %s", work.Start, wait.End)
+	}
+}
+
+func TestTaskJugglerRunDoesNotLevelUnlevelledOwnerDemandWhenTJ3Available(t *testing.T) {
+	tj3 := taskJugglerBinaryWhenAvailable(t)
+	projectPath := writeTaskJugglerSchedulingProject(t, `
+  - id: task.owner-wait
+    title: Owner wait
+    tracking_status: ready
+    lead_time:
+      working_days: 3
+  - id: task.work
+    title: Work
+    tracking_status: ready
+`, `
+  - id: demand.owner
+    task_ref: {kind: task, id: task.owner-wait}
+    resource_ref: {kind: resource, id: resource.human.ivan}
+    resource_class: human
+    role: owner
+    unit: hours
+    planned_amount: 8
+    remaining_amount: 8
+    status: active
+    levelled: false
+  - id: demand.work
+    task_ref: {kind: task, id: task.work}
+    resource_ref: {kind: resource, id: resource.human.ivan}
+    resource_class: human
+    role: implementer
+    unit: hours
+    planned_amount: 8
+    remaining_amount: 8
+    status: active
+`)
+	rows, project := runTaskJugglerSchedulingProject(t, tj3, projectPath)
+	if got := rows["task_work"].Start; got != "2026-07-06" {
+		t.Fatalf("levelled work starts %s, want status date 2026-07-06", got)
+	}
+	if strings.Contains(project, "task task_owner_wait") && strings.Contains(project[strings.Index(project, "task task_owner_wait"):strings.Index(project, "task task_work")], "allocate resource_human_ivan") {
+		t.Fatalf("owner wait allocated Ivan:\n%s", project)
+	}
+}
+
+func TestTaskJugglerRunSchedulesHigherPriorityTaskFirstWhenTJ3Available(t *testing.T) {
+	tj3 := taskJugglerBinaryWhenAvailable(t)
+	projectPath := writeTaskJugglerSchedulingProject(t, `
+  - id: task.first
+    title: Earlier default task
+    tracking_status: ready
+  - id: task.priority
+    title: Later priority task
+    tracking_status: ready
+    priority: 900
+`, `
+  - id: demand.first
+    task_ref: {kind: task, id: task.first}
+    resource_ref: {kind: resource, id: resource.human.ivan}
+    resource_class: human
+    role: implementer
+    unit: hours
+    planned_amount: 8
+    remaining_amount: 8
+    status: active
+  - id: demand.priority
+    task_ref: {kind: task, id: task.priority}
+    resource_ref: {kind: resource, id: resource.human.ivan}
+    resource_class: human
+    role: implementer
+    unit: hours
+    planned_amount: 8
+    remaining_amount: 8
+    status: active
+`)
+	rows, _ := runTaskJugglerSchedulingProject(t, tj3, projectPath)
+	if rows["task_priority"].Start != "2026-07-06" || rows["task_first"].Start <= rows["task_priority"].Start {
+		t.Fatalf("priority order wrong: priority=%#v first=%#v", rows["task_priority"], rows["task_first"])
+	}
+}
+
+func TestTaskJugglerImportUsesWaitThenWorkContainerWhenTJ3Available(t *testing.T) {
+	tj3 := taskJugglerBinaryWhenAvailable(t)
+	projectPath := writeTaskJugglerWaitThenWorkProject(t)
+	rows, _ := runTaskJugglerSchedulingProject(t, tj3, projectPath)
+	container := rows["task_wait_work"]
+
+	// Run once more with a known artifact directory for the importer.
+	outputDir := filepath.Join(t.TempDir(), "run")
+	runTaskJugglerForTest(t, tj3, projectPath, outputDir)
+	result, err := importTaskJugglerResult(context.Background(), taskJugglerImportRequest{ProjectPath: projectPath, RunDir: outputDir, DryRun: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.RowsRead != 1 || result.CandidateChanges != 2 || hasDiagnosticCode(result.Warnings, "taskjuggler_report_task_unmapped") {
+		t.Fatalf("container import result = %#v", result)
+	}
+	assertCandidateChange(t, result.Candidate.Changes, "tasks.task.wait-work.planned_start", container.Start)
+	assertCandidateChange(t, result.Candidate.Changes, "tasks.task.wait-work.planned_finish", container.End)
+}
+
+func taskJugglerBinaryWhenAvailable(t *testing.T) string {
+	t.Helper()
+	tj3, err := exec.LookPath("tj3")
+	if err != nil {
+		t.Skip("tj3 is not installed")
+	}
+	return tj3
+}
+
+func writeTaskJugglerSchedulingProject(t *testing.T, tasks, demands string) string {
+	t.Helper()
+	projectPath := copyCmdProjectFixture(t)
+	if err := os.WriteFile(filepath.Join(projectPath, "canonical", "tasks.yaml"), []byte("tasks:"+tasks), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(projectPath, "canonical", "resource_demands.yaml"), []byte("resource_demands:"+demands), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(projectPath, "canonical", "dependencies.yaml"), []byte("dependencies: []\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return projectPath
+}
+
+func writeTaskJugglerWaitThenWorkProject(t *testing.T) string {
+	t.Helper()
+	return writeTaskJugglerSchedulingProject(t, `
+  - id: task.wait-work
+    title: Wait then work
+    tracking_status: ready
+    lead_time:
+      working_days: 2
+`, `
+  - id: demand.work
+    task_ref: {kind: task, id: task.wait-work}
+    resource_ref: {kind: resource, id: resource.human.ivan}
+    resource_class: human
+    role: implementer
+    unit: hours
+    planned_amount: 2
+    remaining_amount: 2
+    status: active
+`)
+}
+
+func runTaskJugglerSchedulingProject(t *testing.T, tj3, projectPath string) (map[string]taskJugglerTaskScheduleRow, string) {
+	t.Helper()
+	outputDir := filepath.Join(t.TempDir(), "run")
+	runTaskJugglerForTest(t, tj3, projectPath, outputDir)
+	rows, diagnostics := readTaskJugglerTaskScheduleCSV(filepath.Join(outputDir, "reports", "replan-task-schedule.csv"))
+	if len(diagnostics) != 0 {
+		t.Fatalf("report diagnostics = %#v", diagnostics)
+	}
+	byID := make(map[string]taskJugglerTaskScheduleRow, len(rows))
+	for _, row := range rows {
+		byID[row.ID] = row
+	}
+	return byID, readFileString(t, filepath.Join(outputDir, "project.tjp"))
+}
+
+func runTaskJugglerForTest(t *testing.T, tj3, projectPath, outputDir string) {
+	t.Helper()
+	stdout, stderr := tempOutputFiles(t)
+	if code := run([]string{"taskjuggler", "run", "--project", projectPath, "--output-dir", outputDir, "--taskjuggler-bin", tj3, "--format", "json"}, stdout, stderr); code != exitSuccess {
+		t.Fatalf("taskjuggler run exit = %d, stdout = %s, stderr = %s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
 	}
 }
 

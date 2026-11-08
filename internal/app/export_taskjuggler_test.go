@@ -392,6 +392,101 @@ func taskJugglerWorkspaceWithEffort(effort float64) domain.Workspace {
 	}
 }
 
+func TestExportTaskJugglerLeavesUnlevelledDemandsOutOfScheduling(t *testing.T) {
+	ws := taskJugglerWorkspaceWithEffort(.25)
+	levelled := false
+	ws.ResourceDemands[0].Levelled = &levelled
+	result := exportTaskJugglerWorkspace(t, ws)
+
+	assertContains(t, result.Content, "  # not levelled: demand.test 0.25 hours on resource.test\n")
+	assertNotContains(t, result.Content, "effort ")
+	assertNotContains(t, result.Content, "allocate resource_test")
+	assertNotContains(t, result.Content, "timingresolution")
+	if hasDiagnosticCode(result.Warnings, "taskjuggler_task_without_supported_demands") || hasDiagnosticCode(result.Warnings, "taskjuggler_unsupported_demand_unit") {
+		t.Fatalf("unlevelled demand produced scheduling warnings: %#v", result.Warnings)
+	}
+}
+
+func TestExportTaskJugglerWritesPureWorkingAndCalendarLeadTimes(t *testing.T) {
+	for _, test := range []struct {
+		name     string
+		leadTime domain.LeadTime
+		want     string
+	}{
+		{name: "working days", leadTime: domain.LeadTime{WorkingDays: 3}, want: "  length 3d\n"},
+		{name: "calendar days", leadTime: domain.LeadTime{CalendarDays: 2.5}, want: "  duration 2.5d\n"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			ws := taskJugglerWorkspaceWithEffort(2)
+			ws.Tasks[0].LeadTime = &test.leadTime
+			ws.ResourceDemands = nil
+			result := exportTaskJugglerWorkspace(t, ws)
+			assertContains(t, result.Content, test.want)
+			assertNotContains(t, result.Content, "effort ")
+			assertNotContains(t, result.Content, "allocate resource_test")
+		})
+	}
+}
+
+func TestExportTaskJugglerWritesWaitThenWorkContainer(t *testing.T) {
+	ws := taskJugglerWorkspaceWithEffort(2)
+	ws.Tasks = append([]domain.Task{{ID: "task.pre", Title: "Predecessor"}}, ws.Tasks...)
+	ws.Tasks[1].LeadTime = &domain.LeadTime{WorkingDays: 1.5}
+	ws.Tasks[1].Priority = 900
+	ws.Tasks = append(ws.Tasks, domain.Task{ID: "task.next", Title: "Successor"})
+	ws.ResourceDemands[0].Timing.EarliestStart = "2026-11-10"
+	ws.Dependencies = []domain.Dependency{
+		{ID: "dependency.pre", Type: "finish_to_start", Status: "open", PredecessorRef: domain.Ref{Kind: "task", ID: "task.pre"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.test"}},
+		{ID: "dependency.next", Type: "finish_to_start", Status: "open", PredecessorRef: domain.Ref{Kind: "task", ID: "task.test"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.next"}},
+	}
+	result := exportTaskJugglerWorkspace(t, ws)
+
+	wantContainer := "task task_test \"Test task\" {\n  depends task_pre\n  depends replan_status_date\n  depends replan_not_before_2026_11_10\n  priority 900\n  task wait \"Wait\" {\n    length 1.5d\n  }\n  task work \"Work\" {\n    depends !wait\n    effort 2.00h\n    allocate resource_test\n  }\n}"
+	assertContains(t, result.Content, wantContainer)
+	assertContains(t, result.Content, "task task_next \"Successor\" {\n  depends task_test\n")
+	if !hasTaskJugglerTaskMapping(result.Mapping, "task.test", "task_test") {
+		t.Fatalf("container mapping missing: %#v", result.Mapping.TaskIDMap)
+	}
+}
+
+func TestExportTaskJugglerRoundsLeadTimeThatDoesNotFitFiveMinutes(t *testing.T) {
+	ws := taskJugglerWorkspaceWithEffort(1)
+	ws.Tasks[0].LeadTime = &domain.LeadTime{WorkingDays: .101}
+	ws.ResourceDemands = nil
+	result := exportTaskJugglerWorkspace(t, ws)
+
+	assertContains(t, result.Content, "  timingresolution 5min\n")
+	assertContains(t, result.Content, "  length 0.10416666666666667d\n")
+	if !hasDiagnosticCode(result.Warnings, "taskjuggler_lead_time_rounded_up") {
+		t.Fatalf("warnings = %#v", result.Warnings)
+	}
+}
+
+func TestExportTaskJugglerFinishedLeadTimeTaskStaysFixed(t *testing.T) {
+	ws := taskJugglerWorkspaceWithEffort(2)
+	ws.Tasks[0].TrackingStatus = "accepted"
+	ws.Tasks[0].PlannedStart = "2026-11-01"
+	ws.Tasks[0].PlannedFinish = "2026-11-02"
+	ws.Tasks[0].LeadTime = &domain.LeadTime{WorkingDays: 3}
+	ws.Tasks[0].Priority = 900
+	result := exportTaskJugglerWorkspace(t, ws)
+
+	assertContains(t, result.Content, "task task_test \"Test task\" {\n  start 2026-11-01\n  end 2026-11-02\n}")
+	assertNotContains(t, result.Content, "length 3d")
+	assertNotContains(t, result.Content, "priority 900")
+}
+
+func TestExportTaskJugglerWritesNonDefaultPriorityOnOpenTask(t *testing.T) {
+	ws := taskJugglerWorkspaceWithEffort(2)
+	ws.Tasks[0].Priority = 900
+	result := exportTaskJugglerWorkspace(t, ws)
+	assertContains(t, result.Content, "  priority 900\n")
+
+	ws.Tasks[0].Priority = 500
+	result = exportTaskJugglerWorkspace(t, ws)
+	assertNotContains(t, result.Content, "  priority 500\n")
+}
+
 func TestExportTaskJugglerRawExportsAgentHours(t *testing.T) {
 	result, err := app.NewExportService(filestore.New("../../examples/small-team")).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{
 		Raw: true,

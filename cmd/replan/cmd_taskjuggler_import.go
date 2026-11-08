@@ -224,8 +224,25 @@ func (s *taskJugglerImportState) loadReport() error {
 		s.result.Errors = append(s.result.Errors, diagnostics...)
 		return app.ErrValidationFailed
 	}
+	filtered := s.rows[:0]
+	for _, row := range s.rows {
+		if taskJugglerGeneratedChildRow(row.ID, s.taskIDMap) {
+			continue
+		}
+		filtered = append(filtered, row)
+	}
+	s.rows = filtered
 	s.result.RowsRead = len(s.rows)
 	return nil
+}
+
+func taskJugglerGeneratedChildRow(rowID string, taskIDMap map[string]string) bool {
+	for taskJugglerTaskID := range taskIDMap {
+		if rowID == taskJugglerTaskID+".wait" || rowID == taskJugglerTaskID+".work" {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *taskJugglerImportState) loadWorkspace() error {

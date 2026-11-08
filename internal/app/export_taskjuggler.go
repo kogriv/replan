@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -62,6 +63,18 @@ type taskJugglerDemand struct {
 	effort        float64
 	rawEffort     float64
 	calibrationID string
+}
+
+type taskJugglerUnlevelledDemand struct {
+	id         string
+	amount     float64
+	unit       string
+	resourceID string
+}
+
+type taskJugglerLeadTime struct {
+	kind string
+	days float64
 }
 
 type taskJugglerResourceLimit struct {
@@ -440,6 +453,7 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 	}
 	limitsByResource := taskJugglerLimitsByResource(ws.Capacities, ws.Project.DefaultStatusDate, warnings)
 	demandsByTask := make(map[string][]taskJugglerDemand)
+	unlevelledDemandsByTask := make(map[string][]taskJugglerUnlevelledDemand)
 	demandCountByTask := map[string]int{}
 	loadingDemandCountByTask := map[string]int{}
 	unsupportedDemandIDsByUnit := map[string][]string{}
@@ -458,6 +472,12 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 	usedCalibrations := map[string]bool{}
 	for _, demand := range ws.ResourceDemands {
 		demandCountByTask[demand.TaskRef.ID]++
+		if !demand.IsLevelled() {
+			unlevelledDemandsByTask[demand.TaskRef.ID] = append(unlevelledDemandsByTask[demand.TaskRef.ID], taskJugglerUnlevelledDemand{
+				id: demand.ID, amount: taskJugglerDemandAmount(demand), unit: demand.Unit, resourceID: demand.ResourceRef.ID,
+			})
+			continue
+		}
 		if domain.DemandLoads(demand.Status) {
 			loadingDemandCountByTask[demand.TaskRef.ID]++
 		}
@@ -481,7 +501,9 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 	unsupportedDemands := appendTaskJugglerUnsupportedDemandDiagnostics(unsupportedDemandIDsByUnit, openUnsupportedDemandIDsByUnit, warnings)
 	appendTaskJugglerTasksWithoutDemandsDiagnostic(ws, demandCountByTask, taskSchedules, warnings)
 	taskEfforts, roundedUpTaskIDs, timingResolution := taskJugglerTaskEfforts(ws.Tasks, demandsByTask)
+	leadTimes, roundedUpLeadTimeTaskIDs, timingResolution := taskJugglerLeadTimes(ws.Tasks, taskSchedules, timingResolution)
 	appendTaskJugglerRoundedUpEffortDiagnostic(ws.Project.ID, roundedUpTaskIDs, warnings)
+	appendTaskJugglerRoundedUpLeadTimeDiagnostic(ws.Project.ID, roundedUpLeadTimeTaskIDs, warnings)
 	workingHoursByResource := taskJugglerWorkingHoursByResource(ws.Availabilities, timingResolution, ws.Project.Timezone, ws.Project.ID, warnings)
 	vacationsByResource := taskJugglerVacationsByResource(ws.Availabilities, ws.Project.ID, warnings)
 
@@ -518,7 +540,7 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 	}
 
 	for _, task := range ws.Tasks {
-		writeTaskJugglerTask(&b, task, taskJugglerTaskIDs[task.ID], taskJugglerResourceIDs, dependenciesByTask[task.ID], notBeforeByTask[task.ID], demandsByTask[task.ID], taskEfforts[task.ID], loadingDemandCountByTask[task.ID] > 0, taskSchedules[task.ID], statusDate, warnings)
+		writeTaskJugglerTask(&b, task, taskJugglerTaskIDs[task.ID], taskJugglerResourceIDs, dependenciesByTask[task.ID], notBeforeByTask[task.ID], demandsByTask[task.ID], unlevelledDemandsByTask[task.ID], taskEfforts[task.ID], leadTimes[task.ID], loadingDemandCountByTask[task.ID] > 0, taskSchedules[task.ID], statusDate, warnings)
 	}
 	writeTaskJugglerParseableTaskReport(&b, hasInternalTasks)
 
@@ -749,6 +771,59 @@ func taskJugglerTaskEfforts(tasks []domain.Task, demandsByTask map[string][]task
 	return efforts, roundedUpTaskIDs, 5
 }
 
+func taskJugglerLeadTimes(tasks []domain.Task, schedules map[string]taskJugglerTaskSchedule, maximumResolution int) (map[string]taskJugglerLeadTime, map[string]struct{}, int) {
+	leadTimes := make(map[string]taskJugglerLeadTime)
+	rawMinutes := make(map[string]float64)
+	for _, task := range tasks {
+		if task.LeadTime == nil || schedules[task.ID].finished || isTerminalTrackingStatus(task.TrackingStatus) {
+			continue
+		}
+		leadTime := taskJugglerLeadTime{kind: "length", days: task.LeadTime.WorkingDays}
+		if task.LeadTime.CalendarDays > 0 {
+			leadTime.kind, leadTime.days = "duration", task.LeadTime.CalendarDays
+		}
+		if leadTime.days <= 0 {
+			continue
+		}
+		leadTimes[task.ID] = leadTime
+		rawMinutes[task.ID] = leadTime.days * 8 * 60
+	}
+	if len(leadTimes) == 0 {
+		return leadTimes, map[string]struct{}{}, maximumResolution
+	}
+
+	resolution := 5
+	for _, candidate := range []int{60, 30, 20, 15, 10, 5} {
+		if candidate > maximumResolution {
+			continue
+		}
+		fits := true
+		for _, minutes := range rawMinutes {
+			units := minutes / float64(candidate)
+			if math.Abs(units-math.Round(units)) > 1e-9 {
+				fits = false
+				break
+			}
+		}
+		if fits {
+			resolution = candidate
+			break
+		}
+	}
+
+	rounded := map[string]struct{}{}
+	for taskID, minutes := range rawMinutes {
+		roundedMinutes := math.Ceil(minutes/float64(resolution)-1e-9) * float64(resolution)
+		if math.Abs(roundedMinutes-minutes) > 1e-9 {
+			leadTime := leadTimes[taskID]
+			leadTime.days = roundedMinutes / (8 * 60)
+			leadTimes[taskID] = leadTime
+			rounded[taskID] = struct{}{}
+		}
+	}
+	return leadTimes, rounded, resolution
+}
+
 // taskJugglerEffortMinutes writes a sub-hour effort as whole minutes,
 // rounded up so the scheduled work is never smaller than the plan, and never
 // below TaskJuggler's 5-minute minimum timing resolution.
@@ -780,6 +855,32 @@ func appendTaskJugglerRoundedUpEffortDiagnostic(projectID string, roundedUpTaskI
 	message += fmt.Sprintf(" (for example %s)", strings.Join(examples, ", "))
 	*warnings = append(*warnings, Diagnostic{
 		Code:     "taskjuggler_effort_rounded_up",
+		Message:  message,
+		Severity: "warning",
+		Target:   Target{Kind: "project", ID: projectID},
+	})
+}
+
+func appendTaskJugglerRoundedUpLeadTimeDiagnostic(projectID string, roundedUpTaskIDs map[string]struct{}, warnings *[]Diagnostic) {
+	if len(roundedUpTaskIDs) == 0 {
+		return
+	}
+	taskIDs := make([]string, 0, len(roundedUpTaskIDs))
+	for taskID := range roundedUpTaskIDs {
+		taskIDs = append(taskIDs, taskID)
+	}
+	sort.Strings(taskIDs)
+	examples := taskIDs
+	if len(examples) > 3 {
+		examples = examples[:3]
+	}
+	message := fmt.Sprintf("%d exported task lead times do not fit TaskJuggler's 5-minute minimum timing resolution and were rounded up", len(taskIDs))
+	if len(taskIDs) == 1 {
+		message = "1 exported task lead time does not fit TaskJuggler's 5-minute minimum timing resolution and was rounded up"
+	}
+	message += fmt.Sprintf(" (for example %s)", strings.Join(examples, ", "))
+	*warnings = append(*warnings, Diagnostic{
+		Code:     "taskjuggler_lead_time_rounded_up",
 		Message:  message,
 		Severity: "warning",
 		Target:   Target{Kind: "project", ID: projectID},
@@ -877,6 +978,13 @@ func taskJugglerDemandHasOpenWork(demand domain.ResourceDemand) bool {
 	return demand.PlannedAmount > 0
 }
 
+func taskJugglerDemandAmount(demand domain.ResourceDemand) float64 {
+	if demand.HasRemaining() {
+		return demand.Remaining()
+	}
+	return demand.PlannedAmount
+}
+
 // taskJugglerLimitsByResource maps weekly hour capacities to weeklymax. The
 // export has one limit per resource, so a capacity with effective dates
 // contributes only if it is in effect on the status date, with a warning that
@@ -916,6 +1024,9 @@ func orOpen(date string) string {
 }
 
 func mapTaskJugglerDemand(demand domain.ResourceDemand, resourceIDs map[string]struct{}, calibration DemandCalibration, warnings *[]Diagnostic) (taskJugglerDemand, bool) {
+	if !demand.IsLevelled() {
+		return taskJugglerDemand{}, false
+	}
 	if !domain.DemandLoads(demand.Status) {
 		return taskJugglerDemand{}, false
 	}
@@ -987,11 +1098,12 @@ func writeTaskJugglerResource(b *strings.Builder, resource domain.Resource, task
 	fmt.Fprintf(b, "}\n")
 }
 
-func writeTaskJugglerTask(b *strings.Builder, task domain.Task, taskJugglerTaskID string, taskJugglerResourceIDs map[string]string, predecessorIDs []string, notBeforeDate string, demands []taskJugglerDemand, totalEffort float64, hasLoadingDemands bool, schedule taskJugglerTaskSchedule, statusDate string, warnings *[]Diagnostic) {
+func writeTaskJugglerTask(b *strings.Builder, task domain.Task, taskJugglerTaskID string, taskJugglerResourceIDs map[string]string, predecessorIDs []string, notBeforeDate string, demands []taskJugglerDemand, unlevelledDemands []taskJugglerUnlevelledDemand, totalEffort float64, leadTime taskJugglerLeadTime, hasLoadingDemands bool, schedule taskJugglerTaskSchedule, statusDate string, warnings *[]Diagnostic) {
 	fmt.Fprintf(b, "task %s %q {\n", taskJugglerTaskID, task.Title)
 	if task.Description != "" {
 		fmt.Fprintf(b, "  note %q\n", task.Description)
 	}
+	writeTaskJugglerUnlevelledDemandComments(b, "  ", unlevelledDemands)
 	if schedule.finished {
 		// Finished work is fixed at its own dates; a dependency on it, or
 		// from it on open work, cannot move it.
@@ -1008,18 +1120,66 @@ func writeTaskJugglerTask(b *strings.Builder, task domain.Task, taskJugglerTaskI
 			fmt.Fprintf(b, "  depends %s\n", taskJugglerNotBeforeTaskID(notBeforeDate))
 		}
 	}
+	open := !schedule.finished && !isTerminalTrackingStatus(task.TrackingStatus)
+	if open && task.EffectivePriority() != 500 {
+		fmt.Fprintf(b, "  priority %d\n", task.EffectivePriority())
+	}
+	if len(demands) == 0 && hasLoadingDemands && open {
+		*warnings = append(*warnings, Diagnostic{
+			Code:     "taskjuggler_task_without_supported_demands",
+			Message:  fmt.Sprintf("task %s has no supported concrete hour-based resource demands for TaskJuggler export", task.ID),
+			Severity: "warning",
+			Target:   Target{Kind: "task", ID: task.ID},
+		})
+	}
+	if open && leadTime.days > 0 && totalEffort > 0 {
+		fmt.Fprintf(b, "  task wait %q {\n", "Wait")
+		writeTaskJugglerLeadTime(b, "    ", leadTime)
+		fmt.Fprintf(b, "  }\n")
+		fmt.Fprintf(b, "  task work %q {\n", "Work")
+		fmt.Fprintf(b, "    depends !wait\n")
+		writeTaskJugglerEffortAndAllocations(b, "    ", demands, totalEffort, taskJugglerResourceIDs)
+		fmt.Fprintf(b, "  }\n")
+		fmt.Fprintf(b, "}\n")
+		return
+	}
+	if open && leadTime.days > 0 {
+		writeTaskJugglerLeadTime(b, "  ", leadTime)
+		fmt.Fprintf(b, "}\n")
+		return
+	}
+	writeTaskJugglerEffortAndAllocations(b, "  ", demands, totalEffort, taskJugglerResourceIDs)
+	fmt.Fprintf(b, "}\n")
+}
+
+func writeTaskJugglerLeadTime(b *strings.Builder, indent string, leadTime taskJugglerLeadTime) {
+	fmt.Fprintf(b, "%s%s %sd\n", indent, leadTime.kind, strconv.FormatFloat(leadTime.days, 'f', -1, 64))
+}
+
+func writeTaskJugglerUnlevelledDemandComments(b *strings.Builder, indent string, demands []taskJugglerUnlevelledDemand) {
+	sort.Slice(demands, func(i, j int) bool { return demands[i].id < demands[j].id })
+	for _, demand := range demands {
+		resourceID := demand.resourceID
+		if resourceID == "" {
+			resourceID = "(no concrete resource)"
+		}
+		fmt.Fprintf(b, "%s# not levelled: %s %s %s on %s\n", indent, demand.id, strconv.FormatFloat(demand.amount, 'f', -1, 64), demand.unit, resourceID)
+	}
+}
+
+func writeTaskJugglerEffortAndAllocations(b *strings.Builder, indent string, demands []taskJugglerDemand, totalEffort float64, taskJugglerResourceIDs map[string]string) {
 	allocated := map[string]struct{}{}
 	for _, demand := range demands {
 		if demand.calibrationID != "" {
-			fmt.Fprintf(b, "  # calibrated by %s: %.2fh -> %.2fh\n", demand.calibrationID, demand.rawEffort, demand.effort)
+			fmt.Fprintf(b, "%s# calibrated by %s: %.2fh -> %.2fh\n", indent, demand.calibrationID, demand.rawEffort, demand.effort)
 		}
 		allocated[demand.resourceID] = struct{}{}
 	}
 	if totalEffort > 0 {
 		if totalEffort < 1 {
-			fmt.Fprintf(b, "  effort %dmin\n", taskJugglerEffortMinutes(totalEffort))
+			fmt.Fprintf(b, "%seffort %dmin\n", indent, taskJugglerEffortMinutes(totalEffort))
 		} else {
-			fmt.Fprintf(b, "  effort %.2fh\n", totalEffort)
+			fmt.Fprintf(b, "%seffort %.2fh\n", indent, totalEffort)
 		}
 	}
 	resourceIDs := make([]string, 0, len(allocated))
@@ -1028,17 +1188,8 @@ func writeTaskJugglerTask(b *strings.Builder, task domain.Task, taskJugglerTaskI
 	}
 	sort.Strings(resourceIDs)
 	for _, resourceID := range resourceIDs {
-		fmt.Fprintf(b, "  allocate %s\n", taskJugglerResourceIDs[resourceID])
+		fmt.Fprintf(b, "%sallocate %s\n", indent, taskJugglerResourceIDs[resourceID])
 	}
-	if len(demands) == 0 && hasLoadingDemands && !schedule.finished && !isTerminalTrackingStatus(task.TrackingStatus) {
-		*warnings = append(*warnings, Diagnostic{
-			Code:     "taskjuggler_task_without_supported_demands",
-			Message:  fmt.Sprintf("task %s has no supported concrete hour-based resource demands for TaskJuggler export", task.ID),
-			Severity: "warning",
-			Target:   Target{Kind: "task", ID: task.ID},
-		})
-	}
-	fmt.Fprintf(b, "}\n")
 }
 
 func writeTaskJugglerParseableTaskReport(b *strings.Builder, hideInternal bool) {
