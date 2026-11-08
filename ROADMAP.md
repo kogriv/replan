@@ -45,7 +45,7 @@ going. The task-level plan is RePlan's own project,
   write-back of dates, status, titles and descriptions, and a read-only
   plugin with a resource view and a per-task panel. The helpers also work
   on a project tracked in OpenProject alone: work packages, comments,
-  relations and parents by number, with secrets read from files.
+  relations, parents and versions by number, with secrets read from files.
 - **GitHub Issues.** Read-only import from an exported file or over the API
   into the same staged review as OpenProject.
 - **TaskJuggler.** Optional export, run and import of the result as a scenario
