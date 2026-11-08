@@ -1687,3 +1687,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-group-taskjuggler-unsupported-unit-warnings
+  - id: actual.self-publish-release-v0-4-0.ai-agent-executor.20261108T1146270700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-4-0
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.publish-release-v0-4-0.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.47
+    unit: agent_hours
+    occurred_at: "2026-11-08T11:46:27+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.publish-release-v0-4-0
+  - id: actual.self-refresh-agent-kits-v0-4-0.ai-agent-executor.20261108T1205240700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.refresh-agent-kits-v0-4-0
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.refresh-agent-kits-v0-4-0.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.31
+    unit: agent_hours
+    occurred_at: "2026-11-08T12:05:24+07:00"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.refresh-agent-kits-v0-4-0

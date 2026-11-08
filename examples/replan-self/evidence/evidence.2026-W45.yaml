@@ -1121,3 +1121,37 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-4-0
+  - id: evidence.self.publish-release-v0-4-0
+    type: command_result
+    source: ci
+    url: https://github.com/kogriv/replan/releases/tag/v0.4.0
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T11:46:27+07:00"
+    summary: 'Release v0.4.0 published from df21b74 after its CI run passed: six archives built locally with build-release.sh (the binary reports v0.4.0, df21b74, go1.24.1); the tag push ran the Release build workflow (run 42447615242), whose archives match the local SHA256SUMS byte for byte and which attested every archive and SHA256SUMS. The release carries the local archives and notes; downloaded archives match SHA256SUMS, gh attestation verify passes (signer release.yml at refs/tags/v0.4.0), go install of v0.4.0 through the proxy reports v0.4.0. Before the tag: roadmap and quickstart updated; a v0.3.0 binary reports limited baselines and size-band calibrations of the self plan as modified, which the notes state; small-team is unchanged since v0.3.0, so no new frozen fixture. Agent time 11:18:08 (the operator''s go) to 11:46:28, 0.47 h, including the overrun fix for the suggestion count check.'
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-4-0
+  - id: evidence.self.start-refresh-agent-kits-v0-4-0
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T11:46:44+07:00"
+    summary: Started on 2026-11-08 right after release v0.4.0 was published; estimate 0.75 agent hours frozen in baseline.2026-11-08.release-v0-4-0.
+    targets:
+      - kind: task
+        id: task.self.refresh-agent-kits-v0-4-0
+  - id: evidence.self.refresh-agent-kits-v0-4-0
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T12:05:24+07:00"
+    summary: 'Both kits built from the v0.4.0 tag (reported version v0.4.0, df21b74, no +dirty; no private names, endpoints or bindings). Gate on the tag code green: 51 offline kit checks, 79 live kit checks on a throwaway OpenProject. Second project: archive and checksum uploaded to its tools wiki page after dry runs, the downloaded archive matches the checksum, the v0.4.0 binary validates the page''s plan snapshot with the same result as v0.3.0, page text updated (v0.4.0 rows, v0.3.0 marked replaced, what changed, the 8 November checks); its session was told. Third project: installed on the server in a versioned directory with current moved, settings kept and v0.3.0 kept for rollback, the older 30 October build removed; dry runs of list, status, relations and parent pass; its session was told. The consumer working from source was told about the release. Older wiki attachments stay for the operator to decide. Agent time 11:46:44 to 12:05:24, 0.31 h, including the 12-minute gate.'
+    targets:
+      - kind: task
+        id: task.self.refresh-agent-kits-v0-4-0
