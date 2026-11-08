@@ -1,0 +1,154 @@
+baseline:
+  id: baseline.2026-11-08.lead-time-and-priority
+  name: Lead time, unlevelled demands, priority and changed-only TaskJuggler dates
+  scope: tasks
+  created_at: "2026-11-08T21:24:44+07:00"
+  approved_at: "2026-11-08T21:24:44+07:00"
+  approved_by:
+    kind: actor
+    id: actor.human.maintainer
+  included_tasks:
+    - kind: task
+      id: task.self.taskjuggler-import-skips-unchanged-dates
+      planned_start: "2026-11-12"
+      planned_finish: "2026-11-12"
+    - kind: task
+      id: task.self.lead-time-and-priority-model
+      planned_start: "2026-11-09"
+      planned_finish: "2026-11-09"
+    - kind: task
+      id: task.self.lead-time-in-workload-and-next
+      planned_start: "2026-11-10"
+      planned_finish: "2026-11-10"
+    - kind: task
+      id: task.self.lead-time-in-taskjuggler
+      planned_start: "2026-11-11"
+      planned_finish: "2026-11-11"
+    - kind: task
+      id: task.self.rerun-consumer-scheduler-comparison
+      planned_start: "2026-11-12"
+      planned_finish: "2026-11-12"
+  included_demands:
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-import-skips-unchanged-dates.agent
+      task: task.self.taskjuggler-import-skips-unchanged-dates
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-import-skips-unchanged-dates.maintainer
+      task: task.self.taskjuggler-import-skips-unchanged-dates
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-import-skips-unchanged-dates.local-dev
+      task: task.self.taskjuggler-import-skips-unchanged-dates
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-import-skips-unchanged-dates.ci
+      task: task.self.taskjuggler-import-skips-unchanged-dates
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+    - kind: resource_demand
+      id: resource_demand.lead-time-and-priority-model.agent
+      task: task.self.lead-time-and-priority-model
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 2
+    - kind: resource_demand
+      id: resource_demand.lead-time-and-priority-model.maintainer
+      task: task.self.lead-time-and-priority-model
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.lead-time-and-priority-model.local-dev
+      task: task.self.lead-time-and-priority-model
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.lead-time-and-priority-model.ci
+      task: task.self.lead-time-and-priority-model
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+    - kind: resource_demand
+      id: resource_demand.lead-time-in-workload-and-next.agent
+      task: task.self.lead-time-in-workload-and-next
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 2
+    - kind: resource_demand
+      id: resource_demand.lead-time-in-workload-and-next.maintainer
+      task: task.self.lead-time-in-workload-and-next
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.lead-time-in-workload-and-next.local-dev
+      task: task.self.lead-time-in-workload-and-next
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.lead-time-in-workload-and-next.ci
+      task: task.self.lead-time-in-workload-and-next
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+    - kind: resource_demand
+      id: resource_demand.lead-time-in-taskjuggler.agent
+      task: task.self.lead-time-in-taskjuggler
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 2.5
+    - kind: resource_demand
+      id: resource_demand.lead-time-in-taskjuggler.maintainer
+      task: task.self.lead-time-in-taskjuggler
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.lead-time-in-taskjuggler.local-dev
+      task: task.self.lead-time-in-taskjuggler
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.lead-time-in-taskjuggler.ci
+      task: task.self.lead-time-in-taskjuggler
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+    - kind: resource_demand
+      id: resource_demand.rerun-consumer-scheduler-comparison.agent
+      task: task.self.rerun-consumer-scheduler-comparison
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.rerun-consumer-scheduler-comparison.maintainer
+      task: task.self.rerun-consumer-scheduler-comparison
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.rerun-consumer-scheduler-comparison.local-dev
+      task: task.self.rerun-consumer-scheduler-comparison
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.rerun-consumer-scheduler-comparison.ci
+      task: task.self.rerun-consumer-scheduler-comparison
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  seal:
+    algorithm: sha256
+    digest: b087f2659fb2f7bc53e72ee4f896ca18b0bcef0f103bdced0f8881bdbd37d334

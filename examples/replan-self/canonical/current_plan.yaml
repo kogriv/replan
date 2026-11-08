@@ -480,6 +480,14 @@ current_plan:
     - kind: task
       id: task.self.taskjuggler-import-skips-unchanged-dates
     - kind: task
+      id: task.self.lead-time-and-priority-model
+    - kind: task
+      id: task.self.lead-time-in-workload-and-next
+    - kind: task
+      id: task.self.lead-time-in-taskjuggler
+    - kind: task
+      id: task.self.rerun-consumer-scheduler-comparison
+    - kind: task
       id: task.self.fix-first-project-defects
     - kind: task
       id: task.self.implement-replan-init-and-resource-commands

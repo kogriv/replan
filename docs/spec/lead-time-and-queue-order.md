@@ -2,8 +2,10 @@
 
 Date: 2026-11-08
 
-Status: proposed design, for the maintainer to discuss before any model
-change.
+Status: approved by the maintainer on 2026-11-08 as recommended: lead time is
+a task field, owner hours that are not levelled use `levelled: false`, and
+queue order starts with soft task priority. Strict queues and the
+OpenProject priority mapping wait for a consumer to ask.
 
 ## Purpose
 
@@ -194,11 +196,14 @@ share" is already a calibration factor in RePlan and needs nothing new.
 5. Later, only on a consumer's request: strict queues (about 1.5 agent
    hours) and the OpenProject priority mapping (about 1 agent hour).
 
-## Questions for the maintainer
+## Decisions
 
-- Lead time on the task, or as a demand of a new "time" unit? The task field
-  is proposed because a wait has no resource.
-- Is `levelled: false` the right word, or should it be `load: none` to match
-  `DemandLoads`, which already means "counts toward capacity" for statuses?
-- Start with soft priority only, and leave strict queues until someone needs
-  them?
+Settled with the maintainer on 2026-11-08:
+
+- lead time is the task field `lead_time`, because a wait has no resource;
+- a demand whose hours are recorded but not levelled says `levelled: false`;
+  `DemandLoads` keeps meaning whether a demand's status still counts;
+- queue order starts with soft `priority`; strict queues and the OpenProject
+  priority mapping are not planned until a consumer asks for them.
+
+Tasks 1 to 4 above are in the self plan.

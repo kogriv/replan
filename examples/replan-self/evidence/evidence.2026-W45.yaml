@@ -1723,3 +1723,147 @@ evidence:
     targets:
       - kind: task
         id: task.self.taskjuggler-export-not-before-dates
+  - id: evidence.self.accept-taskjuggler-export-sub-hour-effort
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T14:18:19Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-export-sub-hour-effort
+  - id: evidence.self.accept-taskjuggler-export-dependencies
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T14:18:56Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-export-dependencies
+  - id: evidence.self.accept-taskjuggler-export-status-date-and-finished-work
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T14:19:32Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-export-status-date-and-finished-work
+  - id: evidence.self.accept-taskjuggler-export-working-calendar
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T14:20:08Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-export-working-calendar
+  - id: evidence.self.accept-taskjuggler-export-not-before-dates
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T14:20:45Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-export-not-before-dates
+  - id: evidence.self.accept-design-lead-time-and-queue-order
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T14:21:23Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.design-lead-time-and-queue-order
+  - id: evidence.self.plan-lead-time-and-priority-model
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T21:17:55+07:00"
+    summary: The maintainer accepted the lead time and queue order design on 2026-11-08 at 21:17:55 as recommended (task lead_time, levelled false, soft priority first) and asked for a full implementation; agreement approves the estimates of tasks 1 to 4 (2, 2, 2.5 and 1 agent hours). Recorded at 2026-11-08T21:24:44+07:00.
+    targets:
+      - kind: task
+        id: task.self.lead-time-and-priority-model
+  - id: evidence.self.plan-lead-time-in-workload-and-next
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T21:17:55+07:00"
+    summary: The maintainer accepted the lead time and queue order design on 2026-11-08 at 21:17:55 as recommended (task lead_time, levelled false, soft priority first) and asked for a full implementation; agreement approves the estimates of tasks 1 to 4 (2, 2, 2.5 and 1 agent hours). Recorded at 2026-11-08T21:24:44+07:00.
+    targets:
+      - kind: task
+        id: task.self.lead-time-in-workload-and-next
+  - id: evidence.self.plan-lead-time-in-taskjuggler
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T21:17:55+07:00"
+    summary: The maintainer accepted the lead time and queue order design on 2026-11-08 at 21:17:55 as recommended (task lead_time, levelled false, soft priority first) and asked for a full implementation; agreement approves the estimates of tasks 1 to 4 (2, 2, 2.5 and 1 agent hours). Recorded at 2026-11-08T21:24:44+07:00.
+    targets:
+      - kind: task
+        id: task.self.lead-time-in-taskjuggler
+  - id: evidence.self.plan-rerun-consumer-scheduler-comparison
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T21:17:55+07:00"
+    summary: The maintainer accepted the lead time and queue order design on 2026-11-08 at 21:17:55 as recommended (task lead_time, levelled false, soft priority first) and asked for a full implementation; agreement approves the estimates of tasks 1 to 4 (2, 2, 2.5 and 1 agent hours). Recorded at 2026-11-08T21:24:44+07:00.
+    targets:
+      - kind: task
+        id: task.self.rerun-consumer-scheduler-comparison
+  - id: evidence.self.agree-taskjuggler-import-skips-unchanged-dates
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T21:17:55+07:00"
+    summary: The maintainer agreed to the task at 1 agent hour on 2026-11-08 at 21:17:55. Recorded at 2026-11-08T21:24:44+07:00.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-import-skips-unchanged-dates
+  - id: evidence.self.start-taskjuggler-import-skips-unchanged-dates
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T21:25:51+07:00"
+    summary: Started on 2026-11-08, four days before plan, right after the maintainer agreed; estimate 1 agent hour frozen in baseline.2026-11-08.lead-time-and-priority, split into Codex 0.6 and agent 0.4.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-import-skips-unchanged-dates

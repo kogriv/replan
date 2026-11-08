@@ -2380,3 +2380,129 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.taskjuggler-export-not-before-dates
+  - id: actual.self-taskjuggler-export-sub-hour-effort.ci-github-actions.20261108T141819Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-export-sub-hour-effort
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-export-sub-hour-effort.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-08T14:18:19Z"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-taskjuggler-export-sub-hour-effort
+  - id: actual.self-taskjuggler-export-dependencies.ci-github-actions.20261108T141856Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-export-dependencies
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-export-dependencies.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-08T14:18:56Z"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-taskjuggler-export-dependencies
+  - id: actual.self-taskjuggler-export-status-date-and-finished-work.ci-github-actions.20261108T141932Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-export-status-date-and-finished-work
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-export-status-date-and-finished-work.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-08T14:19:32Z"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-taskjuggler-export-status-date-and-finished-work
+  - id: actual.self-taskjuggler-export-working-calendar.ci-github-actions.20261108T142008Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-export-working-calendar
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-export-working-calendar.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-08T14:20:08Z"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-taskjuggler-export-working-calendar
+  - id: actual.self-taskjuggler-export-not-before-dates.ci-github-actions.20261108T142045Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-export-not-before-dates
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-export-not-before-dates.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-08T14:20:45Z"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-taskjuggler-export-not-before-dates
+  - id: actual.self-design-lead-time-and-queue-order.ci-github-actions.20261108T142123Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.design-lead-time-and-queue-order
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.design-lead-time-and-queue-order.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-08T14:21:23Z"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-design-lead-time-and-queue-order

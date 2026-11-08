@@ -13544,7 +13544,7 @@ resource_demands:
     planned_amount: 0.5
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-dependencies.codex
     task_ref:
       kind: task
@@ -13558,7 +13558,7 @@ resource_demands:
     planned_amount: 1
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-dependencies.maintainer
     task_ref:
       kind: task
@@ -13570,9 +13570,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-dependencies.local-dev
     task_ref:
       kind: task
@@ -13584,9 +13584,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-dependencies.ci
     task_ref:
       kind: task
@@ -13598,9 +13598,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-status-date-and-finished-work.agent
     task_ref:
       kind: task
@@ -13614,7 +13614,7 @@ resource_demands:
     planned_amount: 1
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-status-date-and-finished-work.codex
     task_ref:
       kind: task
@@ -13628,7 +13628,7 @@ resource_demands:
     planned_amount: 1
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-status-date-and-finished-work.maintainer
     task_ref:
       kind: task
@@ -13640,9 +13640,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-status-date-and-finished-work.local-dev
     task_ref:
       kind: task
@@ -13654,9 +13654,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-status-date-and-finished-work.ci
     task_ref:
       kind: task
@@ -13668,9 +13668,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-working-calendar.agent
     task_ref:
       kind: task
@@ -13684,7 +13684,7 @@ resource_demands:
     planned_amount: 0.5
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-working-calendar.codex
     task_ref:
       kind: task
@@ -13698,7 +13698,7 @@ resource_demands:
     planned_amount: 1
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-working-calendar.maintainer
     task_ref:
       kind: task
@@ -13710,9 +13710,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-working-calendar.local-dev
     task_ref:
       kind: task
@@ -13724,9 +13724,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-working-calendar.ci
     task_ref:
       kind: task
@@ -13738,9 +13738,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-sub-hour-effort.agent
     task_ref:
       kind: task
@@ -13754,7 +13754,7 @@ resource_demands:
     planned_amount: 0.2
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-sub-hour-effort.codex
     task_ref:
       kind: task
@@ -13768,7 +13768,7 @@ resource_demands:
     planned_amount: 0.3
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
     overrun_review:
       acknowledged_forecast: 0.31
       unit: agent_hours
@@ -13791,9 +13791,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-sub-hour-effort.local-dev
     task_ref:
       kind: task
@@ -13805,9 +13805,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-sub-hour-effort.ci
     task_ref:
       kind: task
@@ -13819,9 +13819,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-not-before-dates.agent
     task_ref:
       kind: task
@@ -13835,7 +13835,7 @@ resource_demands:
     planned_amount: 0.3
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-not-before-dates.codex
     task_ref:
       kind: task
@@ -13849,7 +13849,7 @@ resource_demands:
     planned_amount: 0.7
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-not-before-dates.maintainer
     task_ref:
       kind: task
@@ -13861,9 +13861,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-not-before-dates.local-dev
     task_ref:
       kind: task
@@ -13875,9 +13875,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-export-not-before-dates.ci
     task_ref:
       kind: task
@@ -13889,9 +13889,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.design-lead-time-and-queue-order.agent
     task_ref:
       kind: task
@@ -13905,7 +13905,7 @@ resource_demands:
     planned_amount: 1.5
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.design-lead-time-and-queue-order.maintainer
     task_ref:
       kind: task
@@ -13917,9 +13917,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.design-lead-time-and-queue-order.local-dev
     task_ref:
       kind: task
@@ -13931,9 +13931,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.design-lead-time-and-queue-order.ci
     task_ref:
       kind: task
@@ -13945,9 +13945,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-import-skips-unchanged-dates.agent
     task_ref:
       kind: task
@@ -13958,8 +13958,22 @@ resource_demands:
     resource_class: ai_agent
     role: implementation_agent
     unit: agent_hours
-    planned_amount: 1
-    remaining_amount: 1
+    planned_amount: 0.4
+    remaining_amount: 0.4
+    criticality: required
+    status: active
+  - id: resource_demand.taskjuggler-import-skips-unchanged-dates.codex
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-import-skips-unchanged-dates
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 0.6
+    remaining_amount: 0.6
     criticality: required
     status: active
   - id: resource_demand.taskjuggler-import-skips-unchanged-dates.maintainer
@@ -13994,6 +14008,230 @@ resource_demands:
     task_ref:
       kind: task
       id: task.self.taskjuggler-import-skips-unchanged-dates
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    resource_class: service_quota
+    role: ci_runtime
+    unit: ci_minutes
+    planned_amount: 10
+    remaining_amount: 10
+    criticality: required
+    status: active
+  - id: resource_demand.lead-time-and-priority-model.agent
+    task_ref:
+      kind: task
+      id: task.self.lead-time-and-priority-model
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 2
+    remaining_amount: 2
+    criticality: required
+    status: active
+  - id: resource_demand.lead-time-and-priority-model.maintainer
+    task_ref:
+      kind: task
+      id: task.self.lead-time-and-priority-model
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    resource_class: human
+    role: maintainer
+    unit: hours
+    planned_amount: 0.25
+    remaining_amount: 0.25
+    criticality: required
+    status: active
+  - id: resource_demand.lead-time-and-priority-model.local-dev
+    task_ref:
+      kind: task
+      id: task.self.lead-time-and-priority-model
+    resource_ref:
+      kind: resource
+      id: resource.environment.local-dev
+    resource_class: environment
+    role: development_environment
+    unit: concurrent_slots
+    planned_amount: 1
+    remaining_amount: 1
+    criticality: required
+    status: active
+  - id: resource_demand.lead-time-and-priority-model.ci
+    task_ref:
+      kind: task
+      id: task.self.lead-time-and-priority-model
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    resource_class: service_quota
+    role: ci_runtime
+    unit: ci_minutes
+    planned_amount: 10
+    remaining_amount: 10
+    criticality: required
+    status: active
+  - id: resource_demand.lead-time-in-workload-and-next.agent
+    task_ref:
+      kind: task
+      id: task.self.lead-time-in-workload-and-next
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 2
+    remaining_amount: 2
+    criticality: required
+    status: active
+  - id: resource_demand.lead-time-in-workload-and-next.maintainer
+    task_ref:
+      kind: task
+      id: task.self.lead-time-in-workload-and-next
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    resource_class: human
+    role: maintainer
+    unit: hours
+    planned_amount: 0.25
+    remaining_amount: 0.25
+    criticality: required
+    status: active
+  - id: resource_demand.lead-time-in-workload-and-next.local-dev
+    task_ref:
+      kind: task
+      id: task.self.lead-time-in-workload-and-next
+    resource_ref:
+      kind: resource
+      id: resource.environment.local-dev
+    resource_class: environment
+    role: development_environment
+    unit: concurrent_slots
+    planned_amount: 1
+    remaining_amount: 1
+    criticality: required
+    status: active
+  - id: resource_demand.lead-time-in-workload-and-next.ci
+    task_ref:
+      kind: task
+      id: task.self.lead-time-in-workload-and-next
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    resource_class: service_quota
+    role: ci_runtime
+    unit: ci_minutes
+    planned_amount: 10
+    remaining_amount: 10
+    criticality: required
+    status: active
+  - id: resource_demand.lead-time-in-taskjuggler.agent
+    task_ref:
+      kind: task
+      id: task.self.lead-time-in-taskjuggler
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 2.5
+    remaining_amount: 2.5
+    criticality: required
+    status: active
+  - id: resource_demand.lead-time-in-taskjuggler.maintainer
+    task_ref:
+      kind: task
+      id: task.self.lead-time-in-taskjuggler
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    resource_class: human
+    role: maintainer
+    unit: hours
+    planned_amount: 0.25
+    remaining_amount: 0.25
+    criticality: required
+    status: active
+  - id: resource_demand.lead-time-in-taskjuggler.local-dev
+    task_ref:
+      kind: task
+      id: task.self.lead-time-in-taskjuggler
+    resource_ref:
+      kind: resource
+      id: resource.environment.local-dev
+    resource_class: environment
+    role: development_environment
+    unit: concurrent_slots
+    planned_amount: 1
+    remaining_amount: 1
+    criticality: required
+    status: active
+  - id: resource_demand.lead-time-in-taskjuggler.ci
+    task_ref:
+      kind: task
+      id: task.self.lead-time-in-taskjuggler
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    resource_class: service_quota
+    role: ci_runtime
+    unit: ci_minutes
+    planned_amount: 10
+    remaining_amount: 10
+    criticality: required
+    status: active
+  - id: resource_demand.rerun-consumer-scheduler-comparison.agent
+    task_ref:
+      kind: task
+      id: task.self.rerun-consumer-scheduler-comparison
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 1
+    remaining_amount: 1
+    criticality: required
+    status: active
+  - id: resource_demand.rerun-consumer-scheduler-comparison.maintainer
+    task_ref:
+      kind: task
+      id: task.self.rerun-consumer-scheduler-comparison
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    resource_class: human
+    role: maintainer
+    unit: hours
+    planned_amount: 0.25
+    remaining_amount: 0.25
+    criticality: required
+    status: active
+  - id: resource_demand.rerun-consumer-scheduler-comparison.local-dev
+    task_ref:
+      kind: task
+      id: task.self.rerun-consumer-scheduler-comparison
+    resource_ref:
+      kind: resource
+      id: resource.environment.local-dev
+    resource_class: environment
+    role: development_environment
+    unit: concurrent_slots
+    planned_amount: 1
+    remaining_amount: 1
+    criticality: required
+    status: active
+  - id: resource_demand.rerun-consumer-scheduler-comparison.ci
+    task_ref:
+      kind: task
+      id: task.self.rerun-consumer-scheduler-comparison
     resource_ref:
       kind: resource
       id: resource.ci.github-actions

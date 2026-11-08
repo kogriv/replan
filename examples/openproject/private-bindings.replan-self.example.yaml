@@ -695,6 +695,30 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2341"
         url: https://op.example.internal/work_packages/2341
+    - replan_task_id: task.self.lead-time-and-priority-model
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2342"
+        url: https://op.example.internal/work_packages/2342
+    - replan_task_id: task.self.lead-time-in-workload-and-next
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2343"
+        url: https://op.example.internal/work_packages/2343
+    - replan_task_id: task.self.lead-time-in-taskjuggler
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2344"
+        url: https://op.example.internal/work_packages/2344
+    - replan_task_id: task.self.rerun-consumer-scheduler-comparison
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2345"
+        url: https://op.example.internal/work_packages/2345
     - replan_task_id: task.self.fix-first-project-defects
       source_ref:
         source: openproject

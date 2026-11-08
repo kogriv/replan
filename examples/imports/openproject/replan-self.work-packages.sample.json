@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 241,
-  "count": 241,
+  "total": 245,
+  "count": 245,
   "_embedded": {
     "elements": [
       {
@@ -6978,11 +6978,127 @@
         },
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
+        "startDate": "2026-11-08",
+        "dueDate": "2026-11-08",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2341"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2342,
+        "subject": "Model lead time, unlevelled demands and task priority",
+        "description": {
+          "raw": "Agreed with the maintainer on 2026-11-08 (docs/spec/lead-time-and-queue-order.md, task 1). Add the task field lead_time with working_days or calendar_days and a reason, the demand field levelled (default true) and the task field priority (1 to 1000, default 500) to the canonical model, file format docs, validate (one of working_days or calendar_days, positive values, levelled false only on hour units, priority range, warn when planned dates are shorter than the lead time), project format and migrate, the OpenProject sample and import paths, with plans that do not use them byte-identical."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-09",
+        "dueDate": "2026-11-09",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2342"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2343,
+        "subject": "Show lead time, unlevelled hours and priority in workload and next",
+        "description": {
+          "raw": "Agreed with the maintainer on 2026-11-08 (docs/spec/lead-time-and-queue-order.md, task 2). Workload, weekly report and dashboard report unlevelled hours in their own column and never count them toward overload; lead time adds no load and shows the task in flight across its span; next and the dashboard's next actions sort by priority after the person-waits-first rule. Tests and report docs."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-10",
+        "dueDate": "2026-11-10",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2343"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2344,
+        "subject": "Export lead time, unlevelled demands and priority to TaskJuggler",
+        "description": {
+          "raw": "Agreed with the maintainer on 2026-11-08 (docs/spec/lead-time-and-queue-order.md, task 3). The TaskJuggler export writes a lead-time task without levelled demands as length or duration with no allocation, a lead-time task with levelled demands as a wait-then-work container whose mapping and import use the container's dates, leaves unlevelled demands out of allocate and effort with a comment naming them, and writes priority. Real-tj3 tests for each case."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-11",
+        "dueDate": "2026-11-11",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2344"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2345,
+        "subject": "Rerun the consumer scheduler comparison with lead time and priority",
+        "description": {
+          "raw": "Agreed with the maintainer on 2026-11-08 (docs/spec/lead-time-and-queue-order.md, task 4). On a fresh copy of the consumer plan, express its waits and owner decisions with lead time and unlevelled demands and its order with priority, run taskjuggler run, compare the open tasks' dates with the consumer's script again, and record the remaining difference and its causes in docs/spec/taskjuggler-run-import-experiment.md without private narrative. Nothing is written to the consumer project."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
         "startDate": "2026-11-12",
         "dueDate": "2026-11-12",
         "_links": {
           "self": {
-            "href": "/api/v3/work_packages/2341"
+            "href": "/api/v3/work_packages/2345"
           },
           "status": {
             "title": "New"
