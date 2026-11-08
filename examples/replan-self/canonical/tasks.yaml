@@ -6783,7 +6783,7 @@ tasks:
     title: Move the consumer projects onto RePlan's public surfaces
     description: 'Agreed with the operator on 2026-11-08: after the consumer contract is published, give each project that plans with RePlan a concrete list of where it reaches under RePlan''s hood and what replaces each case (a local kit of the current release instead of helpers run from a RePlan checkout, its own settings and token instead of RePlan''s settings file, CLI commands instead of generated or hand-edited canonical YAML, the description helper instead of a private copy), refresh their kits to the current release where they keep one, and plan every capability they still lack as a RePlan task. Changes in those projects are made by their own sessions.'
     type: operations
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-08"
     planned_finish: "2026-11-08"
     assignee_hint:
@@ -6810,7 +6810,7 @@ tasks:
     title: Name positional ids in command help and refuse a missing id clearly
     description: 'Found by a consumer project on 2026-11-08 and confirmed: commands that take a positional id (demand set and demand move take the demand id; baseline show, estimate show, scenario show, proposal show, import accept and others take an id) do not name it in their own help (-h), and without it they fail with an unrelated or empty-id error such as resource demand not found with a blank name. Name the positional argument in each command''s help, refuse a missing positional id with a usage error that names it (exit 8), and cover every such command in tests. Agreed with the operator on 2026-11-08.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-08"
     planned_finish: "2026-11-08"
     assignee_hint:
@@ -6839,7 +6839,7 @@ tasks:
     title: Set a work package's version with the work-package toolkit
     description: 'Found on 2026-11-08 while moving the consumer projects onto RePlan''s public surfaces: a consumer keeps its own OpenProject API client only to set a work package''s Version (the project stage), because the work-package toolkit cannot. Add a version option to work-package create and update-metadata (by version id or exact name within the project, with a clear refusal for an unknown or ambiguous name), dry run first as for the other fields, list the project''s versions read-only, document it in the agent kit README and test it on the throwaway OpenProject with an ordinary member''s token. Agreed with the operator on 2026-11-08.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-08"
     planned_finish: "2026-11-08"
     assignee_hint:
@@ -6868,7 +6868,7 @@ tasks:
     title: Check whether RePlan can draft a consumer's dates instead of its private scheduler
     description: 'Found on 2026-11-08: a consumer project computes its task dates with a private script that rewrites its RePlan files wholesale. Its rules: one queue per agent stream in list order with dependencies, Monday to Friday with a holiday list, duration as estimate times a tempo plus a fixed review share, open work not before the status date, not-before dates for tasks that wait on people (and a scenario without them), done tasks placed at their actual dates, and milestone tasks. On a copy of that plan, check which rules RePlan already covers through its public surfaces (TaskJuggler run and import, availability, calibration, demand earliest start, deadlines, actual windows), compare the dates, and plan every missing capability as its own task. Agreed with the operator on 2026-11-08.'
     type: research
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-08"
     planned_finish: "2026-11-08"
     assignee_hint:
@@ -6895,7 +6895,7 @@ tasks:
     title: Publish release v0.4.1 and refresh the agent kits
     description: 'Agreed with the operator on 2026-11-08: after the help and toolkit fixes, publish release v0.4.1 so the agent kits carry the Use RePlan as a tool section, its reference check, the positional-id fix and the toolkit version option: release notes, tag after green CI, six archives built locally and compared with the CI build and its attestation, GitHub release, go install check; then refresh the second and third projects'' kits and the fourth project''s local kit the same way as for v0.4.0 and tell each session what changed.'
     type: release
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-08"
     planned_finish: "2026-11-08"
     assignee_hint:
@@ -6922,7 +6922,7 @@ tasks:
     title: Treat help only as a separate helper argument, not text inside a value
     description: 'Found on 2026-11-08 creating a work package: the work-package toolkit and wiki wrappers look for help by matching the joined argument string, so a value that contains the text space-dash-h-space, such as a description mentioning a help flag, is taken as a help request; the wrapper then skips loading settings and the helper fails with missing_setting. Detect help only as a whole argument, check every helper wrapper for the same pattern, and test a description that contains the flag text. Planned with the release fixes agreed with the operator on 2026-11-08.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-08"
     planned_finish: "2026-11-08"
     assignee_hint:
@@ -7030,9 +7030,9 @@ tasks:
     title: Keep sub-hour efforts schedulable in TaskJuggler
     description: 'Found on 2026-11-08 by the check whether RePlan can draft a consumer plan''s dates (docs/spec/taskjuggler-run-import-experiment.md, Drafting a real plan''s dates). The export writes efforts below one hour (effort 0.40h), which TaskJuggler refuses at its default 60-minute timing resolution, so taskjuggler run fails. Set a timing resolution that represents every exported effort, or round up with a warning, and test a 0.25-hour demand through taskjuggler run.'
     type: implementation
-    tracking_status: not_started
-    planned_start: "2026-11-09"
-    planned_finish: "2026-11-09"
+    tracking_status: in_progress
+    planned_start: "2026-11-08"
+    planned_finish: "2026-11-08"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer

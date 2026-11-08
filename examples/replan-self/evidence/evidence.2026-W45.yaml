@@ -1491,3 +1491,92 @@ evidence:
     targets:
       - kind: task
         id: task.self.move-consumer-projects-to-public-surfaces
+  - id: evidence.self.accept-positional-ids-in-command-help
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T10:39:44Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.positional-ids-in-command-help
+  - id: evidence.self.accept-helpers-detect-help-only-as-an-argument
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T10:40:20Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.helpers-detect-help-only-as-an-argument
+  - id: evidence.self.accept-toolkit-sets-work-package-version
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T10:40:53Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.toolkit-sets-work-package-version
+  - id: evidence.self.accept-replace-consumer-scheduler-with-replan
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T10:41:29Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.replace-consumer-scheduler-with-replan
+  - id: evidence.self.accept-publish-release-v0-4-1
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T10:42:02Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-4-1
+  - id: evidence.self.accept-move-consumer-projects-to-public-surfaces
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T10:42:37Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.move-consumer-projects-to-public-surfaces
+  - id: evidence.self.start-taskjuggler-export-sub-hour-effort
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-08T17:45:30+07:00"
+    summary: Started on 2026-11-08, a day before plan, once the maintainer accepted the v0.4.1 tasks and agreed to take the TaskJuggler drafting gaps next; estimate frozen in baseline.2026-11-08.taskjuggler-drafting-gaps.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-export-sub-hour-effort

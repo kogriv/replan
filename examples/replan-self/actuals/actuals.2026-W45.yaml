@@ -2002,3 +2002,129 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.move-consumer-projects-to-public-surfaces
+  - id: actual.self-positional-ids-in-command-help.ci-github-actions.20261108T103944Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.positional-ids-in-command-help
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.positional-ids-in-command-help.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-08T10:39:44Z"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-positional-ids-in-command-help
+  - id: actual.self-helpers-detect-help-only-as-an-argument.ci-github-actions.20261108T104020Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.helpers-detect-help-only-as-an-argument
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.helpers-detect-help-only-as-an-argument.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-08T10:40:20Z"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-helpers-detect-help-only-as-an-argument
+  - id: actual.self-toolkit-sets-work-package-version.ci-github-actions.20261108T104053Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.toolkit-sets-work-package-version
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.toolkit-sets-work-package-version.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-08T10:40:53Z"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-toolkit-sets-work-package-version
+  - id: actual.self-replace-consumer-scheduler-with-replan.ci-github-actions.20261108T104129Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.replace-consumer-scheduler-with-replan
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.replace-consumer-scheduler-with-replan.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-08T10:41:29Z"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-replace-consumer-scheduler-with-replan
+  - id: actual.self-publish-release-v0-4-1.ci-github-actions.20261108T104202Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-4-1
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.publish-release-v0-4-1.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-08T10:42:02Z"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-publish-release-v0-4-1
+  - id: actual.self-move-consumer-projects-to-public-surfaces.ci-github-actions.20261108T104237Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.move-consumer-projects-to-public-surfaces
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.move-consumer-projects-to-public-surfaces.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-08T10:42:37Z"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-move-consumer-projects-to-public-surfaces
