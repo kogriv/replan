@@ -665,6 +665,21 @@ func TestExportTaskJugglerFinishedSuccessorKeepsItsDatesWithoutDepends(t *testin
 	assertContains(t, result.Content, "task task_a \"A\" {\n  depends replan_status_date\n}")
 }
 
+func TestExportTaskJugglerKeepsCancelledTaskAtItsDates(t *testing.T) {
+	ws := taskJugglerDependencyWorkspace()
+	ws.Tasks[0].TrackingStatus = "cancelled"
+	ws.Tasks[0].PlannedStart, ws.Tasks[0].PlannedFinish = "2026-07-03", "2026-07-03"
+	ws.Tasks[1].TrackingStatus = "cancelled"
+	result, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertContains(t, result.Content, "task task_a \"A\" {\n  start 2026-07-03\n  end 2026-07-03\n}")
+	if hasDiagnosticCode(result.Warnings, "taskjuggler_finished_task_without_dates") {
+		t.Fatalf("a cancelled task without dates is not a finished task without dates: %#v", result.Warnings)
+	}
+}
+
 func TestExportTaskJugglerReservesTheStatusDateTaskID(t *testing.T) {
 	ws := taskJugglerDependencyWorkspace()
 	ws.Tasks = append(ws.Tasks, domain.Task{ID: "replan.status-date", Title: "Clash", TrackingStatus: "ready"})

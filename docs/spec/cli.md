@@ -2802,7 +2802,8 @@ Implemented TaskJuggler proof-of-concept:
   date the dependency can contradict); the milestone carries the
   `replan_internal` flag, which the parseable task report hides, and its id is
   reserved (`taskjuggler_task_id_collision`); finished tasks write no
-  `depends`; cancelled tasks continue to export without effort;
+  `depends`; a cancelled task with planned dates is fixed at them like a
+  finished task, and one without dates exports without effort as before;
 - start the project window one day before the earliest date, because
   TaskJuggler reads the project line before its timezone;
 - map active `finish_to_start`, `blocks`, `requires_input_from` and

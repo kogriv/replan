@@ -545,6 +545,12 @@ func taskJugglerTaskSchedules(ws domain.Workspace, demandIDsByTask map[string][]
 		if schedule.finish == "" {
 			schedule.finish = task.PlannedFinish
 		}
+		// A cancelled task with dates stays where it was, so a run does not
+		// propose moving it; one without dates is exported as before.
+		if strings.EqualFold(strings.TrimSpace(task.TrackingStatus), "cancelled") && (schedule.start != "" || schedule.finish != "") {
+			finished = true
+			schedule.finished = true
+		}
 		if finished {
 			if schedule.start == "" && schedule.finish == "" {
 				schedule.start, schedule.finish = ws.Project.DefaultStatusDate, ws.Project.DefaultStatusDate
