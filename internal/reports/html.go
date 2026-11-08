@@ -466,6 +466,19 @@ func WriteWeeklyHTML(w io.Writer, report WeeklyReport) error {
 	if err := writeResourceRowsHTML(w, report.Resources); err != nil {
 		return err
 	}
+	if len(report.Tasks) > 0 {
+		if _, err := fmt.Fprint(w, "<section>\n<h2>Tasks with Lead Time</h2>\n<ul>\n"); err != nil {
+			return err
+		}
+		for _, task := range report.Tasks {
+			if _, err := fmt.Fprintf(w, "<li><span class=\"code\">%s</span> (%s - %s): %s</li>\n", html.EscapeString(task.ID), html.EscapeString(task.PlannedStart), html.EscapeString(task.PlannedFinish), html.EscapeString(formatLeadTime(task.LeadTime))); err != nil {
+				return err
+			}
+		}
+		if _, err := fmt.Fprint(w, "</ul>\n</section>\n"); err != nil {
+			return err
+		}
+	}
 	if err := writeIssuesHTML(w, "Errors", "error", report.Errors); err != nil {
 		return err
 	}
@@ -729,6 +742,11 @@ func writeDashboardWorkloadCell(w io.Writer, cell DashboardWorkloadCell) error {
 	}
 	if cell.Shortage > 0 {
 		if _, err := fmt.Fprintf(w, "<br><span class=\"muted\">shortage %s</span>", formatPageNumber(cell.Shortage)); err != nil {
+			return err
+		}
+	}
+	if cell.UnlevelledPlanned != 0 || cell.UnlevelledRemaining != 0 {
+		if _, err := fmt.Fprintf(w, "<br><span class=\"muted\">unlevelled planned %s, remaining %s</span>", formatPageNumber(cell.UnlevelledPlanned), formatPageNumber(cell.UnlevelledRemaining)); err != nil {
 			return err
 		}
 	}
@@ -1541,6 +1559,11 @@ func writeDashboardGanttBadgesHTML(w io.Writer, task DashboardGanttTask) (int64,
 			return written, err
 		}
 	}
+	if task.LeadTime != nil {
+		if err := write("<span class=\"badge\" title=\"" + html.EscapeString(formatLeadTime(task.LeadTime)) + "\">lead time</span>"); err != nil {
+			return written, err
+		}
+	}
 	if len(task.ResourceIDs) > 0 {
 		if err := write(fmt.Sprintf("<span class=\"badge\" title=\"%s\">resources %d</span>", html.EscapeString(strings.Join(task.ResourceIDs, ", ")), len(task.ResourceIDs))); err != nil {
 			return written, err
@@ -1799,7 +1822,16 @@ func writeDashboardTrackingLoopHTML(w io.Writer, loop DashboardTrackingLoop) err
 }
 
 func writeResourceRowsHTML(w io.Writer, rows []ResourceRow) error {
-	if _, err := fmt.Fprint(w, "<section>\n<h2>Workload</h2>\n<table>\n<thead><tr><th>Resource</th><th>Class</th><th>Unit</th><th class=\"num\">Capacity</th><th class=\"num\">Planned</th><th class=\"num\">Reserved</th><th class=\"num\">Actual</th><th class=\"num\">Remaining</th><th class=\"num\">Overload</th></tr></thead>\n<tbody>\n"); err != nil {
+	hasUnlevelled := false
+	for _, row := range rows {
+		hasUnlevelled = hasUnlevelled || row.UnlevelledPlanned != 0 || row.UnlevelledRemaining != 0
+	}
+	header := "<section>\n<h2>Workload</h2>\n<table>\n<thead><tr><th>Resource</th><th>Class</th><th>Unit</th><th class=\"num\">Capacity</th><th class=\"num\">Planned</th><th class=\"num\">Reserved</th><th class=\"num\">Actual</th><th class=\"num\">Remaining</th>"
+	if hasUnlevelled {
+		header += "<th class=\"num\">Unlevelled planned</th><th class=\"num\">Unlevelled remaining</th>"
+	}
+	header += "<th class=\"num\">Overload</th></tr></thead>\n<tbody>\n"
+	if _, err := fmt.Fprint(w, header); err != nil {
 		return err
 	}
 	for _, row := range rows {
@@ -1811,7 +1843,8 @@ func writeResourceRowsHTML(w io.Writer, rows []ResourceRow) error {
 		if row.Overload > 0 {
 			className = " class=\"overloaded\""
 		}
-		if _, err := fmt.Fprintf(w, "<tr%s><td><strong>%s</strong><br><span class=\"code muted\">%s</span></td><td>%s</td><td>%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td></tr>\n",
+		format := "<tr%s><td><strong>%s</strong><br><span class=\"code muted\">%s</span></td><td>%s</td><td>%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td></tr>\n"
+		args := []any{
 			className,
 			html.EscapeString(name),
 			html.EscapeString(row.ResourceID),
@@ -1822,7 +1855,12 @@ func writeResourceRowsHTML(w io.Writer, rows []ResourceRow) error {
 			formatAmount(row.Reserved),
 			formatAmount(row.Actual),
 			formatAmount(row.Remaining),
-			formatAmount(row.Overload)); err != nil {
+			formatAmount(row.Overload)}
+		if hasUnlevelled {
+			format = "<tr%s><td><strong>%s</strong><br><span class=\"code muted\">%s</span></td><td>%s</td><td>%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td></tr>\n"
+			args = append(args[:10], formatAmount(row.UnlevelledPlanned), formatAmount(row.UnlevelledRemaining), args[10])
+		}
+		if _, err := fmt.Fprintf(w, format, args...); err != nil {
 			return err
 		}
 	}
@@ -1857,6 +1895,9 @@ func writeDashboardNextActionsHTML(w io.Writer, actions []DashboardNextAction) e
 		if action.Date != "" {
 			action.Label = action.Date + ": " + action.Label
 		}
+		if action.Priority != 0 {
+			action.Label += fmt.Sprintf(" (priority %d)", action.Priority)
+		}
 		target := ""
 		if action.Target != "" {
 			target = " <span class=\"code muted\">" + html.EscapeString(action.Target) + "</span>"
@@ -1884,6 +1925,9 @@ func writeDashboardTasksHTML(w io.Writer, tasks []DashboardTaskRow) error {
 		dates := strings.TrimSpace(task.PlannedStart + " - " + task.PlannedFinish)
 		if dates == "-" {
 			dates = ""
+		}
+		if task.LeadTime != nil {
+			dates += " (lead time: " + formatLeadTime(task.LeadTime) + ")"
 		}
 		if _, err := fmt.Fprintf(w, "<tr><td><strong>%s</strong><br><span class=\"code muted\">%s</span></td><td>%s</td><td>%s</td><td class=\"num\">%d</td><td class=\"num\">%d</td><td class=\"num\">%d</td></tr>\n",
 			html.EscapeString(task.Title),

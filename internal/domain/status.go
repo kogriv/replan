@@ -49,6 +49,13 @@ func DemandLoads(status string) bool {
 	}
 }
 
+// DemandAddsLevelledLoad reports whether a demand contributes to capacity
+// load. DemandLoads remains the lifecycle test used by tracking and history;
+// an active unlevelled demand is still tracked, but does not consume capacity.
+func DemandAddsLevelledLoad(demand ResourceDemand) bool {
+	return DemandLoads(demand.Status) && demand.IsLevelled()
+}
+
 func ValidDependencyType(dependencyType string) bool {
 	switch dependencyType {
 	case "finish_to_start", "blocks", "relates", "requires_input_from", "requires_resource_from", "external_dependency":

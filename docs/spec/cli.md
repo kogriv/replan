@@ -962,6 +962,17 @@ Time selector:
   demand counts. Reports and `next` default to the week of the project status
   date; `workload` does not, so the all-weeks view stays available.
 
+Levelled load:
+
+- an active hour demand with `levelled: false` contributes only
+  `unlevelled_planned` and `unlevelled_remaining`, prorated by the same week
+  share. It never contributes planned, reserved, remaining, raw calibrated
+  figures or overload; actuals still contribute actual;
+- with `--demands`, its share retains its own amounts and serializes
+  `"levelled": false`; true is omitted;
+- Markdown and text add unlevelled columns only when at least one row has an
+  unlevelled amount, preserving output for existing plans.
+
 Demands over time (GAP-031):
 
 - a demand's window is its own timing, or its task's planned dates;
@@ -1136,6 +1147,11 @@ default. `--raw` shows the uncalibrated demand amounts for that run. Dashboard
 resource rows, daily spread, OpenProject overlay and overload actions follow
 the same choice. Actuals remain raw.
 
+Unlevelled demands are excluded from all of those load and overload surfaces
+and are reported separately. Lead time adds no load. Weekly, state and
+dashboard JSON task rows include `lead_time` when present; Markdown and HTML
+show its unit, amount and reason beside the dates.
+
 Implemented estimate-accuracy report slice:
 
 - `report estimates` is read-only, requires `--baseline`, defaults to Markdown
@@ -1259,9 +1275,11 @@ Implemented project-state report slice:
   project's `default_status_date`; a baseline's status date is only the
   fallback when the project has none;
 - next actions carry `actor` (`person` or `agent`) and, where there is one,
-  `date` (the task's planned finish). Markdown and HTML group them under
+  `date` (the task's planned finish) and non-default task `priority`. Markdown
+  and HTML group them under
   "Waiting on a person" and "An agent can prepare"; within a group they are
-  ordered by date, earliest first, then undated;
+  ordered by effective task priority, higher first (actions without a task use
+  500), then by date, earliest first, then undated;
 - next actions that wait on a person: `accept_or_return_task` for
   `review_ready` tasks, `do_human_work` for `in_progress` tasks whose only
   active remaining demands are `human` or `role`, `past_planned_finish` for

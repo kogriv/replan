@@ -1,19 +1,34 @@
 package reports
 
 type WeeklyReport struct {
-	ProjectPath string        `json:"project_path"`
-	ProjectID   string        `json:"project_id"`
-	ProjectName string        `json:"project_name"`
-	Week        string        `json:"week"`
-	ScenarioID  string        `json:"scenario_id,omitempty"`
-	BaselineID  string        `json:"baseline_id,omitempty"`
-	CurrentPlan string        `json:"current_plan,omitempty"`
-	Summary     WeeklySummary `json:"summary"`
-	Resources   []ResourceRow `json:"resources"`
-	Proposals   []ProposalRow `json:"proposals"`
-	Evidence    []EvidenceRow `json:"evidence"`
-	Warnings    []ReportIssue `json:"warnings"`
-	Errors      []ReportIssue `json:"errors"`
+	ProjectPath string          `json:"project_path"`
+	ProjectID   string          `json:"project_id"`
+	ProjectName string          `json:"project_name"`
+	Week        string          `json:"week"`
+	ScenarioID  string          `json:"scenario_id,omitempty"`
+	BaselineID  string          `json:"baseline_id,omitempty"`
+	CurrentPlan string          `json:"current_plan,omitempty"`
+	Summary     WeeklySummary   `json:"summary"`
+	Resources   []ResourceRow   `json:"resources"`
+	Tasks       []WeeklyTaskRow `json:"tasks,omitempty"`
+	Proposals   []ProposalRow   `json:"proposals"`
+	Evidence    []EvidenceRow   `json:"evidence"`
+	Warnings    []ReportIssue   `json:"warnings"`
+	Errors      []ReportIssue   `json:"errors"`
+}
+
+type TaskLeadTime struct {
+	WorkingDays  float64 `json:"working_days,omitempty"`
+	CalendarDays float64 `json:"calendar_days,omitempty"`
+	Reason       string  `json:"reason,omitempty"`
+}
+
+type WeeklyTaskRow struct {
+	ID            string        `json:"id"`
+	Title         string        `json:"title"`
+	PlannedStart  string        `json:"planned_start,omitempty"`
+	PlannedFinish string        `json:"planned_finish,omitempty"`
+	LeadTime      *TaskLeadTime `json:"lead_time,omitempty"`
 }
 
 type WeeklySummary struct {
@@ -26,19 +41,21 @@ type WeeklySummary struct {
 }
 
 type ResourceRow struct {
-	ResourceID     string   `json:"resource_id"`
-	ResourceName   string   `json:"resource_name,omitempty"`
-	ResourceClass  string   `json:"resource_class,omitempty"`
-	Unit           string   `json:"unit"`
-	Capacity       float64  `json:"capacity"`
-	Planned        float64  `json:"planned"`
-	Reserved       float64  `json:"reserved"`
-	Actual         float64  `json:"actual"`
-	Remaining      float64  `json:"remaining"`
-	Overload       float64  `json:"overload"`
-	CalibrationIDs []string `json:"calibration_ids,omitempty"`
-	RawPlanned     *float64 `json:"raw_planned,omitempty"`
-	RawRemaining   *float64 `json:"raw_remaining,omitempty"`
+	ResourceID          string   `json:"resource_id"`
+	ResourceName        string   `json:"resource_name,omitempty"`
+	ResourceClass       string   `json:"resource_class,omitempty"`
+	Unit                string   `json:"unit"`
+	Capacity            float64  `json:"capacity"`
+	Planned             float64  `json:"planned"`
+	Reserved            float64  `json:"reserved"`
+	Actual              float64  `json:"actual"`
+	Remaining           float64  `json:"remaining"`
+	Overload            float64  `json:"overload"`
+	UnlevelledPlanned   float64  `json:"unlevelled_planned,omitempty"`
+	UnlevelledRemaining float64  `json:"unlevelled_remaining,omitempty"`
+	CalibrationIDs      []string `json:"calibration_ids,omitempty"`
+	RawPlanned          *float64 `json:"raw_planned,omitempty"`
+	RawRemaining        *float64 `json:"raw_remaining,omitempty"`
 }
 
 type ProposalRow struct {
@@ -133,16 +150,18 @@ type DashboardWorkloadResource struct {
 }
 
 type DashboardWorkloadCell struct {
-	Week        string                    `json:"week"`
-	Capacity    float64                   `json:"capacity"`
-	Planned     float64                   `json:"planned"`
-	Reserved    float64                   `json:"reserved"`
-	Actual      float64                   `json:"actual"`
-	Remaining   float64                   `json:"remaining"`
-	Overload    float64                   `json:"overload"`
-	Shortage    float64                   `json:"shortage"`
-	Utilization *float64                  `json:"utilization"`
-	Demands     []DashboardWorkloadDemand `json:"demands"`
+	Week                string                    `json:"week"`
+	Capacity            float64                   `json:"capacity"`
+	Planned             float64                   `json:"planned"`
+	Reserved            float64                   `json:"reserved"`
+	Actual              float64                   `json:"actual"`
+	Remaining           float64                   `json:"remaining"`
+	Overload            float64                   `json:"overload"`
+	UnlevelledPlanned   float64                   `json:"unlevelled_planned,omitempty"`
+	UnlevelledRemaining float64                   `json:"unlevelled_remaining,omitempty"`
+	Shortage            float64                   `json:"shortage"`
+	Utilization         *float64                  `json:"utilization"`
+	Demands             []DashboardWorkloadDemand `json:"demands"`
 }
 
 type DashboardWorkloadDemand struct {
@@ -155,6 +174,7 @@ type DashboardWorkloadDemand struct {
 	Planned          float64 `json:"planned"`
 	Reserved         float64 `json:"reserved"`
 	Remaining        float64 `json:"remaining"`
+	Levelled         *bool   `json:"levelled,omitempty"`
 }
 
 type DashboardScenariosPage struct {
@@ -492,6 +512,7 @@ type DashboardOpenProjectOverlayWorkPackage struct {
 	TrackingStatus        string                                      `json:"tracking_status,omitempty"`
 	PlannedStart          string                                      `json:"planned_start,omitempty"`
 	PlannedFinish         string                                      `json:"planned_finish,omitempty"`
+	LeadTime              *TaskLeadTime                               `json:"lead_time,omitempty"`
 	StartOffsetDays       int                                         `json:"start_offset_days,omitempty"`
 	DurationDays          int                                         `json:"duration_days,omitempty"`
 	ResourceIDs           []string                                    `json:"resource_ids,omitempty"`
@@ -563,6 +584,7 @@ type DashboardOpenProjectOverlayResourceDemand struct {
 	CalibratedPlannedAmount   *float64 `json:"calibrated_planned_amount,omitempty"`
 	ActualAmount              float64  `json:"actual_amount,omitempty"`
 	RemainingAmount           float64  `json:"remaining_amount,omitempty"`
+	Levelled                  *bool    `json:"levelled,omitempty"`
 	CalibratedRemainingAmount *float64 `json:"calibrated_remaining_amount,omitempty"`
 	CalibrationID             string   `json:"calibration_id,omitempty"`
 	ForecastAmount            float64  `json:"forecast_amount,omitempty"`
@@ -595,18 +617,19 @@ type DashboardOpenProjectOverlayTracking struct {
 }
 
 type DashboardTaskRow struct {
-	ID                  string   `json:"id"`
-	Title               string   `json:"title"`
-	Type                string   `json:"type,omitempty"`
-	TrackingStatus      string   `json:"tracking_status"`
-	PlannedStart        string   `json:"planned_start,omitempty"`
-	PlannedFinish       string   `json:"planned_finish,omitempty"`
-	AssigneeID          string   `json:"assignee_id,omitempty"`
-	ResourceDemandCount int      `json:"resource_demand_count"`
-	DependencyCount     int      `json:"dependency_count"`
-	WarningCount        int      `json:"warning_count"`
-	SourceRefCount      int      `json:"source_ref_count"`
-	Tags                []string `json:"tags,omitempty"`
+	ID                  string        `json:"id"`
+	Title               string        `json:"title"`
+	Type                string        `json:"type,omitempty"`
+	TrackingStatus      string        `json:"tracking_status"`
+	PlannedStart        string        `json:"planned_start,omitempty"`
+	PlannedFinish       string        `json:"planned_finish,omitempty"`
+	LeadTime            *TaskLeadTime `json:"lead_time,omitempty"`
+	AssigneeID          string        `json:"assignee_id,omitempty"`
+	ResourceDemandCount int           `json:"resource_demand_count"`
+	DependencyCount     int           `json:"dependency_count"`
+	WarningCount        int           `json:"warning_count"`
+	SourceRefCount      int           `json:"source_ref_count"`
+	Tags                []string      `json:"tags,omitempty"`
 }
 
 type DashboardTrackingRow struct {
@@ -615,6 +638,7 @@ type DashboardTrackingRow struct {
 	TrackingStatus string                    `json:"tracking_status"`
 	PlannedStart   string                    `json:"planned_start,omitempty"`
 	PlannedFinish  string                    `json:"planned_finish,omitempty"`
+	LeadTime       *TaskLeadTime             `json:"lead_time,omitempty"`
 	ActualCount    int                       `json:"actual_count"`
 	EvidenceCount  int                       `json:"evidence_count"`
 	Flags          []string                  `json:"flags,omitempty"`
@@ -688,6 +712,7 @@ type DashboardGanttTask struct {
 	TrackingStatus        string                             `json:"tracking_status"`
 	PlannedStart          string                             `json:"planned_start,omitempty"`
 	PlannedFinish         string                             `json:"planned_finish,omitempty"`
+	LeadTime              *TaskLeadTime                      `json:"lead_time,omitempty"`
 	StartOffsetDays       int                                `json:"start_offset_days"`
 	DurationDays          int                                `json:"duration_days"`
 	ResourceIDs           []string                           `json:"resource_ids,omitempty"`
@@ -710,6 +735,7 @@ type DashboardGanttResourceAllocation struct {
 	Unit                      string  `json:"unit,omitempty"`
 	PlannedAmount             float64 `json:"planned_amount,omitempty"`
 	RemainingAmount           float64 `json:"remaining_amount,omitempty"`
+	Levelled                  *bool   `json:"levelled,omitempty"`
 	StartDate                 string  `json:"start_date,omitempty"`
 	FinishDate                string  `json:"finish_date,omitempty"`
 	StartOffsetDays           int     `json:"start_offset_days"`
@@ -789,7 +815,8 @@ type DashboardNextAction struct {
 	Actor string `json:"actor,omitempty"`
 	// Date orders actions within an actor: the task's planned finish where
 	// there is one.
-	Date string `json:"date,omitempty"`
+	Date     string `json:"date,omitempty"`
+	Priority int    `json:"priority,omitempty"`
 	// Details carries machine-readable values for an aggregate action.
 	Details []CalibrationDemandDetail `json:"details,omitempty"`
 }
@@ -803,6 +830,7 @@ type NextPlannedTask struct {
 	TrackingStatus string                  `json:"tracking_status"`
 	PlannedStart   string                  `json:"planned_start,omitempty"`
 	PlannedFinish  string                  `json:"planned_finish,omitempty"`
+	Priority       int                     `json:"priority,omitempty"`
 	People         []NextPlannedPersonLoad `json:"people"`
 }
 

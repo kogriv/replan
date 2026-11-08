@@ -92,6 +92,120 @@ func TestWeeklyAndDashboardUseCalibratedLoad(t *testing.T) {
 	}
 }
 
+func TestReportsDashboardAndOverlayExcludeUnlevelledLoad(t *testing.T) {
+	service := app.NewReportService(staticWorkspaceLoader{workspace: unlevelledLoadWorkspace()})
+	weekly, err := service.Weekly(context.Background(), app.WeeklyReportRequest{Week: "2026-W45"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(weekly.Resources) != 1 || weekly.Resources[0].Planned != 12 || weekly.Resources[0].UnlevelledPlanned != 20 || weekly.Resources[0].Overload != 2 {
+		t.Fatalf("weekly workload = %#v", weekly.Resources)
+	}
+	overview, err := service.Dashboard(context.Background(), app.DashboardReportRequest{Week: "2026-W45"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(overview.Gantt.ResourceLoads) != 1 || overview.Gantt.ResourceLoads[0].Planned != 12 {
+		t.Fatalf("gantt load = %#v", overview.Gantt.ResourceLoads)
+	}
+	for _, bucket := range overview.Gantt.ResourceLoads[0].Buckets {
+		if bucket.Label == "2026-W45" && bucket.Planned != 12 {
+			t.Fatalf("gantt bucket = %#v", bucket)
+		}
+	}
+	if len(overview.OpenProjectOverlay.Resources) != 1 || overview.OpenProjectOverlay.Resources[0].Weeks[0].Planned != 12 {
+		t.Fatalf("overlay resources = %#v", overview.OpenProjectOverlay.Resources)
+	}
+	var unlevelled reports.DashboardOpenProjectOverlayResourceDemand
+	for _, workPackage := range overview.OpenProjectOverlay.WorkPackages {
+		for _, demand := range workPackage.ResourceDemands {
+			if demand.DemandID == "demand.unlevelled" {
+				unlevelled = demand
+			}
+		}
+	}
+	if unlevelled.Levelled == nil || *unlevelled.Levelled || unlevelled.PlannedAmount != 20 || unlevelled.AmountPerDay != 0 || unlevelled.Overloaded {
+		t.Fatalf("overlay unlevelled demand = %#v", unlevelled)
+	}
+}
+
+func TestLeadTimeAppearsInWeeklyStateAndDashboardReports(t *testing.T) {
+	ws := unlevelledLoadWorkspace()
+	ws.Tasks[0].LeadTime = &domain.LeadTime{WorkingDays: 2, Reason: "supplier review"}
+	service := app.NewReportService(staticWorkspaceLoader{workspace: ws})
+	weekly, err := service.Weekly(context.Background(), app.WeeklyReportRequest{Week: "2026-W45"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(weekly.Tasks) != 1 || weekly.Tasks[0].LeadTime == nil || weekly.Tasks[0].LeadTime.WorkingDays != 2 {
+		t.Fatalf("weekly tasks = %#v", weekly.Tasks)
+	}
+	var markdown strings.Builder
+	if err := reports.WriteWeeklyMarkdown(&markdown, weekly); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(markdown.String(), "2 working days: supplier review") {
+		t.Fatalf("weekly markdown lacks lead time:\n%s", markdown.String())
+	}
+	var weeklyHTML strings.Builder
+	if err := reports.WriteWeeklyHTML(&weeklyHTML, weekly); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(weeklyHTML.String(), "2 working days: supplier review") {
+		t.Fatalf("weekly HTML lacks lead time:\n%s", weeklyHTML.String())
+	}
+	overview, err := service.Dashboard(context.Background(), app.DashboardReportRequest{Week: "2026-W45"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if overview.Tasks[0].LeadTime == nil || overview.Tracking[0].LeadTime == nil || overview.Gantt.Tasks[0].LeadTime == nil {
+		t.Fatalf("dashboard lead time missing: tasks=%#v tracking=%#v gantt=%#v", overview.Tasks, overview.Tracking, overview.Gantt.Tasks)
+	}
+	var state strings.Builder
+	if err := reports.WriteProjectStateMarkdown(&state, overview); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(state.String(), "2 working days: supplier review") {
+		t.Fatalf("state markdown lacks lead time:\n%s", state.String())
+	}
+	var dashboardHTML strings.Builder
+	if err := reports.WriteDashboardHTML(&dashboardHTML, overview); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(dashboardHTML.String(), "2 working days: supplier review") {
+		t.Fatalf("dashboard HTML lacks lead time:\n%s", dashboardHTML.String())
+	}
+}
+
+func TestNextActionsSortByTaskPriorityAfterActor(t *testing.T) {
+	ws := domain.Workspace{Project: domain.Project{ID: "project.test", Name: "Test", DefaultStatusDate: "2026-11-01"}, Tasks: []domain.Task{
+		{ID: "task.low", Title: "Low", TrackingStatus: "review_ready", PlannedFinish: "2026-11-02", Priority: 200},
+		{ID: "task.high", Title: "High", TrackingStatus: "review_ready", PlannedFinish: "2026-11-10", Priority: 900},
+	}}
+	overview, err := app.NewReportService(staticWorkspaceLoader{workspace: ws}).Dashboard(context.Background(), app.DashboardReportRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(overview.NextActions) < 2 || overview.NextActions[0].Target != "task.high" || overview.NextActions[0].Priority != 900 || overview.NextActions[1].Target != "task.low" || overview.NextActions[1].Priority != 200 {
+		t.Fatalf("priority order = %#v", overview.NextActions)
+	}
+	brief := reports.BuildNextBrief(overview)
+	var text strings.Builder
+	if err := reports.WriteNextBriefText(&text, brief); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(text.String(), "priority 900") || !strings.Contains(text.String(), "priority 200") {
+		t.Fatalf("next text lacks priority:\n%s", text.String())
+	}
+	var html strings.Builder
+	if err := reports.WriteDashboardHTML(&html, overview); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(html.String(), "priority 900") || !strings.Contains(html.String(), "priority 200") {
+		t.Fatalf("dashboard next actions lack priority:\n%s", html.String())
+	}
+}
+
 func TestWeeklyReportSelfFixtureUsesCurrentPlanBaseline(t *testing.T) {
 	report, err := app.NewReportService(filestore.New("../../examples/replan-self")).Weekly(context.Background(), app.WeeklyReportRequest{
 		ProjectPath: "../../examples/replan-self",

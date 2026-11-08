@@ -2,8 +2,10 @@ package app_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/kogriv/replan/internal/app"
@@ -87,6 +89,66 @@ func TestWorkloadDemandStatusLoadRule(t *testing.T) {
 				t.Fatalf("demand share for status %q = %#v", status, share)
 			}
 		})
+	}
+}
+
+func TestWorkloadSeparatesUnlevelledHoursAndKeepsActuals(t *testing.T) {
+	ws := unlevelledLoadWorkspace()
+	calibration := domain.Calibration{ID: "calibration.person", ApprovedAt: "2026-11-01T10:00:00Z", Scope: domain.CalibrationScope{Resources: []string{"resource.person"}, Unit: "hours"}, Result: domain.CalibrationResult{Factor: 1}}
+	resealWorkloadCalibration(t, &calibration)
+	ws.Calibrations = []domain.Calibration{calibration}
+	result, err := app.NewWorkloadService(staticWorkspaceLoader{workspace: ws}).Calculate(context.Background(), app.WorkloadRequest{Week: "2026-W45", WithDemands: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Resources) != 1 {
+		t.Fatalf("resources = %#v", result.Resources)
+	}
+	row := result.Resources[0]
+	if row.Planned != 12 || row.Reserved != 12 || row.Remaining != 12 || row.Overload != 2 {
+		t.Fatalf("levelled load = %#v", row)
+	}
+	if row.UnlevelledPlanned != 20 || row.UnlevelledRemaining != 15 || row.Actual != 3 {
+		t.Fatalf("unlevelled/actual = %#v", row)
+	}
+	if row.RawPlanned == nil || *row.RawPlanned != 12 || row.RawRemaining == nil || *row.RawRemaining != 12 {
+		t.Fatalf("unlevelled demand entered raw calibrated figures: %#v", row)
+	}
+	if len(row.Demands) != 2 {
+		t.Fatalf("demand shares = %#v", row.Demands)
+	}
+	var unlevelled app.WorkloadDemandShare
+	for _, demand := range row.Demands {
+		if demand.ResourceDemandID == "demand.unlevelled" {
+			unlevelled = demand
+		}
+	}
+	if unlevelled.Levelled == nil || *unlevelled.Levelled || unlevelled.Planned != 20 || unlevelled.Remaining != 15 {
+		t.Fatalf("unlevelled share = %#v", unlevelled)
+	}
+	encoded, err := json.Marshal(result)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Count(string(encoded), `"levelled":false`) != 1 || strings.Contains(string(encoded), `"levelled":true`) {
+		t.Fatalf("levelled flags = %s", encoded)
+	}
+}
+
+func unlevelledLoadWorkspace() domain.Workspace {
+	levelled := false
+	return domain.Workspace{
+		Project:   domain.Project{ID: "project.test", Name: "Test", DefaultStatusDate: "2026-11-04"},
+		Resources: []domain.Resource{{ID: "resource.person", Name: "Person", Class: "human"}},
+		Tasks: []domain.Task{
+			{ID: "task.levelled", Title: "Levelled", TrackingStatus: "ready", PlannedStart: "2026-11-02", PlannedFinish: "2026-11-06", ResourceDemands: []domain.Ref{{ID: "demand.levelled"}}, SourceRefs: []domain.SourceRef{{Source: "openproject", ObjectType: "work_package", ObjectID: "1"}}},
+			{ID: "task.unlevelled", Title: "Unlevelled", TrackingStatus: "ready", PlannedStart: "2026-11-02", PlannedFinish: "2026-11-06", ResourceDemands: []domain.Ref{{ID: "demand.unlevelled"}}, SourceRefs: []domain.SourceRef{{Source: "openproject", ObjectType: "work_package", ObjectID: "2"}}},
+		},
+		ResourceDemands: []domain.ResourceDemand{
+			{ID: "demand.levelled", TaskRef: domain.Ref{ID: "task.levelled"}, ResourceRef: domain.Ref{ID: "resource.person"}, ResourceClass: "human", Unit: "hours", Status: "active", PlannedAmount: 12, ReservedAmount: 12, RemainingAmount: domain.Amount(12)},
+			{ID: "demand.unlevelled", TaskRef: domain.Ref{ID: "task.unlevelled"}, ResourceRef: domain.Ref{ID: "resource.person"}, ResourceClass: "human", Unit: "hours", Status: "active", PlannedAmount: 20, RemainingAmount: domain.Amount(15), ActualAmount: 3, Levelled: &levelled},
+		},
+		Capacities: []domain.Capacity{{ResourceRef: domain.Ref{ID: "resource.person"}, Unit: "hours", Amount: 10, Period: "week"}},
 	}
 }
 

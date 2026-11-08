@@ -183,6 +183,11 @@ Implemented MVP dependency risk surface:
 - project state reports `relates` separately as related links instead of
   counting them as open scheduling dependencies.
 
+When a task has lead time, weekly task rows and state/dashboard task rows show
+its working-day or calendar-day amount and reason beside its planned dates.
+Plans without lead time keep the previous rendered output. Workload rows show
+unlevelled hours only when any are present; those hours do not affect overload.
+
 ## Weekly report summary
 
 The executive summary should be short and decision-oriented.
@@ -275,6 +280,7 @@ Required sections:
 - reserved load;
 - actual load;
 - remaining load;
+- unlevelled planned and remaining hours, when present;
 - forecast load;
 - overload;
 - underuse;

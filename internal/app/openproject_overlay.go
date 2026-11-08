@@ -73,6 +73,7 @@ func dashboardOpenProjectOverlay(ws domain.Workspace, overview reports.Dashboard
 			TrackingStatus:        firstNonEmpty(ganttTask.TrackingStatus, link.TrackingStatus),
 			PlannedStart:          firstNonEmpty(ganttTask.PlannedStart, link.PlannedStart),
 			PlannedFinish:         firstNonEmpty(ganttTask.PlannedFinish, link.PlannedFinish),
+			LeadTime:              ganttTask.LeadTime,
 			StartOffsetDays:       ganttTask.StartOffsetDays,
 			DurationDays:          ganttTask.DurationDays,
 			ResourceIDs:           append([]string{}, ganttTask.ResourceIDs...),
@@ -506,6 +507,7 @@ func dashboardOpenProjectOverlayDemands(allocations []reports.DashboardGanttReso
 			PlannedAmount:             allocation.PlannedAmount,
 			ActualAmount:              demandTracking.Actual,
 			RemainingAmount:           allocation.RemainingAmount,
+			Levelled:                  allocation.Levelled,
 			ForecastAmount:            demandTracking.Forecast,
 			VarianceAmount:            demandTracking.Variance,
 			EvidenceCount:             demandTracking.EvidenceCount,
@@ -549,6 +551,10 @@ func dashboardOpenProjectOverlayDemands(allocations []reports.DashboardGanttReso
 			EvidenceCount:   demandTracking.EvidenceCount,
 			Flags:           append([]string{}, demandTracking.Flags...),
 		}
+		if demand := index.demands[demandTracking.DemandID]; !demand.IsLevelled() {
+			levelled := false
+			view.Levelled = &levelled
+		}
 		applyOverlayDemandCalibration(&view, index)
 		result = append(result, view)
 	}
@@ -562,11 +568,14 @@ func dashboardOpenProjectOverlayDemands(allocations []reports.DashboardGanttReso
 }
 
 func applyOverlayDemandCalibration(view *reports.DashboardOpenProjectOverlayResourceDemand, index overlayIndex) {
+	demand := index.demands[view.DemandID]
+	if !domain.DemandAddsLevelledLoad(demand) {
+		return
+	}
 	calibration, ok := index.calibrations[view.DemandID]
 	if !ok {
 		return
 	}
-	demand := index.demands[view.DemandID]
 	calibratedPlanned := calibratedLoadAmount(demand.PlannedAmount, calibration.Factor)
 	calibratedRemaining := calibratedLoadAmount(demand.Remaining(), calibration.Factor)
 	view.PlannedAmount = demand.PlannedAmount

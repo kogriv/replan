@@ -47,6 +47,7 @@ func (s ReportService) Weekly(ctx context.Context, req WeeklyReportRequest) (rep
 		ScenarioID:  req.ScenarioID,
 		CurrentPlan: ws.CurrentPlan.ID,
 		Resources:   []reports.ResourceRow{},
+		Tasks:       []reports.WeeklyTaskRow{},
 		Proposals:   []reports.ProposalRow{},
 		Evidence:    []reports.EvidenceRow{},
 		Warnings:    []reports.ReportIssue{},
@@ -84,24 +85,38 @@ func (s ReportService) Weekly(ctx context.Context, req WeeklyReportRequest) (rep
 
 	for _, row := range workload.Resources {
 		report.Resources = append(report.Resources, reports.ResourceRow{
-			ResourceID:     row.ResourceID,
-			ResourceName:   row.ResourceName,
-			ResourceClass:  row.ResourceClass,
-			Unit:           row.Unit,
-			Capacity:       row.Capacity,
-			Planned:        row.Planned,
-			Reserved:       row.Reserved,
-			Actual:         row.Actual,
-			Remaining:      row.Remaining,
-			Overload:       row.Overload,
-			CalibrationIDs: append([]string(nil), row.CalibrationIDs...),
-			RawPlanned:     row.RawPlanned,
-			RawRemaining:   row.RawRemaining,
+			ResourceID:          row.ResourceID,
+			ResourceName:        row.ResourceName,
+			ResourceClass:       row.ResourceClass,
+			Unit:                row.Unit,
+			Capacity:            row.Capacity,
+			Planned:             row.Planned,
+			Reserved:            row.Reserved,
+			Actual:              row.Actual,
+			Remaining:           row.Remaining,
+			Overload:            row.Overload,
+			UnlevelledPlanned:   row.UnlevelledPlanned,
+			UnlevelledRemaining: row.UnlevelledRemaining,
+			CalibrationIDs:      append([]string(nil), row.CalibrationIDs...),
+			RawPlanned:          row.RawPlanned,
+			RawRemaining:        row.RawRemaining,
 		})
 		if row.Overload > 0 {
 			report.Summary.Overloaded++
 		}
 	}
+	weekStart, weekEnd, hasWeek := workloadWeekRange(req.Week)
+	for _, task := range ws.Tasks {
+		if task.LeadTime == nil {
+			continue
+		}
+		span := demandWindow(domain.ResourceDemand{TaskRef: domain.Ref{ID: task.ID}}, map[string]domain.Task{task.ID: task})
+		if hasWeek && !span.intersects(weekStart, weekEnd) {
+			continue
+		}
+		report.Tasks = append(report.Tasks, reports.WeeklyTaskRow{ID: task.ID, Title: task.Title, PlannedStart: task.PlannedStart, PlannedFinish: task.PlannedFinish, LeadTime: reportLeadTime(task.LeadTime)})
+	}
+	sort.Slice(report.Tasks, func(i, j int) bool { return report.Tasks[i].ID < report.Tasks[j].ID })
 
 	for _, proposal := range ws.Proposals {
 		if proposal.Status != "open" {
@@ -289,7 +304,7 @@ func plannedForPeopleThisWeek(ws domain.Workspace, week string) []reports.NextPl
 	days := workingDays(ws.Availabilities)
 	loadsByTask := map[string]map[string]reports.NextPlannedPersonLoad{}
 	for _, demand := range ws.ResourceDemands {
-		if !domain.DemandLoads(demand.Status) {
+		if !domain.DemandAddsLevelledLoad(demand) {
 			continue
 		}
 		task, found := tasks[demand.TaskRef.ID]
@@ -322,6 +337,9 @@ func plannedForPeopleThisWeek(ws domain.Workspace, week string) []reports.NextPl
 			TaskID: task.ID, Title: task.Title, TrackingStatus: task.TrackingStatus,
 			PlannedStart: task.PlannedStart, PlannedFinish: task.PlannedFinish,
 			People: []reports.NextPlannedPersonLoad{},
+		}
+		if task.EffectivePriority() != 500 {
+			item.Priority = task.EffectivePriority()
 		}
 		for _, load := range loads {
 			item.People = append(item.People, load)
@@ -443,6 +461,7 @@ func dashboardTrackingRow(task domain.Task, index dashboardTrackingIndex) report
 		TrackingStatus: task.TrackingStatus,
 		PlannedStart:   task.PlannedStart,
 		PlannedFinish:  task.PlannedFinish,
+		LeadTime:       reportLeadTime(task.LeadTime),
 		ActualCount:    len(index.actualsByTaskID[task.ID]),
 		EvidenceCount:  len(index.evidenceByTaskID[task.ID]),
 		Demands:        []reports.DashboardDemandTracking{},
@@ -855,6 +874,7 @@ func dashboardTaskRows(tasks []domain.Task, warnings []reports.ReportIssue) []re
 			TrackingStatus:      task.TrackingStatus,
 			PlannedStart:        task.PlannedStart,
 			PlannedFinish:       task.PlannedFinish,
+			LeadTime:            reportLeadTime(task.LeadTime),
 			AssigneeID:          task.AssigneeHint.ID,
 			ResourceDemandCount: len(task.ResourceDemands),
 			DependencyCount:     len(task.Dependencies),
@@ -1086,7 +1106,7 @@ func dashboardGanttTask(
 			continue
 		}
 		resourceSet[resourceID] = true
-		if domain.DemandLoads(demand.Status) && overloadedResources[resourceID] {
+		if domain.DemandAddsLevelledLoad(demand) && overloadedResources[resourceID] {
 			overloadedSet[resourceID] = true
 		}
 	}
@@ -1108,6 +1128,7 @@ func dashboardGanttTask(
 		TrackingStatus:        task.TrackingStatus,
 		PlannedStart:          task.PlannedStart,
 		PlannedFinish:         task.PlannedFinish,
+		LeadTime:              reportLeadTime(task.LeadTime),
 		ResourceIDs:           resourceIDs,
 		OverloadedResourceIDs: overloadedResourceIDs,
 		WarningCodes:          warningCodes,
@@ -1118,6 +1139,13 @@ func dashboardGanttTask(
 		SourceID:              source.ObjectID,
 		SourceURL:             source.URL,
 	}
+}
+
+func reportLeadTime(value *domain.LeadTime) *reports.TaskLeadTime {
+	if value == nil {
+		return nil
+	}
+	return &reports.TaskLeadTime{WorkingDays: value.WorkingDays, CalendarDays: value.CalendarDays, Reason: value.Reason}
 }
 
 // dashboardGanttAllocations places each demand of a task on the Gantt. A
@@ -1158,7 +1186,7 @@ func dashboardGanttAllocations(ws domain.Workspace, task domain.Task, demandsByI
 		amountPerDay := 0.0
 		plannedAmount := demand.PlannedAmount
 		remainingAmount := demand.Remaining()
-		if calibration, ok := calibrations[demand.ID]; ok {
+		if calibration, ok := calibrations[demand.ID]; ok && domain.DemandAddsLevelledLoad(demand) {
 			plannedAmount = calibratedLoadAmount(plannedAmount, calibration.Factor)
 			remainingAmount = calibratedLoadAmount(remainingAmount, calibration.Factor)
 		}
@@ -1166,8 +1194,13 @@ func dashboardGanttAllocations(ws domain.Workspace, task domain.Task, demandsByI
 			plannedAmount = 0
 			remainingAmount = 0
 		}
+		var levelled *bool
+		if !demand.IsLevelled() {
+			value := false
+			levelled = &value
+		}
 		switch {
-		case plannedAmount <= 0:
+		case plannedAmount <= 0 || !domain.DemandAddsLevelledLoad(demand):
 		case isConcurrentResourceUnit(ws.Capacities, resourceID, demand.Unit):
 			amountPerDay = plannedAmount
 		default:
@@ -1177,7 +1210,7 @@ func dashboardGanttAllocations(ws domain.Workspace, task domain.Task, demandsByI
 		weeklyCapacity := capacityByResourceUnit[resourceUnitKey(resourceID, demand.Unit)]
 		windowCapacity := 0.0
 		intensityRatio := 0.0
-		capacityKnown := weeklyCapacity > 0
+		capacityKnown := weeklyCapacity > 0 && domain.DemandAddsLevelledLoad(demand)
 		if capacityKnown {
 			windowWeeks := float64(duration) / 7
 			if windowWeeks < 1 {
@@ -1196,6 +1229,7 @@ func dashboardGanttAllocations(ws domain.Workspace, task domain.Task, demandsByI
 			Unit:                      demand.Unit,
 			PlannedAmount:             plannedAmount,
 			RemainingAmount:           remainingAmount,
+			Levelled:                  levelled,
 			StartDate:                 startDate,
 			FinishDate:                finishDate,
 			StartOffsetDays:           int(start.Sub(minStart).Hours() / 24),
@@ -1206,7 +1240,7 @@ func dashboardGanttAllocations(ws domain.Workspace, task domain.Task, demandsByI
 			IntensityPercent:          roundDashboardFloat(intensityRatio * 100),
 			CapacityKnown:             capacityKnown,
 			AmountPerDay:              amountPerDay,
-			Overloaded:                domain.DemandLoads(demand.Status) && overloadedResources[resourceID],
+			Overloaded:                domain.DemandAddsLevelledLoad(demand) && overloadedResources[resourceID],
 			OverCapacity:              intensityRatio > 1,
 		})
 	}
@@ -1239,6 +1273,9 @@ func dashboardGanttResourceLoads(ws domain.Workspace, view reports.DashboardGant
 	loadByResourceID := map[string]*reports.DashboardGanttResourceLoad{}
 	for _, task := range view.Tasks {
 		for _, allocation := range task.Allocations {
+			if allocation.Levelled != nil && !*allocation.Levelled {
+				continue
+			}
 			load := loadByResourceID[allocation.ResourceID]
 			if load == nil {
 				resource := resourceByID[allocation.ResourceID]
@@ -1561,6 +1598,7 @@ func dashboardNextActions(ws domain.Workspace, overview reports.DashboardOvervie
 			Label: "Nothing waits on a person or an agent; keep the current plan up to date.",
 		})
 	}
+	setNextActionPriorities(actions, ws)
 	sortNextActions(actions)
 	return actions
 }
@@ -1637,8 +1675,8 @@ func demandHasWorkLeft(demand domain.ResourceDemand) bool {
 	return demand.PlannedAmount > 0
 }
 
-// sortNextActions puts what waits on a person first, then orders by date
-// (earliest first, undated last), code and target.
+// sortNextActions puts what waits on a person first, then higher task
+// priority, then date (earliest first, undated last), code and target.
 func sortNextActions(actions []reports.DashboardNextAction) {
 	rank := func(actor string) int {
 		if actor == reports.NextActionActorPerson {
@@ -1651,6 +1689,16 @@ func sortNextActions(actions []reports.DashboardNextAction) {
 		if rank(a.Actor) != rank(b.Actor) {
 			return rank(a.Actor) < rank(b.Actor)
 		}
+		aPriority, bPriority := a.Priority, b.Priority
+		if aPriority == 0 {
+			aPriority = 500
+		}
+		if bPriority == 0 {
+			bPriority = 500
+		}
+		if aPriority != bPriority {
+			return aPriority > bPriority
+		}
 		if a.Date != b.Date {
 			if a.Date == "" || b.Date == "" {
 				return b.Date == ""
@@ -1662,6 +1710,30 @@ func sortNextActions(actions []reports.DashboardNextAction) {
 		}
 		return a.Target < b.Target
 	})
+}
+
+func setNextActionPriorities(actions []reports.DashboardNextAction, ws domain.Workspace) {
+	priorityByTarget := map[string]int{}
+	taskByID := map[string]domain.Task{}
+	for _, task := range ws.Tasks {
+		taskByID[task.ID] = task
+		priorityByTarget[task.ID] = task.EffectivePriority()
+	}
+	for _, demand := range ws.ResourceDemands {
+		priorityByTarget[demand.ID] = taskByID[demand.TaskRef.ID].EffectivePriority()
+	}
+	for _, dependency := range ws.Dependencies {
+		priorityByTarget[dependency.ID] = taskByID[dependency.SuccessorRef.ID].EffectivePriority()
+	}
+	for _, proposal := range ws.Proposals {
+		priorityByTarget[proposal.ID] = priorityByTarget[proposal.TargetRef.ID]
+	}
+	for i := range actions {
+		priority := priorityByTarget[actions[i].Target]
+		if priority != 0 && priority != 500 {
+			actions[i].Priority = priority
+		}
+	}
 }
 
 // trackingRowNeedsReview skips overruns an operator already acknowledged:

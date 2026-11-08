@@ -59,14 +59,14 @@ func (s ReportService) dashboardWorkloadPage(ctx context.Context, ws domain.Work
 				value := roundDashboardFloat(load / row.Capacity)
 				utilization = &value
 			}
-			cell := reports.DashboardWorkloadCell{Week: week, Capacity: row.Capacity, Planned: row.Planned, Reserved: row.Reserved, Actual: row.Actual, Remaining: row.Remaining, Overload: row.Overload, Utilization: utilization, Demands: []reports.DashboardWorkloadDemand{}}
+			cell := reports.DashboardWorkloadCell{Week: week, Capacity: row.Capacity, Planned: row.Planned, Reserved: row.Reserved, Actual: row.Actual, Remaining: row.Remaining, Overload: row.Overload, UnlevelledPlanned: row.UnlevelledPlanned, UnlevelledRemaining: row.UnlevelledRemaining, Utilization: utilization, Demands: []reports.DashboardWorkloadDemand{}}
 			if row.Capacity == 0 && load > 0 {
 				cell.Shortage = load
 			}
 			for _, demand := range row.Demands {
 				cell.Demands = append(cell.Demands, reports.DashboardWorkloadDemand{
 					ResourceDemandID: demand.ResourceDemandID, TaskID: demand.TaskID, TaskTitle: taskTitles[demand.TaskID], Status: demand.Status,
-					Concurrent: demand.Concurrent, Share: demand.Share, Planned: demand.Planned, Reserved: demand.Reserved, Remaining: demand.Remaining,
+					Concurrent: demand.Concurrent, Share: demand.Share, Planned: demand.Planned, Reserved: demand.Reserved, Remaining: demand.Remaining, Levelled: demand.Levelled,
 				})
 			}
 			resource.Weeks = append(resource.Weeks, cell)
@@ -210,7 +210,7 @@ func scenarioAffectedTaskIDs(scenario domain.Scenario) []string {
 func workloadRows(rows []ResourceWorkload) []reports.ResourceRow {
 	result := make([]reports.ResourceRow, 0, len(rows))
 	for _, row := range rows {
-		result = append(result, reports.ResourceRow{ResourceID: row.ResourceID, ResourceName: row.ResourceName, ResourceClass: row.ResourceClass, Unit: row.Unit, Capacity: row.Capacity, Planned: row.Planned, Reserved: row.Reserved, Actual: row.Actual, Remaining: row.Remaining, Overload: row.Overload})
+		result = append(result, reports.ResourceRow{ResourceID: row.ResourceID, ResourceName: row.ResourceName, ResourceClass: row.ResourceClass, Unit: row.Unit, Capacity: row.Capacity, Planned: row.Planned, Reserved: row.Reserved, Actual: row.Actual, Remaining: row.Remaining, Overload: row.Overload, UnlevelledPlanned: row.UnlevelledPlanned, UnlevelledRemaining: row.UnlevelledRemaining})
 	}
 	return result
 }

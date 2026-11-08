@@ -23,13 +23,14 @@ type NextBrief struct {
 }
 
 type NextBriefItem struct {
-	Code    string                    `json:"code"`
-	What    string                    `json:"what"`
-	Subject string                    `json:"subject,omitempty"`
-	Target  string                    `json:"target,omitempty"`
-	Date    string                    `json:"date,omitempty"`
-	Command string                    `json:"command,omitempty"`
-	Details []CalibrationDemandDetail `json:"details,omitempty"`
+	Code     string                    `json:"code"`
+	What     string                    `json:"what"`
+	Subject  string                    `json:"subject,omitempty"`
+	Target   string                    `json:"target,omitempty"`
+	Date     string                    `json:"date,omitempty"`
+	Priority int                       `json:"priority,omitempty"`
+	Command  string                    `json:"command,omitempty"`
+	Details  []CalibrationDemandDetail `json:"details,omitempty"`
 }
 
 type NextBriefHealth struct {
@@ -86,13 +87,14 @@ func BuildNextBrief(overview DashboardOverview) NextBrief {
 			continue
 		}
 		item := NextBriefItem{
-			Code:    action.Code,
-			What:    what,
-			Subject: titles[action.Target],
-			Target:  action.Target,
-			Date:    action.Date,
-			Command: action.Command,
-			Details: action.Details,
+			Code:     action.Code,
+			What:     what,
+			Subject:  titles[action.Target],
+			Target:   action.Target,
+			Date:     action.Date,
+			Priority: action.Priority,
+			Command:  action.Command,
+			Details:  action.Details,
 		}
 		switch action.Actor {
 		case NextActionActorPerson:
@@ -142,6 +144,9 @@ func writeNextPlannedForPeople(b *strings.Builder, tasks []NextPlannedTask) {
 		if task.PlannedStart != "" || task.PlannedFinish != "" {
 			parts = append(parts, task.PlannedStart+".."+task.PlannedFinish)
 		}
+		if task.Priority != 0 {
+			parts = append(parts, fmt.Sprintf("priority %d", task.Priority))
+		}
 		fmt.Fprintf(b, "     %s\n", strings.Join(parts, " | "))
 	}
 }
@@ -164,6 +169,9 @@ func writeNextBriefGroup(b *strings.Builder, title string, items []NextBriefItem
 		due := ""
 		if item.Date != "" {
 			due = " (due " + item.Date + ")"
+		}
+		if item.Priority != 0 {
+			due += fmt.Sprintf(" (priority %d)", item.Priority)
 		}
 		fmt.Fprintf(b, "  %d. %s: %s%s\n", i+1, item.What, subject, due)
 		if item.Subject != "" && item.Target != "" {

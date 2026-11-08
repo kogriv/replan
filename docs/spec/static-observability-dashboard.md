@@ -291,7 +291,9 @@ Required sections:
 - utilization;
 - resource class;
 - source references when available;
-- affected tasks.
+- affected tasks;
+- unlevelled planned and remaining hours when present, outside utilization and
+  overload;
 
 It must handle human and non-human resources:
 
@@ -321,6 +323,7 @@ Required sections:
 - source reference;
 - tracking status;
 - planned dates;
+- lead time unit, amount and reason when present;
 - deadline;
 - assignee hint;
 - resource demands;
@@ -526,6 +529,11 @@ Examples:
 
 Next actions should be rendered as text and, when useful, as copyable CLI
 commands.
+
+They are grouped with person actions first, then ordered by the effective task
+priority (higher first, default 500), then by the existing date/code/target
+order. Actions without a task use priority 500. JSON and HTML show a task
+priority only when it differs from 500.
 
 ## AI CLI friendliness
 

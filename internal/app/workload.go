@@ -40,19 +40,21 @@ type WorkloadResult struct {
 }
 
 type ResourceWorkload struct {
-	ResourceID     string   `json:"resource_id"`
-	ResourceName   string   `json:"resource_name,omitempty"`
-	ResourceClass  string   `json:"resource_class,omitempty"`
-	Unit           string   `json:"unit"`
-	Capacity       float64  `json:"capacity"`
-	Planned        float64  `json:"planned"`
-	Reserved       float64  `json:"reserved"`
-	Actual         float64  `json:"actual"`
-	Remaining      float64  `json:"remaining"`
-	Overload       float64  `json:"overload"`
-	CalibrationIDs []string `json:"calibration_ids,omitempty"`
-	RawPlanned     *float64 `json:"raw_planned,omitempty"`
-	RawRemaining   *float64 `json:"raw_remaining,omitempty"`
+	ResourceID          string   `json:"resource_id"`
+	ResourceName        string   `json:"resource_name,omitempty"`
+	ResourceClass       string   `json:"resource_class,omitempty"`
+	Unit                string   `json:"unit"`
+	Capacity            float64  `json:"capacity"`
+	Planned             float64  `json:"planned"`
+	Reserved            float64  `json:"reserved"`
+	Actual              float64  `json:"actual"`
+	Remaining           float64  `json:"remaining"`
+	Overload            float64  `json:"overload"`
+	UnlevelledPlanned   float64  `json:"unlevelled_planned,omitempty"`
+	UnlevelledRemaining float64  `json:"unlevelled_remaining,omitempty"`
+	CalibrationIDs      []string `json:"calibration_ids,omitempty"`
+	RawPlanned          *float64 `json:"raw_planned,omitempty"`
+	RawRemaining        *float64 `json:"raw_remaining,omitempty"`
 	// Demands is filled only on request (WorkloadRequest.WithDemands).
 	Demands []WorkloadDemandShare `json:"demands,omitempty"`
 }
@@ -73,6 +75,7 @@ type WorkloadDemandShare struct {
 	CalibrationID    string   `json:"calibration_id,omitempty"`
 	RawPlanned       *float64 `json:"raw_planned,omitempty"`
 	RawRemaining     *float64 `json:"raw_remaining,omitempty"`
+	Levelled         *bool    `json:"levelled,omitempty"`
 }
 
 func NewWorkloadService(loader WorkspaceLoader) WorkloadService {
@@ -248,14 +251,22 @@ func (c *workloadCalculation) addDemand(demand domain.ResourceDemand) {
 	row := c.rowFor(targetID, demand.Unit)
 	key := targetID + "\x00" + demand.Unit
 	loadScale := 1.0
-	if !domain.DemandLoads(demand.Status) {
+	if !domain.DemandAddsLevelledLoad(demand) {
 		loadScale = 0
+	}
+	lifecycleScale := 1.0
+	if !domain.DemandLoads(demand.Status) {
+		lifecycleScale = 0
 	}
 	share := 1.0
 	if c.hasWeekFilter {
 		share = spanShare(span, c.days[targetID], c.weekStart, c.weekEnd)
 	}
 	planned, remaining, reserved := demand.PlannedAmount, demand.Remaining(), demand.ReservedAmount
+	if !demand.IsLevelled() {
+		row.UnlevelledPlanned += planned * share * lifecycleScale
+		row.UnlevelledRemaining += remaining * share * lifecycleScale
+	}
 	calibrationID := ""
 	if match, ok := c.calibrations[demand.ID]; ok && loadScale != 0 {
 		calibrationID = match.Calibration.ID
@@ -274,12 +285,20 @@ func (c *workloadCalculation) addDemand(demand domain.ResourceDemand) {
 			row.Actual += demand.ActualAmount
 		}
 		if c.req.WithDemands {
-			row.Demands = append(row.Demands, demandShare(demand, share, loadScale, true, planned, remaining, reserved, calibrationID))
+			demandScale := loadScale
+			if !demand.IsLevelled() {
+				demandScale = lifecycleScale
+			}
+			row.Demands = append(row.Demands, demandShare(demand, share, demandScale, true, planned, remaining, reserved, calibrationID))
 		}
 		return
 	}
 	if c.req.WithDemands {
-		row.Demands = append(row.Demands, demandShare(demand, share, share*loadScale, false, planned, remaining, reserved, calibrationID))
+		demandScale := share * loadScale
+		if !demand.IsLevelled() {
+			demandScale = share * lifecycleScale
+		}
+		row.Demands = append(row.Demands, demandShare(demand, share, demandScale, false, planned, remaining, reserved, calibrationID))
 	}
 	row.Planned += planned * share * loadScale
 	row.Reserved += reserved * share * loadScale
@@ -302,6 +321,8 @@ func (c *workloadCalculation) finishRows() {
 		}
 		row.Planned, row.Reserved = roundDashboardFloat(row.Planned), roundDashboardFloat(row.Reserved)
 		row.Actual, row.Remaining = roundDashboardFloat(row.Actual), roundDashboardFloat(row.Remaining)
+		row.UnlevelledPlanned = roundDashboardFloat(row.UnlevelledPlanned)
+		row.UnlevelledRemaining = roundDashboardFloat(row.UnlevelledRemaining)
 		row.Capacity = roundDashboardFloat(row.Capacity)
 		if ids := c.calibrationIDs[key]; len(ids) > 0 {
 			row.CalibrationIDs = sortedMapKeys(ids)
@@ -428,6 +449,10 @@ func demandShare(demand domain.ResourceDemand, share, scale float64, concurrent 
 		Reserved:         roundDashboardFloat(reserved * scale),
 		Remaining:        roundDashboardFloat(remaining * scale),
 		CalibrationID:    calibrationID,
+	}
+	if !demand.IsLevelled() {
+		levelled := false
+		result.Levelled = &levelled
 	}
 	if calibrationID != "" {
 		rawPlanned, rawRemaining := roundDashboardFloat(demand.PlannedAmount*scale), roundDashboardFloat(demand.Remaining()*scale)

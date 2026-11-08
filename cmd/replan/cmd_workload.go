@@ -119,15 +119,26 @@ func writeWorkloadMarkdown(stdout *os.File, result app.WorkloadResult) error {
 	if result.ScenarioID != "" {
 		fmt.Fprintf(&b, "- Scenario: `%s`\n", result.ScenarioID)
 	}
-	b.WriteString("\n| Resource | Class | Unit | Capacity | Planned | Actual | Remaining | Overload |\n")
-	b.WriteString("|---|---|---:|---:|---:|---:|---:|---:|\n")
+	hasUnlevelled := workloadHasUnlevelled(result.Resources)
+	if hasUnlevelled {
+		b.WriteString("\n| Resource | Class | Unit | Capacity | Planned | Actual | Remaining | Unlevelled Planned | Unlevelled Remaining | Overload |\n")
+		b.WriteString("|---|---|---:|---:|---:|---:|---:|---:|---:|---:|\n")
+	} else {
+		b.WriteString("\n| Resource | Class | Unit | Capacity | Planned | Actual | Remaining | Overload |\n")
+		b.WriteString("|---|---|---:|---:|---:|---:|---:|---:|\n")
+	}
 	for _, row := range result.Resources {
 		name := row.ResourceName
 		if name == "" {
 			name = row.ResourceID
 		}
-		fmt.Fprintf(&b, "| `%s` | %s | %s | %g | %g | %g | %g | %g |\n",
-			markdownCell(name), markdownCell(row.ResourceClass), markdownCell(row.Unit), row.Capacity, row.Planned, row.Actual, row.Remaining, row.Overload)
+		if hasUnlevelled {
+			fmt.Fprintf(&b, "| `%s` | %s | %s | %g | %g | %g | %g | %g | %g | %g |\n",
+				markdownCell(name), markdownCell(row.ResourceClass), markdownCell(row.Unit), row.Capacity, row.Planned, row.Actual, row.Remaining, row.UnlevelledPlanned, row.UnlevelledRemaining, row.Overload)
+		} else {
+			fmt.Fprintf(&b, "| `%s` | %s | %s | %g | %g | %g | %g | %g |\n",
+				markdownCell(name), markdownCell(row.ResourceClass), markdownCell(row.Unit), row.Capacity, row.Planned, row.Actual, row.Remaining, row.Overload)
+		}
 		for _, demand := range row.Demands {
 			label := "↳ " + demand.ResourceDemandID
 			if demand.TaskID != "" {
@@ -138,8 +149,16 @@ func writeWorkloadMarkdown(stdout *os.File, result app.WorkloadResult) error {
 				planned = fmt.Sprintf("%g typed; %g calibrated", *demand.RawPlanned, demand.Planned)
 				remaining = fmt.Sprintf("%g typed; %g calibrated", *demand.RawRemaining, demand.Remaining)
 			}
-			fmt.Fprintf(&b, "| `%s` | demand | %s | - | %s | - | %s | - |\n",
-				markdownCell(label), markdownCell(row.Unit), planned, remaining)
+			if hasUnlevelled {
+				unlevelledPlanned, unlevelledRemaining := "-", "-"
+				if demand.Levelled != nil && !*demand.Levelled {
+					unlevelledPlanned, unlevelledRemaining = planned, remaining
+					planned, remaining = "-", "-"
+				}
+				fmt.Fprintf(&b, "| `%s` | demand | %s | - | %s | - | %s | %s | %s | - |\n", markdownCell(label), markdownCell(row.Unit), planned, remaining, unlevelledPlanned, unlevelledRemaining)
+			} else {
+				fmt.Fprintf(&b, "| `%s` | demand | %s | - | %s | - | %s | - |\n", markdownCell(label), markdownCell(row.Unit), planned, remaining)
+			}
 		}
 	}
 	writeWorkloadCalibrationNotes(&b, result.Resources)
@@ -162,7 +181,12 @@ func writeWorkloadText(stdout *os.File, result app.WorkloadResult) error {
 		}
 	}
 	tw := tabwriter.NewWriter(stdout, 0, 4, 2, ' ', 0)
-	if _, err := fmt.Fprintln(tw, "RESOURCE\tCLASS\tUNIT\tCAPACITY\tPLANNED\tACTUAL\tREMAINING\tOVERLOAD"); err != nil {
+	hasUnlevelled := workloadHasUnlevelled(result.Resources)
+	header := "RESOURCE\tCLASS\tUNIT\tCAPACITY\tPLANNED\tACTUAL\tREMAINING\tOVERLOAD"
+	if hasUnlevelled {
+		header = "RESOURCE\tCLASS\tUNIT\tCAPACITY\tPLANNED\tACTUAL\tREMAINING\tUNLEVELLED PLANNED\tUNLEVELLED REMAINING\tOVERLOAD"
+	}
+	if _, err := fmt.Fprintln(tw, header); err != nil {
 		return err
 	}
 	for _, row := range result.Resources {
@@ -170,7 +194,13 @@ func writeWorkloadText(stdout *os.File, result app.WorkloadResult) error {
 		if name == "" {
 			name = row.ResourceID
 		}
-		if _, err := fmt.Fprintf(tw, "%s\t%s\t%s\t%g\t%g\t%g\t%g\t%g\n", name, row.ResourceClass, row.Unit, row.Capacity, row.Planned, row.Actual, row.Remaining, row.Overload); err != nil {
+		format := "%s\t%s\t%s\t%g\t%g\t%g\t%g\t%g\n"
+		args := []any{name, row.ResourceClass, row.Unit, row.Capacity, row.Planned, row.Actual, row.Remaining, row.Overload}
+		if hasUnlevelled {
+			format = "%s\t%s\t%s\t%g\t%g\t%g\t%g\t%g\t%g\t%g\n"
+			args = []any{name, row.ResourceClass, row.Unit, row.Capacity, row.Planned, row.Actual, row.Remaining, row.UnlevelledPlanned, row.UnlevelledRemaining, row.Overload}
+		}
+		if _, err := fmt.Fprintf(tw, format, args...); err != nil {
 			return err
 		}
 		for _, demand := range row.Demands {
@@ -183,7 +213,18 @@ func writeWorkloadText(stdout *os.File, result app.WorkloadResult) error {
 				planned = fmt.Sprintf("%g typed; %g calibrated", *demand.RawPlanned, demand.Planned)
 				remaining = fmt.Sprintf("%g typed; %g calibrated", *demand.RawRemaining, demand.Remaining)
 			}
-			if _, err := fmt.Fprintf(tw, "%s\tdemand\t%s\t-\t%s\t-\t%s\t-\n", label, row.Unit, planned, remaining); err != nil {
+			format := "%s\tdemand\t%s\t-\t%s\t-\t%s\t-\n"
+			args := []any{label, row.Unit, planned, remaining}
+			if hasUnlevelled {
+				unlevelledPlanned, unlevelledRemaining := "-", "-"
+				if demand.Levelled != nil && !*demand.Levelled {
+					unlevelledPlanned, unlevelledRemaining = planned, remaining
+					planned, remaining = "-", "-"
+				}
+				format = "%s\tdemand\t%s\t-\t%s\t-\t%s\t%s\t%s\t-\n"
+				args = []any{label, row.Unit, planned, remaining, unlevelledPlanned, unlevelledRemaining}
+			}
+			if _, err := fmt.Fprintf(tw, format, args...); err != nil {
 				return err
 			}
 		}
@@ -197,6 +238,15 @@ func writeWorkloadText(stdout *os.File, result app.WorkloadResult) error {
 		return err
 	}
 	return writeDiagnosticsText(stdout, result.Warnings, result.Errors)
+}
+
+func workloadHasUnlevelled(rows []app.ResourceWorkload) bool {
+	for _, row := range rows {
+		if row.UnlevelledPlanned != 0 || row.UnlevelledRemaining != 0 {
+			return true
+		}
+	}
+	return false
 }
 
 func writeWorkloadCalibrationNotes(b *strings.Builder, rows []app.ResourceWorkload) {

@@ -79,6 +79,14 @@ forecast = actual + remaining
 warnings = rule-based findings
 ```
 
+Only demands for which both the lifecycle rule `DemandLoads` and the demand's
+effective `levelled` value are true enter planned, reserved, remaining,
+calibrated/raw load or overload. `levelled` defaults to true. Active hour
+demands with `levelled: false` are spread by the same week share into separate
+`unlevelled_planned` and `unlevelled_remaining` figures. Their actuals still
+enter actual and forecast/tracking calculations. Task lead time never adds
+load.
+
 ## Approved estimate calibration
 
 Load uses estimate calibration by default. For each demand RePlan selects the
@@ -97,6 +105,9 @@ Two demands stay raw:
   `closed`), because it is history;
 - a demand covered by a calibration whose scenario has status `applied`,
   because the scenario already changed the canonical amounts.
+
+An unlevelled demand is not calibrated for workload at all: its typed amount
+is reported only in the unlevelled figures.
 
 `workload`, weekly and state reports, the dashboard, the OpenProject overlay
 and overload actions use calibrated load. JSON workload rows name the applied

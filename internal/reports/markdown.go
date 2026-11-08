@@ -79,6 +79,9 @@ func WriteWeeklyMarkdown(w io.Writer, report WeeklyReport) error {
 	if err := writeCalibrationNotes(w, report.Resources); err != nil {
 		return err
 	}
+	if err := writeWeeklyUnlevelledAndLeadTime(w, report); err != nil {
+		return err
+	}
 
 	if len(report.Warnings) > 0 {
 		if _, err := fmt.Fprintln(w, "\n## Warnings"); err != nil {
@@ -178,11 +181,23 @@ func writeStateTracking(b *strings.Builder, rows []DashboardTrackingRow) {
 		return
 	}
 	b.WriteString("\n## Plan vs Actual\n")
-	b.WriteString("| Task | Status | Actuals | Evidence | Flags |\n")
-	b.WriteString("|---|---|---:|---:|---|\n")
+	hasLeadTime := false
 	for _, row := range rows {
-		fmt.Fprintf(b, "| `%s` | %s | %d | %d | %s |\n",
-			row.TaskID, row.TrackingStatus, row.ActualCount, row.EvidenceCount, joinedOrDash(row.Flags))
+		hasLeadTime = hasLeadTime || row.LeadTime != nil
+	}
+	if hasLeadTime {
+		b.WriteString("| Task | Status | Lead Time | Actuals | Evidence | Flags |\n")
+		b.WriteString("|---|---|---|---:|---:|---|\n")
+	} else {
+		b.WriteString("| Task | Status | Actuals | Evidence | Flags |\n")
+		b.WriteString("|---|---|---:|---:|---|\n")
+	}
+	for _, row := range rows {
+		if hasLeadTime {
+			fmt.Fprintf(b, "| `%s` | %s | %s | %d | %d | %s |\n", row.TaskID, row.TrackingStatus, formatLeadTime(row.LeadTime), row.ActualCount, row.EvidenceCount, joinedOrDash(row.Flags))
+		} else {
+			fmt.Fprintf(b, "| `%s` | %s | %d | %d | %s |\n", row.TaskID, row.TrackingStatus, row.ActualCount, row.EvidenceCount, joinedOrDash(row.Flags))
+		}
 	}
 	b.WriteString("\n| Task | Demand | Unit | Planned | Actual | Remaining | Forecast | Variance | Flags |\n")
 	b.WriteString("|---|---|---:|---:|---:|---:|---:|---:|---|\n")
@@ -200,6 +215,50 @@ func writeStateTracking(b *strings.Builder, rows []DashboardTrackingRow) {
 				joinedOrDash(demand.Flags))
 		}
 	}
+}
+
+// writeWeeklyUnlevelledAndLeadTime adds the unlevelled hours of each
+// resource and the tasks that carry a lead time; plans without either print
+// nothing.
+func writeWeeklyUnlevelledAndLeadTime(w io.Writer, report WeeklyReport) error {
+	for _, row := range report.Resources {
+		if row.UnlevelledPlanned == 0 && row.UnlevelledRemaining == 0 {
+			continue
+		}
+		name := row.ResourceName
+		if name == "" {
+			name = row.ResourceID
+		}
+		if _, err := fmt.Fprintf(w, "\n- Unlevelled `%s` (%s): planned %s, remaining %s.\n", name, row.Unit, formatAmount(row.UnlevelledPlanned), formatAmount(row.UnlevelledRemaining)); err != nil {
+			return err
+		}
+	}
+	if len(report.Tasks) > 0 {
+		if _, err := fmt.Fprintln(w, "\n## Tasks with Lead Time"); err != nil {
+			return err
+		}
+		for _, task := range report.Tasks {
+			if _, err := fmt.Fprintf(w, "- `%s` (%s..%s): %s\n", task.ID, task.PlannedStart, task.PlannedFinish, formatLeadTime(task.LeadTime)); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func formatLeadTime(value *TaskLeadTime) string {
+	if value == nil {
+		return "-"
+	}
+	amount, unit := value.WorkingDays, "working days"
+	if value.CalendarDays != 0 {
+		amount, unit = value.CalendarDays, "calendar days"
+	}
+	text := formatAmount(amount) + " " + unit
+	if value.Reason != "" {
+		text += ": " + value.Reason
+	}
+	return text
 }
 
 func writeStateTrackingLoop(b *strings.Builder, loop DashboardTrackingLoop) {
@@ -261,6 +320,16 @@ func writeStateResourcePressure(b *strings.Builder, workload []ResourceRow) {
 		b.WriteString("| none |  |  |  |  |  | 0 |\n")
 	}
 	for _, row := range workload {
+		if row.UnlevelledPlanned == 0 && row.UnlevelledRemaining == 0 {
+			continue
+		}
+		name := row.ResourceName
+		if name == "" {
+			name = row.ResourceID
+		}
+		fmt.Fprintf(b, "\n- Unlevelled `%s` (%s): planned %s, remaining %s.\n", name, row.Unit, formatAmount(row.UnlevelledPlanned), formatAmount(row.UnlevelledRemaining))
+	}
+	for _, row := range workload {
 		if len(row.CalibrationIDs) == 0 {
 			continue
 		}
@@ -316,6 +385,9 @@ func writeStateNextActions(b *strings.Builder, actions []DashboardNextAction) {
 		date := ""
 		if action.Date != "" {
 			date = " (" + action.Date + ")"
+		}
+		if action.Priority != 0 {
+			date += fmt.Sprintf(" (priority %d)", action.Priority)
 		}
 		fmt.Fprintf(b, "- `%s`%s%s: %s\n", action.Code, codeSuffix(action.Target), date, action.Label)
 		if action.Command != "" {
