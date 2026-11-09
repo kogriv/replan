@@ -7269,7 +7269,7 @@
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
         "startDate": "2026-11-09",
-        "dueDate": "2026-11-09",
+        "dueDate": "2026-11-10",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2351"
@@ -7298,7 +7298,7 @@
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
         "startDate": "2026-11-09",
-        "dueDate": "2026-11-09",
+        "dueDate": "2026-11-10",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2352"
@@ -7327,7 +7327,7 @@
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
         "startDate": "2026-11-09",
-        "dueDate": "2026-11-09",
+        "dueDate": "2026-11-10",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2353"
@@ -7414,7 +7414,7 @@
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
         "startDate": "2026-11-09",
-        "dueDate": "2026-11-09",
+        "dueDate": "2026-11-10",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2356"
@@ -7501,7 +7501,7 @@
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
         "startDate": "2026-11-09",
-        "dueDate": "2026-11-09",
+        "dueDate": "2026-11-10",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2359"

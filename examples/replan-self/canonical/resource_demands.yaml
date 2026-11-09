@@ -14655,7 +14655,7 @@ resource_demands:
     planned_amount: 0.6
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.dependency-set-command.codex
     task_ref:
       kind: task
@@ -14669,7 +14669,7 @@ resource_demands:
     planned_amount: 0.9
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.dependency-set-command.maintainer
     task_ref:
       kind: task
@@ -14681,9 +14681,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.dependency-set-command.local-dev
     task_ref:
       kind: task
@@ -14695,9 +14695,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.dependency-set-command.ci
     task_ref:
       kind: task
@@ -14709,9 +14709,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.missing-format-version-reads-as-one.agent
     task_ref:
       kind: task
@@ -14725,7 +14725,7 @@ resource_demands:
     planned_amount: 0.2
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.missing-format-version-reads-as-one.codex
     task_ref:
       kind: task
@@ -14739,7 +14739,7 @@ resource_demands:
     planned_amount: 0.3
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
     overrun_review:
       acknowledged_forecast: 0.44
       unit: agent_hours
@@ -14762,9 +14762,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.missing-format-version-reads-as-one.local-dev
     task_ref:
       kind: task
@@ -14776,9 +14776,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.missing-format-version-reads-as-one.ci
     task_ref:
       kind: task
@@ -14790,9 +14790,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-successor-starts-next-working-day.agent
     task_ref:
       kind: task
@@ -14806,7 +14806,7 @@ resource_demands:
     planned_amount: 0.4
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-successor-starts-next-working-day.codex
     task_ref:
       kind: task
@@ -14820,7 +14820,7 @@ resource_demands:
     planned_amount: 0.6
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
     overrun_review:
       acknowledged_forecast: 0.91
       unit: agent_hours
@@ -14843,9 +14843,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-successor-starts-next-working-day.local-dev
     task_ref:
       kind: task
@@ -14857,9 +14857,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-successor-starts-next-working-day.ci
     task_ref:
       kind: task
@@ -14871,9 +14871,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-candidate-review-flow.agent
     task_ref:
       kind: task
@@ -14887,7 +14887,7 @@ resource_demands:
     planned_amount: 0.4
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-candidate-review-flow.codex
     task_ref:
       kind: task
@@ -14901,7 +14901,7 @@ resource_demands:
     planned_amount: 0.6
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-candidate-review-flow.maintainer
     task_ref:
       kind: task
@@ -14913,9 +14913,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-candidate-review-flow.local-dev
     task_ref:
       kind: task
@@ -14927,9 +14927,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.taskjuggler-candidate-review-flow.ci
     task_ref:
       kind: task
@@ -14941,9 +14941,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.set-remaining-from-file.agent
     task_ref:
       kind: task
@@ -14957,7 +14957,7 @@ resource_demands:
     planned_amount: 0.4
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.set-remaining-from-file.codex
     task_ref:
       kind: task
@@ -14971,7 +14971,7 @@ resource_demands:
     planned_amount: 0.6
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.set-remaining-from-file.maintainer
     task_ref:
       kind: task
@@ -14983,9 +14983,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.set-remaining-from-file.local-dev
     task_ref:
       kind: task
@@ -14997,9 +14997,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.set-remaining-from-file.ci
     task_ref:
       kind: task
@@ -15011,9 +15011,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.date-push-nothing-to-apply-is-ok.agent
     task_ref:
       kind: task
@@ -15027,7 +15027,7 @@ resource_demands:
     planned_amount: 0.2
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.date-push-nothing-to-apply-is-ok.codex
     task_ref:
       kind: task
@@ -15041,7 +15041,7 @@ resource_demands:
     planned_amount: 0.3
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
     overrun_review:
       acknowledged_forecast: 0.36
       unit: agent_hours
@@ -15064,9 +15064,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.date-push-nothing-to-apply-is-ok.local-dev
     task_ref:
       kind: task
@@ -15078,9 +15078,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.date-push-nothing-to-apply-is-ok.ci
     task_ref:
       kind: task
@@ -15092,9 +15092,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.toolkit-comment-add-saves-comment.agent
     task_ref:
       kind: task
@@ -15256,7 +15256,7 @@ resource_demands:
     planned_amount: 0.2
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.bootstrap-assignee-refusal-names-setting.codex
     task_ref:
       kind: task
@@ -15270,7 +15270,7 @@ resource_demands:
     planned_amount: 0.3
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
     overrun_review:
       acknowledged_forecast: 0.45
       unit: agent_hours
@@ -15293,9 +15293,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.bootstrap-assignee-refusal-names-setting.local-dev
     task_ref:
       kind: task
@@ -15307,9 +15307,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.bootstrap-assignee-refusal-names-setting.ci
     task_ref:
       kind: task
@@ -15321,9 +15321,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.publish-release-v0-5-1.agent
     task_ref:
       kind: task
@@ -15337,7 +15337,7 @@ resource_demands:
     planned_amount: 0.5
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.publish-release-v0-5-1.maintainer
     task_ref:
       kind: task
@@ -15349,9 +15349,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.publish-release-v0-5-1.local-dev
     task_ref:
       kind: task
@@ -15363,9 +15363,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.publish-release-v0-5-1.ci
     task_ref:
       kind: task
@@ -15377,6 +15377,6 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed

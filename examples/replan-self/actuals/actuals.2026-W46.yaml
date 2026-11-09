@@ -964,3 +964,171 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.publish-release-v0-5-1
+  - id: actual.self-dependency-set-command.ci-github-actions.20261109T230137Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.dependency-set-command
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.dependency-set-command.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-09T23:01:37Z"
+    status_date: "2026-11-10"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-dependency-set-command
+  - id: actual.self-missing-format-version-reads-as-one.ci-github-actions.20261109T230221Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.missing-format-version-reads-as-one
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.missing-format-version-reads-as-one.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-09T23:02:21Z"
+    status_date: "2026-11-10"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-missing-format-version-reads-as-one
+  - id: actual.self-taskjuggler-successor-starts-next-working-day.ci-github-actions.20261109T230308Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-successor-starts-next-working-day
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-successor-starts-next-working-day.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-09T23:03:08Z"
+    status_date: "2026-11-10"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-taskjuggler-successor-starts-next-working-day
+  - id: actual.self-taskjuggler-candidate-review-flow.ci-github-actions.20261109T230352Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-candidate-review-flow
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-candidate-review-flow.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-09T23:03:52Z"
+    status_date: "2026-11-10"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-taskjuggler-candidate-review-flow
+  - id: actual.self-set-remaining-from-file.ci-github-actions.20261109T230432Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.set-remaining-from-file
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.set-remaining-from-file.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-09T23:04:32Z"
+    status_date: "2026-11-10"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-set-remaining-from-file
+  - id: actual.self-date-push-nothing-to-apply-is-ok.ci-github-actions.20261109T230513Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.date-push-nothing-to-apply-is-ok
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.date-push-nothing-to-apply-is-ok.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-09T23:05:13Z"
+    status_date: "2026-11-10"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-date-push-nothing-to-apply-is-ok
+  - id: actual.self-bootstrap-assignee-refusal-names-setting.ci-github-actions.20261109T230557Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.bootstrap-assignee-refusal-names-setting
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.bootstrap-assignee-refusal-names-setting.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-09T23:05:57Z"
+    status_date: "2026-11-10"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-bootstrap-assignee-refusal-names-setting
+  - id: actual.self-publish-release-v0-5-1.ci-github-actions.20261109T230641Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-5-1
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.publish-release-v0-5-1.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-09T23:06:41Z"
+    status_date: "2026-11-10"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-publish-release-v0-5-1
