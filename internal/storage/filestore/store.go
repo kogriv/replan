@@ -384,7 +384,7 @@ func (s Store) WriteResourceDemands(demands []domain.ResourceDemand) ([]string, 
 
 func (s Store) writeResourceDemands(demands []domain.ResourceDemand, replaceExisting bool) ([]string, error) {
 	newByTask := map[string][]domain.Ref{}
-	if err := updateYAMLWithOptions(s, demandsRel, false, spliceOptions{twoSpaceMappingEntries: true}, func(doc *demandsDoc) error {
+	if err := updateYAML(s, demandsRel, false, func(doc *demandsDoc) error {
 		index := demandIndex(doc.ResourceDemands)
 		for _, demand := range demands {
 			if i, ok := index[demand.ID]; ok {
@@ -650,7 +650,7 @@ func (s Store) SetTaskTitle(taskID, title string) (string, error) {
 }
 
 func (s Store) SetTaskDescription(taskID, description string) (string, error) {
-	err := updateYAMLWithOptions(s, tasksRel, false, spliceOptions{twoSpaceMappingEntries: true}, func(doc *tasksDoc) error {
+	err := updateYAML(s, tasksRel, false, func(doc *tasksDoc) error {
 		i, ok := taskIndex(doc.Tasks)[taskID]
 		if !ok {
 			return fmt.Errorf("task %s not found", taskID)

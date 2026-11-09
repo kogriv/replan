@@ -24,13 +24,11 @@ func renderYAML(original []byte, doc any) ([]byte, error) {
 // generic writer enables the style-preserving behaviors for every canonical
 // write, so newly appended nested blocks copy their siblings' indentation.
 type spliceOptions struct {
-	appendNestedSequences  bool
-	twoSpaceMappingEntries bool
+	appendNestedSequences bool
 }
 
 func renderYAMLWithOptions(original []byte, doc any, options spliceOptions) ([]byte, error) {
 	options.appendNestedSequences = true
-	options.twoSpaceMappingEntries = true
 	whole, err := yamlformat.Render(doc)
 	if err != nil {
 		return nil, err
@@ -229,7 +227,7 @@ func (sp *splicer) mapping(key string, old, next *yaml.Node, limit int, onDash b
 			if onDash && last < 0 {
 				return false
 			}
-			text, ok := renderMappingEntry(key, nil, next.Content[j], next.Content[j+1], column, sp.options.twoSpaceMappingEntries)
+			text, ok := renderMappingEntry(key, nil, next.Content[j], next.Content[j+1], column)
 			if !ok {
 				return false
 			}
@@ -264,7 +262,7 @@ func (sp *splicer) mapping(key string, old, next *yaml.Node, limit int, onDash b
 			}
 			sp.edits = sp.edits[:mark]
 		}
-		text, ok := renderMappingEntry(key, oldValue, next.Content[j], newValue, column, sp.options.twoSpaceMappingEntries)
+		text, ok := renderMappingEntry(key, oldValue, next.Content[j], newValue, column)
 		if !ok {
 			return false
 		}
@@ -368,34 +366,23 @@ func renderSequenceItem(key string, old, next *yaml.Node, dash int) ([]string, b
 
 // renderMappingEntry renders one key and value of a block mapping with the
 // key at column column.
-func renderMappingEntry(key string, old, name, next *yaml.Node, column int, twoSpace bool) ([]string, bool) {
+func renderMappingEntry(key string, old, name, next *yaml.Node, column int) ([]string, bool) {
 	value := keepStyles(old, next)
 	wrapper := &yaml.Node{Kind: yaml.MappingNode, Content: []*yaml.Node{
 		{Kind: yaml.ScalarNode, Tag: "!!str", Value: key},
 		{Kind: yaml.MappingNode, Tag: "!!map", Content: []*yaml.Node{name, value}},
 	}}
-	lines, ok := renderBelow(wrapper, column)
-	if !ok || !twoSpace {
-		return lines, ok
-	}
-	// yaml.v3 indents a mapping value by four spaces when marshaling nodes.
-	// Demand files use two; move the value subtree left without changing the
-	// key's established column.
-	for i := 1; i < len(lines); i++ {
-		if strings.HasPrefix(lines[i], strings.Repeat(" ", column+2)) {
-			lines[i] = lines[i][2:]
-		}
-	}
-	return lines, true
+	return renderBelow(wrapper, column)
 }
 
 // renderBelow renders wrapper, drops its first line (the wrapping key) and
 // moves the rest so its first line starts at column.
 func renderBelow(wrapper *yaml.Node, column int) ([]string, bool) {
-	// This is a temporary wrapper used to render one splice fragment, not a
-	// complete file. yaml.v3's four-space node indentation is normalized below
-	// to the sibling indentation in the existing file.
-	out, err := yaml.Marshal(wrapper)
+	// Use the same renderer as whole-file project formatting. In particular,
+	// yaml.Marshal uses four spaces for yaml.Node values, which cannot be
+	// corrected by shifting a whole fragment when it contains deeper mappings
+	// or sequences.
+	out, err := yamlformat.Render(wrapper)
 	if err != nil {
 		return nil, false
 	}

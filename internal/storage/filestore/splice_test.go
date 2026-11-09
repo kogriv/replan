@@ -168,6 +168,82 @@ func TestSpliceOverrunReviewAddsOnlyItsLines(t *testing.T) {
 	}
 }
 
+func TestSpliceOverrunReviewAlreadyMatchesProjectFormat(t *testing.T) {
+	root := t.TempDir()
+	writeHandFile(t, root, demandsRel, `resource_demands:
+  - id: demand.a
+    task_ref:
+      kind: task
+      id: task.a
+    resource_ref:
+      kind: resource
+      id: resource.x
+    resource_class: human
+    role: implementer
+    unit: hours
+    planned_amount: 2
+    remaining_amount: 2
+    status: active
+`)
+	review := domain.OverrunReview{
+		AcknowledgedForecast: 3,
+		Unit:                 "hours",
+		Reason:               "Real work",
+		ReviewedBy:           domain.Ref{Kind: "actor", ID: "actor.human.operator"},
+		ReviewedAt:           "2026-10-02T10:00:00+07:00",
+		EvidenceRefs:         []domain.Ref{{Kind: "evidence", ID: "evidence.review"}},
+	}
+	store := New(root)
+	if _, err := store.SetResourceDemandOverrunReview("demand.a", review); err != nil {
+		t.Fatal(err)
+	}
+	afterWrite := readHandFile(t, root, demandsRel)
+	if !strings.Contains(afterWrite, "      reviewed_by:\n        kind: actor\n") ||
+		!strings.Contains(afterWrite, "      evidence_refs:\n        - kind: evidence\n          id: evidence.review\n") {
+		t.Fatalf("nested overrun review is not canonical:\n%s", afterWrite)
+	}
+	assertFormatChangesNothing(t, store, demandsRel, afterWrite)
+}
+
+func TestSpliceTaskSchedulingAlreadyMatchesProjectFormat(t *testing.T) {
+	root := t.TempDir()
+	writeHandFile(t, root, tasksRel, `tasks:
+  - id: task.a
+    title: First task
+    tracking_status: not_started
+`)
+	store := New(root)
+	if _, err := store.SetTaskScheduling("task.a", 700, &domain.LeadTime{WorkingDays: 2, Reason: "External review"}); err != nil {
+		t.Fatal(err)
+	}
+	afterWrite := readHandFile(t, root, tasksRel)
+	if !strings.Contains(afterWrite, "    lead_time:\n      working_days: 2\n      reason: External review\n") {
+		t.Fatalf("lead_time is not canonical:\n%s", afterWrite)
+	}
+	assertFormatChangesNothing(t, store, tasksRel, afterWrite)
+}
+
+func assertFormatChangesNothing(t *testing.T, store Store, rel, want string) {
+	t.Helper()
+	changes, err := store.FormatCanonicalYAML(false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(changes) != 0 {
+		t.Fatalf("project format would change spliced file: %#v", changes)
+	}
+	changes, err = store.FormatCanonicalYAML(true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(changes) != 0 {
+		t.Fatalf("project format changed spliced file: %#v", changes)
+	}
+	if got := readHandFile(t, store.projectPath, rel); got != want {
+		t.Fatalf("project format changed bytes\n--- got\n%s\n--- want\n%s", got, want)
+	}
+}
+
 func TestSpliceAppendActualKeepsExistingBytes(t *testing.T) {
 	root := t.TempDir()
 	rel := actualsPath("2026-10-01")
