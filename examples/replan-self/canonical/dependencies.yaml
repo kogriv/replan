@@ -1690,7 +1690,7 @@ dependencies:
     successor_ref:
       kind: task
       id: task.self.lead-time-in-workload-and-next
-    status: open
+    status: resolved
     criticality: required
   - id: dependency.finish-to-start.self-lead-time-in-workload-and-next.self-lead-time-in-taskjuggler
     type: finish_to_start
@@ -1700,7 +1700,7 @@ dependencies:
     successor_ref:
       kind: task
       id: task.self.lead-time-in-taskjuggler
-    status: open
+    status: resolved
     criticality: required
   - id: dependency.finish-to-start.self-lead-time-in-taskjuggler.self-rerun-consumer-scheduler-comparison
     type: finish_to_start
@@ -1710,5 +1710,5 @@ dependencies:
     successor_ref:
       kind: task
       id: task.self.rerun-consumer-scheduler-comparison
-    status: open
+    status: resolved
     criticality: required

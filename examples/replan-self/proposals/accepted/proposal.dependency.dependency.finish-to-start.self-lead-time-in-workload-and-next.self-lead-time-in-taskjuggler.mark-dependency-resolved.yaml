@@ -1,0 +1,17 @@
+proposal:
+  id: proposal.dependency.dependency.finish-to-start.self-lead-time-in-workload-and-next.self-lead-time-in-taskjuggler.mark-dependency-resolved
+  type: mark_dependency_resolved
+  status: accepted
+  created_at: "2026-11-09T06:59:05+07:00"
+  created_by:
+    kind: actor
+    id: actor.ai.agent.executor
+  target_ref:
+    kind: dependency
+    id: dependency.finish-to-start.self-lead-time-in-workload-and-next.self-lead-time-in-taskjuggler
+  suggested_change:
+    op: set
+    path: dependencies.dependency.finish-to-start.self-lead-time-in-workload-and-next.self-lead-time-in-taskjuggler.status
+    value: resolved
+  rationale: Dependency dependency.finish-to-start.self-lead-time-in-workload-and-next.self-lead-time-in-taskjuggler (required) can be marked resolved because predecessor task.self.lead-time-in-workload-and-next is in the required state.
+  requires_confirmation: true

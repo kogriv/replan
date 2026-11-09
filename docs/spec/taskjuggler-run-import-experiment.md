@@ -497,8 +497,10 @@ Two copies were scheduled with `replan taskjuggler run`:
   tasks in the meantime. That is the strict queue the design left until a
   consumer asks for it; the project's final milestone date is the same.
 
-Two smaller findings: the script rewrites `.replan/project.yaml` without
-`format_version`, so `project migrate` (or the consumer's own `project
-format` step) must follow each run before RePlan reads the plan; and the
-plan's dependency statuses are left `open` behind finished predecessors,
-which `validate` reports as unresolved required dependencies.
+One smaller finding: the plan's dependency statuses are left `open` behind
+finished predecessors, which `validate` reports as unresolved required
+dependencies; `proposal suggest-dependencies` and `proposal accept` close
+them. (The script also rewrites `.replan/project.yaml` without
+`format_version`. That is harmless: a missing `format_version` reads as
+version 1, the current format, so no `project migrate` is needed. An
+earlier version of this note said otherwise.)

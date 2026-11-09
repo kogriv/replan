@@ -54,3 +54,49 @@ evidence:
     targets:
       - kind: task
         id: task.self.rerun-consumer-scheduler-comparison
+  - id: evidence.self.accept-rerun-consumer-scheduler-comparison
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T07:01:59+07:00"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.rerun-consumer-scheduler-comparison
+  - id: evidence.self.plan-status-dates-use-project-timezone
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T07:08:00+07:00"
+    summary: 'Found on 2026-11-09 accepting the lead time tasks: a UTC acceptance timestamp gave a status date one day before the local date, so one acceptance was refused and two finish dates came out a day early. Planned at 1.5 agent hours; waits for the maintainer''s agreement before a baseline and start.'
+    targets:
+      - kind: task
+        id: task.self.status-dates-use-project-timezone
+  - id: evidence.self.start-acknowledge-overrun-writes-canonical-style
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T06:54:06+07:00"
+    summary: The maintainer agreed the task at 0.5 agent hours (message 06:54:06) and asked to do it fully; estimate frozen in baseline.2026-11-09.acknowledge-overrun-style, split 0.3 Codex and 0.2 executor. Started on 2026-11-09, three days before plan.
+    targets:
+      - kind: task
+        id: task.self.acknowledge-overrun-writes-canonical-style
+  - id: evidence.self.acknowledge-overrun-writes-canonical-style
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T07:42:52+07:00"
+    summary: 'Fix commit 6cb9417: spliced items now use the project format renderer; yaml.Marshal had indented yaml.Node values by four spaces and the old shift fixed only the first nested level, so it covered every spliced item with nested mappings, not only acknowledge-overrun. Tests: acknowledge-overrun and task set-scheduling with lead_time followed by project format change nothing. project format on the self plan rewrote the 16 lines of the four old acknowledgements; a second run changes 0. Gate green (lint 0, 54 kit, 83 live checks). Codex 07:09:30-07:24:21 (0.25 h, prompt and last-file mtimes); executor 07:08:00-07:09:35 brief, 07:24:34-07:26:58 review, 07:42:04-07:42:52 commit and booking, 0.08 h by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.acknowledge-overrun-writes-canonical-style

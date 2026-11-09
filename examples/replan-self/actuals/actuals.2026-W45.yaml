@@ -2590,3 +2590,87 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.lead-time-and-priority-model
+  - id: actual.self-taskjuggler-import-skips-unchanged-dates.ci-github-actions.20261108T235728Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-import-skips-unchanged-dates
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-import-skips-unchanged-dates.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-08T23:57:28Z"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-taskjuggler-import-skips-unchanged-dates
+  - id: actual.self-lead-time-and-priority-model.ci-github-actions.20261108T235804Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.lead-time-and-priority-model
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.lead-time-and-priority-model.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-08T23:58:04Z"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-lead-time-and-priority-model
+  - id: actual.self-lead-time-in-workload-and-next.ci-github-actions.20261108T235840Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.lead-time-in-workload-and-next
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.lead-time-in-workload-and-next.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-08T23:58:40Z"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-lead-time-in-workload-and-next
+  - id: actual.self-lead-time-in-taskjuggler.ci-github-actions.20261108T235917Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.lead-time-in-taskjuggler
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.lead-time-in-taskjuggler.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-08T23:59:17Z"
+    status_date: "2026-11-08"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-lead-time-in-taskjuggler

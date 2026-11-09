@@ -1933,3 +1933,55 @@ evidence:
     targets:
       - kind: task
         id: task.self.lead-time-in-taskjuggler
+  - id: evidence.self.accept-taskjuggler-import-skips-unchanged-dates
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T23:57:28Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-import-skips-unchanged-dates
+  - id: evidence.self.accept-lead-time-and-priority-model
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T23:58:04Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.lead-time-and-priority-model
+  - id: evidence.self.accept-lead-time-in-workload-and-next
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T23:58:40Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.lead-time-in-workload-and-next
+  - id: evidence.self.accept-lead-time-in-taskjuggler
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-08T23:59:17Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.lead-time-in-taskjuggler

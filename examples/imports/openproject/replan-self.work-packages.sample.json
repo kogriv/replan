@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 246,
-  "count": 246,
+  "total": 247,
+  "count": 247,
   "_embedded": {
     "elements": [
       {
@@ -7066,7 +7066,7 @@
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
         "startDate": "2026-11-08",
-        "dueDate": "2026-11-09",
+        "dueDate": "2026-11-08",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2344"
@@ -7123,11 +7123,40 @@
         },
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
-        "startDate": "2026-11-12",
-        "dueDate": "2026-11-12",
+        "startDate": "2026-11-09",
+        "dueDate": "2026-11-09",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2346"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2347,
+        "subject": "Derive status dates in the project time zone",
+        "description": {
+          "raw": "Found on 2026-11-09 accepting the lead time tasks. A status or consumption actual written with a UTC timestamp (accept-task with REPLAN_ACCEPT_AT from date -u) takes its status_date from the literal date of the timestamp, not the date in the project time zone. An acceptance at 06:59 local on 2026-11-09 was dated 2026-11-08, earlier than the task's start, so record-actual-window refused with actual_window_inconsistent; two tasks accepted minutes before got a finish one day early. Derive status_date and every date taken from an occurred_at in the project time zone (.replan/project.yaml timezone) in actual add-status, add-consumption, set-remaining, accept-task, the actual window, workload and the overlay; tests with UTC and offset timestamps across midnight; correct the eight mis-dated records from 2026-11-09 through the reviewed correction path and fix the two finish dates."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-10",
+        "dueDate": "2026-11-10",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2347"
           },
           "status": {
             "title": "New"

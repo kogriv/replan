@@ -129,3 +129,66 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.rerun-consumer-scheduler-comparison
+  - id: actual.self-rerun-consumer-scheduler-comparison.ci-github-actions.20261109T0701590700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.rerun-consumer-scheduler-comparison
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.rerun-consumer-scheduler-comparison.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-09T07:01:59+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-rerun-consumer-scheduler-comparison
+  - id: actual.self-acknowledge-overrun-writes-canonical-style.ai-codex-local.20261109T0742520700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.acknowledge-overrun-writes-canonical-style
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.acknowledge-overrun-writes-canonical-style.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.25
+    unit: agent_hours
+    occurred_at: "2026-11-09T07:42:52+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.acknowledge-overrun-writes-canonical-style
+  - id: actual.self-acknowledge-overrun-writes-canonical-style.ai-agent-executor.20261109T0742520700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.acknowledge-overrun-writes-canonical-style
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.acknowledge-overrun-writes-canonical-style.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.08
+    unit: agent_hours
+    occurred_at: "2026-11-09T07:42:52+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.acknowledge-overrun-writes-canonical-style
