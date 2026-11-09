@@ -77,6 +77,7 @@ type ScenarioDiffResult struct {
 	Against           string                  `json:"against"`
 	Week              string                  `json:"week,omitempty"`
 	Changes           []domain.ScenarioChange `json:"changes"`
+	TaskChanges       []ScenarioTaskChange    `json:"task_changes"`
 	AffectedResources []string                `json:"affected_resources"`
 	WorkloadBefore    []ResourceWorkload      `json:"workload_before"`
 	WorkloadAfter     []ResourceWorkload      `json:"workload_after"`
@@ -84,20 +85,36 @@ type ScenarioDiffResult struct {
 	Errors            []Diagnostic            `json:"errors"`
 }
 
+type ScenarioTaskChange struct {
+	TaskID        string `json:"task_id"`
+	TaskTitle     string `json:"task_title"`
+	Field         string `json:"field"`
+	CurrentValue  string `json:"current_value"`
+	ScenarioValue string `json:"scenario_value"`
+}
+
 type ScenarioApplyResult struct {
-	DryRun             bool                  `json:"dry_run"`
-	Applied            bool                  `json:"applied"`
-	ScenarioID         string                `json:"scenario_id"`
-	ScenarioName       string                `json:"scenario_name"`
-	PreviousStatus     string                `json:"previous_status,omitempty"`
-	NewStatus          string                `json:"new_status,omitempty"`
-	Changes            []ScenarioApplyChange `json:"changes"`
-	PlannedWrites      []PlannedWrite        `json:"planned_writes"`
-	WrittenFiles       []string              `json:"written_files,omitempty"`
-	AuditRecordPreview domain.AuditRecord    `json:"audit_record_preview"`
-	Validation         *ValidateResult       `json:"validation,omitempty"`
-	Warnings           []Diagnostic          `json:"warnings"`
-	Errors             []Diagnostic          `json:"errors"`
+	DryRun             bool                     `json:"dry_run"`
+	Applied            bool                     `json:"applied"`
+	ScenarioID         string                   `json:"scenario_id"`
+	ScenarioName       string                   `json:"scenario_name"`
+	PreviousStatus     string                   `json:"previous_status,omitempty"`
+	NewStatus          string                   `json:"new_status,omitempty"`
+	Changes            []ScenarioApplyChange    `json:"changes"`
+	PlannedWrites      []PlannedWrite           `json:"planned_writes"`
+	WrittenFiles       []string                 `json:"written_files,omitempty"`
+	AuditRecordPreview domain.AuditRecord       `json:"audit_record_preview"`
+	LinkedProposals    []ScenarioLinkedProposal `json:"linked_proposals"`
+	Validation         *ValidateResult          `json:"validation,omitempty"`
+	Warnings           []Diagnostic             `json:"warnings"`
+	Errors             []Diagnostic             `json:"errors"`
+}
+
+type ScenarioLinkedProposal struct {
+	ID                         string              `json:"id"`
+	PreviousStatus             string              `json:"previous_status"`
+	NewStatus                  string              `json:"new_status"`
+	DecisionAuditRecordPreview *domain.AuditRecord `json:"decision_audit_record_preview,omitempty"`
 }
 
 type ScenarioApplyChange struct {
@@ -256,6 +273,77 @@ func scenarioDisplayValue(value any) string {
 	return fmt.Sprint(value)
 }
 
+func scenarioTaskChanges(ws domain.Workspace, scenario domain.Scenario) []ScenarioTaskChange {
+	changes := []ScenarioTaskChange{}
+	for _, change := range scenario.Changes {
+		task, field, ok := scenarioChangedTask(ws.Tasks, change.Path)
+		if !ok {
+			continue
+		}
+		changes = append(changes, ScenarioTaskChange{
+			TaskID:        task.ID,
+			TaskTitle:     task.Title,
+			Field:         field,
+			CurrentValue:  scenarioDisplayValue(taskFieldValue(task, field)),
+			ScenarioValue: scenarioDisplayValue(change.Value),
+		})
+	}
+	sort.Slice(changes, func(i, j int) bool {
+		if changes[i].TaskID == changes[j].TaskID {
+			return changes[i].Field < changes[j].Field
+		}
+		return changes[i].TaskID < changes[j].TaskID
+	})
+	return changes
+}
+
+func scenarioChangedTask(tasks []domain.Task, path string) (domain.Task, string, bool) {
+	var matched domain.Task
+	matchedPrefix := ""
+	for _, task := range tasks {
+		prefix := "tasks." + task.ID + "."
+		if strings.HasPrefix(path, prefix) && len(prefix) > len(matchedPrefix) {
+			matched = task
+			matchedPrefix = prefix
+		}
+	}
+	if matchedPrefix == "" || len(path) == len(matchedPrefix) {
+		return domain.Task{}, "", false
+	}
+	return matched, strings.TrimPrefix(path, matchedPrefix), true
+}
+
+func taskFieldValue(task domain.Task, field string) any {
+	data, err := json.Marshal(task)
+	if err != nil {
+		return nil
+	}
+	var fields map[string]any
+	if err := json.Unmarshal(data, &fields); err != nil {
+		return nil
+	}
+	var value any = fields
+	for _, part := range strings.Split(field, ".") {
+		mapping, ok := value.(map[string]any)
+		if !ok {
+			return nil
+		}
+		value = mapping[part]
+	}
+	return value
+}
+
+func linkedScenarioProposals(proposals []domain.Proposal, scenarioID string) []domain.Proposal {
+	linked := []domain.Proposal{}
+	for _, proposal := range proposals {
+		if proposal.TargetRef.Kind == "scenario" && proposal.TargetRef.ID == scenarioID {
+			linked = append(linked, proposal)
+		}
+	}
+	sort.Slice(linked, func(i, j int) bool { return linked[i].ID < linked[j].ID })
+	return linked
+}
+
 func (s ScenarioService) Diff(ctx context.Context, req ScenarioDiffRequest) (ScenarioDiffResult, error) {
 	ws, loadDiags := s.loader.Load(ctx)
 	result := ScenarioDiffResult{
@@ -263,6 +351,7 @@ func (s ScenarioService) Diff(ctx context.Context, req ScenarioDiffRequest) (Sce
 		Against:           req.Against,
 		Week:              req.Week,
 		Changes:           []domain.ScenarioChange{},
+		TaskChanges:       []ScenarioTaskChange{},
 		AffectedResources: []string{},
 		WorkloadBefore:    []ResourceWorkload{},
 		WorkloadAfter:     []ResourceWorkload{},
@@ -288,6 +377,7 @@ func (s ScenarioService) Diff(ctx context.Context, req ScenarioDiffRequest) (Sce
 	workload, err := NewWorkloadService(s.loader).Calculate(ctx, WorkloadRequest{Week: req.Week})
 	result.ScenarioName = scenario.Name
 	result.Changes = scenario.Changes
+	result.TaskChanges = scenarioTaskChanges(ws, scenario)
 	result.WorkloadBefore = workload.Resources
 	result.Warnings = append(result.Warnings, workload.Warnings...)
 	result.Errors = append(result.Errors, workload.Errors...)
@@ -325,14 +415,15 @@ func (s ScenarioService) Diff(ctx context.Context, req ScenarioDiffRequest) (Sce
 func (s ScenarioService) Apply(ctx context.Context, req ScenarioApplyRequest) (ScenarioApplyResult, error) {
 	ws, loadDiags := s.loader.Load(ctx)
 	result := ScenarioApplyResult{
-		DryRun:        req.DryRun,
-		ScenarioID:    req.ID,
-		NewStatus:     "applied",
-		Changes:       []ScenarioApplyChange{},
-		PlannedWrites: []PlannedWrite{},
-		WrittenFiles:  []string{},
-		Warnings:      []Diagnostic{},
-		Errors:        []Diagnostic{},
+		DryRun:          req.DryRun,
+		ScenarioID:      req.ID,
+		NewStatus:       "applied",
+		Changes:         []ScenarioApplyChange{},
+		PlannedWrites:   []PlannedWrite{},
+		WrittenFiles:    []string{},
+		LinkedProposals: []ScenarioLinkedProposal{},
+		Warnings:        []Diagnostic{},
+		Errors:          []Diagnostic{},
 	}
 	appendLoadDiagnostics(&result.Warnings, &result.Errors, loadDiags)
 	scenario, ok := findScenario(ws.Scenarios, req.ID)
@@ -380,6 +471,18 @@ func (s ScenarioService) Apply(ctx context.Context, req ScenarioApplyRequest) (S
 			Target:   Target{Kind: "scenario", ID: scenario.ID},
 		})
 	}
+	if ok {
+		for _, proposal := range linkedScenarioProposals(ws.Proposals, scenario.ID) {
+			if proposal.Status == "rejected" {
+				result.Errors = append(result.Errors, Diagnostic{
+					Code:     "scenario_linked_proposal_rejected",
+					Message:  fmt.Sprintf("scenario %s cannot be applied because linked proposal %s was rejected", scenario.ID, proposal.ID),
+					Severity: "error",
+					Target:   Target{Kind: "proposal", ID: proposal.ID},
+				})
+			}
+		}
+	}
 	if len(result.Errors) > 0 {
 		return result, ErrValidationFailed
 	}
@@ -410,6 +513,21 @@ func (s ScenarioService) Apply(ctx context.Context, req ScenarioApplyRequest) (S
 	audit := scenarioApplyAuditRecord(req, scenario, len(result.Changes))
 	result.AuditRecordPreview = audit
 	result.PlannedWrites = scenarioApplyPlannedWrites(scenario, result.Changes, audit)
+	for _, proposal := range linkedScenarioProposals(ws.Proposals, scenario.ID) {
+		linked := ScenarioLinkedProposal{ID: proposal.ID, PreviousStatus: proposal.Status, NewStatus: proposal.Status}
+		if proposal.Status == "open" {
+			linked.NewStatus = "accepted"
+			decisionAudit := proposalDecisionAuditRecord(ProposalDecisionRequest{
+				ID: proposal.ID, ActorID: req.ActorID, Reason: audit.Reason, DryRun: req.DryRun, Now: req.Now,
+			}, proposal, "accepted")
+			decisionAudit.Reason = fmt.Sprintf("%s Linked scenario apply: %s.", audit.Reason, audit.ID)
+			linked.DecisionAuditRecordPreview = &decisionAudit
+			decided := proposal
+			decided.Status = "accepted"
+			result.PlannedWrites = append(result.PlannedWrites, proposalDecisionPlannedWrites(proposal, decided, decisionAudit, nil, nil, nil)...)
+		}
+		result.LinkedProposals = append(result.LinkedProposals, linked)
+	}
 	if req.DryRun {
 		return result, nil
 	}
@@ -435,6 +553,20 @@ func (s ScenarioService) Apply(ctx context.Context, req ScenarioApplyRequest) (S
 			Target:   Target{Kind: "scenario", ID: scenario.ID},
 		})
 		return result, err
+	}
+	for _, linked := range result.LinkedProposals {
+		if linked.PreviousStatus != "open" || linked.DecisionAuditRecordPreview == nil {
+			continue
+		}
+		proposalFiles, proposalErr := writeProposalDecision(session.target, linked.ID, "accepted", nil, nil, nil, linked.DecisionAuditRecordPreview)
+		if proposalErr != nil {
+			result.Errors = append(result.Errors, Diagnostic{
+				Code: "scenario_linked_proposal_accept_failed", Message: proposalErr.Error(), Severity: "error",
+				Target: Target{Kind: "proposal", ID: linked.ID},
+			})
+			return result, proposalErr
+		}
+		writtenFiles = append(writtenFiles, proposalFiles...)
 	}
 	result.WrittenFiles = writtenFiles
 	validation, written, err := session.finish(ctx, result.WrittenFiles)

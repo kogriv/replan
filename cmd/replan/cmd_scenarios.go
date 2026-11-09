@@ -114,7 +114,13 @@ func runScenarioDiff(args []string, stdout, stderr *os.File) int {
 		Errors:      result.Errors,
 	}
 	if *format == "markdown" || *format == "text" {
-		if printErr := writeScenarioDiffMarkdown(stdout, result); printErr != nil {
+		var printErr error
+		if *format == "markdown" {
+			printErr = writeScenarioDiffMarkdown(stdout, result)
+		} else {
+			printErr = writeScenarioDiffText(stdout, result)
+		}
+		if printErr != nil {
 			fmt.Fprintf(stderr, "failed to write output: %v\n", printErr)
 			return exitGeneralError
 		}
@@ -193,6 +199,23 @@ func writeScenarioDiffMarkdown(stdout *os.File, diff app.ScenarioDiffResult) err
 			return err
 		}
 	}
+	if len(diff.TaskChanges) > 0 {
+		if _, err := fmt.Fprintln(stdout, "\n## Task Changes"); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintln(stdout, "| Task ID | Title | Field | Current | Scenario |"); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintln(stdout, "|---|---|---|---|---|"); err != nil {
+			return err
+		}
+		for _, change := range diff.TaskChanges {
+			if _, err := fmt.Fprintf(stdout, "| `%s` | %s | `%s` | %s | %s |\n",
+				markdownCell(change.TaskID), markdownCell(change.TaskTitle), markdownCell(change.Field), markdownCell(change.CurrentValue), markdownCell(change.ScenarioValue)); err != nil {
+				return err
+			}
+		}
+	}
 	if _, err := fmt.Fprintln(stdout, "\n## Affected Resources"); err != nil {
 		return err
 	}
@@ -209,29 +232,28 @@ func writeScenarioDiffMarkdown(stdout *os.File, diff app.ScenarioDiffResult) err
 	if _, err := fmt.Fprintln(stdout, "\n## Workload Changes"); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintln(stdout, "| Resource | Unit | Capacity Before | Capacity After | Overload Before | Overload After |"); err != nil {
-		return err
-	}
-	if _, err := fmt.Fprintln(stdout, "|---|---:|---:|---:|---:|---:|"); err != nil {
-		return err
-	}
-	before := map[string]app.ResourceWorkload{}
-	for _, row := range diff.WorkloadBefore {
-		before[row.ResourceID+"\x00"+row.Unit] = row
-	}
-	for _, after := range diff.WorkloadAfter {
-		key := after.ResourceID + "\x00" + after.Unit
-		prior := before[key]
-		if prior.Capacity == after.Capacity && prior.Overload == after.Overload {
-			continue
-		}
-		name := after.ResourceName
-		if name == "" {
-			name = after.ResourceID
-		}
-		if _, err := fmt.Fprintf(stdout, "| `%s` | %s | %g | %g | %g | %g |\n",
-			name, after.Unit, prior.Capacity, after.Capacity, prior.Overload, after.Overload); err != nil {
+	loadChanges := scenarioWorkloadChanges(diff)
+	if len(loadChanges) == 0 {
+		if _, err := fmt.Fprintln(stdout, "- No load changes."); err != nil {
 			return err
+		}
+	} else {
+		if _, err := fmt.Fprintln(stdout, "| Resource | Unit | Capacity Before | Capacity After | Overload Before | Overload After |"); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintln(stdout, "|---|---:|---:|---:|---:|---:|"); err != nil {
+			return err
+		}
+		for _, change := range loadChanges {
+			prior, after := change.Before, change.After
+			name := after.ResourceName
+			if name == "" {
+				name = after.ResourceID
+			}
+			if _, err := fmt.Fprintf(stdout, "| `%s` | %s | %g | %g | %g | %g |\n",
+				name, after.Unit, prior.Capacity, after.Capacity, prior.Overload, after.Overload); err != nil {
+				return err
+			}
 		}
 	}
 	if len(diff.Warnings) > 0 {
@@ -245,6 +267,95 @@ func writeScenarioDiffMarkdown(stdout *os.File, diff app.ScenarioDiffResult) err
 		}
 	}
 	return nil
+}
+
+type scenarioWorkloadChange struct {
+	Before app.ResourceWorkload
+	After  app.ResourceWorkload
+}
+
+func scenarioWorkloadChanges(diff app.ScenarioDiffResult) []scenarioWorkloadChange {
+	before := map[string]app.ResourceWorkload{}
+	for _, row := range diff.WorkloadBefore {
+		before[row.ResourceID+"\x00"+row.Unit] = row
+	}
+	changes := []scenarioWorkloadChange{}
+	for _, after := range diff.WorkloadAfter {
+		prior := before[after.ResourceID+"\x00"+after.Unit]
+		if prior.Capacity != after.Capacity || prior.Overload != after.Overload {
+			changes = append(changes, scenarioWorkloadChange{Before: prior, After: after})
+		}
+	}
+	return changes
+}
+
+func writeScenarioDiffText(stdout *os.File, diff app.ScenarioDiffResult) error {
+	if _, err := fmt.Fprintf(stdout, "Scenario: %s\nName: %s\nAgainst: %s\n", diff.ScenarioID, diff.ScenarioName, diff.Against); err != nil {
+		return err
+	}
+	if diff.Week != "" {
+		if _, err := fmt.Fprintf(stdout, "Week: %s\n", diff.Week); err != nil {
+			return err
+		}
+	}
+	if len(diff.TaskChanges) > 0 {
+		if _, err := fmt.Fprintln(stdout, "\nTASK CHANGES"); err != nil {
+			return err
+		}
+		tw := tabwriter.NewWriter(stdout, 0, 4, 2, ' ', 0)
+		if _, err := fmt.Fprintln(tw, "TASK ID\tTITLE\tFIELD\tCURRENT\tSCENARIO"); err != nil {
+			return err
+		}
+		for _, change := range diff.TaskChanges {
+			if _, err := fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\n", change.TaskID, change.TaskTitle, change.Field, change.CurrentValue, change.ScenarioValue); err != nil {
+				return err
+			}
+		}
+		if err := tw.Flush(); err != nil {
+			return err
+		}
+	}
+	if _, err := fmt.Fprintln(stdout, "\nAFFECTED RESOURCES"); err != nil {
+		return err
+	}
+	if len(diff.AffectedResources) == 0 {
+		if _, err := fmt.Fprintln(stdout, "none"); err != nil {
+			return err
+		}
+	} else {
+		for _, resourceID := range diff.AffectedResources {
+			if _, err := fmt.Fprintln(stdout, resourceID); err != nil {
+				return err
+			}
+		}
+	}
+	if _, err := fmt.Fprintln(stdout, "\nWORKLOAD CHANGES"); err != nil {
+		return err
+	}
+	loadChanges := scenarioWorkloadChanges(diff)
+	if len(loadChanges) == 0 {
+		if _, err := fmt.Fprintln(stdout, "No load changes."); err != nil {
+			return err
+		}
+	} else {
+		tw := tabwriter.NewWriter(stdout, 0, 4, 2, ' ', 0)
+		if _, err := fmt.Fprintln(tw, "RESOURCE\tUNIT\tCAPACITY BEFORE\tCAPACITY AFTER\tOVERLOAD BEFORE\tOVERLOAD AFTER"); err != nil {
+			return err
+		}
+		for _, change := range loadChanges {
+			name := change.After.ResourceName
+			if name == "" {
+				name = change.After.ResourceID
+			}
+			if _, err := fmt.Fprintf(tw, "%s\t%s\t%g\t%g\t%g\t%g\n", name, change.After.Unit, change.Before.Capacity, change.After.Capacity, change.Before.Overload, change.After.Overload); err != nil {
+				return err
+			}
+		}
+		if err := tw.Flush(); err != nil {
+			return err
+		}
+	}
+	return writeDiagnosticsText(stdout, diff.Warnings, diff.Errors)
 }
 
 func writeScenarioListMarkdown(stdout *os.File, result app.ScenarioListResult) error {
@@ -341,12 +452,15 @@ func writeScenarioApplyMarkdown(stdout *os.File, result app.ScenarioApplyResult)
 	if _, err := fmt.Fprintf(stdout, "- Status: `%s` -> `%s`\n", result.PreviousStatus, result.NewStatus); err != nil {
 		return err
 	}
+	if err := writeScenarioApplyLinkedProposals(stdout, result.LinkedProposals); err != nil {
+		return err
+	}
 	if len(result.Changes) > 0 {
 		if _, err := fmt.Fprintln(stdout, "\n## Changes"); err != nil {
 			return err
 		}
 		for _, change := range result.Changes {
-			if _, err := fmt.Fprintf(stdout, "- `%s`: `%s` %g -> %g\n", change.TargetID, change.Field, change.PreviousValue, change.NewValue); err != nil {
+			if _, err := fmt.Fprintf(stdout, "- `%s`: `%s` %v -> %v\n", change.TargetID, change.Field, change.PreviousValue, change.NewValue); err != nil {
 				return err
 			}
 		}
@@ -379,6 +493,30 @@ func writeScenarioApplyMarkdown(stdout *os.File, result app.ScenarioApplyResult)
 			return err
 		}
 		if _, err := fmt.Fprintf(stdout, "- `%s`: `%s`\n", result.AuditRecordPreview.ID, result.AuditRecordPreview.Operation); err != nil {
+			return err
+		}
+		if err := writeScenarioApplyProposalAudits(stdout, result.LinkedProposals); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func writeScenarioApplyLinkedProposals(stdout *os.File, proposals []app.ScenarioLinkedProposal) error {
+	for _, proposal := range proposals {
+		if _, err := fmt.Fprintf(stdout, "- Linked proposal: `%s` (`%s` -> `%s`)\n", proposal.ID, proposal.PreviousStatus, proposal.NewStatus); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func writeScenarioApplyProposalAudits(stdout *os.File, proposals []app.ScenarioLinkedProposal) error {
+	for _, proposal := range proposals {
+		if proposal.DecisionAuditRecordPreview == nil {
+			continue
+		}
+		if _, err := fmt.Fprintf(stdout, "- `%s`: `%s` for `%s`\n", proposal.DecisionAuditRecordPreview.ID, proposal.DecisionAuditRecordPreview.Operation, proposal.ID); err != nil {
 			return err
 		}
 	}

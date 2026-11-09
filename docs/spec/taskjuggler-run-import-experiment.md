@@ -252,6 +252,20 @@ replan taskjuggler import-result \
   --format json
 ```
 
+Review and apply the written candidate as one flow:
+
+```bash
+replan scenario diff --project examples/small-team --format markdown scenario.tj.20260713T200000Z
+replan scenario apply --project examples/small-team --actor actor.human.operator --reason "Accept generated dates." --dry-run --format markdown scenario.tj.20260713T200000Z
+replan scenario apply --project examples/small-team --actor actor.human.operator --reason "Accept generated dates." --apply --format markdown scenario.tj.20260713T200000Z
+```
+
+The diff shows task id, title, changed date field, current value and candidate
+value. Apply accepts the linked open TaskJuggler proposal in the same staged
+write and records both scenario-apply and proposal-decision audits. Applying
+after a separate proposal accept remains valid. A rejected linked proposal
+blocks apply.
+
 Candidate preview command:
 
 ```bash
@@ -406,11 +420,13 @@ Implemented slices:
    reviewable scenario/proposal files.
 8. `replan proposal accept/reject` approval gate for generated proposals without
    canonical current-plan mutation.
+9. `replan scenario diff` readable task-date rows and one `scenario apply`
+   flow that accepts the linked open proposal atomically.
 
 Backlog:
 
-1. End-to-end smoke for TaskJuggler-generated date candidates through proposal
-   acceptance and scenario apply.
+1. End-to-end smoke for TaskJuggler-generated date candidates through the
+   combined scenario apply and proposal decision.
 
 Do not skip directly to import before run artifacts are stable.
 

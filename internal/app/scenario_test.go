@@ -130,6 +130,9 @@ func TestScenarioApplyWritesCanonicalScenarioAndAudit(t *testing.T) {
 	if !result.Applied {
 		t.Fatalf("Applied = false, want true")
 	}
+	if len(result.LinkedProposals) != 0 {
+		t.Fatalf("LinkedProposals = %#v, want none", result.LinkedProposals)
+	}
 	if len(result.WrittenFiles) != 3 {
 		t.Fatalf("WrittenFiles len = %d, want 3: %#v", len(result.WrittenFiles), result.WrittenFiles)
 	}
@@ -171,6 +174,13 @@ func TestScenarioApplyWritesTaskPlannedDates(t *testing.T) {
 `)
 	store := filestore.New(projectPath)
 	service := app.NewScenarioService(store)
+	diff, err := service.Diff(context.Background(), app.ScenarioDiffRequest{ID: "scenario.taskjuggler.date-apply", Against: "current"})
+	if err != nil {
+		t.Fatalf("Diff returned error: %v", err)
+	}
+	if len(diff.TaskChanges) != 2 || diff.TaskChanges[0].TaskID != "task.op.1234" || diff.TaskChanges[0].Field != "planned_finish" || diff.TaskChanges[0].TaskTitle == "" || diff.TaskChanges[1].Field != "planned_start" {
+		t.Fatalf("task changes = %#v", diff.TaskChanges)
+	}
 
 	result, err := service.Apply(context.Background(), app.ScenarioApplyRequest{
 		ID:      "scenario.taskjuggler.date-apply",
@@ -197,6 +207,83 @@ func TestScenarioApplyWritesTaskPlannedDates(t *testing.T) {
 	}
 	if !hasScenarioStatus(ws.Scenarios, "scenario.taskjuggler.date-apply", "applied") {
 		t.Fatalf("scenario was not marked applied")
+	}
+}
+
+func TestScenarioApplyAcceptsLinkedOpenProposalWithDecisionAudit(t *testing.T) {
+	projectPath := copyScenarioProjectFixture(t)
+	writeTaskJugglerDateScenarioFixture(t, projectPath, "scenario.taskjuggler.linked-open")
+	writeScenarioProposalFixture(t, projectPath, "proposal.taskjuggler.linked-open", "scenario.taskjuggler.linked-open", "open")
+	store := filestore.New(projectPath)
+
+	result, err := app.NewScenarioService(store).Apply(context.Background(), app.ScenarioApplyRequest{
+		ID: "scenario.taskjuggler.linked-open", ActorID: "actor.human.operator", Reason: "Approve generated dates.", Now: fixedScenarioApplyTestTime(),
+	})
+	if err != nil || !result.Applied {
+		t.Fatalf("Apply result = %#v, err = %v", result, err)
+	}
+	if len(result.LinkedProposals) != 1 || result.LinkedProposals[0].ID != "proposal.taskjuggler.linked-open" || result.LinkedProposals[0].PreviousStatus != "open" || result.LinkedProposals[0].NewStatus != "accepted" {
+		t.Fatalf("linked proposals = %#v", result.LinkedProposals)
+	}
+	decisionAudit := result.LinkedProposals[0].DecisionAuditRecordPreview
+	if decisionAudit == nil || decisionAudit.ActorRef.ID != "actor.human.operator" || !strings.Contains(decisionAudit.Reason, "Approve generated dates.") || !strings.Contains(decisionAudit.Reason, result.AuditRecordPreview.ID) {
+		t.Fatalf("decision audit = %#v", decisionAudit)
+	}
+
+	ws, diags := store.Load(context.Background())
+	if len(diags) != 0 {
+		t.Fatalf("load diagnostics = %#v", diags)
+	}
+	if !hasScenarioProposalStatus(ws.Proposals, "proposal.taskjuggler.linked-open", "accepted") {
+		t.Fatalf("linked proposal was not accepted: %#v", ws.Proposals)
+	}
+	if !hasProposalDecisionAudit(ws.AuditRecords, "proposal.taskjuggler.linked-open", "proposal_accepted") {
+		t.Fatalf("proposal acceptance audit was not loaded: %#v", ws.AuditRecords)
+	}
+}
+
+func TestScenarioApplyAfterLinkedProposalAcceptedDoesNotDecideAgain(t *testing.T) {
+	projectPath := copyScenarioProjectFixture(t)
+	writeTaskJugglerDateScenarioFixture(t, projectPath, "scenario.taskjuggler.already-accepted")
+	writeScenarioProposalFixture(t, projectPath, "proposal.taskjuggler.already-accepted", "scenario.taskjuggler.already-accepted", "accepted")
+	store := filestore.New(projectPath)
+
+	result, err := app.NewScenarioService(store).Apply(context.Background(), app.ScenarioApplyRequest{
+		ID: "scenario.taskjuggler.already-accepted", ActorID: "actor.human.operator", Reason: "Apply accepted dates.", Now: fixedScenarioApplyTestTime(),
+	})
+	if err != nil || !result.Applied {
+		t.Fatalf("Apply result = %#v, err = %v", result, err)
+	}
+	if len(result.LinkedProposals) != 1 || result.LinkedProposals[0].PreviousStatus != "accepted" || result.LinkedProposals[0].NewStatus != "accepted" || result.LinkedProposals[0].DecisionAuditRecordPreview != nil {
+		t.Fatalf("linked proposals = %#v", result.LinkedProposals)
+	}
+	ws, diags := store.Load(context.Background())
+	if len(diags) != 0 {
+		t.Fatalf("load diagnostics = %#v", diags)
+	}
+	if hasProposalDecisionAudit(ws.AuditRecords, "proposal.taskjuggler.already-accepted", "proposal_accepted") {
+		t.Fatalf("scenario apply created a second proposal decision: %#v", ws.AuditRecords)
+	}
+}
+
+func TestScenarioApplyRefusesLinkedRejectedProposal(t *testing.T) {
+	projectPath := copyScenarioProjectFixture(t)
+	writeTaskJugglerDateScenarioFixture(t, projectPath, "scenario.taskjuggler.rejected")
+	writeScenarioProposalFixture(t, projectPath, "proposal.taskjuggler.rejected", "scenario.taskjuggler.rejected", "rejected")
+	store := filestore.New(projectPath)
+
+	result, err := app.NewScenarioService(store).Apply(context.Background(), app.ScenarioApplyRequest{
+		ID: "scenario.taskjuggler.rejected", ActorID: "actor.human.operator", Reason: "Try rejected dates.", Now: fixedScenarioApplyTestTime(),
+	})
+	if !errors.Is(err, app.ErrValidationFailed) || !hasScenarioDiagnostic(result.Errors, "scenario_linked_proposal_rejected") {
+		t.Fatalf("Apply result = %#v, err = %v", result, err)
+	}
+	ws, diags := store.Load(context.Background())
+	if len(diags) != 0 {
+		t.Fatalf("load diagnostics = %#v", diags)
+	}
+	if !hasScenarioStatus(ws.Scenarios, "scenario.taskjuggler.rejected", "proposed") {
+		t.Fatalf("rejected scenario was mutated")
 	}
 }
 
@@ -447,6 +534,48 @@ func writeScenarioFixture(t *testing.T, projectPath, scenarioID, content string)
 	}
 }
 
+func writeTaskJugglerDateScenarioFixture(t *testing.T, projectPath, scenarioID string) {
+	t.Helper()
+	writeScenarioFixture(t, projectPath, scenarioID, `scenario:
+  id: `+scenarioID+`
+  name: TaskJuggler linked candidate
+  status: proposed
+  base_ref: {kind: current_plan, id: current}
+  changes:
+    - op: set
+      path: tasks.task.op.1234.planned_start
+      value: "2026-07-06"
+    - op: set
+      path: tasks.task.op.1234.planned_finish
+      value: "2026-07-13"
+`)
+}
+
+func writeScenarioProposalFixture(t *testing.T, projectPath, proposalID, scenarioID, status string) {
+	t.Helper()
+	dir := filepath.Join(projectPath, "proposals", status)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	content := `proposal:
+  id: ` + proposalID + `
+  type: taskjuggler_schedule_candidate
+  status: ` + status + `
+  created_at: "2026-07-15T08:00:00Z"
+  created_by: {kind: actor, id: actor.ai.codex.local}
+  target_ref: {kind: scenario, id: ` + scenarioID + `}
+  suggested_change:
+    op: create
+    path: scenarios/` + scenarioID + `.yaml
+    value: ` + scenarioID + `
+  rationale: Generated schedule candidate.
+  requires_confirmation: true
+`
+	if err := os.WriteFile(filepath.Join(dir, proposalID+".yaml"), []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func hasScenarioSummary(scenarios []app.ScenarioSummary, id string) bool {
 	for _, scenario := range scenarios {
 		if scenario.ID == id {
@@ -519,6 +648,24 @@ func findTask(t *testing.T, tasks []domain.Task, id string) domain.Task {
 func hasScenarioStatus(scenarios []domain.Scenario, id, status string) bool {
 	for _, scenario := range scenarios {
 		if scenario.ID == id && scenario.Status == status {
+			return true
+		}
+	}
+	return false
+}
+
+func hasScenarioProposalStatus(proposals []domain.Proposal, id, status string) bool {
+	for _, proposal := range proposals {
+		if proposal.ID == id && proposal.Status == status {
+			return true
+		}
+	}
+	return false
+}
+
+func hasProposalDecisionAudit(records []domain.AuditRecord, proposalID, operation string) bool {
+	for _, record := range records {
+		if record.TargetRef.Kind == "proposal" && record.TargetRef.ID == proposalID && record.Operation == operation {
 			return true
 		}
 	}

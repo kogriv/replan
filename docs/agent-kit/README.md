@@ -452,6 +452,13 @@ one.
 | Read and edit the project wiki | `scripts/openproject-wiki.sh` |
 | Bring files written by an older tool into the current style | `bin/replan project format` |
 
+For drafted dates, use the scenario id returned by `taskjuggler import-result
+--write-candidate`: inspect it with `scenario diff --format markdown`, preview
+`scenario apply --dry-run`, and then repeat with `--apply`, a human `--actor`
+and a `--reason`. Apply accepts the linked open TaskJuggler proposal in the
+same audited write. If the proposal was accepted first, apply still works; if
+it was rejected, apply refuses.
+
 When something is missing, do not work around RePlan's internals. Open an
 issue in the RePlan repository, or tell whoever gave you this kit, saying
 what you need, which command you tried and what its JSON said. Until the command exists,

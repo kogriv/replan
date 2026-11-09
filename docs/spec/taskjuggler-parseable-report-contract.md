@@ -300,6 +300,13 @@ Dry-run should produce preview-only scenario/proposal candidates.
 
 Write-candidate mode writes reviewable scenario/proposal files only.
 
+The review flow is `scenario diff` followed by `scenario apply`. Markdown and
+text diff output show the task id, title, field, current value and candidate
+value and omit an empty workload table. Applying the scenario accepts its
+linked open proposal in the same staged write and records the proposal decision
+audit. An already accepted proposal needs no second decision; a rejected one
+blocks apply.
+
 Both modes must not mutate canonical task/resource/current-plan state.
 
 Both modes must not write back to OpenProject, Plane, GitHub or GitLab.
@@ -433,11 +440,13 @@ Implemented:
    for reviewable scenario/proposal candidate files.
 8. Implement `replan proposal accept/reject` approval gate for reviewable
    candidates without canonical current-plan mutation.
+9. Implement readable task rows in `scenario diff` and combined scenario apply
+   plus linked-proposal acceptance.
 
 Backlog:
 
-1. End-to-end smoke for TaskJuggler-generated date candidates through proposal
-   acceptance and scenario apply.
+1. End-to-end smoke for TaskJuggler-generated date candidates through the
+   combined scenario apply and proposal decision.
 
 ## Non-goals
 

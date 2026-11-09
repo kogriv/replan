@@ -352,11 +352,18 @@ go run ./cmd/replan taskjuggler run --project examples/small-team --scenario sce
 go run ./cmd/replan taskjuggler run --project examples/small-team --scenario scenario.ivan-capacity-6 --output-dir exports/taskjuggler/scenario.ivan-capacity-6/run.manual --unrepresented-assumptions error --format json
 go run ./cmd/replan taskjuggler import-result --project examples/small-team --run-dir exports/taskjuggler/scenario.ivan-capacity-6/run.manual --dry-run --format json
 go run ./cmd/replan taskjuggler import-result --project examples/small-team --run-dir exports/taskjuggler/scenario.ivan-capacity-6/run.manual --write-candidate --actor actor.human.operator --format json
+go run ./cmd/replan scenario diff --project examples/small-team --format markdown scenario.taskjuggler.<run-id>
+go run ./cmd/replan scenario apply --project examples/small-team --actor actor.human.operator --reason "Accept generated dates." --dry-run --format markdown scenario.taskjuggler.<run-id>
+go run ./cmd/replan scenario apply --project examples/small-team --actor actor.human.operator --reason "Accept generated dates." --apply --format markdown scenario.taskjuggler.<run-id>
 ```
 
 `taskjuggler import-result` previews task-date scenario changes. Explicit
 `--write-candidate --actor <id>` writes reviewable scenario and proposal files,
-not canonical task state or source-system updates.
+not canonical task state or source-system updates. Replace the example
+`scenario.taskjuggler.<run-id>` with the returned `scenario_preview.id`.
+Applying that scenario also
+accepts its linked open proposal in the same audited write; an already accepted
+proposal stays accepted, and a rejected proposal blocks apply.
 
 ### Import OpenProject
 

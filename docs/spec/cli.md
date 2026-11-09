@@ -1463,7 +1463,10 @@ replan scenario apply --project -p --bindings --format --actor --apply --dry-run
 `scenario list --format markdown|text` renders id, name, status and change
 count. `scenario show --format markdown|text` renders id, name, status,
 description and every change as target, field, previous value and new value.
-The JSON envelope and result shapes are unchanged.
+`scenario diff --format markdown|text` renders task changes as task id, title,
+field, current value and scenario value, sorted by task id then field. It says
+`No load changes` instead of rendering an empty workload table. JSON includes
+the same rows in `task_changes` while retaining the raw `changes` array.
 
 Rules:
 
@@ -1485,6 +1488,14 @@ Rules:
 - `--evidence` is optional for other scenarios and is checked to exist;
 - scenario apply marks the scenario as `applied`, writes audit and validates
   after mutation.
+- when proposals target the scenario, apply refuses with
+  `scenario_linked_proposal_rejected` if any is rejected. Otherwise it accepts
+  every linked open proposal in the same staged commit, using the apply actor
+  and reason and writing a proposal-decision audit linked by reason to the
+  scenario-apply audit. Already accepted proposals remain accepted and get no
+  second decision. `linked_proposals` and Markdown/text output name each
+  proposal and its status transition. A scenario with no linked proposal keeps
+  the existing apply behavior.
 
 MVP minimum:
 
@@ -3265,6 +3276,9 @@ Import-result command shape:
 ```bash
 replan taskjuggler import-result --project examples/small-team --run-dir exports/taskjuggler/scenario.ivan-capacity-6/run.20260713T200000Z --dry-run --format json
 replan taskjuggler import-result --project examples/small-team --run-dir exports/taskjuggler/scenario.ivan-capacity-6/run.20260713T200000Z --write-candidate --actor actor.human.operator --format json
+replan scenario diff --project examples/small-team --format markdown scenario.taskjuggler.<run-id>
+replan scenario apply --project examples/small-team --actor actor.human.operator --reason "Accept the generated schedule." --dry-run --format markdown scenario.taskjuggler.<run-id>
+replan scenario apply --project examples/small-team --actor actor.human.operator --reason "Accept the generated schedule." --apply --format markdown scenario.taskjuggler.<run-id>
 ```
 
 Current import-result rules:
@@ -3293,6 +3307,11 @@ Current import-result rules:
   `calibrations`;
 - `--write-candidate` writes only reviewable `scenarios/*.yaml` and
   `proposals/open/*.yaml` files;
+- review the candidate with `scenario diff`; its Markdown and text output show
+  the changed task dates directly;
+- applying the candidate scenario accepts its linked open
+  `taskjuggler_schedule_candidate` proposal in the same write. Accepting the
+  proposal first remains valid; rejecting it makes scenario apply refuse;
 - command does not mutate canonical task/resource/current-plan state;
 - command does not import resource assignments, statuses, effort values,
   dependencies, actuals or source-system write-back.
