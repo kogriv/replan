@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 257,
-  "count": 257,
+  "total": 259,
+  "count": 259,
   "_embedded": {
     "elements": [
       {
@@ -7442,11 +7442,69 @@
         },
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
-        "startDate": "2026-11-10",
-        "dueDate": "2026-11-10",
+        "startDate": "2026-11-09",
+        "dueDate": "2026-11-09",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2357"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2358,
+        "subject": "Give the second consumer project its own OpenProject identity",
+        "description": {
+          "raw": "The second consumer project's kit used an API token issued for the maintainer's own account, which is also a member of three other projects. Create an API-only agent user that is a member of that project only, with a role built from the permissions its kit uses (work packages, relations, versions, wiki pages and attachments, comments, overlay view), install its token file for the consumer, let the consumer switch and check a read, a dry run and a write, then revoke the old token issued on the maintainer account. Same pattern as the first consumer's agent identity."
+        },
+        "status": {
+          "name": "Developed"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-09",
+        "dueDate": "2026-11-09",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2358"
+          },
+          "status": {
+            "title": "Developed"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2359,
+        "subject": "Name the assignee setting when OpenProject refuses the bootstrap assignee",
+        "description": {
+          "raw": "Found on 2026-11-09 when the second consumer project switched to an agent account: apply-openproject-bootstrap defaults the assignee to the token's own user, an API-only agent is not assignable, and the create failed with HTTP 422 PropertyConstraintViolation on the assignee without saying how to fix it. When the token user is the defaulted assignee, check in the dry run whether that user can be assigned (the project's available assignees) and warn; when a create is refused on the assignee, report an error code that names REPLAN_OPENPROJECT_ASSIGNEE_USER_ID. Tests and the bootstrap section of the agent kit README."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-11",
+        "dueDate": "2026-11-11",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2359"
           },
           "status": {
             "title": "New"

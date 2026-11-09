@@ -14493,7 +14493,7 @@ resource_demands:
     planned_amount: 0.2
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.env-only-settings-in-settings-file.codex
     task_ref:
       kind: task
@@ -14507,7 +14507,7 @@ resource_demands:
     planned_amount: 0.3
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
     overrun_review:
       acknowledged_forecast: 0.41
       unit: agent_hours
@@ -14530,9 +14530,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.env-only-settings-in-settings-file.local-dev
     task_ref:
       kind: task
@@ -14544,9 +14544,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.env-only-settings-in-settings-file.ci
     task_ref:
       kind: task
@@ -14558,9 +14558,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.description-trailer-followed-by-text.agent
     task_ref:
       kind: task
@@ -14574,7 +14574,7 @@ resource_demands:
     planned_amount: 0.2
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.description-trailer-followed-by-text.codex
     task_ref:
       kind: task
@@ -14588,7 +14588,7 @@ resource_demands:
     planned_amount: 0.3
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
     overrun_review:
       acknowledged_forecast: 0.35
       unit: agent_hours
@@ -14611,9 +14611,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.description-trailer-followed-by-text.local-dev
     task_ref:
       kind: task
@@ -14625,9 +14625,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.description-trailer-followed-by-text.ci
     task_ref:
       kind: task
@@ -14639,9 +14639,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.dependency-set-command.agent
     task_ref:
       kind: task
@@ -14652,8 +14652,22 @@ resource_demands:
     resource_class: ai_agent
     role: implementation_agent
     unit: agent_hours
-    planned_amount: 1.5
-    remaining_amount: 1.5
+    planned_amount: 0.6
+    remaining_amount: 0.6
+    criticality: required
+    status: active
+  - id: resource_demand.dependency-set-command.codex
+    task_ref:
+      kind: task
+      id: task.self.dependency-set-command
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 0.9
+    remaining_amount: 0.9
     criticality: required
     status: active
   - id: resource_demand.dependency-set-command.maintainer
@@ -14708,8 +14722,22 @@ resource_demands:
     resource_class: ai_agent
     role: implementation_agent
     unit: agent_hours
-    planned_amount: 0.5
-    remaining_amount: 0.5
+    planned_amount: 0.2
+    remaining_amount: 0.2
+    criticality: required
+    status: active
+  - id: resource_demand.missing-format-version-reads-as-one.codex
+    task_ref:
+      kind: task
+      id: task.self.missing-format-version-reads-as-one
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 0.3
+    remaining_amount: 0.3
     criticality: required
     status: active
   - id: resource_demand.missing-format-version-reads-as-one.maintainer
@@ -14764,8 +14792,22 @@ resource_demands:
     resource_class: ai_agent
     role: implementation_agent
     unit: agent_hours
-    planned_amount: 1
-    remaining_amount: 1
+    planned_amount: 0.4
+    remaining_amount: 0.4
+    criticality: required
+    status: active
+  - id: resource_demand.taskjuggler-successor-starts-next-working-day.codex
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-successor-starts-next-working-day
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 0.6
+    remaining_amount: 0.6
     criticality: required
     status: active
   - id: resource_demand.taskjuggler-successor-starts-next-working-day.maintainer
@@ -14820,8 +14862,22 @@ resource_demands:
     resource_class: ai_agent
     role: implementation_agent
     unit: agent_hours
-    planned_amount: 1
-    remaining_amount: 1
+    planned_amount: 0.4
+    remaining_amount: 0.4
+    criticality: required
+    status: active
+  - id: resource_demand.taskjuggler-candidate-review-flow.codex
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-candidate-review-flow
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 0.6
+    remaining_amount: 0.6
     criticality: required
     status: active
   - id: resource_demand.taskjuggler-candidate-review-flow.maintainer
@@ -14876,8 +14932,22 @@ resource_demands:
     resource_class: ai_agent
     role: implementation_agent
     unit: agent_hours
-    planned_amount: 1
-    remaining_amount: 1
+    planned_amount: 0.4
+    remaining_amount: 0.4
+    criticality: required
+    status: active
+  - id: resource_demand.set-remaining-from-file.codex
+    task_ref:
+      kind: task
+      id: task.self.set-remaining-from-file
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 0.6
+    remaining_amount: 0.6
     criticality: required
     status: active
   - id: resource_demand.set-remaining-from-file.maintainer
@@ -14932,8 +15002,22 @@ resource_demands:
     resource_class: ai_agent
     role: implementation_agent
     unit: agent_hours
-    planned_amount: 0.5
-    remaining_amount: 0.5
+    planned_amount: 0.2
+    remaining_amount: 0.2
+    criticality: required
+    status: active
+  - id: resource_demand.date-push-nothing-to-apply-is-ok.codex
+    task_ref:
+      kind: task
+      id: task.self.date-push-nothing-to-apply-is-ok
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 0.3
+    remaining_amount: 0.3
     criticality: required
     status: active
   - id: resource_demand.date-push-nothing-to-apply-is-ok.maintainer
@@ -14988,8 +15072,22 @@ resource_demands:
     resource_class: ai_agent
     role: implementation_agent
     unit: agent_hours
-    planned_amount: 1
-    remaining_amount: 1
+    planned_amount: 0.4
+    remaining_amount: 0.4
+    criticality: required
+    status: active
+  - id: resource_demand.toolkit-comment-add-saves-comment.codex
+    task_ref:
+      kind: task
+      id: task.self.toolkit-comment-add-saves-comment
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 0.6
+    remaining_amount: 0.6
     criticality: required
     status: active
   - id: resource_demand.toolkit-comment-add-saves-comment.maintainer
@@ -15024,6 +15122,118 @@ resource_demands:
     task_ref:
       kind: task
       id: task.self.toolkit-comment-add-saves-comment
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    resource_class: service_quota
+    role: ci_runtime
+    unit: ci_minutes
+    planned_amount: 10
+    remaining_amount: 10
+    criticality: required
+    status: active
+  - id: resource_demand.consumer-project-own-openproject-identity.agent
+    task_ref:
+      kind: task
+      id: task.self.consumer-project-own-openproject-identity
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 0.5
+    remaining_amount: 0
+    criticality: required
+    status: active
+  - id: resource_demand.consumer-project-own-openproject-identity.maintainer
+    task_ref:
+      kind: task
+      id: task.self.consumer-project-own-openproject-identity
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    resource_class: human
+    role: maintainer
+    unit: hours
+    planned_amount: 0.25
+    remaining_amount: 0.25
+    criticality: required
+    status: active
+  - id: resource_demand.consumer-project-own-openproject-identity.local-dev
+    task_ref:
+      kind: task
+      id: task.self.consumer-project-own-openproject-identity
+    resource_ref:
+      kind: resource
+      id: resource.environment.local-dev
+    resource_class: environment
+    role: development_environment
+    unit: concurrent_slots
+    planned_amount: 1
+    remaining_amount: 1
+    criticality: required
+    status: active
+  - id: resource_demand.consumer-project-own-openproject-identity.ci
+    task_ref:
+      kind: task
+      id: task.self.consumer-project-own-openproject-identity
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    resource_class: service_quota
+    role: ci_runtime
+    unit: ci_minutes
+    planned_amount: 10
+    remaining_amount: 10
+    criticality: required
+    status: active
+  - id: resource_demand.bootstrap-assignee-refusal-names-setting.agent
+    task_ref:
+      kind: task
+      id: task.self.bootstrap-assignee-refusal-names-setting
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 0.5
+    remaining_amount: 0.5
+    criticality: required
+    status: active
+  - id: resource_demand.bootstrap-assignee-refusal-names-setting.maintainer
+    task_ref:
+      kind: task
+      id: task.self.bootstrap-assignee-refusal-names-setting
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    resource_class: human
+    role: maintainer
+    unit: hours
+    planned_amount: 0.25
+    remaining_amount: 0.25
+    criticality: required
+    status: active
+  - id: resource_demand.bootstrap-assignee-refusal-names-setting.local-dev
+    task_ref:
+      kind: task
+      id: task.self.bootstrap-assignee-refusal-names-setting
+    resource_ref:
+      kind: resource
+      id: resource.environment.local-dev
+    resource_class: environment
+    role: development_environment
+    unit: concurrent_slots
+    planned_amount: 1
+    remaining_amount: 1
+    criticality: required
+    status: active
+  - id: resource_demand.bootstrap-assignee-refusal-names-setting.ci
+    task_ref:
+      kind: task
+      id: task.self.bootstrap-assignee-refusal-names-setting
     resource_ref:
       kind: resource
       id: resource.ci.github-actions

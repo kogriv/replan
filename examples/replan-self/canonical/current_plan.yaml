@@ -512,6 +512,10 @@ current_plan:
     - kind: task
       id: task.self.toolkit-comment-add-saves-comment
     - kind: task
+      id: task.self.consumer-project-own-openproject-identity
+    - kind: task
+      id: task.self.bootstrap-assignee-refusal-names-setting
+    - kind: task
       id: task.self.fix-first-project-defects
     - kind: task
       id: task.self.implement-replan-init-and-resource-commands

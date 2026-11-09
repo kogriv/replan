@@ -7349,7 +7349,7 @@ tasks:
     title: Warn about environment-only settings found in the settings file
     description: 'Reported by the second project on 2026-11-09 after moving to its kit. REPLAN_OPENPROJECT_STATUS_SCOPE (like REPLAN_APPLY, REPLAN_ACTOR, REPLAN_KEEP_TEMP, REPLAN_OPENPROJECT_PROFILE and REPLAN_OPENPROJECT_FROM_FILE) is read only from the process environment by design, so a line in .env.local is silently ignored; push-openproject-status-drift.sh --help does not name the setting, and a skipped action with reason status_scope_ready_only does not say how to widen the scope. Warn (a warning code in the helper envelope) when an environment-only setting appears in the settings file, list REPLAN_OPENPROJECT_STATUS_SCOPE in the status helper''s --help, and name the setting in the status_scope_ready_only skip; tests and kit README.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-09"
     planned_finish: "2026-11-09"
     assignee_hint:
@@ -7378,7 +7378,7 @@ tasks:
     title: Handle a task id trailer followed by text on the same line
     description: 'Reported by the second project on 2026-11-09. In 12 work packages an older script had joined the RePlan task id trailer and following text on one line ("RePlan task id: `task.x` Added ..."). push-openproject-description-drift recognises the trailer only on a line of its own, so it kept no tail and replaced the whole description, trailer included; the text after the trailer was lost silently (a duplicate in that case). Decide and implement the safe behaviour: recognise a trailer at the start of a line followed by text, keep that text as part of the tail or refuse with a named warning instead of overwriting it, and report the case in the dry run; tests and helper docs.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-09"
     planned_finish: "2026-11-09"
     assignee_hint:
@@ -7417,6 +7417,8 @@ tasks:
       - kind: resource_demand
         id: resource_demand.dependency-set-command.agent
       - kind: resource_demand
+        id: resource_demand.dependency-set-command.codex
+      - kind: resource_demand
         id: resource_demand.dependency-set-command.maintainer
       - kind: resource_demand
         id: resource_demand.dependency-set-command.local-dev
@@ -7443,6 +7445,8 @@ tasks:
     resource_demands:
       - kind: resource_demand
         id: resource_demand.missing-format-version-reads-as-one.agent
+      - kind: resource_demand
+        id: resource_demand.missing-format-version-reads-as-one.codex
       - kind: resource_demand
         id: resource_demand.missing-format-version-reads-as-one.maintainer
       - kind: resource_demand
@@ -7471,6 +7475,8 @@ tasks:
       - kind: resource_demand
         id: resource_demand.taskjuggler-successor-starts-next-working-day.agent
       - kind: resource_demand
+        id: resource_demand.taskjuggler-successor-starts-next-working-day.codex
+      - kind: resource_demand
         id: resource_demand.taskjuggler-successor-starts-next-working-day.maintainer
       - kind: resource_demand
         id: resource_demand.taskjuggler-successor-starts-next-working-day.local-dev
@@ -7497,6 +7503,8 @@ tasks:
     resource_demands:
       - kind: resource_demand
         id: resource_demand.taskjuggler-candidate-review-flow.agent
+      - kind: resource_demand
+        id: resource_demand.taskjuggler-candidate-review-flow.codex
       - kind: resource_demand
         id: resource_demand.taskjuggler-candidate-review-flow.maintainer
       - kind: resource_demand
@@ -7525,6 +7533,8 @@ tasks:
       - kind: resource_demand
         id: resource_demand.set-remaining-from-file.agent
       - kind: resource_demand
+        id: resource_demand.set-remaining-from-file.codex
+      - kind: resource_demand
         id: resource_demand.set-remaining-from-file.maintainer
       - kind: resource_demand
         id: resource_demand.set-remaining-from-file.local-dev
@@ -7552,6 +7562,8 @@ tasks:
       - kind: resource_demand
         id: resource_demand.date-push-nothing-to-apply-is-ok.agent
       - kind: resource_demand
+        id: resource_demand.date-push-nothing-to-apply-is-ok.codex
+      - kind: resource_demand
         id: resource_demand.date-push-nothing-to-apply-is-ok.maintainer
       - kind: resource_demand
         id: resource_demand.date-push-nothing-to-apply-is-ok.local-dev
@@ -7569,15 +7581,17 @@ tasks:
     title: Make the toolkit's comment add really save the comment
     description: 'Reported by the fourth project on 2026-11-09 against v0.5.0 and OpenProject 17.6.0: openproject-work-package-toolkit.sh comment add returns ok, mode apply, applied true, but no comment appears in the work package''s activities and its updatedAt and lockVersion do not change; two comments were lost. command_comment_add sends PATCH /api/v3/work_packages/{id} with a comment field, which OpenProject 17.6 ignores, and sets applied without checking. Post the comment with POST /api/v3/work_packages/{id}/activities and body comment.raw, require 201 and report the created activity id, refuse when no activity was created; check the other toolkit writes for the same unchecked-success pattern; the live agent kit check reads the comment back from the activities; tests and docs.'
     type: implementation
-    tracking_status: not_started
-    planned_start: "2026-11-10"
-    planned_finish: "2026-11-10"
+    tracking_status: in_progress
+    planned_start: "2026-11-09"
+    planned_finish: "2026-11-09"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer
     resource_demands:
       - kind: resource_demand
         id: resource_demand.toolkit-comment-add-saves-comment.agent
+      - kind: resource_demand
+        id: resource_demand.toolkit-comment-add-saves-comment.codex
       - kind: resource_demand
         id: resource_demand.toolkit-comment-add-saves-comment.maintainer
       - kind: resource_demand
@@ -7592,3 +7606,57 @@ tasks:
         object_type: work_package
         object_id: "2357"
         url: https://op.example.internal/work_packages/2357
+  - id: task.self.consumer-project-own-openproject-identity
+    title: Give the second consumer project its own OpenProject identity
+    description: 'The second consumer project''s kit used an API token issued for the maintainer''s own account, which is also a member of three other projects. Create an API-only agent user that is a member of that project only, with a role built from the permissions its kit uses (work packages, relations, versions, wiki pages and attachments, comments, overlay view), install its token file for the consumer, let the consumer switch and check a read, a dry run and a write, then revoke the old token issued on the maintainer account. Same pattern as the first consumer''s agent identity.'
+    type: implementation
+    tracking_status: review_ready
+    planned_start: "2026-11-09"
+    planned_finish: "2026-11-09"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.consumer-project-own-openproject-identity.agent
+      - kind: resource_demand
+        id: resource_demand.consumer-project-own-openproject-identity.maintainer
+      - kind: resource_demand
+        id: resource_demand.consumer-project-own-openproject-identity.local-dev
+      - kind: resource_demand
+        id: resource_demand.consumer-project-own-openproject-identity.ci
+    tags:
+      - operations
+      - consumer-feedback
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2358"
+        url: https://op.example.internal/work_packages/2358
+  - id: task.self.bootstrap-assignee-refusal-names-setting
+    title: Name the assignee setting when OpenProject refuses the bootstrap assignee
+    description: 'Found on 2026-11-09 when the second consumer project switched to an agent account: apply-openproject-bootstrap defaults the assignee to the token''s own user, an API-only agent is not assignable, and the create failed with HTTP 422 PropertyConstraintViolation on the assignee without saying how to fix it. When the token user is the defaulted assignee, check in the dry run whether that user can be assigned (the project''s available assignees) and warn; when a create is refused on the assignee, report an error code that names REPLAN_OPENPROJECT_ASSIGNEE_USER_ID. Tests and the bootstrap section of the agent kit README.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-11"
+    planned_finish: "2026-11-11"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.bootstrap-assignee-refusal-names-setting.agent
+      - kind: resource_demand
+        id: resource_demand.bootstrap-assignee-refusal-names-setting.maintainer
+      - kind: resource_demand
+        id: resource_demand.bootstrap-assignee-refusal-names-setting.local-dev
+      - kind: resource_demand
+        id: resource_demand.bootstrap-assignee-refusal-names-setting.ci
+    tags:
+      - helpers
+      - consumer-feedback
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2359"
+        url: https://op.example.internal/work_packages/2359

@@ -1,0 +1,211 @@
+baseline:
+  id: baseline.2026-11-09.consumer-findings-for-v0-5-1
+  name: Consumer findings for v0.5.1
+  scope: tasks
+  created_at: "2026-11-09T19:12:44+07:00"
+  approved_at: "2026-11-09T19:12:44+07:00"
+  approved_by:
+    kind: actor
+    id: actor.human.maintainer
+  status_date: "2026-11-09"
+  included_tasks:
+    - kind: task
+      id: task.self.dependency-set-command
+      planned_start: "2026-11-10"
+      planned_finish: "2026-11-10"
+    - kind: task
+      id: task.self.missing-format-version-reads-as-one
+      planned_start: "2026-11-10"
+      planned_finish: "2026-11-10"
+    - kind: task
+      id: task.self.taskjuggler-successor-starts-next-working-day
+      planned_start: "2026-11-11"
+      planned_finish: "2026-11-11"
+    - kind: task
+      id: task.self.taskjuggler-candidate-review-flow
+      planned_start: "2026-11-11"
+      planned_finish: "2026-11-11"
+    - kind: task
+      id: task.self.set-remaining-from-file
+      planned_start: "2026-11-12"
+      planned_finish: "2026-11-12"
+    - kind: task
+      id: task.self.date-push-nothing-to-apply-is-ok
+      planned_start: "2026-11-10"
+      planned_finish: "2026-11-10"
+    - kind: task
+      id: task.self.toolkit-comment-add-saves-comment
+      planned_start: "2026-11-10"
+      planned_finish: "2026-11-10"
+  included_demands:
+    - kind: resource_demand
+      id: resource_demand.dependency-set-command.agent
+      task: task.self.dependency-set-command
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 1.5
+    - kind: resource_demand
+      id: resource_demand.dependency-set-command.maintainer
+      task: task.self.dependency-set-command
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.dependency-set-command.local-dev
+      task: task.self.dependency-set-command
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.dependency-set-command.ci
+      task: task.self.dependency-set-command
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+    - kind: resource_demand
+      id: resource_demand.missing-format-version-reads-as-one.agent
+      task: task.self.missing-format-version-reads-as-one
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 0.5
+    - kind: resource_demand
+      id: resource_demand.missing-format-version-reads-as-one.maintainer
+      task: task.self.missing-format-version-reads-as-one
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.missing-format-version-reads-as-one.local-dev
+      task: task.self.missing-format-version-reads-as-one
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.missing-format-version-reads-as-one.ci
+      task: task.self.missing-format-version-reads-as-one
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-successor-starts-next-working-day.agent
+      task: task.self.taskjuggler-successor-starts-next-working-day
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-successor-starts-next-working-day.maintainer
+      task: task.self.taskjuggler-successor-starts-next-working-day
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-successor-starts-next-working-day.local-dev
+      task: task.self.taskjuggler-successor-starts-next-working-day
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-successor-starts-next-working-day.ci
+      task: task.self.taskjuggler-successor-starts-next-working-day
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-candidate-review-flow.agent
+      task: task.self.taskjuggler-candidate-review-flow
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-candidate-review-flow.maintainer
+      task: task.self.taskjuggler-candidate-review-flow
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-candidate-review-flow.local-dev
+      task: task.self.taskjuggler-candidate-review-flow
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.taskjuggler-candidate-review-flow.ci
+      task: task.self.taskjuggler-candidate-review-flow
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+    - kind: resource_demand
+      id: resource_demand.set-remaining-from-file.agent
+      task: task.self.set-remaining-from-file
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.set-remaining-from-file.maintainer
+      task: task.self.set-remaining-from-file
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.set-remaining-from-file.local-dev
+      task: task.self.set-remaining-from-file
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.set-remaining-from-file.ci
+      task: task.self.set-remaining-from-file
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+    - kind: resource_demand
+      id: resource_demand.date-push-nothing-to-apply-is-ok.agent
+      task: task.self.date-push-nothing-to-apply-is-ok
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 0.5
+    - kind: resource_demand
+      id: resource_demand.date-push-nothing-to-apply-is-ok.maintainer
+      task: task.self.date-push-nothing-to-apply-is-ok
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.date-push-nothing-to-apply-is-ok.local-dev
+      task: task.self.date-push-nothing-to-apply-is-ok
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.date-push-nothing-to-apply-is-ok.ci
+      task: task.self.date-push-nothing-to-apply-is-ok
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+    - kind: resource_demand
+      id: resource_demand.toolkit-comment-add-saves-comment.agent
+      task: task.self.toolkit-comment-add-saves-comment
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.toolkit-comment-add-saves-comment.maintainer
+      task: task.self.toolkit-comment-add-saves-comment
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.toolkit-comment-add-saves-comment.local-dev
+      task: task.self.toolkit-comment-add-saves-comment
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.toolkit-comment-add-saves-comment.ci
+      task: task.self.toolkit-comment-add-saves-comment
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  seal:
+    algorithm: sha256
+    digest: ff6a005235ba7aab1d410fa42207a8e3cfb54ccdba3216e6d4c2c0a385fc188d

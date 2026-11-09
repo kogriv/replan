@@ -502,3 +502,66 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.description-trailer-followed-by-text
+  - id: actual.self-env-only-settings-in-settings-file.ci-github-actions.20261109T121013Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.env-only-settings-in-settings-file
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.env-only-settings-in-settings-file.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-09T12:10:13Z"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-env-only-settings-in-settings-file
+  - id: actual.self-description-trailer-followed-by-text.ci-github-actions.20261109T121054Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.description-trailer-followed-by-text
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.description-trailer-followed-by-text.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-09T12:10:54Z"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-description-trailer-followed-by-text
+  - id: actual.self-consumer-project-own-openproject-identity.ai-agent-executor.20261109T1938060700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.consumer-project-own-openproject-identity
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.consumer-project-own-openproject-identity.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.37
+    unit: agent_hours
+    occurred_at: "2026-11-09T19:38:06+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.consumer-project-own-openproject-identity

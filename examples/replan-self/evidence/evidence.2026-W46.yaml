@@ -367,3 +367,73 @@ evidence:
     targets:
       - kind: task
         id: task.self.toolkit-comment-add-saves-comment
+  - id: evidence.self.accept-env-only-settings-in-settings-file
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T12:10:13Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.env-only-settings-in-settings-file
+  - id: evidence.self.accept-description-trailer-followed-by-text
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T12:10:54Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.description-trailer-followed-by-text
+  - id: evidence.self.start-toolkit-comment-add-saves-comment
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T19:09:39+07:00"
+    summary: 'The maintainer accepted the two helper fixes and agreed the seven consumer findings (message 19:09:39); estimates frozen in baseline.2026-11-09.consumer-findings-for-v0-5-1, agent hours split 60/40 between Codex and the executor. The comment fix goes first: it silently loses data. Started on 2026-11-09, a day before plan.'
+    targets:
+      - kind: task
+        id: task.self.toolkit-comment-add-saves-comment
+  - id: evidence.self.start-consumer-project-own-openproject-identity
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T19:09:39+07:00"
+    summary: 'The maintainer asked to do the consumer identity the right way (message 19:09:39). Planned at 0.5 agent hours, the executor does it without Codex: an API-only agent user and role on the server, coordinated with the consumer session. Work started 19:15:13 (first tool call in the session log).'
+    targets:
+      - kind: task
+        id: task.self.consumer-project-own-openproject-identity
+  - id: evidence.self.plan-bootstrap-assignee-refusal-names-setting
+    type: observation
+    source: peer_session
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T19:30:42+07:00"
+    summary: 'The second consumer project''s first create under its new agent account failed with HTTP 422 on the assignee: bootstrap defaulted the assignee to the token''s own user. Workaround given: set REPLAN_OPENPROJECT_ASSIGNEE_USER_ID to the person. Planned at 0.5 agent hours, awaiting the maintainer''s agreement.'
+    targets:
+      - kind: task
+        id: task.self.bootstrap-assignee-refusal-names-setting
+  - id: evidence.self.consumer-project-own-openproject-identity
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T19:38:06+07:00"
+    summary: 'Created an API-only agent user for the second consumer project with the private identity script (dry run first): not admin, no password, notifications off, member of that project only, with a role of 15 named permissions taken from the operations the consumer listed (work packages, relations, versions, wiki pages, comments, overlay view; no project-wide wiki management). Its token went to the consumer''s private file with mode 0600 and was never printed; the token read its project and got 404 on another. The consumer switched, set the assignee to the person with REPLAN_OPENPROJECT_ASSIGNEE_USER_ID after a 422 on the defaulted assignee (planned as a product fix), and checked reads, a bootstrap dry run, relations, date push, version update, wiki create and update, drift and overlay under the new token. The old token on the maintainer account was revoked at 19:37:32 (dry run first, exactly one match); it now gets 401. Executor 19:15:13-19:37:32 by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.consumer-project-own-openproject-identity
