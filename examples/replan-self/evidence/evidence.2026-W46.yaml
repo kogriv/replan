@@ -448,3 +448,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.toolkit-comment-add-saves-comment
+  - id: evidence.self.start-dependency-set-command
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T19:09:39+07:00"
+    summary: 'Agreed with the other consumer findings (message 19:09:39); estimate frozen in baseline.2026-11-09.consumer-findings-for-v0-5-1, split 0.9 Codex and 0.6 executor. Second in the agreed order: it unblocks the second consumer''s open dependencies. Started on 2026-11-09, ahead of plan.'
+    targets:
+      - kind: task
+        id: task.self.dependency-set-command

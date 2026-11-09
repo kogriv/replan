@@ -7407,9 +7407,9 @@ tasks:
     title: Change a dependency's status and required state with a command
     description: 'Reported by the second project on 2026-11-09 while moving its date drafting to v0.5.0. A dependency can only be listed or added: there is no command to mark it resolved or cancelled with a reason (for example a successor finished before its predecessor), or to change its required_state or criticality (a successor that may start once the predecessor is review_ready). Accepting a review_dependency_resolution proposal only records the decision, by design, so 487 open dependencies behind review_ready predecessors stay open. Add replan dependency set <id> with --status resolved|cancelled|open, --required-state, --criticality, --reason, --actor, --evidence, dry-run/apply and audit, and a --from-file batch like demand set; validate and proposal rules unchanged; tests, CLI docs and the kit README need-to-command table.'
     type: implementation
-    tracking_status: not_started
-    planned_start: "2026-11-10"
-    planned_finish: "2026-11-10"
+    tracking_status: in_progress
+    planned_start: "2026-11-09"
+    planned_finish: "2026-11-09"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer
