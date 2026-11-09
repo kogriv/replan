@@ -496,3 +496,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.bootstrap-assignee-refusal-names-setting
+  - id: evidence.self.dependency-set-command
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T21:39:57+07:00"
+    summary: 'Feature commit 6777c8d: replan dependency set <id> changes status (open, resolved, cancelled), required state and criticality with reason, actor and optional evidence, dry run first; a --from-file batch is validated whole, unchanged values are reported and an all-unchanged call is a no-op; writes go through the canonical splice with one dependency_set audit record per change holding old and new values. Existing rules already stop warnings and suggestions for resolved or cancelled dependencies and count a review_ready predecessor as satisfying required_state review_ready; Codex tested this without changing them. Review: a batch whose items all carry reasons no longer needs a shared --reason (test added, CLI spec updated). Gate green: lint 0, 54 kit checks, 86 live checks. Codex 20:28:16-21:17:49 (0.83 h, prompt and last-file mtimes); executor 20:27:10-20:28:17 brief, 21:18:56-21:21:26 review, 21:38:30-2026-11-09T21:39:57+07:00 commit, 0.08 h by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.dependency-set-command
+  - id: evidence.self.start-date-push-nothing-to-apply-is-ok
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T19:09:39+07:00"
+    summary: Agreed with the other consumer findings (message 19:09:39); estimate frozen in baseline.2026-11-09.consumer-findings-for-v0-5-1, split 0.3 Codex and 0.2 executor. Third in the agreed order. Started on 2026-11-09, ahead of plan.
+    targets:
+      - kind: task
+        id: task.self.date-push-nothing-to-apply-is-ok

@@ -649,3 +649,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-consumer-project-own-openproject-identity
+  - id: actual.self-dependency-set-command.ai-codex-local.20261109T2139570700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.dependency-set-command
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.dependency-set-command.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.83
+    unit: agent_hours
+    occurred_at: "2026-11-09T21:39:57+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.dependency-set-command
+  - id: actual.self-dependency-set-command.ai-agent-executor.20261109T2139570700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.dependency-set-command
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.dependency-set-command.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.08
+    unit: agent_hours
+    occurred_at: "2026-11-09T21:39:57+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.dependency-set-command
