@@ -356,3 +356,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.toolkit-comment-add-saves-comment
+  - id: evidence.self.lost-self-plan-comments
+    type: observation
+    source: openproject
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T11:48:20+07:00"
+    summary: 'Read-only check on 2026-11-09 (OpenProject 17.6.0): the self plan''s own work packages for the relations and pagination fix, the rescheduling report and help in every script have no comments in their activities, although comment add reported applied for each on 2026-10-15 and 2026-10-25. The third project found four such lost comments and restored them by direct POST; the fourth project two. The texts are in the session transcript; restore them with the fixed command.'
+    targets:
+      - kind: task
+        id: task.self.toolkit-comment-add-saves-comment
