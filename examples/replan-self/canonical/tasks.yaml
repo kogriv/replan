@@ -7465,7 +7465,7 @@ tasks:
     title: Start TaskJuggler successors on the next working day
     description: 'Reported by the second project on 2026-11-09: after taskjuggler run and import-result, a task with lead_time that follows a predecessor got a planned_start on the predecessor''s finish day (training 12-18 Nov, cutover with two working days of lead time drafted 18-20 Nov instead of 19-20 Nov), because TaskJuggler starts a dependent task at the predecessor''s end moment, which can be mid-day. OpenProject''s follows relation and the consumer''s own scheduler start a successor on the next working day. Decide where to fix it (export the dependency so the successor starts on the next working day, or move a same-day start in import-result) so drafted dates satisfy OpenProject finish-to-start relations without changing finishes that are already right; check plain effort tasks too; real-tj3 tests.'
     type: implementation
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-09"
     planned_finish: "2026-11-09"
     assignee_hint:
@@ -7494,7 +7494,7 @@ tasks:
     title: Show and close a TaskJuggler candidate in one review flow
     description: 'Reported by the second project on 2026-11-09: scenario diff --format markdown for a TaskJuggler candidate shows only resources and an empty load table while the JSON has the 13 task date changes; and after scenario apply the taskjuggler_schedule_candidate proposal stays open and has to be accepted separately. Show task date changes in the markdown and text diff, and make applying the candidate scenario and deciding its proposal one consistent flow (apply closes the linked proposal with an audit record, or apply refuses until the proposal is accepted, whichever fits the proposal rules); tests and docs.'
     type: implementation
-    tracking_status: not_started
+    tracking_status: in_progress
     planned_start: "2026-11-11"
     planned_finish: "2026-11-11"
     assignee_hint:

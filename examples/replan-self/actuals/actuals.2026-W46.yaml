@@ -817,3 +817,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.missing-format-version-reads-as-one
+  - id: actual.self-taskjuggler-successor-starts-next-working-day.ai-codex-local.20261110T0044150700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-successor-starts-next-working-day
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-successor-starts-next-working-day.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.91
+    unit: agent_hours
+    occurred_at: "2026-11-10T00:44:15+07:00"
+    status_date: "2026-11-10"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.taskjuggler-successor-starts-next-working-day
+  - id: actual.self-taskjuggler-successor-starts-next-working-day.ai-agent-executor.20261110T0044150700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-successor-starts-next-working-day
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-successor-starts-next-working-day.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.14
+    unit: agent_hours
+    occurred_at: "2026-11-10T00:44:15+07:00"
+    status_date: "2026-11-10"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.taskjuggler-successor-starts-next-working-day

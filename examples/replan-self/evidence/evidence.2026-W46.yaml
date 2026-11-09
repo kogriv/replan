@@ -584,3 +584,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.taskjuggler-successor-starts-next-working-day
+  - id: evidence.self.taskjuggler-successor-starts-next-working-day
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-10T00:44:15+07:00"
+    summary: 'Fix commit 64e66da: the TaskJuggler export gives each ordering predecessor a hidden boundary task in the last slot before midnight, Sunday to Thursday, so successors start at the beginning of the next Monday-to-Friday day; a predecessor that fills its last day loses no extra day; the same boundary sits between the wait and the work of a wait-then-work container; the docs name the Monday-to-Friday assumption, which matches the TaskJuggler default week that working-day lead time already uses. Codex had no tj3; review ran the real-tj3 tests locally: round 1 failed two (work started the afternoon the wait ended inside the container; and a vacation test encoded the old same-day start, now 07-09 under the new rule, checked from the exported file). Round 2 added the inner boundary; all TaskJuggler tests pass with real tj3. Gate green: lint 0, 54 kit checks, 86 live checks. Codex 23:22:17-00:03:51 and 00:10:26-00:23:42 (0.91 h, prompt and last-file mtimes); executor 0.14 h by tool-call times (brief, start, two reviews with real-tj3 runs, commit).'
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-successor-starts-next-working-day
+  - id: evidence.self.start-taskjuggler-candidate-review-flow
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T19:09:39+07:00"
+    summary: Agreed with the other consumer findings (message 2026-11-09 19:09:39); estimate frozen in baseline.2026-11-09.consumer-findings-for-v0-5-1, split 0.6 Codex and 0.4 executor. Codex started 00:25:46 while the previous gate ran; this record waited for the gate. Started on 2026-11-10 as planned.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-candidate-review-flow
