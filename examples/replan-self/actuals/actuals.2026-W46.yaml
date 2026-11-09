@@ -192,3 +192,166 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.acknowledge-overrun-writes-canonical-style
+  - id: actual.self-acknowledge-overrun-writes-canonical-style.ci-github-actions.20261109T0753450700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.acknowledge-overrun-writes-canonical-style
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.acknowledge-overrun-writes-canonical-style.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-09T07:53:45+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-acknowledge-overrun-writes-canonical-style
+  - id: actual.actual-self-taskjuggler-import-skips-unchanged-dates-ci-github-actions-20261108t235728z-work-consumed.correction.20261109T0830320700
+    type: correction
+    corrects_ref:
+      kind: actual
+      id: actual.self-taskjuggler-import-skips-unchanged-dates.ci-github-actions.20261108T235728Z.work-consumed
+    corrected_status_date: "2026-11-09"
+    task_ref:
+      kind: task
+      id: task.self.taskjuggler-import-skips-unchanged-dates
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.taskjuggler-import-skips-unchanged-dates.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    unit: ci_minutes
+    occurred_at: "2026-11-09T08:30:32+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.correct-utc-acceptance-dates
+    reason: UTC timestamp dated the acceptance a day early; local date is 2026-11-09.
+  - id: actual.actual-self-lead-time-and-priority-model-ci-github-actions-20261108t235804z-work-consumed.correction.20261109T0830320700
+    type: correction
+    corrects_ref:
+      kind: actual
+      id: actual.self-lead-time-and-priority-model.ci-github-actions.20261108T235804Z.work-consumed
+    corrected_status_date: "2026-11-09"
+    task_ref:
+      kind: task
+      id: task.self.lead-time-and-priority-model
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.lead-time-and-priority-model.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    unit: ci_minutes
+    occurred_at: "2026-11-09T08:30:32+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.correct-utc-acceptance-dates
+    reason: UTC timestamp dated the acceptance a day early; local date is 2026-11-09.
+  - id: actual.actual-self-lead-time-in-workload-and-next-ci-github-actions-20261108t235840z-work-consumed.correction.20261109T0830320700
+    type: correction
+    corrects_ref:
+      kind: actual
+      id: actual.self-lead-time-in-workload-and-next.ci-github-actions.20261108T235840Z.work-consumed
+    corrected_status_date: "2026-11-09"
+    task_ref:
+      kind: task
+      id: task.self.lead-time-in-workload-and-next
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.lead-time-in-workload-and-next.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    unit: ci_minutes
+    occurred_at: "2026-11-09T08:30:32+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.correct-utc-acceptance-dates
+    reason: UTC timestamp dated the acceptance a day early; local date is 2026-11-09.
+  - id: actual.actual-self-lead-time-in-taskjuggler-ci-github-actions-20261108t235917z-work-consumed.correction.20261109T0830320700
+    type: correction
+    corrects_ref:
+      kind: actual
+      id: actual.self-lead-time-in-taskjuggler.ci-github-actions.20261108T235917Z.work-consumed
+    corrected_status_date: "2026-11-09"
+    task_ref:
+      kind: task
+      id: task.self.lead-time-in-taskjuggler
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.lead-time-in-taskjuggler.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    unit: ci_minutes
+    occurred_at: "2026-11-09T08:30:32+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.correct-utc-acceptance-dates
+    reason: UTC timestamp dated the acceptance a day early; local date is 2026-11-09.
+  - id: actual.self-status-dates-use-project-timezone.ai-codex-local.20261109T0856420700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.status-dates-use-project-timezone
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.status-dates-use-project-timezone.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.49
+    unit: agent_hours
+    occurred_at: "2026-11-09T08:56:42+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.status-dates-use-project-timezone
+  - id: actual.self-status-dates-use-project-timezone.ai-agent-executor.20261109T0856420700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.status-dates-use-project-timezone
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.status-dates-use-project-timezone.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.3
+    unit: agent_hours
+    occurred_at: "2026-11-09T08:56:42+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.status-dates-use-project-timezone

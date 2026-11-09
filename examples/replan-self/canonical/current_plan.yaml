@@ -492,6 +492,8 @@ current_plan:
     - kind: task
       id: task.self.status-dates-use-project-timezone
     - kind: task
+      id: task.self.publish-release-v0-5-0
+    - kind: task
       id: task.self.fix-first-project-defects
     - kind: task
       id: task.self.implement-replan-init-and-resource-commands

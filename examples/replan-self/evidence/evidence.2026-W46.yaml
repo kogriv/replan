@@ -100,3 +100,68 @@ evidence:
     targets:
       - kind: task
         id: task.self.acknowledge-overrun-writes-canonical-style
+  - id: evidence.self.accept-acknowledge-overrun-writes-canonical-style
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T07:53:45+07:00"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.acknowledge-overrun-writes-canonical-style
+  - id: evidence.self.plan-publish-release-v0-5-0
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T07:53:29+07:00"
+    summary: The maintainer agreed to release after the project time zone fix as recommended (message 07:53:29); planned at 1.5 agent hours like v0.4.1. The second project waits for the kit to adopt lead time and priority.
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-0
+  - id: evidence.self.start-status-dates-use-project-timezone
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T07:53:29+07:00"
+    summary: The maintainer agreed the task at 1.5 agent hours (message 07:53:29); estimate frozen in baseline.2026-11-09.time-zone-and-release-v0-5-0, split 1 Codex and 0.5 executor. Started on 2026-11-09, a day before plan.
+    targets:
+      - kind: task
+        id: task.self.status-dates-use-project-timezone
+  - id: evidence.self.correct-utc-acceptance-dates
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T08:30:32+07:00"
+    summary: Four acceptances recorded on 2026-11-09 between 06:57 and 06:59 local with UTC timestamps (2026-11-08T23:57:28Z to 23:59:17Z) were dated 2026-11-08, the UTC date. Their status audit records and CI consumption actuals are corrected to 2026-11-09, the date in the project time zone, with the append-only corrections from task.self.status-dates-use-project-timezone.
+    targets:
+      - kind: task
+        id: task.self.status-dates-use-project-timezone
+      - kind: task
+        id: task.self.taskjuggler-import-skips-unchanged-dates
+      - kind: task
+        id: task.self.lead-time-and-priority-model
+      - kind: task
+        id: task.self.lead-time-in-workload-and-next
+      - kind: task
+        id: task.self.lead-time-in-taskjuggler
+  - id: evidence.self.status-dates-use-project-timezone
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T08:56:42+07:00"
+    summary: 'Fix commit cf5bef2: status and consumption dates derived in project.timezone everywhere a date came from an occurred_at; actual correct --status-date and the new actual correct-status for append-only date corrections, honoured by the actual window; validate warning status_date_outside_project_zone. Review narrowed the warning to dates equal to the timestamp''s own date, because a consumer plan had three explicit --status-date choices it flagged, and added a test for that. Applied to the self plan: eight corrections (four status audit records, four CI actuals) to 2026-11-09, actual windows rewritten for four tasks (finish 2026-11-08 to 2026-11-09) and their OpenProject due dates updated with the toolkit; validate clean, drift 0. Gate green (lint 0, 54 kit, 83 live checks). Codex 07:57:17-08:26:53 (0.49 h, prompt and last-file mtimes); executor 07:55:36-07:58:58 brief and start, 08:27:02-08:39:40 review, corrections and narrowing, 08:54:54-08:56:42 commit and booking, 0.3 h by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.status-dates-use-project-timezone

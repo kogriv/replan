@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 247,
-  "count": 247,
+  "total": 248,
+  "count": 248,
   "_embedded": {
     "elements": [
       {
@@ -6979,7 +6979,7 @@
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
         "startDate": "2026-11-08",
-        "dueDate": "2026-11-08",
+        "dueDate": "2026-11-09",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2341"
@@ -7008,7 +7008,7 @@
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
         "startDate": "2026-11-08",
-        "dueDate": "2026-11-08",
+        "dueDate": "2026-11-09",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2342"
@@ -7037,7 +7037,7 @@
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
         "startDate": "2026-11-08",
-        "dueDate": "2026-11-08",
+        "dueDate": "2026-11-09",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2343"
@@ -7066,7 +7066,7 @@
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
         "startDate": "2026-11-08",
-        "dueDate": "2026-11-08",
+        "dueDate": "2026-11-09",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2344"
@@ -7152,11 +7152,40 @@
         },
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
-        "startDate": "2026-11-10",
-        "dueDate": "2026-11-10",
+        "startDate": "2026-11-09",
+        "dueDate": "2026-11-09",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2347"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2348,
+        "subject": "Publish release v0.5.0 and refresh the agent kits",
+        "description": {
+          "raw": "Agreed with the operator on 2026-11-09: after the project time zone fix, publish release v0.5.0 so the agent kits carry task lead time and priority, unlevelled demands, their workload, report and next views, the TaskJuggler export of dependencies, status date, finished work, calendars, not-before dates, sub-hour efforts and lead time, the import of changed dates only, the canonical splice style and project time zone status dates: release notes, tag after green CI, six archives built locally and compared with the CI build and its attestation, GitHub release, go install check; then refresh the second and third projects' kits and the fourth project's local kit the same way as for v0.4.1 and tell each session what changed."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-09",
+        "dueDate": "2026-11-09",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2348"
           },
           "status": {
             "title": "New"
