@@ -7565,3 +7565,30 @@ tasks:
         object_type: work_package
         object_id: "2356"
         url: https://op.example.internal/work_packages/2356
+  - id: task.self.toolkit-comment-add-saves-comment
+    title: Make the toolkit's comment add really save the comment
+    description: 'Reported by the fourth project on 2026-11-09 against v0.5.0 and OpenProject 17.6.0: openproject-work-package-toolkit.sh comment add returns ok, mode apply, applied true, but no comment appears in the work package''s activities and its updatedAt and lockVersion do not change; two comments were lost. command_comment_add sends PATCH /api/v3/work_packages/{id} with a comment field, which OpenProject 17.6 ignores, and sets applied without checking. Post the comment with POST /api/v3/work_packages/{id}/activities and body comment.raw, require 201 and report the created activity id, refuse when no activity was created; check the other toolkit writes for the same unchecked-success pattern; the live agent kit check reads the comment back from the activities; tests and docs.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-10"
+    planned_finish: "2026-11-10"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.toolkit-comment-add-saves-comment.agent
+      - kind: resource_demand
+        id: resource_demand.toolkit-comment-add-saves-comment.maintainer
+      - kind: resource_demand
+        id: resource_demand.toolkit-comment-add-saves-comment.local-dev
+      - kind: resource_demand
+        id: resource_demand.toolkit-comment-add-saves-comment.ci
+    tags:
+      - helpers
+      - consumer-feedback
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2357"
+        url: https://op.example.internal/work_packages/2357

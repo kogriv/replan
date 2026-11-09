@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 256,
-  "count": 256,
+  "total": 257,
+  "count": 257,
   "_embedded": {
     "elements": [
       {
@@ -7418,6 +7418,35 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2356"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2357,
+        "subject": "Make the toolkit's comment add really save the comment",
+        "description": {
+          "raw": "Reported by the fourth project on 2026-11-09 against v0.5.0 and OpenProject 17.6.0: openproject-work-package-toolkit.sh comment add returns ok, mode apply, applied true, but no comment appears in the work package's activities and its updatedAt and lockVersion do not change; two comments were lost. command_comment_add sends PATCH /api/v3/work_packages/{id} with a comment field, which OpenProject 17.6 ignores, and sets applied without checking. Post the comment with POST /api/v3/work_packages/{id}/activities and body comment.raw, require 201 and report the created activity id, refuse when no activity was created; check the other toolkit writes for the same unchecked-success pattern; the live agent kit check reads the comment back from the activities; tests and docs."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-10",
+        "dueDate": "2026-11-10",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2357"
           },
           "status": {
             "title": "New"

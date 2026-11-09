@@ -345,3 +345,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.description-trailer-followed-by-text
+  - id: evidence.self.plan-toolkit-comment-add-saves-comment
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T11:41:38+07:00"
+    summary: 'Reported by the fourth project on 2026-11-09 against v0.5.0 and confirmed in the code: comment add patches the work package with a comment field and reports applied without checking. Planned at 1 agent hour; waits for the maintainer''s agreement before a baseline and start.'
+    targets:
+      - kind: task
+        id: task.self.toolkit-comment-add-saves-comment
