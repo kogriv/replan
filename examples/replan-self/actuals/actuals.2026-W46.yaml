@@ -943,3 +943,24 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.set-remaining-from-file
+  - id: actual.self-publish-release-v0-5-1.ai-agent-executor.20261110T0209130700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-5-1
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.publish-release-v0-5-1.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.34
+    unit: agent_hours
+    occurred_at: "2026-11-10T02:09:13+07:00"
+    status_date: "2026-11-10"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.publish-release-v0-5-1

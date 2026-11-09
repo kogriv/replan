@@ -672,3 +672,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-1
+  - id: evidence.self.publish-release-v0-5-1
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-10T02:09:13+07:00"
+    summary: 'Release v0.5.1 published from ec40a64 after its CI run passed (three earlier CI runs failed only because their Go job never started on GitHub during API timeouts; their code is in ec40a64, whose run is green). Six archives built locally (v0.5.1, ec40a64, go1.24.1); the tag''s Release build workflow (run 42679042893) matches the local SHA256SUMS byte for byte; downloaded archives match; gh attestation verify passes for an archive and SHA256SUMS (refs/tags/v0.5.1); go install of v0.5.1 reports v0.5.1. Kits built from a worktree of the tag, leak scans clean. Second project: kit uploaded to its tools wiki page after dry runs, the download matches its checksum, the new binary validates a copy of its current plan, page text updated including the comment advice; v0.5.0 kept on the page during its move. Third project: server kit moved to v0.5.1 with v0.5.0 kept for rollback; read-only list, relation list and comment list pass. Fourth project: kit built and offered. Each session was told. Executor 01:21:48-01:23:21 and 01:50:12-2026-11-10T02:09:13+07:00, 0.34 h by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-1

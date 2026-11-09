@@ -7666,7 +7666,7 @@ tasks:
     title: Publish release v0.5.1 and refresh the agent kits
     description: 'Agreed with the operator on 2026-11-09 as the step after the consumer findings: publish release v0.5.1 so the agent kits carry the comment fix and checked write answers, dependency set, the aligned date push, the bootstrap assignee check, the missing format_version fix, next-working-day TaskJuggler dependencies, the scenario task diff and linked proposal on apply, and the set-remaining batch: release notes, tag after green CI, six archives built locally and compared with the CI build and its attestation, GitHub release, go install check; then refresh the three consumer projects'' kits as for v0.5.0 and tell each session what changed.'
     type: release
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-10"
     planned_finish: "2026-11-10"
     assignee_hint:
