@@ -42,7 +42,7 @@ func TestInitDryRunApplyValidateAndProjectExists(t *testing.T) {
 		t.Fatalf("owner should have no initial capacity: %q, %v", data, err)
 	}
 	projectData, err := os.ReadFile(filepath.Join(project, ".replan", "project.yaml"))
-	if err != nil || strings.Contains(string(projectData), "source_profiles:") {
+	if err != nil || strings.Contains(string(projectData), "source_profiles:") || !strings.Contains(string(projectData), "  format_version: 1\n") {
 		t.Fatalf("init without OpenProject flag changed: %v\n%s", err, projectData)
 	}
 

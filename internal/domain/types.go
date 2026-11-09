@@ -30,7 +30,7 @@ type SourceProfile struct {
 type Project struct {
 	ID                string          `json:"id" yaml:"id"`
 	Name              string          `json:"name" yaml:"name"`
-	FormatVersion     int             `json:"format_version" yaml:"format_version"`
+	FormatVersion     int             `json:"format_version" yaml:"format_version,omitempty"`
 	Timezone          string          `json:"timezone" yaml:"timezone"`
 	DefaultStatusDate string          `json:"default_status_date,omitempty" yaml:"default_status_date,omitempty"`
 	OpenProjectIDs    string          `json:"openproject_ids,omitempty" yaml:"openproject_ids,omitempty"`

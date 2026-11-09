@@ -74,6 +74,152 @@ func TestVersionTextJSONAndGlobalFlag(t *testing.T) {
 	}
 }
 
+func TestProjectSetStatusDateTreatsMissingFormatVersionAsOne(t *testing.T) {
+	project := copyCmdProjectFixture(t)
+	manifestPath := filepath.Join(project, ".replan", "project.yaml")
+	withVersion, err := os.ReadFile(manifestPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	before := strings.Replace(string(withVersion), "  format_version: 1\n", "", 1)
+	if before == string(withVersion) {
+		t.Fatal("fixture project has no format_version to remove")
+	}
+	if err := os.WriteFile(manifestPath, []byte(before), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	baseArgs := []string{"project", "set-status-date", "--project", project, "--date", "2026-07-13", "--actor", "actor.human.operator", "--format", "json"}
+	stdout, stderr := tempOutputFiles(t)
+	if code := run(append(baseArgs, "--dry-run"), stdout, stderr); code != exitSuccess {
+		t.Fatalf("dry-run exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	if after := readFileString(t, manifestPath); after != before {
+		t.Fatalf("dry run changed project.yaml:\n--- before\n%s\n--- after\n%s", before, after)
+	}
+
+	stdout, stderr = tempOutputFiles(t)
+	if code := run(append(baseArgs, "--apply"), stdout, stderr); code != exitSuccess {
+		t.Fatalf("apply exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	after := readFileString(t, manifestPath)
+	want := strings.Replace(before, `"2026-07-06"`, `"2026-07-13"`, 1)
+	if after != want {
+		t.Fatalf("project.yaml changed beyond the status date:\n--- want\n%s\n--- got\n%s", want, after)
+	}
+	if strings.Contains(after, "format_version:") {
+		t.Fatalf("set-status-date added format_version:\n%s", after)
+	}
+}
+
+func TestProjectReadersPreserveMissingFormatVersion(t *testing.T) {
+	project := copyCmdProjectFixture(t)
+	manifestPath := filepath.Join(project, ".replan", "project.yaml")
+	withVersion, err := os.ReadFile(manifestPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	before := strings.Replace(string(withVersion), "  format_version: 1\n", "", 1)
+	if before == string(withVersion) {
+		t.Fatal("fixture project has no format_version to remove")
+	}
+	if err := os.WriteFile(manifestPath, []byte(before), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name string
+		args []string
+	}{
+		{name: "validate", args: []string{"validate", project, "--format", "json"}},
+		{name: "report weekly", args: []string{"report", "weekly", "--project", project, "--week", "2026-W28", "--format", "json"}},
+		{name: "report state", args: []string{"report", "state", "--project", project, "--week", "2026-W28", "--format", "json"}},
+		{name: "report dashboard", args: []string{"report", "dashboard", "--project", project, "--week", "2026-W28", "--format", "json"}},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			stdout, stderr := tempOutputFiles(t)
+			if code := run(test.args, stdout, stderr); code != exitSuccess {
+				t.Fatalf("exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+			}
+			if after := readFileString(t, manifestPath); after != before {
+				t.Fatalf("command changed project.yaml:\n--- before\n%s\n--- after\n%s", before, after)
+			}
+		})
+	}
+
+	t.Run("report estimates", func(t *testing.T) {
+		estimateProject := copyCmdProjectFixtureFrom(t, "../../examples/estimate-calibration", "estimate-calibration")
+		estimateManifest := filepath.Join(estimateProject, ".replan", "project.yaml")
+		withVersion := readFileString(t, estimateManifest)
+		withoutVersion := strings.Replace(withVersion, "  format_version: 1\n", "", 1)
+		if err := os.WriteFile(estimateManifest, []byte(withoutVersion), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		stdout, stderr := tempOutputFiles(t)
+		args := []string{"report", "estimates", "--project", estimateProject, "--baseline", "baseline.fixture.original", "--format", "json"}
+		if code := run(args, stdout, stderr); code != exitSuccess {
+			t.Fatalf("exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+		}
+		if after := readFileString(t, estimateManifest); after != withoutVersion {
+			t.Fatalf("command changed project.yaml:\n--- before\n%s\n--- after\n%s", withoutVersion, after)
+		}
+	})
+}
+
+func TestProjectFormatPreservesMissingFormatVersion(t *testing.T) {
+	project := copyCmdProjectFixture(t)
+	manifestPath := filepath.Join(project, ".replan", "project.yaml")
+	withVersion, err := os.ReadFile(manifestPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	before := strings.Replace(string(withVersion), "  format_version: 1\n", "", 1)
+	if err := os.WriteFile(manifestPath, []byte(before), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	baseArgs := []string{"project", "format", "--project", project, "--actor", "actor.human.operator", "--reason", "Canonical formatting", "--format", "json"}
+	for _, mode := range []string{"--dry-run", "--apply"} {
+		stdout, stderr := tempOutputFiles(t)
+		if code := run(append(baseArgs, mode), stdout, stderr); code != exitSuccess {
+			t.Fatalf("%s exit=%d stdout=%s stderr=%s", mode, code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+		}
+		if after := readFileString(t, manifestPath); after != before || strings.Contains(after, "format_version:") {
+			t.Fatalf("%s changed project.yaml:\n--- before\n%s\n--- after\n%s", mode, before, after)
+		}
+	}
+}
+
+func TestProjectMigrateIsTheOnlyCommandThatDeclaresMissingFormatVersion(t *testing.T) {
+	project := copyCmdProjectFixture(t)
+	manifestPath := filepath.Join(project, ".replan", "project.yaml")
+	withVersion, err := os.ReadFile(manifestPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	before := strings.Replace(string(withVersion), "  format_version: 1\n", "", 1)
+	if err := os.WriteFile(manifestPath, []byte(before), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	baseArgs := []string{"project", "migrate", "--project", project, "--actor", "actor.human.operator", "--reason", "Declare the project format", "--format", "json"}
+	stdout, stderr := tempOutputFiles(t)
+	if code := run(append(baseArgs, "--dry-run"), stdout, stderr); code != exitSuccess {
+		t.Fatalf("dry-run exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	if after := readFileString(t, manifestPath); after != before {
+		t.Fatalf("dry run changed project.yaml:\n--- before\n%s\n--- after\n%s", before, after)
+	}
+
+	stdout, stderr = tempOutputFiles(t)
+	if code := run(append(baseArgs, "--apply"), stdout, stderr); code != exitSuccess {
+		t.Fatalf("apply exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	want := strings.Replace(before, "  name: RePlan MVP example\n", "  name: RePlan MVP example\n  format_version: 1\n", 1)
+	if after := readFileString(t, manifestPath); after != want {
+		t.Fatalf("migrate changed project.yaml beyond format_version:\n--- want\n%s\n--- got\n%s", want, after)
+	}
+}
+
 func TestDependencyAddApplyRefusalsBatchAndDryRun(t *testing.T) {
 	baseArgs := func(project string) []string {
 		return []string{"dependency", "add", "--project", project, "--reason", "Customer replanning", "--actor", "actor.human.operator", "--evidence", "evidence.github.pr.45", "--occurred-at", "2026-07-08T10:00:00+07:00", "--format", "json"}
