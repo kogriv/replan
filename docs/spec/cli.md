@@ -2354,6 +2354,7 @@ replan actual correct --actual actual.op-1234.human-ivan.20260706T1600000700.wor
 replan actual correct --actual actual.op-1234.human-ivan.20260706T1600000700.work-consumed --status-date 2026-07-07 --reason "Recorded in UTC instead of the project zone" --actor actor.human.operator --evidence evidence.manual.time-entry.20260707.1 --dry-run
 replan actual correct-status --audit audit.20260706T1700000700.actual-add-status.task-op-1234 --status-date 2026-07-07 --reason "Recorded in UTC instead of the project zone" --actor actor.human.operator --evidence evidence.manual.time-entry.20260707.1 --dry-run
 replan actual set-remaining --demand demand.task-op-1234.implementer --amount 5 --unit hours --reason "Operator review after pull request" --actor actor.human.operator --apply
+replan actual set-remaining --from-file remaining.yaml --reason "Finished work review" --actor actor.human.operator --apply
 replan actual close-demand --demand demand.task-op-1234.implementer --status consumed --reason "Accepted task demand reviewed" --actor actor.human.operator --apply
 replan actual add-status --task task.op.1234 --status review_ready --evidence evidence.github.pr.45 --dry-run --format json
 replan actual reopen-demand --demand demand.task-op-1234.implementer --remaining 2 --reason "Closed before the task finished" --actor actor.human.operator --apply
@@ -2367,7 +2368,7 @@ replan actual list --project -p --bindings --format --demand --resource --task -
 replan actual add-consumption --project -p --bindings --format --actor --amount --apply --demand --dry-run --evidence --occurred-at --resource --status-date --task --unit
 replan actual correct --project -p --bindings --format --actual --amount --void --status-date --reason --actor --evidence --occurred-at --dry-run --apply
 replan actual correct-status --project -p --bindings --format --audit --status-date --reason --actor --evidence --occurred-at --dry-run --apply
-replan actual set-remaining --project -p --bindings --format --actor --amount --apply --demand --dry-run --evidence --occurred-at --reason --status-date --unit
+replan actual set-remaining --project -p --bindings --format --actor --amount --apply --demand --dry-run --evidence --from-file --occurred-at --reason --status-date --unit
 replan actual close-demand --project -p --bindings --format --actor --apply --demand --dry-run --evidence --occurred-at --reason --status --status-date
 replan actual reopen-demand --project -p --bindings --format --actor --apply --demand --dry-run --evidence --occurred-at --reason --remaining
 replan actual acknowledge-overrun --project -p --bindings --format --actor --apply --demand --dry-run --evidence --occurred-at --reason
@@ -2381,6 +2382,33 @@ Rules:
 - actual commands should support dry-run;
 - actual commands should reference evidence where available;
 - actual commands must not rewrite baseline;
+- `actual set-remaining --from-file <yaml-or-json>` accepts the same top-level
+  `demands` list key as `demand set --from-file`. Each item has `demand`,
+  `amount`, `unit` and optional `reason` fields:
+
+  ```yaml
+  demands:
+    - demand: resource_demand.task-op-1234.implementer
+      amount: 0
+      unit: hours
+    - demand: resource_demand.task-op-1234.review
+      amount: 0
+      unit: review_hours
+      reason: Review is complete
+  ```
+
+  `--actor`, `--evidence`, `--occurred-at`, `--status-date`, and the write
+  choice are shared. An item reason overrides shared `--reason`; every item
+  must have one or the other. Batch mode refuses `--demand`, `--amount`, and
+  `--unit`. It loads and validates the whole list before staging one atomic
+  commit. An invalid or duplicate row refuses the batch without writes, and
+  diagnostics identify the one-based row number and demand id. Each row gets
+  the same `actual_set_remaining` audit entry that a single command gets,
+  with unique ids even under one timestamp. The command does not append a
+  canonical `actuals/*.yaml` record; this matches existing single-command
+  behavior. Setting an already-equal amount is still reported and audited;
+- a set-remaining batch rewrites `canonical/resource_demands.yaml` and the
+  applicable audit shard once each, rather than once per item;
 - `actual correct` appends a `correction` actual and an `actual_correct` audit
   record. It copies the original task, demand, resource and unit, accepts a
   finite non-negative `--amount`, `--void` (zero), `--status-date`, or an

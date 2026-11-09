@@ -5,12 +5,24 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"math"
 	"os"
 	"strconv"
 	"strings"
 
 	"github.com/kogriv/replan/internal/app"
 )
+
+type actualSetRemainingBatchDocument struct {
+	Demands []actualSetRemainingBatchItem `yaml:"demands"`
+}
+
+type actualSetRemainingBatchItem struct {
+	Demand string   `yaml:"demand"`
+	Amount *float64 `yaml:"amount"`
+	Unit   string   `yaml:"unit"`
+	Reason string   `yaml:"reason"`
+}
 
 func runTracking(args []string, stdout, stderr *os.File) int {
 	if len(args) == 0 {
@@ -323,6 +335,7 @@ func runActualSetRemaining(args []string, stdout, stderr *os.File) int {
 	demandID := fs.String("demand", "", "resource demand id")
 	amount := fs.Float64("amount", -1, "remaining amount")
 	unit := fs.String("unit", "", "remaining amount unit")
+	fromFile := fs.String("from-file", "", "YAML or JSON file containing a demands list")
 	reason := fs.String("reason", "", "reason for remaining-work update")
 	evidenceID := fs.String("evidence", "", "evidence id")
 	actorID := fs.String("actor", "", "actor id accepting the update")
@@ -332,11 +345,15 @@ func runActualSetRemaining(args []string, stdout, stderr *os.File) int {
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
 	}
+	set := visitedFlags(fs)
+	if *fromFile != "" && (set["demand"] || set["amount"] || set["unit"]) {
+		return printPositionalUsageError(stdout, stderr, *format, "actual set-remaining", *projectPath, "actual_set_remaining_input_conflict", "--from-file cannot be combined with --demand, --amount, or --unit")
+	}
 	dryRun, code, done := requireCanonicalWriteChoice("actual set-remaining", *projectPath, *format, writeFlags, stdout, stderr)
 	if done {
 		return code
 	}
-	result, err := app.NewActualService(newStore(*projectPath)).SetRemaining(context.Background(), app.ActualSetRemainingRequest{
+	req := app.ActualSetRemainingRequest{
 		DemandID:   *demandID,
 		Amount:     *amount,
 		Unit:       *unit,
@@ -346,7 +363,22 @@ func runActualSetRemaining(args []string, stdout, stderr *os.File) int {
 		OccurredAt: *occurredAt,
 		StatusDate: *statusDate,
 		DryRun:     dryRun,
-	})
+	}
+	if *fromFile != "" {
+		var batch actualSetRemainingBatchDocument
+		if err := readYAMLBatch(*fromFile, &batch); err != nil {
+			return printInputFileError("actual set-remaining", *projectPath, *format, *fromFile, err, stdout, stderr)
+		}
+		req.Items = make([]app.ActualSetRemainingItem, 0, len(batch.Demands))
+		for _, item := range batch.Demands {
+			amount := math.NaN()
+			if item.Amount != nil {
+				amount = *item.Amount
+			}
+			req.Items = append(req.Items, app.ActualSetRemainingItem{DemandID: item.Demand, Amount: amount, Unit: item.Unit, Reason: item.Reason})
+		}
+	}
+	result, err := app.NewActualService(newStore(*projectPath)).SetRemaining(context.Background(), req)
 	env := envelope{
 		OK:          err == nil && len(result.Errors) == 0,
 		Command:     "actual set-remaining",
@@ -654,7 +686,7 @@ func writeActualAddConsumptionDryRunMarkdown(stdout *os.File, result app.ActualA
 	return nil
 }
 
-//nolint:gocyclo // This flat renderer keeps every conditional output line in contract order; helper boundaries would make byte-level review harder.
+//nolint:gocyclo,gocognit // This flat renderer keeps every conditional output line in contract order; helper boundaries would make byte-level review harder.
 func writeActualSetRemainingDryRunMarkdown(stdout *os.File, result app.ActualSetRemainingResult) error {
 	title := "# Actual Set Remaining"
 	if result.DryRun {
@@ -677,25 +709,36 @@ func writeActualSetRemainingDryRunMarkdown(stdout *os.File, result app.ActualSet
 		}
 		return nil
 	}
-	if _, err := fmt.Fprintf(stdout, "- Demand: `%s`\n", result.DemandID); err != nil {
-		return err
-	}
-	if result.TaskID != "" {
-		if _, err := fmt.Fprintf(stdout, "- Task: `%s`\n", result.TaskID); err != nil {
+	if len(result.Changes) > 1 {
+		if _, err := fmt.Fprintln(stdout, "## Demands"); err != nil {
 			return err
 		}
-	}
-	if result.ResourceID != "" {
-		if _, err := fmt.Fprintf(stdout, "- Resource: `%s`\n", result.ResourceID); err != nil {
+		for _, change := range result.Changes {
+			if _, err := fmt.Fprintf(stdout, "- Row %d `%s`: `%g %s` -> `%g %s` — %s\n", change.Row, change.DemandID, change.PreviousAmount, change.Unit, change.NewAmount, change.Unit, change.Reason); err != nil {
+				return err
+			}
+		}
+	} else {
+		if _, err := fmt.Fprintf(stdout, "- Demand: `%s`\n", result.DemandID); err != nil {
 			return err
 		}
-	}
-	if _, err := fmt.Fprintf(stdout, "- Remaining: `%g %s` -> `%g %s`\n", result.PreviousAmount, result.Unit, result.NewAmount, result.Unit); err != nil {
-		return err
-	}
-	if result.Reason != "" {
-		if _, err := fmt.Fprintf(stdout, "- Reason: %s\n", result.Reason); err != nil {
+		if result.TaskID != "" {
+			if _, err := fmt.Fprintf(stdout, "- Task: `%s`\n", result.TaskID); err != nil {
+				return err
+			}
+		}
+		if result.ResourceID != "" {
+			if _, err := fmt.Fprintf(stdout, "- Resource: `%s`\n", result.ResourceID); err != nil {
+				return err
+			}
+		}
+		if _, err := fmt.Fprintf(stdout, "- Remaining: `%g %s` -> `%g %s`\n", result.PreviousAmount, result.Unit, result.NewAmount, result.Unit); err != nil {
 			return err
+		}
+		if result.Reason != "" {
+			if _, err := fmt.Fprintf(stdout, "- Reason: %s\n", result.Reason); err != nil {
+				return err
+			}
 		}
 	}
 	if result.Applied {
@@ -717,7 +760,20 @@ func writeActualSetRemainingDryRunMarkdown(stdout *os.File, result app.ActualSet
 			}
 		}
 	}
-	if result.AuditRecordPreview.ID != "" {
+	if len(result.AuditRecordPreviews) > 1 {
+		heading := "Audit Previews"
+		if result.Applied {
+			heading = "Audits"
+		}
+		if _, err := fmt.Fprintf(stdout, "\n## %s\n", heading); err != nil {
+			return err
+		}
+		for _, audit := range result.AuditRecordPreviews {
+			if _, err := fmt.Fprintf(stdout, "- `%s`: `%s`\n", audit.ID, audit.Operation); err != nil {
+				return err
+			}
+		}
+	} else if result.AuditRecordPreview.ID != "" {
 		heading := "Audit Preview"
 		if result.Applied {
 			heading = "Audit"

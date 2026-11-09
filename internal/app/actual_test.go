@@ -1,7 +1,9 @@
 package app_test
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"math"
 	"os"
 	"path/filepath"
@@ -551,6 +553,104 @@ func TestActualSetRemainingWriteSmallTeamFixture(t *testing.T) {
 	}
 	if !foundAudit {
 		t.Fatal("expected actual_set_remaining audit record")
+	}
+}
+
+func TestActualSetRemainingBatchIsAtomicAndAuditedPerDemand(t *testing.T) {
+	projectPath := copyAppProjectFixture(t)
+	store := filestore.New(projectPath)
+	service := app.NewActualService(store)
+	const occurredAt = "2026-07-06T16:30:00+07:00"
+	missingReason, err := service.SetRemaining(context.Background(), app.ActualSetRemainingRequest{
+		Items:   []app.ActualSetRemainingItem{{DemandID: "resource_demand.task-op-1234.implementer", Amount: 0, Unit: "hours"}},
+		ActorID: "actor.human.operator", DryRun: true,
+	})
+	if err == nil || !hasErrorCode(missingReason.Errors, "missing_reason") || !strings.Contains(missingReason.Errors[0].Message, "row 1 demand") {
+		t.Fatalf("missing batch reason: err=%v errors=%#v", err, missingReason.Errors)
+	}
+
+	before, err := os.ReadFile(filepath.Join(projectPath, "canonical", "resource_demands.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	invalid, err := service.SetRemaining(context.Background(), app.ActualSetRemainingRequest{
+		Items: []app.ActualSetRemainingItem{
+			{DemandID: "resource_demand.task-op-1234.implementer", Amount: 0, Unit: "hours", Reason: "finished"},
+			{DemandID: "resource_demand.missing", Amount: -1, Unit: "hours", Reason: "invalid"},
+		},
+		ActorID: "actor.human.operator", OccurredAt: occurredAt,
+	})
+	if err == nil || invalid.Applied {
+		t.Fatalf("invalid batch: err=%v result=%#v", err, invalid)
+	}
+	if len(invalid.Errors) == 0 || !strings.Contains(invalid.Errors[0].Message, "row 2 demand \"resource_demand.missing\"") {
+		t.Fatalf("batch errors do not identify row and demand: %#v", invalid.Errors)
+	}
+	after, err := os.ReadFile(filepath.Join(projectPath, "canonical", "resource_demands.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(before, after) {
+		t.Fatal("invalid batch changed resource_demands.yaml")
+	}
+
+	result, err := service.SetRemaining(context.Background(), app.ActualSetRemainingRequest{
+		Items: []app.ActualSetRemainingItem{
+			{DemandID: "resource_demand.task-op-1234.implementer", Amount: 8, Unit: "hours"}, // unchanged: single-call behavior still audits it
+			{DemandID: "resource_demand.task-op-1234.review", Amount: 0, Unit: "review_hours", Reason: "review complete"},
+		},
+		Reason: "finished work", ActorID: "actor.human.operator", EvidenceID: "evidence.github.pr.45", OccurredAt: occurredAt,
+	})
+	if err != nil || !result.Applied {
+		t.Fatalf("SetRemaining batch: err=%v result=%#v", err, result)
+	}
+	if len(result.Changes) != 2 || len(result.AuditRecordPreviews) != 2 {
+		t.Fatalf("batch result counts: changes=%d audits=%d", len(result.Changes), len(result.AuditRecordPreviews))
+	}
+	if result.Changes[0].Reason != "finished work" || result.Changes[1].Reason != "review complete" {
+		t.Fatalf("reason precedence: %#v", result.Changes)
+	}
+	if len(result.WrittenFiles) != 2 {
+		t.Fatalf("batch should commit demand and audit files once, got %#v", result.WrittenFiles)
+	}
+	if result.AuditRecordPreviews[0].ID == result.AuditRecordPreviews[1].ID {
+		t.Fatalf("shared timestamp produced duplicate audit ids: %#v", result.AuditRecordPreviews)
+	}
+	ws, _ := store.Load(context.Background())
+	count := 0
+	for _, record := range ws.AuditRecords {
+		if record.Operation == "actual_set_remaining" && record.OccurredAt == occurredAt {
+			count++
+		}
+	}
+	if count != 2 {
+		t.Fatalf("actual_set_remaining audit count=%d, want 2", count)
+	}
+}
+
+func TestActualSetRemainingBatchHundredsWritesEachFileOnce(t *testing.T) {
+	projectPath := copyAppProjectFixture(t)
+	store := filestore.New(projectPath)
+	const rows = 400
+	adds := make([]app.DemandAddItem, 0, rows)
+	items := make([]app.ActualSetRemainingItem, 0, rows)
+	for i := 0; i < rows; i++ {
+		suffix := fmt.Sprintf("batch-%03d", i)
+		adds = append(adds, app.DemandAddItem{Suffix: suffix, TaskID: "task.op.1234", ResourceID: "resource.human.ivan", Role: suffix, Unit: "hours", Amount: 1, Criticality: "required", Status: "active"})
+		items = append(items, app.ActualSetRemainingItem{DemandID: "resource_demand.1234." + suffix, Amount: 0, Unit: "hours", Reason: "finished"})
+	}
+	if result, err := app.NewDemandService(store).Add(context.Background(), app.DemandAddRequest{Items: adds, Reason: "test setup", ActorID: "actor.human.operator", EvidenceID: "evidence.github.pr.45", OccurredAt: "2026-07-06T15:00:00+07:00"}); err != nil || !result.Applied {
+		t.Fatalf("add generated demands: err=%v errors=%#v", err, result.Errors)
+	}
+	result, err := app.NewActualService(store).SetRemaining(context.Background(), app.ActualSetRemainingRequest{Items: items, ActorID: "actor.human.operator", OccurredAt: "2026-07-06T16:30:00+07:00"})
+	if err != nil || !result.Applied {
+		t.Fatalf("400-row batch: err=%v errors=%#v", err, result.Errors)
+	}
+	if len(result.Changes) != rows || len(result.AuditRecordPreviews) != rows {
+		t.Fatalf("400-row counts: changes=%d audits=%d", len(result.Changes), len(result.AuditRecordPreviews))
+	}
+	if len(result.WrittenFiles) != 2 {
+		t.Fatalf("400-row batch wrote files more than once: %#v", result.WrittenFiles)
 	}
 }
 

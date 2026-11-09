@@ -322,6 +322,21 @@ func (s Store) SetResourceDemandRemaining(demandID string, amount float64) (stri
 	})
 }
 
+func (s Store) SetResourceDemandsRemaining(amounts map[string]float64) (string, error) {
+	err := updateYAML(s, demandsRel, false, func(doc *demandsDoc) error {
+		index := demandIndex(doc.ResourceDemands)
+		for demandID, amount := range amounts {
+			i, ok := index[demandID]
+			if !ok {
+				return fmt.Errorf("resource demand %s not found", demandID)
+			}
+			doc.ResourceDemands[i].RemainingAmount = domain.Amount(amount)
+		}
+		return nil
+	})
+	return demandsRel, err
+}
+
 func (s Store) SetResourceDemandStatus(demandID string, status string) (string, error) {
 	return s.updateDemand(demandID, func(demand *domain.ResourceDemand) {
 		demand.Status = status
@@ -780,6 +795,45 @@ func (s Store) AppendAudit(record *domain.AuditRecord) (string, error) {
 		return rel, fmt.Errorf("append audit file %s: %w", rel, err)
 	}
 	return rel, nil
+}
+
+func (s Store) AppendAudits(records []*domain.AuditRecord) ([]string, error) {
+	ids, err := s.recordIDs("audit/*.jsonl", auditIDs)
+	if err != nil {
+		return nil, fmt.Errorf("read existing audit ids: %w", err)
+	}
+	byPath := map[string][][]byte{}
+	paths := []string{}
+	for _, record := range records {
+		record.ID = availableRecordID(record.ID, ids)
+		ids[record.ID] = true
+		line, err := json.Marshal(record)
+		if err != nil {
+			return nil, fmt.Errorf("render audit record: %w", err)
+		}
+		rel := app.AuditShardPath(record.OccurredAt)
+		if _, ok := byPath[rel]; !ok {
+			paths = append(paths, rel)
+		}
+		byPath[rel] = append(byPath[rel], line)
+	}
+	for _, rel := range paths {
+		existing, err := s.fs.read(rel)
+		if err != nil && !errors.Is(err, os.ErrNotExist) {
+			return nil, fmt.Errorf("read audit file %s: %w", rel, err)
+		}
+		if len(existing) > 0 && existing[len(existing)-1] != '\n' {
+			existing = append(existing, '\n')
+		}
+		for _, line := range byPath[rel] {
+			existing = append(existing, line...)
+			existing = append(existing, '\n')
+		}
+		if err := s.fs.write(rel, existing); err != nil {
+			return nil, fmt.Errorf("append audit file %s: %w", rel, err)
+		}
+	}
+	return paths, nil
 }
 
 func (s Store) recordIDs(pattern string, decode func([]byte) ([]string, error)) (map[string]bool, error) {

@@ -25,6 +25,11 @@ type ActualWriter interface {
 	SetTaskTrackingStatus(taskID string, status string) (string, error)
 }
 
+type ActualBatchWriter interface {
+	SetResourceDemandsRemaining(map[string]float64) (string, error)
+	AppendAudits([]*domain.AuditRecord) ([]string, error)
+}
+
 type ActualListRequest struct {
 	Type       string
 	TaskID     string
@@ -122,6 +127,7 @@ type ActualCorrectStatusResult struct {
 }
 
 type ActualSetRemainingRequest struct {
+	Items      []ActualSetRemainingItem
 	DemandID   string
 	Amount     float64
 	Unit       string
@@ -134,22 +140,42 @@ type ActualSetRemainingRequest struct {
 	Now        time.Time
 }
 
+type ActualSetRemainingItem struct {
+	DemandID string
+	Amount   float64
+	Unit     string
+	Reason   string
+}
+
+type ActualSetRemainingChange struct {
+	Row            int     `json:"row"`
+	DemandID       string  `json:"demand_id"`
+	TaskID         string  `json:"task_id,omitempty"`
+	ResourceID     string  `json:"resource_id,omitempty"`
+	PreviousAmount float64 `json:"previous_amount"`
+	NewAmount      float64 `json:"new_amount"`
+	Unit           string  `json:"unit"`
+	Reason         string  `json:"reason"`
+}
+
 type ActualSetRemainingResult struct {
-	DryRun             bool               `json:"dry_run"`
-	Applied            bool               `json:"applied"`
-	DemandID           string             `json:"demand_id"`
-	TaskID             string             `json:"task_id,omitempty"`
-	ResourceID         string             `json:"resource_id,omitempty"`
-	PreviousAmount     float64            `json:"previous_amount"`
-	NewAmount          float64            `json:"new_amount"`
-	Unit               string             `json:"unit"`
-	Reason             string             `json:"reason,omitempty"`
-	PlannedWrites      []PlannedWrite     `json:"planned_writes"`
-	WrittenFiles       []string           `json:"written_files,omitempty"`
-	AuditRecordPreview domain.AuditRecord `json:"audit_record_preview"`
-	Validation         *ValidateResult    `json:"validation,omitempty"`
-	Warnings           []Diagnostic       `json:"warnings"`
-	Errors             []Diagnostic       `json:"errors"`
+	DryRun              bool                       `json:"dry_run"`
+	Applied             bool                       `json:"applied"`
+	DemandID            string                     `json:"demand_id"`
+	TaskID              string                     `json:"task_id,omitempty"`
+	ResourceID          string                     `json:"resource_id,omitempty"`
+	PreviousAmount      float64                    `json:"previous_amount"`
+	NewAmount           float64                    `json:"new_amount"`
+	Unit                string                     `json:"unit"`
+	Reason              string                     `json:"reason,omitempty"`
+	Changes             []ActualSetRemainingChange `json:"changes,omitempty"`
+	PlannedWrites       []PlannedWrite             `json:"planned_writes"`
+	WrittenFiles        []string                   `json:"written_files,omitempty"`
+	AuditRecordPreview  domain.AuditRecord         `json:"audit_record_preview"`
+	AuditRecordPreviews []domain.AuditRecord       `json:"audit_record_previews,omitempty"`
+	Validation          *ValidateResult            `json:"validation,omitempty"`
+	Warnings            []Diagnostic               `json:"warnings"`
+	Errors              []Diagnostic               `json:"errors"`
 }
 
 type ActualCloseDemandRequest struct {
@@ -581,26 +607,30 @@ func (s ActualService) AddConsumption(ctx context.Context, req ActualAddConsumpt
 
 func (s ActualService) SetRemaining(ctx context.Context, req ActualSetRemainingRequest) (ActualSetRemainingResult, error) {
 	ws, loadDiags := s.loader.Load(ctx)
+	items := req.Items
+	batch := items != nil
+	if !batch {
+		items = []ActualSetRemainingItem{{DemandID: req.DemandID, Amount: req.Amount, Unit: req.Unit, Reason: req.Reason}}
+	}
 	result := ActualSetRemainingResult{
 		DryRun:        req.DryRun,
-		DemandID:      req.DemandID,
-		NewAmount:     req.Amount,
-		Unit:          req.Unit,
-		Reason:        req.Reason,
 		PlannedWrites: []PlannedWrite{},
 		WrittenFiles:  []string{},
 		Warnings:      []Diagnostic{},
 		Errors:        []Diagnostic{},
 	}
 	appendLoadDiagnostics(&result.Warnings, &result.Errors, loadDiags)
-	demand, ok := validateSetRemainingRequest(&result.Errors, ws, req)
-	if ok {
-		result.TaskID = demand.TaskRef.ID
-		result.ResourceID = demand.ResourceRef.ID
-		result.PreviousAmount = demand.Remaining()
-	}
+	changes := validateSetRemainingItems(&result.Errors, ws, req, items, batch)
 	if len(result.Errors) > 0 {
 		return result, ErrValidationFailed
+	}
+	if batch {
+		result.Changes = changes
+	}
+	if len(changes) > 0 {
+		first := changes[0]
+		result.DemandID, result.TaskID, result.ResourceID = first.DemandID, first.TaskID, first.ResourceID
+		result.PreviousAmount, result.NewAmount, result.Unit, result.Reason = first.PreviousAmount, first.NewAmount, first.Unit, first.Reason
 	}
 
 	occurredAt := req.OccurredAt
@@ -615,54 +645,18 @@ func (s ActualService) SetRemaining(ctx context.Context, req ActualSetRemainingR
 	if statusDate == "" {
 		statusDate = projectDate(ws.Project, occurredAt)
 	}
-	patch := map[string]any{
-		"op":    "replace",
-		"path":  fmt.Sprintf("canonical/resource_demands/%s/remaining_amount", req.DemandID),
-		"value": req.Amount,
-		"unit":  req.Unit,
-	}
-	if req.Reason != "" {
-		patch["reason"] = req.Reason
-	}
-	if statusDate != "" {
-		patch["status_date"] = statusDate
-	}
-	patchYAML, err := yaml.Marshal(patch)
+	audits, planned, err := setRemainingPreviews(changes, req, occurredAt, statusDate)
 	if err != nil {
-		result.Errors = append(result.Errors, Diagnostic{
-			Code:     "yaml_render_error",
-			Message:  fmt.Sprintf("failed to render remaining-work patch yaml: %v", err),
-			Severity: "error",
-		})
+		result.Errors = append(result.Errors, Diagnostic{Code: "yaml_render_error", Message: err.Error(), Severity: "error"})
 		return result, ErrValidationFailed
 	}
-	audit := domain.AuditRecord{
-		ID:         "audit." + compactTimestamp(occurredAt) + ".actual-set-remaining." + slugID(req.DemandID),
-		OccurredAt: occurredAt,
-		ActorRef:   domain.Ref{Kind: "actor", ID: req.ActorID},
-		Operation:  "actual_set_remaining",
-		TargetRef:  domain.Ref{Kind: "resource_demand", ID: req.DemandID},
-		Reason:     req.Reason,
+	result.PlannedWrites = planned
+	if batch {
+		result.AuditRecordPreviews = audits
 	}
-	if req.DryRun {
-		audit.Result = "dry_run"
-	} else {
-		audit.Result = "success"
-		if audit.Reason == "" {
-			audit.Reason = "Updated remaining work."
-		}
+	if len(audits) > 0 {
+		result.AuditRecordPreview = audits[0]
 	}
-	if req.EvidenceID != "" {
-		audit.EvidenceRefs = []domain.Ref{{Kind: "evidence", ID: req.EvidenceID}}
-	}
-
-	result.PlannedWrites = append(result.PlannedWrites, PlannedWrite{
-		Path:    "canonical/resource_demands.yaml",
-		Action:  "replace_yaml_field",
-		Format:  "yaml-patch-preview",
-		Content: string(patchYAML),
-	})
-	result.AuditRecordPreview = audit
 	if req.DryRun {
 		return result, nil
 	}
@@ -678,29 +672,49 @@ func (s ActualService) SetRemaining(ctx context.Context, req ActualSetRemainingR
 		})
 		return result, ErrValidationFailed
 	}
-	demandPath, err := writer.SetResourceDemandRemaining(req.DemandID, req.Amount)
-	if err != nil {
-		result.Errors = append(result.Errors, Diagnostic{
-			Code:     "remaining_write_failed",
-			Message:  err.Error(),
-			Severity: "error",
-			Target:   Target{Kind: "resource_demand", ID: req.DemandID},
-		})
-		return result, err
+	if batchWriter, ok := session.target.(ActualBatchWriter); ok {
+		amounts := make(map[string]float64, len(changes))
+		for _, change := range changes {
+			amounts[change.DemandID] = change.NewAmount
+		}
+		demandPath, err := batchWriter.SetResourceDemandsRemaining(amounts)
+		if err != nil {
+			result.Errors = append(result.Errors, Diagnostic{Code: "remaining_write_failed", Message: err.Error(), Severity: "error", Target: Target{Kind: "project", ID: s.loader.ProjectPath()}})
+			return result, err
+		}
+		result.WrittenFiles = append(result.WrittenFiles, demandPath)
+		auditPointers := make([]*domain.AuditRecord, len(audits))
+		for i := range audits {
+			auditPointers[i] = &audits[i]
+		}
+		auditPaths, err := batchWriter.AppendAudits(auditPointers)
+		if err != nil {
+			result.Errors = append(result.Errors, Diagnostic{Code: "audit_write_failed", Message: err.Error(), Severity: "error", Target: Target{Kind: "project", ID: s.loader.ProjectPath()}})
+			return result, err
+		}
+		result.WrittenFiles = append(result.WrittenFiles, auditPaths...)
+	} else {
+		for i, change := range changes {
+			demandPath, err := writer.SetResourceDemandRemaining(change.DemandID, change.NewAmount)
+			if err != nil {
+				result.Errors = append(result.Errors, Diagnostic{Code: "remaining_write_failed", Message: err.Error(), Severity: "error", Target: Target{Kind: "resource_demand", ID: change.DemandID}})
+				return result, err
+			}
+			result.WrittenFiles = append(result.WrittenFiles, demandPath)
+			auditPath, err := writer.AppendAudit(&audits[i])
+			if err != nil {
+				result.Errors = append(result.Errors, Diagnostic{Code: "audit_write_failed", Message: err.Error(), Severity: "error", Target: Target{Kind: "audit_record", ID: audits[i].ID}})
+				return result, err
+			}
+			result.WrittenFiles = append(result.WrittenFiles, auditPath)
+		}
 	}
-	result.WrittenFiles = append(result.WrittenFiles, demandPath)
-	auditPath, err := writer.AppendAudit(&audit)
-	result.AuditRecordPreview = audit
-	if err != nil {
-		result.Errors = append(result.Errors, Diagnostic{
-			Code:     "audit_write_failed",
-			Message:  err.Error(),
-			Severity: "error",
-			Target:   Target{Kind: "audit_record", ID: audit.ID},
-		})
-		return result, err
+	if batch {
+		result.AuditRecordPreviews = audits
 	}
-	result.WrittenFiles = append(result.WrittenFiles, auditPath)
+	if len(audits) > 0 {
+		result.AuditRecordPreview = audits[0]
+	}
 	validation, written, err := session.finish(ctx, result.WrittenFiles)
 	result.Validation = &validation
 	result.WrittenFiles = written
@@ -710,6 +724,73 @@ func (s ActualService) SetRemaining(ctx context.Context, req ActualSetRemainingR
 	}
 	result.Applied = true
 	return result, nil
+}
+
+func validateSetRemainingItems(errors *[]Diagnostic, ws domain.Workspace, req ActualSetRemainingRequest, items []ActualSetRemainingItem, batch bool) []ActualSetRemainingChange {
+	changes := []ActualSetRemainingChange{}
+	if len(items) == 0 {
+		addActualRequestError(errors, "missing_demands", "demands must contain at least one item", "resource_demand", "")
+	}
+	seen := map[string]bool{}
+	for i, item := range items {
+		itemReq := req
+		itemReq.Items = nil
+		itemReq.DemandID, itemReq.Amount, itemReq.Unit = item.DemandID, item.Amount, item.Unit
+		itemReq.Reason = item.Reason
+		if itemReq.Reason == "" {
+			itemReq.Reason = req.Reason
+		}
+		start := len(*errors)
+		if batch && itemReq.Reason == "" {
+			addActualRequestError(errors, "missing_reason", "reason is required", "resource_demand", item.DemandID)
+		}
+		if seen[item.DemandID] {
+			addActualRequestError(errors, "duplicate_demand", fmt.Sprintf("resource demand %s is specified more than once", item.DemandID), "resource_demand", item.DemandID)
+		} else {
+			seen[item.DemandID] = true
+		}
+		demand, ok := validateSetRemainingRequest(errors, ws, itemReq)
+		if ok && len(*errors) == start {
+			changes = append(changes, ActualSetRemainingChange{Row: i + 1, DemandID: item.DemandID, TaskID: demand.TaskRef.ID, ResourceID: demand.ResourceRef.ID, PreviousAmount: demand.Remaining(), NewAmount: item.Amount, Unit: item.Unit, Reason: itemReq.Reason})
+		}
+		for j := start; j < len(*errors); j++ {
+			(*errors)[j].Message = fmt.Sprintf("row %d demand %q: %s", i+1, item.DemandID, (*errors)[j].Message)
+		}
+	}
+	return changes
+}
+
+func setRemainingPreviews(changes []ActualSetRemainingChange, req ActualSetRemainingRequest, occurredAt, statusDate string) ([]domain.AuditRecord, []PlannedWrite, error) {
+	audits := make([]domain.AuditRecord, 0, len(changes))
+	planned := make([]PlannedWrite, 0, len(changes))
+	for _, change := range changes {
+		patch := map[string]any{"op": "replace", "path": fmt.Sprintf("canonical/resource_demands/%s/remaining_amount", change.DemandID), "value": change.NewAmount, "unit": change.Unit}
+		if change.Reason != "" {
+			patch["reason"] = change.Reason
+		}
+		if statusDate != "" {
+			patch["status_date"] = statusDate
+		}
+		patchYAML, err := yaml.Marshal(patch)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to render remaining-work patch yaml for %s: %w", change.DemandID, err)
+		}
+		audit := domain.AuditRecord{ID: "audit." + compactTimestamp(occurredAt) + ".actual-set-remaining." + slugID(change.DemandID), OccurredAt: occurredAt, ActorRef: domain.Ref{Kind: "actor", ID: req.ActorID}, Operation: "actual_set_remaining", TargetRef: domain.Ref{Kind: "resource_demand", ID: change.DemandID}, Reason: change.Reason}
+		if req.DryRun {
+			audit.Result = "dry_run"
+		} else {
+			audit.Result = "success"
+			if audit.Reason == "" {
+				audit.Reason = "Updated remaining work."
+			}
+		}
+		if req.EvidenceID != "" {
+			audit.EvidenceRefs = []domain.Ref{{Kind: "evidence", ID: req.EvidenceID}}
+		}
+		planned = append(planned, PlannedWrite{Path: "canonical/resource_demands.yaml", Action: "replace_yaml_field", Format: "yaml-patch-preview", Content: string(patchYAML)})
+		audits = append(audits, audit)
+	}
+	return audits, planned, nil
 }
 
 func (s ActualService) CloseDemand(ctx context.Context, req ActualCloseDemandRequest) (ActualCloseDemandResult, error) {
