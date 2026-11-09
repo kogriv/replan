@@ -225,6 +225,10 @@ RePlan drafts `planned_start` and `planned_finish`, because it sees capacity
 and load. They reach OpenProject `startDate` and `dueDate` only through
 `scripts/push-openproject-date-drift.sh` or toolkit `work-package update-dates`.
 Both are dry runs by default and write only with `REPLAN_APPLY=1`.
+An apply when the date push is already aligned is a successful no-op: it exits
+zero, reports `no_op: true` and `applied_actions: 0`, and does not suggest
+applying again. Review or blocked actions still refuse apply even when there
+are no planned actions.
 
 Once pushed, OpenProject shows the dates to people. Bound work packages stay
 manually scheduled so OpenProject does not recalculate RePlan-owned dates.

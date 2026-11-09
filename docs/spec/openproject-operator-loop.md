@@ -457,6 +457,8 @@ Expected result:
 - every helper uses private bindings and OpenProject `lockVersion`;
 - every helper reports skipped, blocked and applied actions in structured
   output;
+- an aligned date-push apply is a successful zero-write no-op, while review or
+  blocked date actions still refuse apply even when no date update is planned;
 - after apply, the operator reruns the drift report.
 
 Approved first write-back families:

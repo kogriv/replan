@@ -37,7 +37,7 @@ class ReschedulingReportTest(unittest.TestCase):
         }
         proc = subprocess.run(
             [sys.executable, "-m", module, *args], capture_output=True, text=True,
-            env=dict(os.environ, PYTHONPATH=LIB, **settings, **env), timeout=60,
+            env={**os.environ, "PYTHONPATH": LIB, **settings, **env}, timeout=60,
         )
         return proc.returncode, json.loads(proc.stdout)
 
@@ -774,7 +774,7 @@ class ReschedulingReportTest(unittest.TestCase):
             for item in out["applied_so_far"]
         ))
 
-    def date_push(self, tmp, tasks, live, handler, dependencies=None, dependency_bindings=None, dep_candidates=None):
+    def date_push(self, tmp, tasks, live, handler, dependencies=None, dependency_bindings=None, dep_candidates=None, fixture=False):
         dependencies = dependencies or []
         bindings = self.write_project(tmp, tasks, dependencies, dependency_bindings)
         import_path = os.path.join(tmp, "import.json")
@@ -792,9 +792,147 @@ class ReschedulingReportTest(unittest.TestCase):
                 "REPLAN_OPENPROJECT_BINDINGS_PATH": bindings,
                 "REPLAN_OPENPROJECT_BASE_URL": base,
                 "REPLAN_OPENPROJECT_PROJECT_ID": "test-project",
+                "REPLAN_OPENPROJECT_IMPORT_JSON": import_path if fixture else "",
                 "REPLAN_APPLY": "1",
             },
         )
+
+    def test_aligned_date_push_apply_is_a_no_op_success(self):
+        requests = []
+
+        class OpenProject(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                requests.append(("GET", self.path))
+                self.send_error(500)
+
+            def do_PATCH(self):
+                requests.append(("PATCH", self.path))
+                self.send_error(500)
+
+            def log_message(self, *_args):
+                pass
+
+        task = {
+            "id": "task.a", "title": "A", "tracking_status": "in_progress",
+            "planned_start": "2026-10-21", "planned_finish": "2026-10-22",
+        }
+        live = [{
+            "source_id": "1", "title": "A", "source_status": "In progress",
+            "mapped_status": "in_progress", "start_date": "2026-10-21",
+            "due_date": "2026-10-22",
+        }]
+        with tempfile.TemporaryDirectory() as tmp:
+            code, out = self.date_push(tmp, [task], live, OpenProject)
+
+        self.assertEqual(code, 0, out)
+        self.assertTrue(out["ok"], out)
+        self.assertTrue(out["no_op"], out)
+        self.assertEqual(out["date_push_status"], "aligned")
+        self.assertEqual(out["counts"]["planned_actions"], 0)
+        self.assertEqual(out["counts"]["applied_actions"], 0)
+        self.assertEqual(out["apply_blocked_reason"], "")
+        self.assertFalse(any("REPLAN_APPLY=1" in step for step in out["operator_next_steps"]))
+        self.assertEqual(requests, [])
+
+    def test_aligned_date_push_apply_still_refuses_import_fixture(self):
+        class OpenProject(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                self.send_error(500)
+
+            def do_PATCH(self):
+                self.send_error(500)
+
+            def log_message(self, *_args):
+                pass
+
+        task = {
+            "id": "task.a", "title": "A", "tracking_status": "in_progress",
+            "planned_start": "2026-10-21", "planned_finish": "2026-10-22",
+        }
+        live = [{
+            "source_id": "1", "title": "A", "source_status": "In progress",
+            "mapped_status": "in_progress", "start_date": "2026-10-21",
+            "due_date": "2026-10-22",
+        }]
+        with tempfile.TemporaryDirectory() as tmp:
+            code, out = self.date_push(tmp, [task], live, OpenProject, fixture=True)
+
+        self.assertEqual(code, 11, out)
+        self.assertFalse(out["ok"], out)
+        self.assertFalse(out["no_op"], out)
+        self.assertEqual(
+            out["apply_blocked_reason"],
+            "apply_not_allowed_with_import_json_fixture",
+        )
+
+    def test_review_only_date_push_apply_is_still_refused(self):
+        class OpenProject(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                self.send_error(500)
+
+            def do_PATCH(self):
+                self.send_error(500)
+
+            def log_message(self, *_args):
+                pass
+
+        task = {
+            "id": "task.a", "title": "A", "tracking_status": "accepted",
+            "planned_start": "2026-10-21", "planned_finish": "2026-10-22",
+        }
+        live = [{
+            "source_id": "1", "title": "A", "source_status": "Closed",
+            "mapped_status": "accepted", "start_date": "2026-10-20",
+            "due_date": "2026-10-20",
+        }]
+        with tempfile.TemporaryDirectory() as tmp:
+            code, out = self.date_push(tmp, [task], live, OpenProject)
+
+        self.assertEqual(code, 11, out)
+        self.assertFalse(out["ok"], out)
+        self.assertFalse(out["no_op"], out)
+        self.assertEqual(out["counts"]["planned_actions"], 0)
+        self.assertEqual(out["counts"]["review_actions"], 1)
+        self.assertEqual(out["counts"]["applied_actions"], 0)
+        self.assertEqual(out["apply_blocked_reason"], "review_actions_present")
+
+    def test_blocked_date_push_apply_is_still_refused(self):
+        class OpenProject(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                self.send_error(500)
+
+            def do_PATCH(self):
+                self.send_error(500)
+
+            def log_message(self, *_args):
+                pass
+
+        task = {
+            "id": "task.a", "title": "A", "tracking_status": "in_progress",
+            "planned_start": "2026-10-21", "planned_finish": "2026-10-22",
+        }
+        live = [
+            {
+                "source_id": "1", "title": "A", "source_status": "In progress",
+                "mapped_status": "in_progress", "start_date": "2026-10-21",
+                "due_date": "2026-10-22",
+            },
+            {
+                "source_id": "2", "title": "Extra", "source_status": "New",
+                "mapped_status": "not_started", "start_date": "",
+                "due_date": "",
+            },
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            code, out = self.date_push(tmp, [task], live, OpenProject)
+
+        self.assertEqual(code, 11, out)
+        self.assertFalse(out["ok"], out)
+        self.assertFalse(out["no_op"], out)
+        self.assertEqual(out["counts"]["planned_actions"], 0)
+        self.assertEqual(out["counts"]["blocked_actions"], 1)
+        self.assertEqual(out["counts"]["applied_actions"], 0)
+        self.assertEqual(out["apply_blocked_reason"], "blocked_actions_present")
 
     def test_date_push_reports_sunday_stored_as_monday(self):
         state = {"patched": False, "payload": {}}

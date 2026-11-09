@@ -270,9 +270,7 @@ if mode == "apply":
         apply_blocked_reason = "blocked_actions_present"
     elif review:
         apply_blocked_reason = "review_actions_present"
-    elif not planned:
-        apply_blocked_reason = "no_planned_actions"
-    else:
+    elif planned:
         binding_relations = []
         for binding in openproject_bindings.root(bindings_doc).get("dependencies") or []:
             binding_relations.append({
@@ -395,6 +393,7 @@ out = {
     "blocked_actions": blocked,
     "applied_actions": applied,
     "apply_blocked_reason": apply_blocked_reason,
+    "no_op": mode == "apply" and not planned and not review and not blocked and not apply_blocked_reason,
     "warning_codes": sorted({w.get("code", "") for w in warnings if w.get("code")}),
     "error_codes": sorted({e.get("code", "") for e in errors if e.get("code")}),
     "operator_next_steps": [
@@ -407,6 +406,11 @@ out = {
     ],
     "temp_retained": bool(keep_temp),
 }
+if out["no_op"]:
+    out["operator_next_steps"] = [
+        "Dates are aligned; continue with the next planning or execution step.",
+        "Run scripts/check-resource-schedule-drift.sh if resource scheduling still needs review.",
+    ]
 extra_warnings = []
 if stored_differences:
     out["stored_date_differences"] = stored_differences
