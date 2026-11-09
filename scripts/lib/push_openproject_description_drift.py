@@ -149,6 +149,7 @@ def main():
     compared = 0
     differing = 0
     applied_actions = 0
+    shared_line_work_package_ids = []
 
     nonempty_task_ids = []
     for task_id in task_ids:
@@ -197,9 +198,15 @@ def main():
             continue
 
         openproject_description = (work_package.get("description") or {}).get("raw", "")
-        owned_description, kept_tail = description_convention.split_task_description(
+        (
+            owned_description,
+            kept_tail,
+            trailer_shares_line,
+        ) = description_convention.split_task_description_details(
             openproject_description, task_id
         )
+        if trailer_shares_line:
+            shared_line_work_package_ids.append(str(work_package_id))
         compared += 1
         if normalized_description(replan_description) == normalized_description(
             owned_description
@@ -220,6 +227,7 @@ def main():
             "old_preview": preview(openproject_description),
             "new_preview": preview(wanted_description),
             "kept_tail_length": len(kept_tail),
+            "trailer_shares_line": trailer_shares_line,
         }
         actions.append(action)
         if mode != "apply":
@@ -260,6 +268,17 @@ def main():
         action["updated_lock_version"] = updated.get("lockVersion")
         applied_actions += 1
         partial_apply.applied(action)
+
+    if shared_line_work_package_ids:
+        warning = helper_envelope.diagnostic(
+            "task_id_trailer_shares_line",
+            "RePlan task id trailer shares a line with following text in work package(s) "
+            + ", ".join(shared_line_work_package_ids)
+            + "; the complete tail was preserved and the joined line was not rewritten",
+            "warning",
+        )
+        warning["work_package_ids"] = shared_line_work_package_ids
+        warnings.append(warning)
 
     out = {
         "ok": not errors,

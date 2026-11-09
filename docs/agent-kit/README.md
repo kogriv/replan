@@ -55,6 +55,19 @@ environment win. Set `REPLAN_ENV_FILE` in the environment to read only that
 file instead. The named file must be readable. `REPLAN_ENV_FILE` itself is
 never read from a settings file.
 
+Settings that control one run or one acceptance are environment-only. They
+include `REPLAN_APPLY`, `REPLAN_ACTOR`, `REPLAN_BIN`, `REPLAN_FORMAT`,
+`REPLAN_KEEP_TEMP`, `REPLAN_ENV_FILE`, `REPLAN_OPENPROJECT_PROFILE`,
+`REPLAN_OPENPROJECT_FROM_FILE`, `REPLAN_OPENPROJECT_STATUS_SCOPE`,
+`REPLAN_TASK`, `REPLAN_ACCEPTED_BY` and the `REPLAN_ACCEPT_*` settings. The
+complete list shipped with the helpers is
+`scripts/lib/environment-only-settings.list`. A non-empty environment-only
+setting in `.env.local`, `.env` or the file selected by `REPLAN_ENV_FILE`
+remains ignored and produces an `environment_only_setting_in_file` warning.
+The warning names only the setting and settings-file basename, never its value
+or full path. Export the setting in the process environment when you intend it
+to affect a run.
+
 The per-project settings are `REPLAN_PROJECT`,
 `REPLAN_OPENPROJECT_PROJECT_NAME`, its deprecated
 `REPLAN_OPENPROJECT_TARGET_PROJECT_NAME` alias, the three
@@ -272,6 +285,13 @@ RePlan. Record them from evidence and actuals with `bin/replan actual
 add-status` and the other `actual` commands; push only the resulting tracking
 status to OpenProject.
 
+The status push defaults to `REPLAN_OPENPROJECT_STATUS_SCOPE=ready_only`, so
+it pushes only a RePlan `ready` task to OpenProject `To be scheduled`. Set
+`REPLAN_OPENPROJECT_STATUS_SCOPE=all` in the process environment to consider
+every mapped RePlan tracking status. Do not put this setting in a settings
+file: it is environment-only. A `status_scope_ready_only` skipped action
+includes this instruction in its `hint` and once in `operator_next_steps`.
+
 RePlan owns descriptions of bound tasks once a person pushes them with
 `scripts/push-openproject-description-drift.sh`. OpenProject description edits
 are overwritten only by a reviewed apply, never by the default dry run. Review
@@ -279,8 +299,15 @@ the old and new lengths and short previews before setting `REPLAN_APPLY=1`.
 Descriptions created by bootstrap contain a `RePlan task id` trailer line.
 Text above that line is RePlan-owned. The trailer line and everything after it
 are OpenProject-owned and are kept byte-for-byte on an update, including human
-notes below the trailer. The helper does not add a trailer to a work package
-whose description lacks it.
+notes below the trailer. A trailer is also recognized at the start of a line
+when older tooling joined human text after its closing backtick. The action
+then reports `trailer_shares_line: true`, and warning
+`task_id_trailer_shares_line` names the affected work packages in both dry-run
+and apply output. The helper preserves that whole joined line and tail; it does
+not repair the line because that decision belongs to a person. If no matching
+trailer exists, the current OpenProject description is treated entirely as the
+RePlan-owned prefix and is replaced by the canonical RePlan description; the
+helper does not append a trailer.
 
 ## Start a plan of your own
 
@@ -461,7 +488,7 @@ to its root. A write to OpenProject or the bindings file is a dry run unless
 | Import GitHub Issues | `bin/replan import github --project "$REPLAN_PROJECT" --profile <id> --dry-run` | A profile names `repository` and `token_env`; explicit `--repository` is also available. File replay uses `--from-file`. Review candidates, omit `--dry-run` to stage the snapshot, then use the shared `import accept` modes. No GitHub write-back is implemented. |
 | Planned dates to OpenProject | `scripts/push-openproject-date-drift.sh` | Toolkit `work-package update-dates` is the single-work-package surface. |
 | Dates from OpenProject | `bin/replan task set-dates ... --dry-run` | Reviewed one-task acceptance. For a stored snapshot use `bin/replan import accept <snapshot-id> --accept-dates --dry-run`. The live batch helper keeps private-binding matching, then writes audited `task set-dates` changes and requires `REPLAN_ACTOR` with `REPLAN_APPLY=1`. |
-| Change and push a task description | `bin/replan task set-description ... --dry-run`, then `scripts/push-openproject-description-drift.sh` | The CLI changes the audited canonical description. The helper previews bound work-package differences, preserves an existing bootstrap trailer and all OpenProject text below it byte-for-byte, and pushes only with `REPLAN_APPLY=1`; `REPLAN_TASKS` optionally limits the task ids. |
+| Change and push a task description | `bin/replan task set-description ... --dry-run`, then `scripts/push-openproject-description-drift.sh` | The CLI changes the audited canonical description. The helper previews bound work-package differences, preserves an existing bootstrap trailer and all OpenProject text from it byte-for-byte (also flagging text joined to its line), and pushes only with `REPLAN_APPLY=1`; without a trailer it replaces the whole description and does not append one; `REPLAN_TASKS` optionally limits the task ids. |
 | Correct subject or description | `scripts/openproject-work-package-toolkit.sh work-package update-text ...` | Shows old/new text and the current lock version. A bound subject is preflighted and synchronized with audited `bin/replan task set-title`; an OpenProject description is not copied into the separate RePlan planning note. |
 | Set or clear one work package's Version (stage) | `scripts/openproject-work-package-toolkit.sh work-package update-metadata --task <id> --version <id-or-exact-name>` | Use `version list` to inspect the selected project's versions; use `--clear-version` to remove one. Both are dry-run first and use the work package's current lock version on apply. |
 | Drift check | `scripts/check-openproject-drift.sh` | Read-only comparison; a person chooses the direction. |

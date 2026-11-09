@@ -241,6 +241,8 @@ class DescriptionDriftPushTest(unittest.TestCase):
 
         self.assertEqual(proc.returncode, 0, out)
         self.assertEqual(out["actions"][0]["kept_tail_length"], len(tail))
+        self.assertFalse(out["actions"][0]["trailer_shares_line"])
+        self.assertNotIn("task_id_trailer_shares_line", out["warning_codes"])
         self.assertEqual(out["actions"][0]["new_length"], len(wanted))
         self.assertEqual(self.state["patches"], [("1", {
             "description": {"format": "markdown", "raw": wanted},
@@ -265,6 +267,69 @@ class DescriptionDriftPushTest(unittest.TestCase):
         self.assertEqual(self.state["patches"], [("1", {
             "description": {"format": "markdown", "raw": wanted},
             "lockVersion": 11,
+        })])
+
+    def test_trailer_followed_by_text_on_same_line_is_preserved_and_reported(self):
+        tail = "RePlan task id: `task.a` Added later by a person..."
+        wanted = "New description\n\n" + tail
+        with tempfile.TemporaryDirectory() as tmp:
+            project, bindings = self.project(tmp, [{
+                "id": "task.a", "description": "New description",
+            }])
+            self.work_package(1, "Old description\n\n" + tail, 12)
+            dry_proc, dry = self.run_push(project, bindings, tmp)
+            apply_proc, applied = self.run_push(project, bindings, tmp, apply="1")
+
+        self.assertEqual(dry_proc.returncode, 0, dry)
+        self.assertTrue(dry["actions"][0]["trailer_shares_line"])
+        self.assertEqual(dry["warning_codes"], ["task_id_trailer_shares_line"])
+        self.assertEqual(dry["warnings"][0]["work_package_ids"], ["1"])
+        self.assertEqual(apply_proc.returncode, 0, applied)
+        self.assertTrue(applied["actions"][0]["trailer_shares_line"])
+        self.assertEqual(applied["warning_codes"], ["task_id_trailer_shares_line"])
+        self.assertEqual(applied["warnings"][0]["work_package_ids"], ["1"])
+        self.assertEqual(self.state["patches"], [("1", {
+            "description": {"format": "markdown", "raw": wanted},
+            "lockVersion": 12,
+        })])
+
+    def test_similar_task_id_prefix_is_not_a_matching_trailer(self):
+        other_tail = "RePlan task id: `task.a2` Keep this only for task.a2"
+        with tempfile.TemporaryDirectory() as tmp:
+            project, bindings = self.project(tmp, [{
+                "id": "task.a", "description": "New description",
+            }])
+            self.work_package(1, "Old description\n\n" + other_tail, 13)
+            proc, out = self.run_push(project, bindings, tmp, apply="1")
+
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertEqual(out["actions"][0]["kept_tail_length"], 0)
+        self.assertFalse(out["actions"][0]["trailer_shares_line"])
+        self.assertNotIn("task_id_trailer_shares_line", out["warning_codes"])
+        self.assertEqual(self.state["patches"], [("1", {
+            "description": {"format": "markdown", "raw": "New description"},
+            "lockVersion": 13,
+        })])
+
+    def test_shared_line_trailer_with_crlf_is_preserved_byte_for_byte(self):
+        tail = (
+            "RePlan task id: `task.a` Added later by a person...\r\n"
+            "Another human line.  \r\n"
+        )
+        wanted = "New description\n\n" + tail
+        with tempfile.TemporaryDirectory() as tmp:
+            project, bindings = self.project(tmp, [{
+                "id": "task.a", "description": "New description",
+            }])
+            self.work_package(1, "Old description\r\n\r\n" + tail, 14)
+            proc, out = self.run_push(project, bindings, tmp, apply="1")
+
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertTrue(out["actions"][0]["trailer_shares_line"])
+        self.assertEqual(out["warnings"][0]["work_package_ids"], ["1"])
+        self.assertEqual(self.state["patches"], [("1", {
+            "description": {"format": "markdown", "raw": wanted},
+            "lockVersion": 14,
         })])
 
     def test_crlf_and_trailing_whitespace_only_have_no_action(self):
