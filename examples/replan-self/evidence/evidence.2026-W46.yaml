@@ -518,3 +518,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.date-push-nothing-to-apply-is-ok
+  - id: evidence.self.start-bootstrap-assignee-refusal-names-setting
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T22:05:53+07:00"
+    summary: Started after the empty date push fix, as planned in the order given to the maintainer; agreed at 20:31:30, estimate frozen in baseline.2026-11-09.bootstrap-assignee-refusal-names-setting. Started on 2026-11-09, ahead of plan.
+    targets:
+      - kind: task
+        id: task.self.bootstrap-assignee-refusal-names-setting
+  - id: evidence.self.date-push-nothing-to-apply-is-ok
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T22:26:49+07:00"
+    summary: 'Fix commit 881384a: an apply of the date push with no planned, review or blocked actions answers ok true, exit 0, no_op true, applied_actions 0 and next steps that do not suggest applying again; review, blocked, stale and fixture applies are still refused. The audit found the status and description pushes, relations, bootstrap and overlay publish already accept an empty apply. Review kept apply_blocked_reason always present (empty string) for callers that read it, dropped an unrequested roadmap note that wrongly claimed OpenProject was unreachable, and named the next-step script by path; checked live: the self plan''s aligned apply exits 0. Gate green except the self OpenProject sample left stale by starting the next task during the gate; after the sync go test ./... passed. Codex 21:42:09-22:03:59 (0.36 h, prompt and last-file mtimes); executor 21:20:49-21:21:26 brief (written together with the next task''s brief), 21:41:00-21:41:30 start, 22:04:33-22:05:42 review, 22:23:07-2026-11-09T22:26:49+07:00 gate rerun and commit, 0.1 h by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.date-push-nothing-to-apply-is-ok

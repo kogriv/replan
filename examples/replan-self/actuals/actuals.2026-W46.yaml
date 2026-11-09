@@ -691,3 +691,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.dependency-set-command
+  - id: actual.self-date-push-nothing-to-apply-is-ok.ai-codex-local.20261109T2226490700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.date-push-nothing-to-apply-is-ok
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.date-push-nothing-to-apply-is-ok.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.36
+    unit: agent_hours
+    occurred_at: "2026-11-09T22:26:49+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.date-push-nothing-to-apply-is-ok
+  - id: actual.self-date-push-nothing-to-apply-is-ok.ai-agent-executor.20261109T2226490700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.date-push-nothing-to-apply-is-ok
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.date-push-nothing-to-apply-is-ok.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.1
+    unit: agent_hours
+    occurred_at: "2026-11-09T22:26:49+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.date-push-nothing-to-apply-is-ok

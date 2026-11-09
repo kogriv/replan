@@ -7552,7 +7552,7 @@ tasks:
     title: Treat an aligned date push as success
     description: 'Reported by the second project on 2026-11-09 and seen in the self plan the same day: REPLAN_APPLY=1 scripts/push-openproject-date-drift.sh with nothing to apply (date_push_status aligned, planned_actions 0) answers ok false with apply_blocked_reason no_planned_actions and exit 11, while the dry run in the same state is ok true and the status and description helpers return ok true for zero actions. A script with set -e stops on it. Make an aligned apply succeed (ok true, exit 0, applied_actions 0) and keep refusing only when review or blocked actions exist; tests and helper docs.'
     type: implementation
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-09"
     planned_finish: "2026-11-09"
     assignee_hint:
@@ -7637,9 +7637,9 @@ tasks:
     title: Name the assignee setting when OpenProject refuses the bootstrap assignee
     description: 'Found on 2026-11-09 when the second consumer project switched to an agent account: apply-openproject-bootstrap defaults the assignee to the token''s own user, an API-only agent is not assignable, and the create failed with HTTP 422 PropertyConstraintViolation on the assignee without saying how to fix it. When the token user is the defaulted assignee, check in the dry run whether that user can be assigned (the project''s available assignees) and warn; when a create is refused on the assignee, report an error code that names REPLAN_OPENPROJECT_ASSIGNEE_USER_ID. Tests and the bootstrap section of the agent kit README.'
     type: implementation
-    tracking_status: not_started
-    planned_start: "2026-11-11"
-    planned_finish: "2026-11-11"
+    tracking_status: in_progress
+    planned_start: "2026-11-09"
+    planned_finish: "2026-11-09"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer
