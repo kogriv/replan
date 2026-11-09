@@ -562,3 +562,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.missing-format-version-reads-as-one
+  - id: evidence.self.missing-format-version-reads-as-one
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T23:42:00+07:00"
+    summary: 'Fix commit 4415d2b: the project writer read a missing format_version as Go''s zero value and project set-status-date spliced format_version: 0 back, which the post-write validation refused; the YAML field is now omitted when empty, the loader keeps reading a missing field as 1, and only project migrate declares it. Tests cover set-status-date, format, migrate, validate and the reports on a plan without the field, and init still writes format_version: 1. Review reproduced it on a copy of the small-team example: the v0.5.0 build refuses with project_format_unsupported, the new build sets the date and leaves the field absent. Gate green: lint 0, 54 kit checks, 86 live checks. Codex 22:55:00-23:21:19 (0.44 h, prompt and last-file mtimes); executor 22:34:51-22:35:31 brief, 23:21:41-23:22:06 review, 23:40:04-2026-11-09T23:42:00+07:00 commit, 0.05 h by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.missing-format-version-reads-as-one
+  - id: evidence.self.start-taskjuggler-successor-starts-next-working-day
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T19:09:39+07:00"
+    summary: Agreed with the other consumer findings (message 19:09:39); estimate frozen in baseline.2026-11-09.consumer-findings-for-v0-5-1, split 0.6 Codex and 0.4 executor. Codex started 23:22:08 while the previous gate ran; this record waited for the gate so the self OpenProject sample stayed stable. Started on 2026-11-09, ahead of plan.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-successor-starts-next-working-day
