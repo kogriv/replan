@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 259,
-  "count": 259,
+  "total": 260,
+  "count": 260,
   "_embedded": {
     "elements": [
       {
@@ -7505,6 +7505,35 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2359"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2360,
+        "subject": "Publish release v0.5.1 and refresh the agent kits",
+        "description": {
+          "raw": "Agreed with the operator on 2026-11-09 as the step after the consumer findings: publish release v0.5.1 so the agent kits carry the comment fix and checked write answers, dependency set, the aligned date push, the bootstrap assignee check, the missing format_version fix, next-working-day TaskJuggler dependencies, the scenario task diff and linked proposal on apply, and the set-remaining batch: release notes, tag after green CI, six archives built locally and compared with the CI build and its attestation, GitHub release, go install check; then refresh the three consumer projects' kits as for v0.5.0 and tell each session what changed."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-10",
+        "dueDate": "2026-11-10",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2360"
           },
           "status": {
             "title": "New"

@@ -639,3 +639,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.set-remaining-from-file
+  - id: evidence.self.plan-publish-release-v0-5-1
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T19:09:39+07:00"
+    summary: The maintainer agreed the order ending with release v0.5.1 for the three consumer projects (message 2026-11-09 19:09:39). Planned at 0.5 agent hours from the v0.5.0 release (0.26 h actual); the estimate is reported to the maintainer.
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-1
