@@ -7495,8 +7495,8 @@ tasks:
     description: 'Reported by the second project on 2026-11-09: scenario diff --format markdown for a TaskJuggler candidate shows only resources and an empty load table while the JSON has the 13 task date changes; and after scenario apply the taskjuggler_schedule_candidate proposal stays open and has to be accepted separately. Show task date changes in the markdown and text diff, and make applying the candidate scenario and deciding its proposal one consistent flow (apply closes the linked proposal with an audit record, or apply refuses until the proposal is accepted, whichever fits the proposal rules); tests and docs.'
     type: implementation
     tracking_status: in_progress
-    planned_start: "2026-11-11"
-    planned_finish: "2026-11-11"
+    planned_start: "2026-11-10"
+    planned_finish: "2026-11-10"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer
