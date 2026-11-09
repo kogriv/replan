@@ -649,7 +649,14 @@ package.
 Work packages are assigned to the token's own user unless
 `REPLAN_OPENPROJECT_ASSIGNEE_USER_ID` names another member. With
 `REPLAN_OPENPROJECT_ASSIGNEE_RESOURCE_ID` set, bootstrap also binds that user
-to the RePlan resource it names.
+to the RePlan resource it names. An API-only agent account is often a project
+member without permission to be assigned work packages, so it usually needs
+`REPLAN_OPENPROJECT_ASSIGNEE_USER_ID` set to an assignable project member.
+Bootstrap checks the project's available assignees: a dry run warns with
+`default_assignee_not_assignable` or `assignee_not_assignable`, and an apply
+refuses with the same code before writing anything. If that read is forbidden,
+it warns `assignee_check_unavailable`, and a create that OpenProject still
+refuses on the assignee fails with `assignee_refused`.
 
 `scripts/explain-resource-overload.sh` explains one resource's weekly load
 and needs `REPLAN_RESOURCE_ID` and `REPLAN_UNIT`, for example

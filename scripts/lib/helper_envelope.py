@@ -59,6 +59,7 @@ EXTERNAL_CODES = {
     "openproject_rate_limited",
     "openproject_malformed_response",
     "openproject_project_not_found",
+    "assignee_refused",
 }
 
 

@@ -23,6 +23,7 @@ base_url, token_env = settings.base_url, settings.token_env
 host_header, forwarded_proto = settings.host_header, settings.forwarded_proto
 target_project_id, target_project_name = settings.target_project_id, settings.target_project_name
 assignee_user_id, assignee_name = settings.assignee_user_id, settings.assignee_name
+assignee_was_defaulted = not assignee_user_id
 apply, bindings_path = settings.apply, settings.bindings_path
 mode = "apply" if apply == "1" else "dry_run"
 assignee_resource_id = os.environ.get("REPLAN_OPENPROJECT_ASSIGNEE_RESOURCE_ID", "")
@@ -58,6 +59,12 @@ class WorkPackageChangedError(Exception):
         )
         self.work_package_id = work_package_id
         self.lock_version = lock_version
+
+
+class AssigneeNotAssignableError(Exception):
+    def __init__(self, diagnostic):
+        super().__init__(diagnostic["message"])
+        self.diagnostic = diagnostic
 
 def safe_main(fn):
     try:
@@ -95,6 +102,14 @@ def safe_main(fn):
             helper_envelope.EXIT["partial"] if partial_apply.applied_so_far
             else helper_envelope.EXIT["validation"],
         )
+    except AssigneeNotAssignableError as exc:
+        helper_envelope.emit({
+            "ok": False,
+            "command": "apply-openproject-bootstrap",
+            "mode": mode,
+            "openproject_request": settings.request_metadata(),
+            "errors": [exc.diagnostic],
+        }, helper_envelope.EXIT["attention"])
     except Exception as exc:
         private_binding_layer = persist_partial_bindings()
         entry, code, extra = partial_apply.failure(exc, "openproject_bootstrap_apply_failed")
@@ -232,7 +247,37 @@ def create_work_package(project, type_href, status_href_by_title, item, working_
     status_href = status_href_by_title.get(item.get("suggested_openproject_status", ""))
     if status_href:
         payload["_links"]["status"] = {"href": status_href}
-    _, data = client.request_json("POST", "/api/v3/work_packages", payload, expected=(201,))
+    try:
+        _, data = client.request_json("POST", "/api/v3/work_packages", payload, expected=(201,))
+    except RuntimeError as exc:
+        try:
+            failure = json.loads(str(exc))
+        except ValueError:
+            raise
+        response = failure.get("response") or {}
+        messages = [response.get("message", "")]
+        messages.extend(
+            error.get("message", "")
+            for error in response.get("errors", [])
+            if isinstance(error, dict)
+        )
+        if (
+            failure.get("status") == 422
+            and str(response.get("errorIdentifier", "")).endswith(
+                "PropertyConstraintViolation"
+            )
+            and any("assignee" in message.lower() for message in messages)
+        ):
+            failure.update({
+                "code": "assignee_refused",
+                "message": (
+                    "OpenProject refused the work-package assignee; set "
+                    "REPLAN_OPENPROJECT_ASSIGNEE_USER_ID to a user who is "
+                    "assignable in the target project"
+                ),
+            })
+            raise RuntimeError(json.dumps(failure)) from exc
+        raise
     return data
 
 
@@ -274,6 +319,60 @@ def resolve_assignee():
     assignee_name = assignee_name or me.get("name", "")
     if not assignee_user_id:
         raise RuntimeError("could not resolve the token's own user; set REPLAN_OPENPROJECT_ASSIGNEE_USER_ID")
+
+
+def assignee_id_from_available(item):
+    user_id = str(item.get("id") or "")
+    if user_id:
+        return user_id
+    href = ((item.get("_links") or {}).get("self") or {}).get("href", "")
+    prefix = "/api/v3/users/"
+    return href[len(prefix):] if href.startswith(prefix) else ""
+
+
+def check_assignee_assignable(project):
+    path = (
+        f"/api/v3/projects/{urllib.parse.quote(str(project['id']))}"
+        "/available_assignees"
+    )
+    try:
+        available = client.paginate(path, 500)
+    except RuntimeError as exc:
+        try:
+            failure = json.loads(str(exc))
+        except ValueError:
+            raise
+        if failure.get("status") != 403:
+            raise
+        return helper_envelope.diagnostic(
+            "assignee_check_unavailable",
+            (
+                f"OpenProject forbids reading available assignees for project "
+                f"{project['id']}; continuing without verifying user {assignee_user_id}"
+            ),
+            "warning",
+            "openproject_user",
+            assignee_user_id,
+        )
+    if any(assignee_id_from_available(item) == assignee_user_id for item in available):
+        return None
+    code = (
+        "default_assignee_not_assignable"
+        if assignee_was_defaulted
+        else "assignee_not_assignable"
+    )
+    source = "the token's own user" if assignee_was_defaulted else "the configured user"
+    return helper_envelope.diagnostic(
+        code,
+        (
+            f"{source} {assignee_user_id} is not assignable in OpenProject project "
+            f"{project['id']}; set REPLAN_OPENPROJECT_ASSIGNEE_USER_ID to an "
+            "assignable project member"
+        ),
+        "warning",
+        "openproject_user",
+        assignee_user_id,
+    )
 
 
 def load_private_bindings():
@@ -480,6 +579,19 @@ def main():
         partial_apply.attempting(project_step)
     project = existing_project()
     project_action = "exists" if project else "create"
+    if project is not None:
+        assignee_diagnostic = check_assignee_assignable(project)
+        if assignee_diagnostic is not None:
+            refuse = (
+                assignee_diagnostic["code"] != "assignee_check_unavailable"
+                and mode == "apply"
+            )
+            if refuse:
+                raise AssigneeNotAssignableError({
+                    **assignee_diagnostic,
+                    "severity": "error",
+                })
+            warnings.append(assignee_diagnostic)
     if project is None and mode == "apply":
         partial_apply.writing()
         project = create_project()

@@ -13,7 +13,7 @@
 #   REPLAN_OPENPROJECT_TARGET_PROJECT_ID    deprecated alias of REPLAN_OPENPROJECT_PROJECT_ID
 #   REPLAN_OPENPROJECT_PROJECT_NAME         default REPLAN_OPENPROJECT_PROJECT_ID
 #   REPLAN_OPENPROJECT_TARGET_PROJECT_NAME  deprecated alias of REPLAN_OPENPROJECT_PROJECT_NAME
-#   REPLAN_OPENPROJECT_ASSIGNEE_USER_ID      default empty
+#   REPLAN_OPENPROJECT_ASSIGNEE_USER_ID      default token user; set to an assignable project member for an API-only token user
 #   REPLAN_OPENPROJECT_ASSIGNEE_NAME         default empty
 #   REPLAN_OPENPROJECT_ASSIGNEE_RESOURCE_ID  default empty
 #   REPLAN_OPENPROJECT_BINDINGS_PATH         default private/openproject/<target>-bindings.yaml

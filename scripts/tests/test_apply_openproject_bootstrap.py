@@ -25,7 +25,12 @@ class BootstrapBindingsTest(unittest.TestCase):
         self.work_package_posts = 0
         self.work_package_payloads = []
         self.fail_work_package_post = 0
+        self.fail_work_package_response = None
         self.patch_status = 200
+        self.available_assignees = [{"id": 7, "name": "Test User"}]
+        self.available_assignees_status = 200
+        self.available_assignee_get_paths = []
+        self.write_requests = []
 
         owner = self
 
@@ -56,6 +61,23 @@ class BootstrapBindingsTest(unittest.TestCase):
                     self.reply({"id": 42, "identifier": "demo"})
                 elif self.path == "/api/v3/projects/42/types":
                     self.reply({"_embedded": {"elements": [{"name": "Task", "_links": {"self": {"href": "/api/v3/types/1"}}}]}})
+                elif self.path.startswith("/api/v3/projects/42/available_assignees?"):
+                    owner.available_assignee_get_paths.append(self.path)
+                    if owner.available_assignees_status == 403:
+                        self.reply({"message": "Forbidden"}, 403)
+                        return
+                    query = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
+                    offset = int(query["offset"][0])
+                    page_size = int(query["pageSize"][0])
+                    start = (offset - 1) * page_size
+                    self.reply({
+                        "total": len(owner.available_assignees),
+                        "pageSize": page_size,
+                        "offset": offset,
+                        "_embedded": {
+                            "elements": owner.available_assignees[start:start + page_size],
+                        },
+                    })
                 elif self.path == "/api/v3/statuses":
                     self.reply({"_embedded": {"elements": [{"name": "New", "_links": {"self": {"href": "/api/v3/statuses/1"}}}]}})
                 elif self.path.startswith("/api/v3/memberships?"):
@@ -80,12 +102,16 @@ class BootstrapBindingsTest(unittest.TestCase):
                     self.reply({}, 404)
 
             def do_POST(self):
+                owner.write_requests.append(("POST", self.path))
                 if self.path == "/api/v3/work_packages":
                     payload = self.body()
                     owner.work_package_payloads.append(payload)
                     owner.work_package_posts += 1
                     if owner.work_package_posts == owner.fail_work_package_post:
-                        self.reply({"message": "stand-in failure"}, 500)
+                        body, status = owner.fail_work_package_response or (
+                            {"message": "stand-in failure"}, 500,
+                        )
+                        self.reply(body, status)
                         return
                     work_package_id = 200 + owner.work_package_posts
                     owner.created_ids.append(work_package_id)
@@ -95,6 +121,7 @@ class BootstrapBindingsTest(unittest.TestCase):
                     self.reply({"id": 1}, 201)
 
             def do_PATCH(self):
+                owner.write_requests.append(("PATCH", self.path))
                 payload = self.body()
                 owner.work_package_patches.append((self.path, payload))
                 if owner.patch_status == 409:
@@ -122,7 +149,10 @@ class BootstrapBindingsTest(unittest.TestCase):
             json.dump({"project_path": "/example", "work_packages": tasks}, fh)
         return path
 
-    def run_bootstrap(self, plan, bindings, apply="1", resource_id="resource.assignee"):
+    def run_bootstrap(
+        self, plan, bindings, apply="1", resource_id="resource.assignee",
+        assignee_user_id="7",
+    ):
         env = dict(
             os.environ,
             PYTHONPATH=LIB,
@@ -131,11 +161,14 @@ class BootstrapBindingsTest(unittest.TestCase):
             REPLAN_OPENPROJECT_TOKEN_ENV="TEST_TOKEN",
             REPLAN_OPENPROJECT_PROJECT_ID="demo",
             REPLAN_OPENPROJECT_PROJECT_NAME="Demo",
-            REPLAN_OPENPROJECT_ASSIGNEE_USER_ID="7",
             REPLAN_OPENPROJECT_ASSIGNEE_NAME="Test User",
             REPLAN_OPENPROJECT_BINDINGS_PATH=bindings,
             REPLAN_APPLY=apply,
         )
+        if assignee_user_id:
+            env["REPLAN_OPENPROJECT_ASSIGNEE_USER_ID"] = assignee_user_id
+        else:
+            env.pop("REPLAN_OPENPROJECT_ASSIGNEE_USER_ID", None)
         if resource_id:
             env["REPLAN_OPENPROJECT_ASSIGNEE_RESOURCE_ID"] = resource_id
         else:
@@ -252,6 +285,124 @@ class BootstrapBindingsTest(unittest.TestCase):
             self.assertEqual([query["offset"] for query in queries], [["1"], ["2"], ["3"]])
             self.assertTrue(all(query["pageSize"] == ["500"] for query in queries))
             self.assertTrue(all("filters" in query for query in queries))
+
+    def test_defaulted_user_not_assignable_warns_dry_run_and_refuses_apply(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.available_assignees = [{"id": 8, "name": "Assignable User"}]
+            bindings = os.path.join(tmp, "bindings.yaml")
+            plan = self.write_plan(tmp, [
+                {"replan_task_id": "task.new", "subject": "New task"},
+            ])
+
+            proc, dry = self.run_bootstrap(
+                plan, bindings, apply="", assignee_user_id="",
+            )
+
+            self.assertEqual(proc.returncode, 0, dry)
+            self.assertEqual(dry["warning_codes"], ["default_assignee_not_assignable"])
+            self.assertEqual(dry["warnings"][0]["target"]["id"], "7")
+            self.assertIn("REPLAN_OPENPROJECT_ASSIGNEE_USER_ID", dry["warnings"][0]["message"])
+            self.assertEqual(self.write_requests, [])
+
+            proc, out = self.run_bootstrap(
+                plan, bindings, assignee_user_id="",
+            )
+
+            self.assertEqual(proc.returncode, 11, out)
+            self.assertEqual(out["error_codes"], ["default_assignee_not_assignable"])
+            self.assertEqual(out["errors"][0]["severity"], "error")
+            self.assertIn("REPLAN_OPENPROJECT_ASSIGNEE_USER_ID", out["errors"][0]["message"])
+            self.assertEqual(self.write_requests, [])
+            self.assertFalse(os.path.exists(bindings))
+
+    def test_configured_assignable_user_on_second_page_passes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.available_assignees = [
+                {"id": 1000 + index} for index in range(500)
+            ] + [{"id": 8, "name": "Assignable User"}]
+            bindings = os.path.join(tmp, "bindings.yaml")
+            plan = self.write_plan(tmp, [])
+
+            proc, out = self.run_bootstrap(
+                plan, bindings, apply="", assignee_user_id="8",
+            )
+
+            self.assertEqual(proc.returncode, 0, out)
+            self.assertNotIn("assignee_not_assignable", out["warning_codes"])
+            queries = [
+                urllib.parse.parse_qs(urllib.parse.urlsplit(path).query)
+                for path in self.available_assignee_get_paths
+            ]
+            self.assertEqual([query["offset"] for query in queries], [["1"], ["2"]])
+            self.assertTrue(all(query["pageSize"] == ["500"] for query in queries))
+
+    def test_configured_non_assignable_user_warns_in_dry_run_and_refuses_apply(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bindings = os.path.join(tmp, "bindings.yaml")
+            plan = self.write_plan(tmp, [
+                {"replan_task_id": "task.new", "subject": "New task"},
+            ])
+
+            proc, dry = self.run_bootstrap(
+                plan, bindings, apply="", assignee_user_id="8",
+            )
+
+            self.assertEqual(proc.returncode, 0, dry)
+            self.assertEqual(dry["warning_codes"], ["assignee_not_assignable"])
+            self.assertEqual(self.write_requests, [])
+
+            proc, out = self.run_bootstrap(
+                plan, bindings, assignee_user_id="8",
+            )
+
+            self.assertEqual(proc.returncode, 11, out)
+            self.assertEqual(out["error_codes"], ["assignee_not_assignable"])
+            self.assertEqual(out["errors"][0]["target"]["id"], "8")
+            self.assertIn("REPLAN_OPENPROJECT_ASSIGNEE_USER_ID", out["errors"][0]["message"])
+            self.assertEqual(self.write_requests, [])
+            self.assertFalse(os.path.exists(bindings))
+
+    def test_forbidden_assignee_check_warns_and_continues(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.available_assignees_status = 403
+            bindings = os.path.join(tmp, "bindings.yaml")
+            plan = self.write_plan(tmp, [
+                {"replan_task_id": "task.existing", "subject": "Existing task"},
+            ])
+
+            proc, out = self.run_bootstrap(plan, bindings)
+
+            self.assertEqual(proc.returncode, 0, out)
+            self.assertEqual(out["warning_codes"], ["assignee_check_unavailable"])
+            self.assertTrue(out["private_binding_layer"]["written"])
+
+    def test_assignee_property_constraint_maps_and_keeps_partial_apply(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.fail_work_package_post = 2
+            self.fail_work_package_response = ({
+                "_type": "Error",
+                "errorIdentifier": (
+                    "urn:openproject-org:api:v3:errors:PropertyConstraintViolation"
+                ),
+                "message": (
+                    "The chosen user is not allowed to be 'Assignee' for this "
+                    "work package."
+                ),
+            }, 422)
+            bindings = os.path.join(tmp, "bindings.yaml")
+            plan = self.write_plan(tmp, [
+                {"replan_task_id": "task.a", "subject": "New A"},
+                {"replan_task_id": "task.b", "subject": "New B"},
+            ])
+
+            proc, out = self.run_bootstrap(plan, bindings)
+
+            self.assertEqual(proc.returncode, 7, out)
+            self.assertEqual(out["error_codes"], ["assignee_refused"])
+            self.assertIn("REPLAN_OPENPROJECT_ASSIGNEE_USER_ID", out["errors"][0]["message"])
+            self.assertEqual(out["applied_so_far"][0]["replan_task_id"], "task.a")
+            self.assertEqual(out["failed_step"]["replan_task_id"], "task.b")
+            self.assertTrue(out["private_binding_layer"]["written"])
 
     def test_missing_bound_work_package_errors_and_does_not_create(self):
         with tempfile.TemporaryDirectory() as tmp:
