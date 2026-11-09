@@ -112,6 +112,7 @@ def main():
                 "openproject_source_status": current_source_status,
                 "desired_openproject_status": desired_status,
                 "reason": "status_scope_ready_only",
+                "hint": "set REPLAN_OPENPROJECT_STATUS_SCOPE=all in the environment to push every mapped status",
             })
             continue
         status_href = status_hrefs.get(desired_status, "")
@@ -186,6 +187,11 @@ def main():
         ],
         "temp_retained": bool(keep_temp),
     }
+    if any(item.get("reason") == "status_scope_ready_only" for item in skipped):
+        out["operator_next_steps"].insert(
+            0,
+            "Set REPLAN_OPENPROJECT_STATUS_SCOPE=all in the environment to push every mapped status.",
+        )
     if keep_temp:
         out["outputs_dir"] = tmp_dir
     applied = sum(1 for action in actions if action.get("updated_lock_version") is not None)

@@ -465,6 +465,16 @@ Approved first write-back families:
 - date drift push for reviewed RePlan `planned_start` and `planned_finish`
   corrections into OpenProject `startDate` and `dueDate`.
 
+The status drift push defaults to the environment-only setting
+`REPLAN_OPENPROJECT_STATUS_SCOPE=ready_only`: only a RePlan `ready` task is
+eligible, mapping to OpenProject `To be scheduled`. An operator may export
+`REPLAN_OPENPROJECT_STATUS_SCOPE=all` to consider every mapped tracking
+status. The setting is deliberately ignored in `.env.local`, `.env` and an
+explicit `REPLAN_ENV_FILE`; placing it there produces
+`environment_only_setting_in_file`. A skip under the default scope has reason
+`status_scope_ready_only` and tells the operator how to select `all` in both
+the action `hint` and one `operator_next_steps` entry.
+
 The date write-back design and backlog live in
 [`../roadmap/openproject-replan-sync-plan.md`](../roadmap/openproject-replan-sync-plan.md).
 

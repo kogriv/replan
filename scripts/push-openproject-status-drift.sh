@@ -18,6 +18,7 @@
 #   REPLAN_OPENPROJECT_RETRY_DELAY_SECONDS  default 2
 #   REPLAN_OPENPROJECT_HOST_HEADER          default empty
 #   REPLAN_OPENPROJECT_FORWARDED_PROTO      default empty
+#   REPLAN_OPENPROJECT_STATUS_SCOPE         default ready_only; values ready_only or all; environment only
 #   REPLAN_BIN                              default build locally
 #   REPLAN_KEEP_TEMP                        default empty
 #   REPLAN_FORMAT                           only json; any other value is refused

@@ -92,6 +92,13 @@ def normalize(data, default_mode="read_only"):
     except ValueError:
         setting_warnings = []
     warnings += _diagnostics(setting_warnings, "warning")
+    try:
+        from openproject_http import environment_only_setting_warnings
+        for warning in _diagnostics(environment_only_setting_warnings(os.environ), "warning"):
+            if warning not in warnings:
+                warnings.append(warning)
+    except (ImportError, OSError):
+        pass
     if isinstance(out.get("error"), str):
         errors.append(diagnostic(out.pop("error"), str(out.pop("message", "") or ""), "error"))
     known = {e["code"] for e in errors}

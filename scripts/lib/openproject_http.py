@@ -20,6 +20,8 @@ RETRIES_ENV = "REPLAN_OPENPROJECT_RETRIES"
 RETRY_DELAY_ENV = "REPLAN_OPENPROJECT_RETRY_DELAY_SECONDS"
 DEFAULT_PERIMETER_HEADER = "X-Perimeter-Key"
 ENV_FILE_ENV = "REPLAN_ENV_FILE"
+ENVIRONMENT_ONLY_SETTINGS_FILE = "environment-only-settings.list"
+INTERNAL_ENVIRONMENT_ONLY_FILE_SETTINGS = "REPLAN_INTERNAL_ENVIRONMENT_ONLY_FILE_SETTINGS"
 
 
 class ConflictingSettingsError(ValueError):
@@ -68,8 +70,14 @@ def _explicit_settings_environ(environ):
         return environ
     path = environ.get(ENV_FILE_ENV, "")
     try:
-        with open(os.path.join(os.path.dirname(__file__), "settings.list"), encoding="utf-8") as stream:
+        lib_dir = os.path.dirname(__file__)
+        with open(os.path.join(lib_dir, "settings.list"), encoding="utf-8") as stream:
             allowed = {
+                line.strip() for line in stream
+                if line.strip() and not line.lstrip().startswith("#")
+            }
+        with open(os.path.join(lib_dir, ENVIRONMENT_ONLY_SETTINGS_FILE), encoding="utf-8") as stream:
+            environment_only = {
                 line.strip() for line in stream
                 if line.strip() and not line.lstrip().startswith("#")
             }
@@ -82,6 +90,7 @@ def _explicit_settings_environ(environ):
     env_project = environ.get("REPLAN_OPENPROJECT_PROJECT_ID", "")
     file_project = ""
     loaded_names = []
+    environment_only_names = []
     for raw_line in lines:
         line = raw_line.rstrip("\r\n")
         if not line or line.startswith("#"):
@@ -91,11 +100,16 @@ def _explicit_settings_environ(environ):
         if "=" not in line:
             continue
         key, value = line.split("=", 1)
-        if not key or not key.replace("_", "a").isalnum() or key not in allowed:
+        if not key or not key.replace("_", "a").isalnum():
             continue
         if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
             value = value[1:-1]
         if not value:
+            continue
+        if key in environment_only:
+            environment_only_names.append(key)
+            continue
+        if key not in allowed:
             continue
         if key == "REPLAN_OPENPROJECT_PROJECT_ID" and not file_project:
             file_project = value
@@ -106,7 +120,37 @@ def _explicit_settings_environ(environ):
     loaded["REPLAN_INTERNAL_ENV_PROJECT_ID"] = env_project
     loaded["REPLAN_INTERNAL_FILE_PROJECT_ID"] = file_project
     loaded["REPLAN_INTERNAL_FILE_SETTINGS"] = ":" + ":".join(loaded_names) + ":"
+    basename = os.path.basename(path)
+    loaded[INTERNAL_ENVIRONMENT_ONLY_FILE_SETTINGS] = "".join(
+        f"{basename}\t{name}\n" for name in environment_only_names
+    )
     return loaded
+
+
+def environment_only_setting_warnings(environ):
+    """Describe ignored environment-only names without exposing their values."""
+    by_file = {}
+    facts = environ.get(INTERNAL_ENVIRONMENT_ONLY_FILE_SETTINGS, "")
+    for line in facts.splitlines():
+        basename, separator, name = line.partition("\t")
+        if not separator or not basename or not name:
+            continue
+        by_file.setdefault(basename, set()).add(name)
+    warnings = []
+    for basename in sorted(by_file):
+        names = sorted(by_file[basename])
+        warnings.append({
+            "code": "environment_only_setting_in_file",
+            "message": (
+                f"settings file {basename} contains environment-only settings "
+                f"that were ignored: {', '.join(names)}"
+            ),
+            "severity": "warning",
+            "target": {"kind": "settings_file", "id": basename},
+            "file": basename,
+            "settings": names,
+        })
+    return tuple(warnings)
 
 
 def _secret_setting(environ, value_name, file_name):
@@ -183,7 +227,8 @@ class Settings:
         cls, token_env=None, *, require_token=False, environ=None,
         root_dir=None,
     ):
-        environ = os.environ if environ is None else environ
+        process_environ = environ is None
+        environ = os.environ if process_environ else environ
         environ = _explicit_settings_environ(environ)
         token_env = token_env or environ.get("REPLAN_OPENPROJECT_TOKEN_ENV", "") or "OPENPROJECT_TOKEN"
         token = _secret_setting(environ, token_env, TOKEN_FILE_ENV)
@@ -205,6 +250,9 @@ class Settings:
             bindings_path = os.path.join(
                 root_dir, "private", "openproject", f"{project_id}-bindings.yaml"
             )
+        warnings = id_warnings + name_warnings + environment_only_setting_warnings(environ)
+        if process_environ:
+            os.environ["REPLAN_SETTING_WARNINGS_JSON"] = json.dumps(warnings)
         return cls(
             base_url=environ.get("REPLAN_OPENPROJECT_BASE_URL", ""),
             token_env=token_env,
@@ -230,7 +278,7 @@ class Settings:
             timeout_seconds=_float_setting(environ, TIMEOUT_ENV, 60.0),
             retries=_int_setting(environ, RETRIES_ENV, 0),
             retry_delay_seconds=_float_setting(environ, RETRY_DELAY_ENV, 2.0),
-            warnings=id_warnings + name_warnings,
+            warnings=warnings,
         )
 
     def request_options(self):

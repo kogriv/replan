@@ -17,8 +17,14 @@ replan_load_openproject_dotenv() {
   replan_settings_list_path="$root_dir/scripts/lib/settings.list"
   [ -f "$replan_settings_list_path" ] || return 0
   replan_settings_names=$(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' "$replan_settings_list_path")
+  replan_environment_only_list_path="$root_dir/scripts/lib/environment-only-settings.list"
+  replan_environment_only_names=""
+  if [ -f "$replan_environment_only_list_path" ]; then
+    replan_environment_only_names=$(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' "$replan_environment_only_list_path")
+  fi
   replan_settings_file_project_id=""
   replan_settings_loaded_names=":"
+  replan_environment_only_file_settings=""
   replan_settings_env_project_id=""
   if [ -n "${REPLAN_OPENPROJECT_PROJECT_ID:-}" ]; then
     replan_settings_env_project_id=$REPLAN_OPENPROJECT_PROJECT_ID
@@ -34,8 +40,9 @@ replan_load_openproject_dotenv() {
   REPLAN_INTERNAL_ENV_PROJECT_ID=$replan_settings_env_project_id
   REPLAN_INTERNAL_FILE_PROJECT_ID=$replan_settings_file_project_id
   REPLAN_INTERNAL_FILE_SETTINGS=$replan_settings_loaded_names
+  REPLAN_INTERNAL_ENVIRONMENT_ONLY_FILE_SETTINGS=$replan_environment_only_file_settings
   export REPLAN_INTERNAL_ENV_PROJECT_ID REPLAN_INTERNAL_FILE_PROJECT_ID
-  export REPLAN_INTERNAL_FILE_SETTINGS
+  export REPLAN_INTERNAL_FILE_SETTINGS REPLAN_INTERNAL_ENVIRONMENT_ONLY_FILE_SETTINGS
   # A release unpacked without the Go sources carries its own binary; the
   # helpers use it instead of building one.
   if [ -z "${REPLAN_BIN:-}" ] && [ -x "$root_dir/bin/replan" ]; then
@@ -65,15 +72,6 @@ replan_load_openproject_dotenv_file() {
       *[!ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_]*|"") continue ;;
     esac
 
-    case "
-$replan_settings_names
-" in
-      *"
-$key
-"*) ;;
-      *) continue ;;
-    esac
-
     case "$value" in
       \"*\")
         value=${value#\"}
@@ -86,6 +84,27 @@ $key
     esac
 
     [ -n "$value" ] || continue
+
+    case "
+$replan_environment_only_names
+" in
+      *"
+$key
+"*)
+        replan_environment_only_file_settings="${replan_environment_only_file_settings}${dotenv_path##*/}	$key
+"
+        continue
+        ;;
+    esac
+
+    case "
+$replan_settings_names
+" in
+      *"
+$key
+"*) ;;
+      *) continue ;;
+    esac
 
     if [ "$key" = REPLAN_OPENPROJECT_PROJECT_ID ] && \
        [ -z "$replan_settings_file_project_id" ]; then

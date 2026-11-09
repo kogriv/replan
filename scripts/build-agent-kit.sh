@@ -70,6 +70,7 @@ helper_envelope.py
 import_candidates.py
 load-dotenv.sh
 settings.list
+environment-only-settings.list
 openproject_http.py
 openproject_bindings.py
 openproject_description.py

@@ -99,6 +99,7 @@ assert_openproject_dotenv_loader() {
   dotenv_root="$TMP_DIR/dotenv-root"
   mkdir -p "$dotenv_root/private/openproject" "$dotenv_root/scripts/lib"
   cp "$ROOT_DIR/scripts/lib/settings.list" "$dotenv_root/scripts/lib/settings.list"
+  cp "$ROOT_DIR/scripts/lib/environment-only-settings.list" "$dotenv_root/scripts/lib/environment-only-settings.list"
   {
     printf '%s\n' 'REPLAN_OPENPROJECT_BASE_URL=https://env.example.internal'
     printf '%s\n' 'REPLAN_OPENPROJECT_PROJECT_ID=env-project'

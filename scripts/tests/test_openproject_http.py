@@ -517,6 +517,28 @@ class DotenvSettingsListTest(unittest.TestCase):
         self.assertEqual(settings.project_id, "file-project")
         self.assertEqual(settings.project_path, "/environment/plan")
 
+    def test_python_settings_warn_for_ignored_environment_only_values(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as temp_dir:
+            explicit = pathlib.Path(temp_dir, "private-project.settings")
+            explicit.write_text(
+                "REPLAN_OPENPROJECT_PROJECT_ID=file-project\n"
+                "export REPLAN_OPENPROJECT_STATUS_SCOPE=all\n"
+                "REPLAN_APPLY=1\n"
+                "REPLAN_FORMAT=\n"
+            )
+            settings = Settings.from_env(environ={"REPLAN_ENV_FILE": str(explicit)})
+        self.assertEqual(settings.project_id, "file-project")
+        self.assertEqual(settings.status_scope, "ready_only")
+        self.assertEqual(settings.apply, "")
+        self.assertEqual(len(settings.warnings), 1)
+        warning = settings.warnings[0]
+        self.assertEqual(warning["code"], "environment_only_setting_in_file")
+        self.assertEqual(warning["file"], "private-project.settings")
+        self.assertEqual(warning["target"], {"kind": "settings_file", "id": "private-project.settings"})
+        self.assertEqual(warning["settings"], ["REPLAN_APPLY", "REPLAN_OPENPROJECT_STATUS_SCOPE"])
+        self.assertNotIn(str(explicit), json.dumps(warning))
+
     def test_python_settings_refuse_missing_explicit_file(self):
         with self.assertRaises(MissingSettingError) as raised:
             Settings.from_env(environ={"REPLAN_ENV_FILE": "/not/a/settings/file"})
@@ -530,6 +552,9 @@ class DotenvSettingsListTest(unittest.TestCase):
             settings_dir.mkdir(parents=True)
             (settings_dir / "settings.list").write_text(
                 (ROOT / "scripts/lib/settings.list").read_text()
+            )
+            (settings_dir / "environment-only-settings.list").write_text(
+                (ROOT / "scripts/lib/environment-only-settings.list").read_text()
             )
             pathlib.Path(temp_dir, ".env.local").write_text(
                 'REPLAN_OPENPROJECT_BASE_URL="https://quoted.example"\n'
@@ -556,6 +581,9 @@ printf '%s|%s|%s\n' "$REPLAN_OPENPROJECT_BASE_URL" "$OPENPROJECT_TOKEN" "${NOT_O
             settings_dir.mkdir(parents=True)
             (settings_dir / "settings.list").write_text(
                 (ROOT / "scripts/lib/settings.list").read_text()
+            )
+            (settings_dir / "environment-only-settings.list").write_text(
+                (ROOT / "scripts/lib/environment-only-settings.list").read_text()
             )
             (root / ".env.local").write_text(
                 "REPLAN_OPENPROJECT_PROJECT_ID=root-project\n"
@@ -684,6 +712,9 @@ printf '%s|%s|%s\n' "$REPLAN_OPENPROJECT_BASE_URL" "$REPLAN_OPENPROJECT_PROJECT_
             settings_dir.mkdir(parents=True)
             (settings_dir / "settings.list").write_text(
                 (ROOT / "scripts/lib/settings.list").read_text()
+            )
+            (settings_dir / "environment-only-settings.list").write_text(
+                (ROOT / "scripts/lib/environment-only-settings.list").read_text()
             )
             pathlib.Path(temp_dir, ".env.local").write_text(
                 "REPLAN_APPLY=1\n"

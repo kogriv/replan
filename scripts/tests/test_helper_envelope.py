@@ -592,6 +592,56 @@ class ExitCodeFromOkTest(unittest.TestCase):
                     self.assertEqual([s["reason"] for s in out["skipped"]], ["openproject_workflow_transition_not_allowed"])
                     self.assertEqual(sum(1 for a in out["actions"] if a.get("updated_lock_version") is not None), want_applied)
 
+    def test_status_push_ready_only_skip_explains_all_scope(self):
+        tasks = [{"id": "task.a", "title": "A", "tracking_status": "review_ready"}]
+
+        class OpenProject(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                data = json.dumps({"_embedded": {"elements": [
+                    {"name": "Developed", "_links": {"self": {"href": "/api/v3/statuses/2"}}},
+                ]}}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/hal+json")
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+
+            def log_message(self, *args):
+                pass
+
+        server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), OpenProject)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        with tempfile.TemporaryDirectory() as tmp:
+            bindings = self.project(tmp, tasks)
+            imp = os.path.join(tmp, "import.json")
+            with open(imp, "w") as fh:
+                json.dump({"ok": True, "result": {"task_candidates": [
+                    {"source_id": "1", "source_status": "New"},
+                ]}}, fh)
+            code, out = self.run_module(
+                "push_openproject_status_drift", "--import-json", imp,
+                "--tmp-dir", tmp, "--root-dir", ROOT,
+                env={
+                    "REPLAN_PROJECT": tmp,
+                    "REPLAN_OPENPROJECT_BINDINGS_PATH": bindings,
+                    "REPLAN_OPENPROJECT_BASE_URL": f"http://127.0.0.1:{server.server_address[1]}",
+                    "REPLAN_OPENPROJECT_PROJECT_ID": "demo",
+                    "REPLAN_OPENPROJECT_TOKEN_ENV": "TEST_TOKEN",
+                    "TEST_TOKEN": "t",
+                },
+            )
+
+        self.assertEqual(code, 11, out)
+        self.assertEqual(out["skipped"][0]["reason"], "status_scope_ready_only")
+        self.assertEqual(
+            out["skipped"][0]["hint"],
+            "set REPLAN_OPENPROJECT_STATUS_SCOPE=all in the environment to push every mapped status",
+        )
+        scope_steps = [step for step in out["operator_next_steps"] if "REPLAN_OPENPROJECT_STATUS_SCOPE=all" in step]
+        self.assertEqual(len(scope_steps), 1)
+
     def test_status_push_reports_writes_before_second_patch_failure(self):
         tasks = [
             {"id": f"task.{name}", "title": name.upper(), "tracking_status": "review_ready"}
@@ -997,6 +1047,44 @@ class WrapperFailurePathsTest(unittest.TestCase):
         for name in WRAPPERS:
             with self.subTest(name):
                 self.assert_failure(name, self.run_wrapper(name, REPLAN_FORMAT="yaml"), "unsupported_format", 8)
+
+    def test_environment_only_settings_file_warning_reaches_multiple_helpers(self):
+        settings_file = os.path.join(self.tmp, "operator.settings")
+        with open(settings_file, "w", encoding="utf-8") as stream:
+            stream.write(
+                "REPLAN_OPENPROJECT_PROJECT_ID=replan-self\n"
+                "REPLAN_OPENPROJECT_STATUS_SCOPE=all\n"
+                "export REPLAN_APPLY=1\n"
+            )
+        for name in ("push-openproject-status-drift", "review-resource-pool"):
+            with self.subTest(name=name):
+                proc = self.run_wrapper(
+                    name,
+                    REPLAN_ENV_FILE=settings_file,
+                )
+                out = json.loads(proc.stdout)
+                warnings = [
+                    warning for warning in out["warnings"]
+                    if warning["code"] == "environment_only_setting_in_file"
+                ]
+                self.assertEqual(len(warnings), 1, out)
+                self.assertEqual(warnings[0]["file"], "operator.settings")
+                self.assertEqual(
+                    warnings[0]["settings"],
+                    ["REPLAN_APPLY", "REPLAN_OPENPROJECT_STATUS_SCOPE"],
+                )
+                self.assertNotEqual(out["mode"], "apply")
+                self.assertNotIn(settings_file, proc.stdout + proc.stderr)
+
+    def test_status_push_help_lists_environment_only_scope(self):
+        proc = subprocess.run(
+            [os.path.join(self.tmp, "scripts", "push-openproject-status-drift.sh"), "--help"],
+            capture_output=True, text=True,
+            env={"PATH": os.environ["PATH"], "HOME": self.tmp},
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("REPLAN_OPENPROJECT_STATUS_SCOPE", proc.stdout)
+        self.assertIn("default ready_only; values ready_only or all; environment only", proc.stdout)
 
     def test_address_and_project_id_belong_together(self):
         for name, code in SETTINGS.items():
