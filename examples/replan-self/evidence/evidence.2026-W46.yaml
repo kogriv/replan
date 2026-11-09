@@ -459,3 +459,40 @@ evidence:
     targets:
       - kind: task
         id: task.self.dependency-set-command
+  - id: evidence.self.accept-toolkit-comment-add-saves-comment
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T13:32:01Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.toolkit-comment-add-saves-comment
+  - id: evidence.self.accept-consumer-project-own-openproject-identity
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T13:32:42Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.consumer-project-own-openproject-identity
+  - id: evidence.self.agree-bootstrap-assignee-refusal-names-setting
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T20:31:30+07:00"
+    summary: The maintainer accepted the comment fix and the consumer identity and agreed the bootstrap assignee hint at 0.5 agent hours (message 20:31:30); estimate frozen in baseline.2026-11-09.bootstrap-assignee-refusal-names-setting, split 0.3 Codex and 0.2 executor.
+    targets:
+      - kind: task
+        id: task.self.bootstrap-assignee-refusal-names-setting

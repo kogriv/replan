@@ -607,3 +607,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.toolkit-comment-add-saves-comment
+  - id: actual.self-toolkit-comment-add-saves-comment.ci-github-actions.20261109T133201Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.toolkit-comment-add-saves-comment
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.toolkit-comment-add-saves-comment.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-09T13:32:01Z"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-toolkit-comment-add-saves-comment
+  - id: actual.self-consumer-project-own-openproject-identity.ci-github-actions.20261109T133242Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.consumer-project-own-openproject-identity
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.consumer-project-own-openproject-identity.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-09T13:32:42Z"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-consumer-project-own-openproject-identity

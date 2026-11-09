@@ -7581,7 +7581,7 @@ tasks:
     title: Make the toolkit's comment add really save the comment
     description: 'Reported by the fourth project on 2026-11-09 against v0.5.0 and OpenProject 17.6.0: openproject-work-package-toolkit.sh comment add returns ok, mode apply, applied true, but no comment appears in the work package''s activities and its updatedAt and lockVersion do not change; two comments were lost. command_comment_add sends PATCH /api/v3/work_packages/{id} with a comment field, which OpenProject 17.6 ignores, and sets applied without checking. Post the comment with POST /api/v3/work_packages/{id}/activities and body comment.raw, require 201 and report the created activity id, refuse when no activity was created; check the other toolkit writes for the same unchecked-success pattern; the live agent kit check reads the comment back from the activities; tests and docs.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-09"
     planned_finish: "2026-11-09"
     assignee_hint:
@@ -7610,7 +7610,7 @@ tasks:
     title: Give the second consumer project its own OpenProject identity
     description: 'The second consumer project''s kit used an API token issued for the maintainer''s own account, which is also a member of three other projects. Create an API-only agent user that is a member of that project only, with a role built from the permissions its kit uses (work packages, relations, versions, wiki pages and attachments, comments, overlay view), install its token file for the consumer, let the consumer switch and check a read, a dry run and a write, then revoke the old token issued on the maintainer account. Same pattern as the first consumer''s agent identity.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-09"
     planned_finish: "2026-11-09"
     assignee_hint:
@@ -7646,6 +7646,8 @@ tasks:
     resource_demands:
       - kind: resource_demand
         id: resource_demand.bootstrap-assignee-refusal-names-setting.agent
+      - kind: resource_demand
+        id: resource_demand.bootstrap-assignee-refusal-names-setting.codex
       - kind: resource_demand
         id: resource_demand.bootstrap-assignee-refusal-names-setting.maintainer
       - kind: resource_demand
