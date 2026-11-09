@@ -617,3 +617,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.taskjuggler-candidate-review-flow
+  - id: evidence.self.taskjuggler-candidate-review-flow
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-10T01:20:21+07:00"
+    summary: 'Feature commit 2785e75: scenario diff in markdown and text shows a table of task id, title, field, current and scenario value and says No load changes instead of an empty load table; JSON carries task_changes. scenario apply accepts the open proposals that target the scenario in the same write with the apply''s actor and reason and a linked decision audit record; a rejected linked proposal refuses the apply with scenario_linked_proposal_rejected; an accepted one stays as it is. Review checked the write order inside one session and that accepting first and then applying still works. Gate green: lint 0, 54 kit checks, 86 live checks. Codex 00:26:02-00:57:54 (0.53 h, prompt and last-file mtimes); executor 23:43:14-23:43:55 brief (written with the next task''s brief), 00:59:04-00:59:31 review, 01:19:19-2026-11-10T01:20:21+07:00 commit, 0.04 h by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-candidate-review-flow
+  - id: evidence.self.start-set-remaining-from-file
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T19:09:39+07:00"
+    summary: Agreed with the other consumer findings (message 2026-11-09 19:09:39); estimate frozen in baseline.2026-11-09.consumer-findings-for-v0-5-1, split 0.6 Codex and 0.4 executor. Last of the agreed findings before release v0.5.1. Codex started 00:59:31 while the previous gate ran; this record waited for the gate.
+    targets:
+      - kind: task
+        id: task.self.set-remaining-from-file
