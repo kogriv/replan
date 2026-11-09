@@ -504,3 +504,48 @@ them. (The script also rewrites `.replan/project.yaml` without
 `format_version`. That is harmless: a missing `format_version` reads as
 version 1, the current format, so no `project migrate` is needed. An
 earlier version of this note said otherwise.)
+
+## Dependency start boundary
+
+OpenProject `follows` relations and RePlan `finish_to_start` dependencies use
+date-level semantics: a successor starts on the working day after the
+predecessor's finish date. A plain TaskJuggler `depends` starts at the exact
+end instant instead. That instant can be in the middle of the reported finish
+day when an effort task does not fill its last day, which incorrectly lets a
+successor's working-day lead time count the remaining afternoon.
+
+The export keeps this rule in TaskJuggler rather than correcting dates during
+`taskjuggler import-result`. Each exported ordering predecessor gets one hidden
+boundary task. The boundary uses a TaskJuggler shift whose only working slot is
+the final timing-resolution slot before midnight on Sunday through Thursday.
+It therefore ends at the start of the next Monday-to-Friday day. Successors
+depend on that boundary task instead of depending directly on the predecessor.
+The same boundary is used for exported `finish_to_start`, `blocks`,
+`requires_input_from` and `requires_resource_from` relations.
+
+The boundary deliberately assumes a Monday-to-Friday project week. That is
+the same week as TaskJuggler's default global working time, which the exported
+working-day `lead_time` already uses. Resource availability does not widen the
+project week for dependency starts: a successor whose allocated resources also
+work on weekends still starts on the next Monday-to-Friday day.
+
+This construction is deliberate instead of a fixed `gaplength` or
+`gapduration`:
+
+- a mid-day predecessor finish rounds forward to the next working-day start;
+- a predecessor that fills its final day still starts its successor on the
+  immediately following working day, without skipping an extra day;
+- a Friday finish releases the successor on Monday;
+- effort tasks, working-day and calendar-day `lead_time`, and the lead-time
+  wait-then-work container all receive the same start boundary;
+- lead time remains unchanged because the boundary moves the TaskJuggler start
+  before TaskJuggler evaluates `length` or `duration`.
+
+For a wait-then-work container, the container itself receives any boundary
+from its external predecessors. A second hidden boundary child sits between
+the `wait` and `work` children, so work starts on the working day after the
+lead-time wait finishes instead of using a remaining slot late on that day.
+
+The boundary tasks carry the `replan_internal` flag, are omitted from the CSV
+schedule report, and consequently are not candidates during
+`taskjuggler import-result`.

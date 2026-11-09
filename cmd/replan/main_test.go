@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
+	"fmt"
 	"io/fs"
 	"net/http"
 	"net/http/httptest"
@@ -3589,6 +3590,117 @@ func TestTaskJugglerRunSchedulesHigherPriorityTaskFirstWhenTJ3Available(t *testi
 	}
 }
 
+func TestTaskJugglerRunStartsDependentEffortOnNextWorkingDayWhenTJ3Available(t *testing.T) {
+	tj3 := taskJugglerBinaryWhenAvailable(t)
+	for _, tc := range []struct {
+		name              string
+		predecessorEffort int
+	}{
+		{name: "partial final day", predecessorEffort: 2},
+		{name: "full final day", predecessorEffort: 8},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			projectPath := writeTaskJugglerDependentSchedulingProject(t, taskJugglerNextDayTasks(""), fmt.Sprintf(taskJugglerNextDayDemands, tc.predecessorEffort, tc.predecessorEffort, taskJugglerNextDaySuccessorDemand), taskJugglerNextDayDependency)
+			rows, project := runTaskJugglerSchedulingProject(t, tj3, projectPath)
+			if rows["task_pre"].End != "2026-07-06" || rows["task_next"].Start != "2026-07-07" {
+				t.Fatalf("schedule = predecessor %#v, successor %#v; want successor on 2026-07-07", rows["task_pre"], rows["task_next"])
+			}
+			if !strings.Contains(project, "depends replan_after_task_pre") {
+				t.Fatalf("successor does not use next-working-day boundary:\n%s", project)
+			}
+		})
+	}
+}
+
+func TestTaskJugglerRunStartsDependentLeadTimesOnNextWorkingDayWhenTJ3Available(t *testing.T) {
+	tj3 := taskJugglerBinaryWhenAvailable(t)
+	for _, tc := range []struct {
+		name     string
+		leadTime string
+		wantEnd  string
+	}{
+		{name: "working days", leadTime: "working_days: 2", wantEnd: "2026-07-08"},
+		{name: "calendar days", leadTime: "calendar_days: 2", wantEnd: "2026-07-09"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			projectPath := writeTaskJugglerDependentSchedulingProject(t, taskJugglerNextDayTasks("    lead_time:\n      "+tc.leadTime+"\n"), fmt.Sprintf(taskJugglerNextDayDemands, 2, 2, ""), taskJugglerNextDayDependency)
+			rows, _ := runTaskJugglerSchedulingProject(t, tj3, projectPath)
+			if rows["task_next"].Start != "2026-07-07" || rows["task_next"].End != tc.wantEnd {
+				t.Fatalf("successor = %#v, want 2026-07-07..%s", rows["task_next"], tc.wantEnd)
+			}
+		})
+	}
+}
+
+func TestTaskJugglerRunStartsDependentWaitThenWorkOnNextWorkingDayWhenTJ3Available(t *testing.T) {
+	tj3 := taskJugglerBinaryWhenAvailable(t)
+	projectPath := writeTaskJugglerDependentSchedulingProject(t, taskJugglerNextDayTasks("    lead_time:\n      working_days: 2\n"), fmt.Sprintf(taskJugglerNextDayDemands, 2, 2, taskJugglerNextDaySuccessorDemand), taskJugglerNextDayDependency)
+	rows, _ := runTaskJugglerSchedulingProject(t, tj3, projectPath)
+	if rows["task_next"].Start != "2026-07-07" || rows["task_next"].End != "2026-07-09" || rows["task_next.work"].Start != "2026-07-09" {
+		t.Fatalf("container = %#v, work = %#v", rows["task_next"], rows["task_next.work"])
+	}
+}
+
+func TestTaskJugglerRunMovesFridayDependencyToMondayWhenTJ3Available(t *testing.T) {
+	tj3 := taskJugglerBinaryWhenAvailable(t)
+	projectPath := writeTaskJugglerDependentSchedulingProject(t, `
+  - id: task.pre
+    title: Friday predecessor
+    tracking_status: accepted
+    planned_start: "2026-07-10"
+    planned_finish: "2026-07-10"
+  - id: task.next
+    title: Monday successor
+    tracking_status: ready
+`, "\n"+taskJugglerNextDaySuccessorDemand, taskJugglerNextDayDependency)
+	rows, _ := runTaskJugglerSchedulingProject(t, tj3, projectPath)
+	if rows["task_next"].Start != "2026-07-13" {
+		t.Fatalf("weekend successor = %#v, want Monday 2026-07-13", rows["task_next"])
+	}
+}
+
+func taskJugglerNextDayTasks(successorFields string) string {
+	return `
+  - id: task.pre
+    title: Predecessor
+    tracking_status: ready
+  - id: task.next
+    title: Successor
+    tracking_status: ready
+` + successorFields
+}
+
+const taskJugglerNextDayDemands = `
+  - id: demand.pre
+    task_ref: {kind: task, id: task.pre}
+    resource_ref: {kind: resource, id: resource.human.ivan}
+    resource_class: human
+    role: implementer
+    unit: hours
+    planned_amount: %d
+    remaining_amount: %d
+    status: active
+%s`
+
+const taskJugglerNextDaySuccessorDemand = `  - id: demand.next
+    task_ref: {kind: task, id: task.next}
+    resource_ref: {kind: resource, id: resource.human.ivan}
+    resource_class: human
+    role: implementer
+    unit: hours
+    planned_amount: 2
+    remaining_amount: 2
+    status: active
+`
+
+const taskJugglerNextDayDependency = `
+  - id: dependency.pre-next
+    type: finish_to_start
+    status: open
+    predecessor_ref: {kind: task, id: task.pre}
+    successor_ref: {kind: task, id: task.next}
+`
+
 func TestTaskJugglerImportUsesWaitThenWorkContainerWhenTJ3Available(t *testing.T) {
 	tj3 := taskJugglerBinaryWhenAvailable(t)
 	projectPath := writeTaskJugglerWaitThenWorkProject(t)
@@ -3628,6 +3740,15 @@ func writeTaskJugglerSchedulingProject(t *testing.T, tasks, demands string) stri
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(projectPath, "canonical", "dependencies.yaml"), []byte("dependencies: []\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return projectPath
+}
+
+func writeTaskJugglerDependentSchedulingProject(t *testing.T, tasks, demands, dependencies string) string {
+	t.Helper()
+	projectPath := writeTaskJugglerSchedulingProject(t, tasks, demands)
+	if err := os.WriteFile(filepath.Join(projectPath, "canonical", "dependencies.yaml"), []byte("dependencies:"+dependencies), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	return projectPath
@@ -3792,8 +3913,11 @@ func TestTaskJugglerRunHonoursWorkingHoursAndVacationWhenTJ3Available(t *testing
 	for _, line := range strings.Split(readFileString(t, filepath.Join(outputDir, "reports", "replan-task-schedule.csv")), "\n") {
 		fields := strings.Split(line, ";")
 		if len(fields) >= 4 && strings.Trim(fields[0], `"`) == "task_op_1234" {
-			if finish := strings.Trim(fields[3], `"`); !strings.HasPrefix(finish, "2026-07-08") {
-				t.Fatalf("14h task finish = %q, want third working day 2026-07-08", finish)
+			// Its predecessor finishes on 2026-07-06. The next-working-day
+			// boundary releases this task on 2026-07-07, when Ivan is on
+			// vacation, so the 14 hours run on 2026-07-08 and 2026-07-09.
+			if finish := strings.Trim(fields[3], `"`); !strings.HasPrefix(finish, "2026-07-09") {
+				t.Fatalf("14h dependent task finish = %q, want 2026-07-09 after next-day boundary and vacation", finish)
 			}
 			return
 		}
@@ -3828,7 +3952,7 @@ func TestTaskJugglerRunOrdersDependentTasksWhenTJ3Available(t *testing.T) {
 	if code != exitSuccess {
 		t.Fatalf("taskjuggler run exit = %d, stdout = %s, stderr = %s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
 	}
-	assertFileContains(t, filepath.Join(outputDir, "project.tjp"), "  depends task_offline_repair_pump\n")
+	assertFileContains(t, filepath.Join(outputDir, "project.tjp"), "  depends replan_after_task_offline_repair_pump\n")
 	starts, ends := map[string]string{}, map[string]string{}
 	for _, line := range strings.Split(readFileString(t, filepath.Join(outputDir, "reports", "replan-task-schedule.csv")), "\n") {
 		fields := strings.Split(line, ";")

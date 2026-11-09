@@ -93,9 +93,12 @@ type taskJugglerTimeRange struct {
 }
 
 const (
-	taskJugglerInternalFlag          = "replan_internal"
-	taskJugglerStatusDateTaskID      = "replan_status_date"
-	taskJugglerNotBeforeTaskIDPrefix = "replan_not_before_"
+	taskJugglerInternalFlag            = "replan_internal"
+	taskJugglerStatusDateTaskID        = "replan_status_date"
+	taskJugglerNotBeforeTaskIDPrefix   = "replan_not_before_"
+	taskJugglerDependencyGateIDPrefix  = "replan_after_"
+	taskJugglerDependencyBoundaryShift = "replan_next_working_day"
+	taskJugglerWaitBoundaryTaskID      = "replan_after_wait"
 )
 
 type taskJugglerTaskSchedule struct {
@@ -324,14 +327,20 @@ func buildTaskJugglerExportMapping(ws domain.Workspace, projectPath, scenarioID 
 		TaskIDMap:     []TaskJugglerTaskIDMapping{},
 		ResourceIDMap: []TaskJugglerResourceIDMapping{},
 	}
-	// Internal milestone ids are reserved.
+	// Internal milestone and dependency-boundary ids are reserved.
 	taskJugglerTaskIDs := map[string]string{taskJugglerStatusDateTaskID: "the status-date milestone"}
 	for _, task := range ws.Tasks {
 		taskJugglerTaskID := taskJugglerID(task.ID, "task")
+		reservedPrefix := ""
 		if strings.HasPrefix(taskJugglerTaskID, taskJugglerNotBeforeTaskIDPrefix) {
+			reservedPrefix = taskJugglerNotBeforeTaskIDPrefix
+		} else if strings.HasPrefix(taskJugglerTaskID, taskJugglerDependencyGateIDPrefix) {
+			reservedPrefix = taskJugglerDependencyGateIDPrefix
+		}
+		if reservedPrefix != "" {
 			*errors = append(*errors, Diagnostic{
 				Code:     "taskjuggler_task_id_collision",
-				Message:  fmt.Sprintf("task %s maps to TaskJuggler id %s, which uses the reserved not-before milestone prefix %s", task.ID, taskJugglerTaskID, taskJugglerNotBeforeTaskIDPrefix),
+				Message:  fmt.Sprintf("task %s maps to TaskJuggler id %s, which uses the reserved internal task prefix %s", task.ID, taskJugglerTaskID, reservedPrefix),
 				Severity: "error",
 				Target:   Target{Kind: "task", ID: task.ID},
 			})
@@ -502,6 +511,8 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 	appendTaskJugglerTasksWithoutDemandsDiagnostic(ws, demandCountByTask, taskSchedules, warnings)
 	taskEfforts, roundedUpTaskIDs, timingResolution := taskJugglerTaskEfforts(ws.Tasks, demandsByTask)
 	leadTimes, roundedUpLeadTimeTaskIDs, timingResolution := taskJugglerLeadTimes(ws.Tasks, taskSchedules, timingResolution)
+	dependencyGates := taskJugglerDependencyGates(dependenciesByTask, taskSchedules)
+	needsDependencyBoundary := len(dependencyGates) > 0 || taskJugglerHasWaitThenWork(taskEfforts, leadTimes)
 	appendTaskJugglerRoundedUpEffortDiagnostic(ws.Project.ID, roundedUpTaskIDs, warnings)
 	appendTaskJugglerRoundedUpLeadTimeDiagnostic(ws.Project.ID, roundedUpLeadTimeTaskIDs, warnings)
 	workingHoursByResource := taskJugglerWorkingHoursByResource(ws.Availabilities, timingResolution, ws.Project.Timezone, ws.Project.ID, warnings)
@@ -518,10 +529,7 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 
 	writeTaskJugglerProject(&b, ws.Project, statusDate, taskSchedules, timingResolution, warnings)
 
-	hasInternalTasks := statusDate != "" || len(notBeforeDates) > 0
-	if hasInternalTasks {
-		fmt.Fprintf(&b, "flags %s\n\n", taskJugglerInternalFlag)
-	}
+	hasInternalTasks := writeTaskJugglerInternalDeclarations(&b, statusDate, notBeforeDates, needsDependencyBoundary, timingResolution)
 	for _, resource := range ws.Resources {
 		writeTaskJugglerResource(&b, resource, taskJugglerResourceIDs[resource.ID], workingHoursByResource[resource.ID], vacationsByResource[resource.ID], limitsByResource[resource.ID])
 	}
@@ -538,9 +546,13 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 	for _, date := range notBeforeDates {
 		fmt.Fprintf(&b, "task %s %q {\n  start %s\n  milestone\n  flags %s\n}\n", taskJugglerNotBeforeTaskID(date), "Not before "+date, date, taskJugglerInternalFlag)
 	}
+	for _, predecessorID := range dependencyGates {
+		writeTaskJugglerDependencyGate(&b, predecessorID, timingResolution)
+	}
 
 	for _, task := range ws.Tasks {
-		writeTaskJugglerTask(&b, task, taskJugglerTaskIDs[task.ID], taskJugglerResourceIDs, dependenciesByTask[task.ID], notBeforeByTask[task.ID], demandsByTask[task.ID], unlevelledDemandsByTask[task.ID], taskEfforts[task.ID], leadTimes[task.ID], loadingDemandCountByTask[task.ID] > 0, taskSchedules[task.ID], statusDate, warnings)
+		predecessorIDs := taskJugglerDependencyGateIDs(dependenciesByTask[task.ID])
+		writeTaskJugglerTask(&b, task, taskJugglerTaskIDs[task.ID], taskJugglerResourceIDs, predecessorIDs, notBeforeByTask[task.ID], demandsByTask[task.ID], unlevelledDemandsByTask[task.ID], taskEfforts[task.ID], leadTimes[task.ID], loadingDemandCountByTask[task.ID] > 0, taskSchedules[task.ID], statusDate, timingResolution, warnings)
 	}
 	writeTaskJugglerParseableTaskReport(&b, hasInternalTasks)
 
@@ -550,6 +562,78 @@ func buildTaskJugglerContent(ws domain.Workspace, metadata ExportMetadata, scena
 	}
 	sort.Strings(calibrationIDs)
 	return b.String(), calibrationIDs, unsupportedDemands
+}
+
+func writeTaskJugglerInternalDeclarations(b *strings.Builder, statusDate string, notBeforeDates []string, needsDependencyBoundary bool, timingResolution int) bool {
+	hasInternalTasks := statusDate != "" || len(notBeforeDates) > 0 || needsDependencyBoundary
+	if !hasInternalTasks {
+		return false
+	}
+	fmt.Fprintf(b, "flags %s\n\n", taskJugglerInternalFlag)
+	if needsDependencyBoundary {
+		writeTaskJugglerDependencyBoundaryShift(b, timingResolution)
+	}
+	return true
+}
+
+func taskJugglerHasWaitThenWork(taskEfforts map[string]float64, leadTimes map[string]taskJugglerLeadTime) bool {
+	for taskID, leadTime := range leadTimes {
+		if leadTime.days > 0 && taskEfforts[taskID] > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func taskJugglerDependencyGates(dependenciesByTask map[string][]string, schedules map[string]taskJugglerTaskSchedule) []string {
+	predecessors := map[string]struct{}{}
+	for taskID, predecessorIDs := range dependenciesByTask {
+		// Fixed tasks do not emit dependencies, so they do not need gates.
+		if schedules[taskID].finished {
+			continue
+		}
+		for _, predecessorID := range predecessorIDs {
+			predecessors[predecessorID] = struct{}{}
+		}
+	}
+	result := make([]string, 0, len(predecessors))
+	for predecessorID := range predecessors {
+		result = append(result, predecessorID)
+	}
+	sort.Strings(result)
+	return result
+}
+
+func taskJugglerDependencyGateIDs(predecessorIDs []string) []string {
+	result := make([]string, len(predecessorIDs))
+	for i, predecessorID := range predecessorIDs {
+		result[i] = taskJugglerDependencyGateID(predecessorID)
+	}
+	return result
+}
+
+func taskJugglerDependencyGateID(predecessorID string) string {
+	return taskJugglerDependencyGateIDPrefix + predecessorID
+}
+
+// A dependency gate occupies the last scheduling slot before a working day.
+// Its end is therefore midnight at the start of the next Monday-to-Friday
+// day, regardless of whether the predecessor ended at midnight, mid-day or at
+// the end of its working day. A fixed gaplength cannot express that rounding:
+// it would make a full-day predecessor skip an additional working day.
+func writeTaskJugglerDependencyBoundaryShift(b *strings.Builder, timingResolution int) {
+	start := taskJugglerClock(24*60 - timingResolution)
+	fmt.Fprintf(b, "shift %s %q {\n", taskJugglerDependencyBoundaryShift, "Next working day boundary")
+	fmt.Fprintf(b, "  workinghours sun, mon, tue, wed, thu %s - 24:00\n", start)
+	fmt.Fprintf(b, "  workinghours fri, sat off\n}\n\n")
+}
+
+func writeTaskJugglerDependencyGate(b *strings.Builder, predecessorID string, timingResolution int) {
+	fmt.Fprintf(b, "task %s %q {\n", taskJugglerDependencyGateID(predecessorID), "Start successors after "+predecessorID)
+	fmt.Fprintf(b, "  depends %s\n", predecessorID)
+	fmt.Fprintf(b, "  length %dmin\n", timingResolution)
+	fmt.Fprintf(b, "  shifts %s\n", taskJugglerDependencyBoundaryShift)
+	fmt.Fprintf(b, "  flags %s\n}\n", taskJugglerInternalFlag)
 }
 
 func taskJugglerNotBeforeMode(ignore bool) string {
@@ -1098,7 +1182,7 @@ func writeTaskJugglerResource(b *strings.Builder, resource domain.Resource, task
 	fmt.Fprintf(b, "}\n")
 }
 
-func writeTaskJugglerTask(b *strings.Builder, task domain.Task, taskJugglerTaskID string, taskJugglerResourceIDs map[string]string, predecessorIDs []string, notBeforeDate string, demands []taskJugglerDemand, unlevelledDemands []taskJugglerUnlevelledDemand, totalEffort float64, leadTime taskJugglerLeadTime, hasLoadingDemands bool, schedule taskJugglerTaskSchedule, statusDate string, warnings *[]Diagnostic) {
+func writeTaskJugglerTask(b *strings.Builder, task domain.Task, taskJugglerTaskID string, taskJugglerResourceIDs map[string]string, predecessorIDs []string, notBeforeDate string, demands []taskJugglerDemand, unlevelledDemands []taskJugglerUnlevelledDemand, totalEffort float64, leadTime taskJugglerLeadTime, hasLoadingDemands bool, schedule taskJugglerTaskSchedule, statusDate string, timingResolution int, warnings *[]Diagnostic) {
 	fmt.Fprintf(b, "task %s %q {\n", taskJugglerTaskID, task.Title)
 	if task.Description != "" {
 		fmt.Fprintf(b, "  note %q\n", task.Description)
@@ -1136,8 +1220,14 @@ func writeTaskJugglerTask(b *strings.Builder, task domain.Task, taskJugglerTaskI
 		fmt.Fprintf(b, "  task wait %q {\n", "Wait")
 		writeTaskJugglerLeadTime(b, "    ", leadTime)
 		fmt.Fprintf(b, "  }\n")
-		fmt.Fprintf(b, "  task work %q {\n", "Work")
+		fmt.Fprintf(b, "  task %s %q {\n", taskJugglerWaitBoundaryTaskID, "Start work on next working day")
 		fmt.Fprintf(b, "    depends !wait\n")
+		fmt.Fprintf(b, "    length %dmin\n", timingResolution)
+		fmt.Fprintf(b, "    shifts %s\n", taskJugglerDependencyBoundaryShift)
+		fmt.Fprintf(b, "    flags %s\n", taskJugglerInternalFlag)
+		fmt.Fprintf(b, "  }\n")
+		fmt.Fprintf(b, "  task work %q {\n", "Work")
+		fmt.Fprintf(b, "    depends !%s\n", taskJugglerWaitBoundaryTaskID)
 		writeTaskJugglerEffortAndAllocations(b, "    ", demands, totalEffort, taskJugglerResourceIDs)
 		fmt.Fprintf(b, "  }\n")
 		fmt.Fprintf(b, "}\n")

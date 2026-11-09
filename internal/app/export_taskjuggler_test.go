@@ -441,9 +441,9 @@ func TestExportTaskJugglerWritesWaitThenWorkContainer(t *testing.T) {
 	}
 	result := exportTaskJugglerWorkspace(t, ws)
 
-	wantContainer := "task task_test \"Test task\" {\n  depends task_pre\n  depends replan_status_date\n  depends replan_not_before_2026_11_10\n  priority 900\n  task wait \"Wait\" {\n    length 1.5d\n  }\n  task work \"Work\" {\n    depends !wait\n    effort 2.00h\n    allocate resource_test\n  }\n}"
+	wantContainer := "task task_test \"Test task\" {\n  depends replan_after_task_pre\n  depends replan_status_date\n  depends replan_not_before_2026_11_10\n  priority 900\n  task wait \"Wait\" {\n    length 1.5d\n  }\n  task replan_after_wait \"Start work on next working day\" {\n    depends !wait\n    length 60min\n    shifts replan_next_working_day\n    flags replan_internal\n  }\n  task work \"Work\" {\n    depends !replan_after_wait\n    effort 2.00h\n    allocate resource_test\n  }\n}"
 	assertContains(t, result.Content, wantContainer)
-	assertContains(t, result.Content, "task task_next \"Successor\" {\n  depends task_test\n")
+	assertContains(t, result.Content, "task task_next \"Successor\" {\n  depends replan_after_task_test\n")
 	if !hasTaskJugglerTaskMapping(result.Mapping, "task.test", "task_test") {
 		t.Fatalf("container mapping missing: %#v", result.Mapping.TaskIDMap)
 	}
@@ -806,9 +806,49 @@ func TestExportTaskJugglerExportsOrderingDependencies(t *testing.T) {
 			if err != nil {
 				t.Fatalf("TaskJuggler returned error: %v; errors=%#v", err, result.Errors)
 			}
-			assertContains(t, result.Content, "task task_b \"B\" {\n  depends task_a\n")
+			assertContains(t, result.Content, "task replan_after_task_a \"Start successors after task_a\" {\n  depends task_a\n  length 60min\n  shifts replan_next_working_day\n  flags replan_internal\n}")
+			assertContains(t, result.Content, "task task_b \"B\" {\n  depends replan_after_task_a\n")
 		})
 	}
+}
+
+func TestExportTaskJugglerRoundsDependentStartsToNextWorkingDay(t *testing.T) {
+	ws := taskJugglerWorkspaceWithEffort(2)
+	ws.Tasks = []domain.Task{
+		{ID: "task.pre", Title: "Predecessor", TrackingStatus: "ready"},
+		{ID: "task.plain", Title: "Plain effort", TrackingStatus: "ready"},
+		{ID: "task.working", Title: "Working lead", TrackingStatus: "ready", LeadTime: &domain.LeadTime{WorkingDays: 2}},
+		{ID: "task.calendar", Title: "Calendar lead", TrackingStatus: "ready", LeadTime: &domain.LeadTime{CalendarDays: 2}},
+		{ID: "task.wait-work", Title: "Wait then work", TrackingStatus: "ready", LeadTime: &domain.LeadTime{WorkingDays: 2}},
+	}
+	ws.ResourceDemands = []domain.ResourceDemand{
+		{ID: "demand.pre", TaskRef: domain.Ref{ID: "task.pre"}, ResourceRef: domain.Ref{ID: "resource.test"}, ResourceClass: "human", Unit: "hours", PlannedAmount: 2, RemainingAmount: domain.Amount(2), Status: "active"},
+		{ID: "demand.plain", TaskRef: domain.Ref{ID: "task.plain"}, ResourceRef: domain.Ref{ID: "resource.test"}, ResourceClass: "human", Unit: "hours", PlannedAmount: 2, RemainingAmount: domain.Amount(2), Status: "active"},
+		{ID: "demand.wait-work", TaskRef: domain.Ref{ID: "task.wait-work"}, ResourceRef: domain.Ref{ID: "resource.test"}, ResourceClass: "human", Unit: "hours", PlannedAmount: 2, RemainingAmount: domain.Amount(2), Status: "active"},
+	}
+	for _, successorID := range []string{"task.plain", "task.working", "task.calendar", "task.wait-work"} {
+		ws.Dependencies = append(ws.Dependencies, domain.Dependency{
+			ID: "dependency.pre-" + successorID, Type: "finish_to_start", Status: "open",
+			PredecessorRef: domain.Ref{Kind: "task", ID: "task.pre"}, SuccessorRef: domain.Ref{Kind: "task", ID: successorID},
+		})
+	}
+
+	result := exportTaskJugglerWorkspace(t, ws)
+	assertContains(t, result.Content, "shift replan_next_working_day \"Next working day boundary\" {\n  workinghours sun, mon, tue, wed, thu 23:00 - 24:00\n  workinghours fri, sat off\n}")
+	if strings.Count(result.Content, "task replan_after_task_pre ") != 1 {
+		t.Fatalf("shared predecessor should have one dependency gate:\n%s", result.Content)
+	}
+	assertContains(t, result.Content, "task replan_after_task_pre \"Start successors after task_pre\" {\n  depends task_pre\n  length 60min\n  shifts replan_next_working_day\n  flags replan_internal\n}")
+	for _, taskID := range []string{"task_plain", "task_working", "task_calendar", "task_wait_work"} {
+		assertContains(t, result.Content, "task "+taskID+" ")
+		section := result.Content[strings.Index(result.Content, "task "+taskID+" "):]
+		if !strings.Contains(section, "  depends replan_after_task_pre\n") {
+			t.Fatalf("%s does not use dependency boundary:\n%s", taskID, section)
+		}
+	}
+	assertContains(t, result.Content, "task task_working \"Working lead\" {\n  depends replan_after_task_pre\n  depends replan_status_date\n  length 2d\n}")
+	assertContains(t, result.Content, "task task_calendar \"Calendar lead\" {\n  depends replan_after_task_pre\n  depends replan_status_date\n  duration 2d\n}")
+	assertContains(t, result.Content, "task task_wait_work \"Wait then work\" {\n  depends replan_after_task_pre\n  depends replan_status_date\n  task wait \"Wait\"")
 }
 
 func TestExportTaskJugglerSkipsInactiveDependencies(t *testing.T) {
@@ -842,7 +882,7 @@ func TestExportTaskJugglerDeduplicatesAndSortsPredecessors(t *testing.T) {
 	if strings.Count(result.Content, "  depends task_a\n") != 1 {
 		t.Fatalf("duplicate pair was not collapsed:\n%s", result.Content)
 	}
-	assertContains(t, result.Content, "task task_b \"B\" {\n  depends task_a\n  depends task_c\n")
+	assertContains(t, result.Content, "task task_b \"B\" {\n  depends replan_after_task_a\n  depends replan_after_task_c\n")
 }
 
 func TestExportTaskJugglerWarnsOnceForDependenciesNotExported(t *testing.T) {
@@ -915,7 +955,7 @@ func TestExportTaskJugglerHonoursScenarioDependencyStatus(t *testing.T) {
 	if err != nil {
 		t.Fatalf("TaskJuggler returned error: %v; errors=%#v", err, result.Errors)
 	}
-	assertContains(t, result.Content, "task task_b \"B\" {\n  depends task_a\n")
+	assertContains(t, result.Content, "task task_b \"B\" {\n  depends replan_after_task_a\n")
 }
 
 func TestExportTaskJugglerFinishedSuccessorKeepsItsDatesWithoutDepends(t *testing.T) {
@@ -954,6 +994,15 @@ func TestExportTaskJugglerReservesTheStatusDateTaskID(t *testing.T) {
 	_, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
 	if !errors.Is(err, app.ErrValidationFailed) {
 		t.Fatalf("err = %v, want validation failure for the reserved id", err)
+	}
+}
+
+func TestExportTaskJugglerReservesDependencyGateTaskIDPrefix(t *testing.T) {
+	ws := taskJugglerDependencyWorkspace()
+	ws.Tasks = append(ws.Tasks, domain.Task{ID: "replan.after.clash", Title: "Clash", TrackingStatus: "ready"})
+	_, err := app.NewExportService(staticWorkspaceLoader{workspace: ws}).TaskJuggler(context.Background(), app.ExportTaskJugglerRequest{})
+	if !errors.Is(err, app.ErrValidationFailed) {
+		t.Fatalf("err = %v, want validation failure for the reserved id prefix", err)
 	}
 }
 
