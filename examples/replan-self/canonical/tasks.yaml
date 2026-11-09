@@ -7436,9 +7436,9 @@ tasks:
     title: Read a missing format_version the same way in every command
     description: 'Reported by the second project on 2026-11-09: on a plan whose .replan/project.yaml has no format_version, project set-status-date refused with "project format version 0 is unsupported", while the loader and project migrate read the same plan as version 1. Make every command read a missing format_version as version 1 through the one loader rule, and check the other writers of .replan/project.yaml; tests with a plan without the field.'
     type: implementation
-    tracking_status: not_started
-    planned_start: "2026-11-10"
-    planned_finish: "2026-11-10"
+    tracking_status: in_progress
+    planned_start: "2026-11-09"
+    planned_finish: "2026-11-09"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer
@@ -7637,7 +7637,7 @@ tasks:
     title: Name the assignee setting when OpenProject refuses the bootstrap assignee
     description: 'Found on 2026-11-09 when the second consumer project switched to an agent account: apply-openproject-bootstrap defaults the assignee to the token''s own user, an API-only agent is not assignable, and the create failed with HTTP 422 PropertyConstraintViolation on the assignee without saying how to fix it. When the token user is the defaulted assignee, check in the dry run whether that user can be assigned (the project''s available assignees) and warn; when a create is refused on the assignee, report an error code that names REPLAN_OPENPROJECT_ASSIGNEE_USER_ID. Tests and the bootstrap section of the agent kit README.'
     type: implementation
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-09"
     planned_finish: "2026-11-09"
     assignee_hint:

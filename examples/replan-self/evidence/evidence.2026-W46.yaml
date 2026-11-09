@@ -540,3 +540,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.date-push-nothing-to-apply-is-ok
+  - id: evidence.self.bootstrap-assignee-refusal-names-setting
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T22:53:34+07:00"
+    summary: 'Fix commit 90222ca: bootstrap reads the project''s available assignees; a dry run warns default_assignee_not_assignable or assignee_not_assignable and an apply refuses with the same code before any write, both naming REPLAN_OPENPROJECT_ASSIGNEE_USER_ID; a forbidden read warns assignee_check_unavailable; a 422 on the assignee maps to assignee_refused. Review made a configured non-assignable user warn in the dry run like the defaulted one instead of refusing it, updated the test and named the codes in the kit README; a live dry run on the self project stays clean. Gate green: lint 0, 54 kit checks, 86 live checks. Codex 22:06:13-22:32:59 (0.45 h, prompt and last-file mtimes); executor brief at 21:21:26 (booked with the previous task), 22:05:53 start, 22:33:24-22:34:42 review, 22:52:45-2026-11-09T22:53:34+07:00 commit, 0.04 h by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.bootstrap-assignee-refusal-names-setting
+  - id: evidence.self.start-missing-format-version-reads-as-one
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T19:09:39+07:00"
+    summary: Agreed with the other consumer findings (message 19:09:39); estimate frozen in baseline.2026-11-09.consumer-findings-for-v0-5-1, split 0.3 Codex and 0.2 executor. Next in the agreed order. Started on 2026-11-09, ahead of plan.
+    targets:
+      - kind: task
+        id: task.self.missing-format-version-reads-as-one
