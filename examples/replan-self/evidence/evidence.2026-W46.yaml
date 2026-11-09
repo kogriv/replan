@@ -437,3 +437,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.consumer-project-own-openproject-identity
+  - id: evidence.self.toolkit-comment-add-saves-comment
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T20:25:37+07:00"
+    summary: 'Fix commit 4c9ea30: comment add posts to /api/v3/work_packages/{id}/activities, requires 201 with an Activity::Comment carrying the sent text, reports activity_id and created_at, and fails with comment_not_saved otherwise; comment list reads comments back and the live kit check verifies each comment by activity id and text. The audit of other writes found work-package status, dates, metadata, subject and description and wiki text and parent PATCHes unchecked; they now compare the answer with what was sent, accepting equivalent forms, and fail with work_package_fields_not_saved or wiki_page_fields_not_saved. Review sent a second round: round 1 compared raw values (PT1.5H vs PT1H30M, CRLF) and added package markers; round 2 normalised them; I reverted its change of the sent estimate format and fixed its test. Gate green: lint 0, 54 kit checks, 86 live checks including a fractional estimate, a CRLF description and comment read-back. The self plan''s four lost comments were restored with the fixed command and read back (activities on three work packages). Codex 19:14:07-19:39:23 and 19:41:19-19:58:08 (0.70 h, prompt and last-file mtimes); executor 19:12:44-19:14:07 brief and 19:39:23-20:25:00 review, gate and restore, 0.78 h by tool-call times, of which about 12 minutes replayed dogfood records lost by my own whole-tree checkout.'
+    targets:
+      - kind: task
+        id: task.self.toolkit-comment-add-saves-comment

@@ -7581,7 +7581,7 @@ tasks:
     title: Make the toolkit's comment add really save the comment
     description: 'Reported by the fourth project on 2026-11-09 against v0.5.0 and OpenProject 17.6.0: openproject-work-package-toolkit.sh comment add returns ok, mode apply, applied true, but no comment appears in the work package''s activities and its updatedAt and lockVersion do not change; two comments were lost. command_comment_add sends PATCH /api/v3/work_packages/{id} with a comment field, which OpenProject 17.6 ignores, and sets applied without checking. Post the comment with POST /api/v3/work_packages/{id}/activities and body comment.raw, require 201 and report the created activity id, refuse when no activity was created; check the other toolkit writes for the same unchecked-success pattern; the live agent kit check reads the comment back from the activities; tests and docs.'
     type: implementation
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-09"
     planned_finish: "2026-11-09"
     assignee_hint:
