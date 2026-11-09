@@ -375,6 +375,23 @@ func (s Store) AddDependencies(dependencies []domain.Dependency) (string, error)
 	return dependenciesRel, err
 }
 
+// WriteDependencies replaces existing dependencies through the YAML splice
+// writer, preserving every unchanged record and line byte-for-byte.
+func (s Store) WriteDependencies(dependencies []domain.Dependency) (string, error) {
+	err := updateYAML(s, dependenciesRel, false, func(doc *dependenciesDoc) error {
+		index := dependencyIndex(doc.Dependencies)
+		for _, dependency := range dependencies {
+			i, ok := index[dependency.ID]
+			if !ok {
+				return fmt.Errorf("dependency %s not found", dependency.ID)
+			}
+			doc.Dependencies[i] = dependency
+		}
+		return nil
+	})
+	return dependenciesRel, err
+}
+
 // WriteResourceDemands replaces existing demands, appends new demands, and
 // adds references for new demands to their owning tasks. The caller stages
 // this method, so the two canonical files commit together.

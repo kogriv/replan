@@ -439,7 +439,7 @@ one.
 | Add tasks | `bin/replan task add`, or an import of your tracker with `bin/replan import openproject` and `bin/replan import accept` |
 | Change a task's title or description | `bin/replan task set-title`, `bin/replan task set-description`, then `scripts/push-openproject-description-drift.sh` |
 | Change demands or move work to another resource | `bin/replan demand add`, `bin/replan demand set`, `bin/replan demand move` |
-| Add dependencies and deadlines | `bin/replan dependency add`, `bin/replan deadline add`, each one item or a `--from-file` batch |
+| Add or change dependencies and add deadlines | `bin/replan dependency add`, `bin/replan dependency set`, `bin/replan deadline add`; each accepts one item or a `--from-file` batch |
 | Set dates | `bin/replan task set-dates`, then `scripts/push-openproject-date-drift.sh` |
 | Draft dates from capacity and load | `bin/replan taskjuggler run`, `bin/replan taskjuggler import-result`, then review the scenario with `bin/replan scenario diff` and `bin/replan scenario apply` (needs TaskJuggler's `tj3`) |
 | Record work and accept a task | `bin/replan actual add-consumption`, `bin/replan actual add-status`, `scripts/accept-task.sh` |
@@ -470,7 +470,7 @@ to its root. A write to OpenProject or the bindings file is a dry run unless
 | Create a RePlan task | `bin/replan task add ... --dry-run` | Creates the task, demands and current-plan reference together; review, then use `--apply`. It does not create the OpenProject work package. |
 | Change task scheduling metadata | `bin/replan task set-scheduling ... --dry-run` | Changes priority and lead time with old/new audit evidence; review, then use `--apply`. |
 | Add, change or move a demand | `bin/replan demand add\|set\|move ... --dry-run` | Updates the demand and task reference together and records an audit entry. Add and set also accept all-or-nothing `--from-file` batches. Review before `--apply`. |
-| Add dependencies | `bin/replan dependency add ... --dry-run` | Adds one dependency or an all-or-nothing `--from-file` batch, with one audit record per item. `--after` on `task add` only sets plan order. |
+| Add or change dependencies | `bin/replan dependency add ... --dry-run`, `bin/replan dependency set <id> ... --dry-run` | Adds or changes one dependency or an all-or-nothing `--from-file` batch, with one audit record per changed item. Set changes status, required state or criticality; an all-unchanged set is a no-op. `--after` on `task add` only sets plan order. |
 | Add and inspect deadlines | `bin/replan deadline add ... --dry-run`, `bin/replan deadline list ...` | Adds one deadline or an all-or-nothing batch, then lists canonical deadlines as JSON or Markdown. |
 | Seal a planning baseline | `bin/replan baseline create ... [--task <id> ...] --dry-run` | Snapshots current task dates, scheduling metadata, planned demand amounts and levelled flags. Use repeatable `--task` for newly planned work; review, then use `--apply`. Use `baseline list` or `show` to verify the seal. |
 | Compare estimates with actuals | `bin/replan report estimates --project "$REPLAN_PROJECT" --baseline <id>` | Read-only resource and split-group summary followed by baseline-task demand, split and schedule detail; resources without counted actuals are explicit. JSON is available with `--format json`. |

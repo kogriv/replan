@@ -191,7 +191,8 @@ Implemented command families as of 2026-10-30:
 - `tracking suggest`, optionally writing proposal candidates;
 - `scenario list`, `show`, `diff`, `apply`;
 - `proposal list`, `show`, `suggest-dependencies`, `accept`, `reject`;
-- `dependency add`, `dependency list`, `deadline add`, `deadline list`;
+- `dependency add`, `dependency set`, `dependency list`, `deadline add`,
+  `deadline list`; dependency add and set support all-or-nothing batches;
 - `demand add`, `demand set`, `demand move`, including all-or-nothing add and
   set batches;
 - `baseline create`, `list`, `show`;

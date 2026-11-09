@@ -20,6 +20,8 @@ func runDependency(args []string, stdout, stderr *os.File) int {
 	switch args[0] {
 	case "add":
 		return runDependencyAdd(args[1:], stdout, stderr)
+	case "set":
+		return runDependencySet(args[1:], stdout, stderr)
 	case "list":
 		return runDependencyList(args[1:], stdout, stderr)
 	case "-h", "--help":
@@ -30,6 +32,16 @@ func runDependency(args []string, stdout, stderr *os.File) int {
 		printUsage(stderr)
 		return exitInvalidUsage
 	}
+}
+
+type dependencySetBatchFile struct {
+	Dependencies []struct {
+		ID            string  `yaml:"id"`
+		Status        *string `yaml:"status"`
+		RequiredState *string `yaml:"required_state"`
+		Criticality   *string `yaml:"criticality"`
+		Reason        string  `yaml:"reason"`
+	} `yaml:"dependencies"`
 }
 
 type dependencyBatchFile struct {
@@ -94,6 +106,60 @@ func runDependencyAdd(args []string, stdout, stderr *os.File) int {
 	env := envelope{OK: err == nil && len(result.Errors) == 0, Command: "dependency add", ProjectPath: *projectPath, Result: result, Warnings: result.Warnings, Errors: result.Errors}
 	if strings.EqualFold(*format, "text") && err == nil {
 		return writeAddItemsText(stdout, "Dependencies", result.DryRun, result.Applied, dependencyIDs(result.Dependencies))
+	}
+	return printScenarioEnvelope(stdout, stderr, *format, env, err)
+}
+
+func runDependencySet(args []string, stdout, stderr *os.File) int {
+	fs := newCLIFlagSet("dependency set")
+	setCommandUsage(fs, "replan dependency set <dependency-id> [flags]")
+	projectPath, format := addProjectFormatFlags(fs, "json")
+	status := fs.String("status", "", "new status: open, resolved or cancelled")
+	requiredState := fs.String("required-state", "", "new predecessor state required")
+	criticality := fs.String("criticality", "", "new criticality")
+	fromFile := fs.String("from-file", "", "YAML or JSON file containing a dependencies list")
+	reason := fs.String("reason", "", "required audit reason; batch item reasons override it")
+	actor := fs.String("actor", "", "required existing audit actor")
+	evidence := fs.String("evidence", "", "optional existing evidence id shared by the batch")
+	occurredAt := fs.String("occurred-at", "", "optional RFC3339 timestamp with an offset")
+	writeFlags := addCanonicalWriteFlags(fs)
+	positional, args := splitSinglePositional(args, fs)
+	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+		return code
+	}
+	var code int
+	var done bool
+	positional, code, done = requireSinglePositional(fs, positional, "dependency set", "<dependency-id>", *projectPath, *format, *fromFile == "", stdout, stderr)
+	if done {
+		return code
+	}
+	if !supportedTaskFormat(*format) {
+		return printTaskFormatError("dependency set", *projectPath, stdout, stderr)
+	}
+	dryRun, code, done := requireCanonicalWriteChoice("dependency set", *projectPath, *format, writeFlags, stdout, stderr)
+	if done {
+		return code
+	}
+	set := visitedFlags(fs)
+	items := []app.DependencySetItem{{ID: positional, Status: stringPtrIf(set["status"], *status), RequiredState: stringPtrIf(set["required-state"], *requiredState), Criticality: stringPtrIf(set["criticality"], *criticality)}}
+	if *fromFile != "" {
+		var batch dependencySetBatchFile
+		if err := readYAMLBatch(*fromFile, &batch); err != nil {
+			return printInputFileError("dependency set", *projectPath, *format, *fromFile, err, stdout, stderr)
+		}
+		items = make([]app.DependencySetItem, 0, len(batch.Dependencies))
+		for _, item := range batch.Dependencies {
+			items = append(items, app.DependencySetItem{ID: item.ID, Status: item.Status, RequiredState: item.RequiredState, Criticality: item.Criticality, Reason: item.Reason})
+		}
+	}
+	result, err := app.NewDependencyService(newStore(*projectPath)).Set(context.Background(), app.DependencySetRequest{Items: items, Reason: *reason, ActorID: *actor, EvidenceID: *evidence, OccurredAt: *occurredAt, DryRun: dryRun})
+	env := envelope{OK: err == nil && len(result.Errors) == 0, Command: "dependency set", ProjectPath: *projectPath, Result: result, Warnings: result.Warnings, Errors: result.Errors}
+	if strings.EqualFold(*format, "text") && err == nil {
+		fmt.Fprintf(stdout, "Dependencies\nDry run: %t\nApplied: %t\nNo-op: %t\n", result.DryRun, result.Applied, result.NoOp)
+		for _, change := range result.Changes {
+			fmt.Fprintf(stdout, "- %s: changed=%s unchanged=%s\n", change.After.ID, strings.Join(change.ChangedFields, ","), strings.Join(change.UnchangedFields, ","))
+		}
+		return exitSuccess
 	}
 	return printScenarioEnvelope(stdout, stderr, *format, env, err)
 }

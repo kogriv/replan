@@ -16,6 +16,11 @@ type DependencyWriter interface {
 	AppendAudit(*domain.AuditRecord) (string, error)
 }
 
+type DependencySetWriter interface {
+	WriteDependencies([]domain.Dependency) (string, error)
+	AppendAudit(*domain.AuditRecord) (string, error)
+}
+
 type DependencyAddItem struct {
 	ID, Type, PredecessorID, SuccessorID  string
 	Criticality, Status, Description      string
@@ -28,6 +33,39 @@ type DependencyAddRequest struct {
 	Reason, ActorID, EvidenceID string
 	OccurredAt                  string
 	DryRun                      bool
+}
+
+type DependencySetItem struct {
+	ID, Reason                         string
+	Status, RequiredState, Criticality *string
+}
+
+type DependencySetRequest struct {
+	Items                       []DependencySetItem
+	Reason, ActorID, EvidenceID string
+	OccurredAt                  string
+	DryRun                      bool
+}
+
+type DependencySetChange struct {
+	Before          domain.Dependency `json:"before"`
+	After           domain.Dependency `json:"after"`
+	ChangedFields   []string          `json:"changed_fields"`
+	UnchangedFields []string          `json:"unchanged_fields"`
+}
+
+type DependencySetResult struct {
+	DryRun              bool                  `json:"dry_run"`
+	Applied             bool                  `json:"applied"`
+	NoOp                bool                  `json:"no_op"`
+	Dependencies        []domain.Dependency   `json:"dependencies"`
+	Changes             []DependencySetChange `json:"changes"`
+	PlannedWrites       []PlannedWrite        `json:"planned_writes"`
+	WrittenFiles        []string              `json:"written_files,omitempty"`
+	AuditRecordPreviews []domain.AuditRecord  `json:"audit_record_previews"`
+	Validation          *ValidateResult       `json:"validation,omitempty"`
+	Warnings            []Diagnostic          `json:"warnings"`
+	Errors              []Diagnostic          `json:"errors"`
 }
 
 type DependencyAddResult struct {
@@ -175,6 +213,192 @@ func (s DependencyService) Add(ctx context.Context, req DependencyAddRequest) (D
 	}
 	result.Applied = true
 	return result, nil
+}
+
+func (s DependencyService) Set(ctx context.Context, req DependencySetRequest) (DependencySetResult, error) {
+	ws, loadDiags := s.loader.Load(ctx)
+	result := DependencySetResult{DryRun: req.DryRun, Dependencies: []domain.Dependency{}, Changes: []DependencySetChange{}, PlannedWrites: []PlannedWrite{}, WrittenFiles: []string{}, AuditRecordPreviews: []domain.AuditRecord{}, Warnings: []Diagnostic{}, Errors: []Diagnostic{}}
+	appendLoadDiagnostics(&result.Warnings, &result.Errors, loadDiags)
+	validateDependencySetCommon(&result.Errors, ws, req)
+	seen := map[string]bool{}
+	changed := []domain.Dependency{}
+	changedReasons := []string{}
+	for _, item := range req.Items {
+		if seen[item.ID] {
+			result.Errors = append(result.Errors, dependencyAddDiag("duplicate_dependency_id", fmt.Sprintf("dependency %s is specified more than once", item.ID), "dependency", item.ID))
+			continue
+		}
+		seen[item.ID] = true
+		before, ok := findDependency(ws.Dependencies, item.ID)
+		if !ok {
+			result.Errors = append(result.Errors, dependencyAddDiag("dependency_not_found", fmt.Sprintf("dependency %s not found", item.ID), "dependency", item.ID))
+			continue
+		}
+		after := before
+		change := DependencySetChange{Before: before, ChangedFields: []string{}, UnchangedFields: []string{}}
+		applyDependencySetField(&after.Status, item.Status, "status", &change)
+		applyDependencySetField(&after.RequiredState, item.RequiredState, "required_state", &change)
+		applyDependencySetField(&after.Criticality, item.Criticality, "criticality", &change)
+		change.After = after
+		validateDependencySetItem(&result.Errors, item)
+		result.Dependencies = append(result.Dependencies, after)
+		result.Changes = append(result.Changes, change)
+		if len(change.ChangedFields) > 0 {
+			changed = append(changed, after)
+			reason := req.Reason
+			if strings.TrimSpace(item.Reason) != "" {
+				reason = item.Reason
+			}
+			changedReasons = append(changedReasons, reason)
+		}
+	}
+	if len(result.Errors) > 0 {
+		return result, ErrValidationFailed
+	}
+	if len(changed) == 0 {
+		result.NoOp = true
+		return result, nil
+	}
+	occurredAt := req.OccurredAt
+	if occurredAt == "" {
+		occurredAt = time.Now().Format(time.RFC3339)
+	}
+	changeByID := map[string]DependencySetChange{}
+	for _, change := range result.Changes {
+		changeByID[change.After.ID] = change
+	}
+	for i, dependency := range changed {
+		change := changeByID[dependency.ID]
+		audit := domain.AuditRecord{ID: "audit." + compactTimestamp(occurredAt) + ".dependency-set." + slugID(dependency.ID), OccurredAt: occurredAt, ActorRef: domain.Ref{Kind: "actor", ID: req.ActorID}, Operation: "dependency_set", TargetRef: domain.Ref{Kind: "dependency", ID: dependency.ID}, Result: "success", Reason: dependencySetAuditReason(changedReasons[i], change)}
+		if req.EvidenceID != "" {
+			audit.EvidenceRefs = []domain.Ref{{Kind: "evidence", ID: req.EvidenceID}}
+		}
+		if req.DryRun {
+			audit.Result = "dry_run"
+		}
+		result.AuditRecordPreviews = append(result.AuditRecordPreviews, audit)
+	}
+	content, _ := yaml.Marshal(struct {
+		Dependencies []domain.Dependency `yaml:"dependencies"`
+	}{changed})
+	result.PlannedWrites = append(result.PlannedWrites, PlannedWrite{Path: "canonical/dependencies.yaml", Action: "replace_yaml_records", Format: "yaml", Content: string(content)})
+	for _, audit := range result.AuditRecordPreviews {
+		result.PlannedWrites = append(result.PlannedWrites, auditPlannedWrite(audit))
+	}
+	if req.DryRun {
+		return result, nil
+	}
+	session := beginWrite(s.loader)
+	writer, ok := session.target.(DependencySetWriter)
+	if !ok {
+		result.Errors = append(result.Errors, dependencyAddDiag("storage_write_not_supported", "configured project store does not support dependency writes", "project", s.loader.ProjectPath()))
+		return result, ErrValidationFailed
+	}
+	path, err := writer.WriteDependencies(changed)
+	if err != nil {
+		result.Errors = append(result.Errors, dependencyAddDiag("dependency_write_failed", err.Error(), "dependency", ""))
+		return result, err
+	}
+	result.WrittenFiles = append(result.WrittenFiles, path)
+	for i := range result.AuditRecordPreviews {
+		path, err = writer.AppendAudit(&result.AuditRecordPreviews[i])
+		if err != nil {
+			result.Errors = append(result.Errors, dependencyAddDiag("audit_write_failed", err.Error(), "audit_record", result.AuditRecordPreviews[i].ID))
+			return result, err
+		}
+		result.WrittenFiles = append(result.WrittenFiles, path)
+	}
+	validation, committed, err := session.finish(ctx, result.WrittenFiles)
+	result.Validation, result.WrittenFiles = &validation, committed
+	if err != nil {
+		result.Errors = append(result.Errors, validation.Errors...)
+		return result, err
+	}
+	result.Applied = true
+	return result, nil
+}
+
+func validateDependencySetCommon(errors *[]Diagnostic, ws domain.Workspace, req DependencySetRequest) {
+	if len(req.Items) == 0 {
+		*errors = append(*errors, dependencyAddDiag("missing_dependency", "at least one dependency is required", "dependency", ""))
+	}
+	if strings.TrimSpace(req.Reason) == "" {
+		for _, item := range req.Items {
+			if strings.TrimSpace(item.Reason) == "" {
+				*errors = append(*errors, dependencyAddDiag("missing_reason", "reason is required: pass --reason or give every batch item a reason", "dependency", item.ID))
+				break
+			}
+		}
+	}
+	if req.ActorID == "" || !hasActor(ws.Actors, req.ActorID) {
+		code := "actor_not_found"
+		if req.ActorID == "" {
+			code = "missing_actor"
+		}
+		*errors = append(*errors, dependencyAddDiag(code, "actor must name an existing actor", "actor", req.ActorID))
+	}
+	if req.EvidenceID != "" && !hasEvidence(ws.Evidence, req.EvidenceID) {
+		*errors = append(*errors, dependencyAddDiag("evidence_not_found", "evidence must name existing evidence", "evidence", req.EvidenceID))
+	}
+	if req.OccurredAt != "" {
+		if _, err := time.Parse(time.RFC3339, req.OccurredAt); err != nil {
+			*errors = append(*errors, dependencyAddDiag("invalid_occurred_at", "occurred-at must be RFC3339 with an offset", "dependency", ""))
+		}
+	}
+}
+
+func validateDependencySetItem(errors *[]Diagnostic, item DependencySetItem) {
+	if item.Status == nil && item.RequiredState == nil && item.Criticality == nil {
+		*errors = append(*errors, dependencyAddDiag("missing_dependency_change", "at least one of status, required-state or criticality is required", "dependency", item.ID))
+		return
+	}
+	if item.Status != nil && *item.Status != "open" && *item.Status != "resolved" && *item.Status != "cancelled" {
+		*errors = append(*errors, dependencyAddDiag("invalid_dependency_status", fmt.Sprintf("invalid dependency status %q", *item.Status), "dependency", item.ID))
+	}
+	if item.RequiredState != nil && !domain.ValidTrackingStatus(*item.RequiredState) {
+		*errors = append(*errors, dependencyAddDiag("invalid_dependency_required_state", fmt.Sprintf("invalid dependency required state %q", *item.RequiredState), "dependency", item.ID))
+	}
+	if item.Criticality != nil && !domain.ValidDependencyCriticality(*item.Criticality) {
+		*errors = append(*errors, dependencyAddDiag("invalid_dependency_criticality", fmt.Sprintf("invalid dependency criticality %q", *item.Criticality), "dependency", item.ID))
+	}
+}
+
+func applyDependencySetField(target *string, value *string, field string, change *DependencySetChange) {
+	if value == nil {
+		return
+	}
+	if *target == *value {
+		change.UnchangedFields = append(change.UnchangedFields, field)
+		return
+	}
+	*target = *value
+	change.ChangedFields = append(change.ChangedFields, field)
+}
+
+func dependencySetAuditReason(reason string, change DependencySetChange) string {
+	parts := []string{}
+	for _, field := range change.ChangedFields {
+		var before, after string
+		switch field {
+		case "status":
+			before, after = change.Before.Status, change.After.Status
+		case "required_state":
+			before, after = change.Before.RequiredState, change.After.RequiredState
+		case "criticality":
+			before, after = change.Before.Criticality, change.After.Criticality
+		}
+		parts = append(parts, fmt.Sprintf("%s: %q -> %q", field, before, after))
+	}
+	return strings.TrimRight(strings.TrimSpace(reason), ".") + ". " + strings.Join(parts, "; ") + "."
+}
+
+func findDependency(dependencies []domain.Dependency, id string) (domain.Dependency, bool) {
+	for _, dependency := range dependencies {
+		if dependency.ID == id {
+			return dependency, true
+		}
+	}
+	return domain.Dependency{}, false
 }
 
 func dependencyFromAddItem(item DependencyAddItem) domain.Dependency {

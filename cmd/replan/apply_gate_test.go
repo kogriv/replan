@@ -64,6 +64,8 @@ func canonicalWriterTestPositional(command string) string {
 		return "test-project"
 	case "demand set", "demand move":
 		return "resource_demand.test"
+	case "dependency set":
+		return "dependency.test"
 	case "scenario apply":
 		return "scenario.test"
 	case "proposal accept", "proposal reject":

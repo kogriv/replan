@@ -2122,6 +2122,7 @@ func TestPositionalCommandHelpAndMissingArguments(t *testing.T) {
 		{name: "init", command: []string{"init"}, argument: "<dir>", formats: []string{"json", "text"}},
 		{name: "validate", command: []string{"validate"}, argument: "[project-path]", formats: []string{"json", "markdown", "text"}, optional: true},
 		{name: "demand set", command: []string{"demand", "set"}, argument: "<demand-id>", formats: []string{"json", "text"}},
+		{name: "dependency set", command: []string{"dependency", "set"}, argument: "<dependency-id>", formats: []string{"json", "text"}},
 		{name: "demand move", command: []string{"demand", "move"}, argument: "<demand-id>", formats: []string{"json", "text"}},
 		{name: "baseline show", command: []string{"baseline", "show"}, argument: "<id>", formats: []string{"json", "markdown", "text"}},
 		{name: "estimate show", command: []string{"estimate", "show"}, argument: "<id>", formats: []string{"json", "markdown", "text"}},
@@ -3970,6 +3971,101 @@ func assertResultObjectField(t *testing.T, env cliTestEnvelope, key string) {
 	if _, ok := result[key].(map[string]any); !ok {
 		t.Fatalf("result[%s] = %#v, want object", key, result[key])
 	}
+}
+
+func TestDependencySetDryRunApplyNoOpBatchAndApplyEnv(t *testing.T) {
+	baseArgs := func(project string) []string {
+		return []string{"dependency", "set", "dependency.repair-pump-before-validation", "--project", project, "--reason", "Operator reviewed dependency", "--actor", "actor.human.operator", "--evidence", "evidence.github.pr.45", "--occurred-at", "2026-11-09T10:00:00+07:00", "--format", "json"}
+	}
+
+	t.Run("dry run and apply report changed and unchanged fields", func(t *testing.T) {
+		project := copyCmdProjectFixture(t)
+		before := projectFileContents(t, project)
+		args := append(baseArgs(project), "--status", "resolved", "--criticality", "required")
+		stdout, stderr := tempOutputFiles(t)
+		if code := run(append(args, "--dry-run"), stdout, stderr); code != exitSuccess {
+			t.Fatalf("dry-run exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+		}
+		if !reflect.DeepEqual(before, projectFileContents(t, project)) {
+			t.Fatal("dry run wrote files")
+		}
+		var dry cliTestEnvelope
+		if err := json.Unmarshal([]byte(readFileString(t, stdout.Name())), &dry); err != nil {
+			t.Fatal(err)
+		}
+		result := resultObject(t, dry)
+		changes := result["changes"].([]any)
+		change := changes[0].(map[string]any)
+		if !reflect.DeepEqual(change["changed_fields"], []any{"status"}) || !reflect.DeepEqual(change["unchanged_fields"], []any{"criticality"}) {
+			t.Fatalf("change = %#v", change)
+		}
+
+		stdout, stderr = tempOutputFiles(t)
+		if code := run(append(args, "--apply"), stdout, stderr); code != exitSuccess {
+			t.Fatalf("apply exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+		}
+		if got := readFileString(t, filepath.Join(project, "canonical", "dependencies.yaml")); !strings.Contains(got, "required_state: accepted\n    status: resolved\n    criticality: required") {
+			t.Fatalf("dependency not updated:\n%s", got)
+		}
+		audit := readFileString(t, filepath.Join(project, "audit", "audit.2026-11.jsonl"))
+		if !strings.Contains(audit, `"operation":"dependency_set"`) || !strings.Contains(audit, `status: \"open\" -\u003e \"resolved\"`) || !strings.Contains(audit, `"id":"evidence.github.pr.45"`) {
+			t.Fatalf("audit missing dependency set facts: %s", audit)
+		}
+
+		beforeNoOp := projectFileContents(t, project)
+		stdout, stderr = tempOutputFiles(t)
+		if code := run(append(baseArgs(project), "--status", "resolved", "--apply"), stdout, stderr); code != exitSuccess {
+			t.Fatalf("no-op exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+		}
+		var noOp cliTestEnvelope
+		if err := json.Unmarshal([]byte(readFileString(t, stdout.Name())), &noOp); err != nil {
+			t.Fatal(err)
+		}
+		if resultObject(t, noOp)["no_op"] != true || !reflect.DeepEqual(beforeNoOp, projectFileContents(t, project)) {
+			t.Fatalf("no-op wrote or was not reported: %s", readFileString(t, stdout.Name()))
+		}
+	})
+
+	t.Run("batch validates before writing and rejects duplicate ids", func(t *testing.T) {
+		project := copyCmdProjectFixture(t)
+		before := projectFileContents(t, project)
+		batch := filepath.Join(t.TempDir(), "dependencies.json")
+		if err := os.WriteFile(batch, []byte(`{"dependencies":[{"id":"dependency.repair-pump-before-validation","status":"cancelled","reason":"No longer needed"},{"id":"dependency.missing","criticality":"optional"}]}`), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		args := []string{"dependency", "set", "--project", project, "--from-file", batch, "--reason", "Batch review", "--actor", "actor.human.operator", "--apply", "--format", "json"}
+		stdout, stderr := tempOutputFiles(t)
+		if code := run(args, stdout, stderr); code != exitNotFound && code != exitValidationFailed {
+			t.Fatalf("batch exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+		}
+		if !reflect.DeepEqual(before, projectFileContents(t, project)) {
+			t.Fatal("invalid batch wrote files")
+		}
+
+		if err := os.WriteFile(batch, []byte("dependencies:\n  - id: dependency.repair-pump-before-validation\n    status: resolved\n  - id: dependency.repair-pump-before-validation\n    criticality: optional\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		stdout, stderr = tempOutputFiles(t)
+		if code := run(args, stdout, stderr); code != exitValidationFailed {
+			t.Fatalf("duplicate exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+		}
+		var env cliTestEnvelope
+		if err := json.Unmarshal([]byte(readFileString(t, stdout.Name())), &env); err != nil || firstDiagnostic(env.Errors, "duplicate_dependency_id") == nil {
+			t.Fatalf("duplicate response=%s err=%v", readFileString(t, stdout.Name()), err)
+		}
+	})
+
+	t.Run("REPLAN_APPLY enables apply", func(t *testing.T) {
+		project := copyCmdProjectFixture(t)
+		t.Setenv("REPLAN_APPLY", "1")
+		stdout, stderr := tempOutputFiles(t)
+		if code := run(append(baseArgs(project), "--status", "cancelled"), stdout, stderr); code != exitSuccess {
+			t.Fatalf("env apply exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+		}
+		if got := readFileString(t, filepath.Join(project, "canonical", "dependencies.yaml")); !strings.Contains(got, "status: cancelled") {
+			t.Fatalf("REPLAN_APPLY did not write: %s", got)
+		}
+	})
 }
 
 func copyCmdProjectFixture(t *testing.T) string {

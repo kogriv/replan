@@ -1634,14 +1634,15 @@ Implemented remaining-work proposal accept/apply slice:
 
 Purpose:
 
-Add and inspect canonical dependencies without changing task dates or writing
-to OpenProject.
+Add, update and inspect canonical dependencies without changing task dates or
+writing to OpenProject.
 
 Subcommands:
 
 ```text
 replan dependency list
 replan dependency add
+replan dependency set
 ```
 
 Examples:
@@ -1655,6 +1656,11 @@ replan dependency add --project examples/small-team \
   --reason "Customer call changed the order." \
   --actor actor.human.operator --evidence evidence.github.pr.45 \
   --dry-run --format json
+replan dependency set dependency.repair-pump-before-validation \
+  --project examples/small-team --status resolved \
+  --reason "Predecessor review is complete." \
+  --actor actor.human.operator --evidence evidence.github.pr.45 \
+  --dry-run --format json
 ```
 
 Implemented command flags:
@@ -1662,6 +1668,7 @@ Implemented command flags:
 ```text
 replan dependency list --project -p --bindings --format
 replan dependency add --project -p --bindings --format --id --type --predecessor --external --successor --criticality --status --description --required-state --expected-resolution-date --from-file --reason --actor --evidence --occurred-at --dry-run --apply
+replan dependency set --project -p --bindings --format --status --required-state --criticality --from-file --reason --actor --evidence --occurred-at --dry-run --apply
 ```
 
 Implemented dependency overview slice:
@@ -1726,6 +1733,45 @@ dependencies:
 Use it with `dependency add --from-file dependencies.yaml` plus the common
 audit and write flags. Item keys are the long flag names with `_` in place of
 `-`.
+
+`set` rules:
+
+- the dependency id is positional for a single update;
+- at least one of `--status`, `--required-state` or `--criticality` is
+  required. Settable statuses are `open`, `resolved` and `cancelled`;
+  required states are task tracking statuses, and criticality is `required`,
+  `preferred` or `optional`;
+- a reason is required for every change: `--reason`, or each batch item's own
+  `reason`. An existing `--actor` is required. `--evidence` is optional, but
+  must name existing evidence when supplied;
+- requested values equal to current values are reported under
+  `unchanged_fields`. If every requested value is unchanged, the command is a
+  successful `no_op` and writes neither canonical data nor audit records;
+- each changed dependency gets one `dependency_set` audit record containing
+  old and new field values. A shared timestamp still produces unique ids;
+- writes use the canonical YAML splice path, so unchanged dependency records
+  retain their original bytes and `project format` has nothing further to do;
+- the whole batch is validated before any write. Unknown dependencies, actors
+  or supplied evidence, invalid values, missing changes and duplicate batch ids
+  are refused.
+
+Batch files may be YAML or JSON. An item reason overrides the shared reason:
+
+```yaml
+dependencies:
+  - id: dependency.design-before-build
+    status: resolved
+    reason: Design review was accepted.
+  - id: dependency.vendor-approval
+    required_state: review_ready
+    criticality: preferred
+```
+
+Use the file with `dependency set --from-file dependencies.yaml` and the
+shared actor, optional evidence, reason and write flags. Resolved and cancelled
+dependencies no longer produce open-dependency warnings or resolution
+suggestions. A predecessor in `review_ready` satisfies a dependency whose
+`required_state` is `review_ready`.
 
 ## `replan deadline`
 

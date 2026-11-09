@@ -33,6 +33,7 @@ var canonicalWriteCommands = []string{
 	"demand set",
 	"demand move",
 	"dependency add",
+	"dependency set",
 	"evidence add",
 	"estimate apply",
 	"estimate calibrate",
