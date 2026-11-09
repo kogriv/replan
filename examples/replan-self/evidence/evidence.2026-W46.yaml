@@ -650,3 +650,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-1
+  - id: evidence.self.set-remaining-from-file
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-10T01:50:12+07:00"
+    summary: 'Feature commit d9945a4: actual set-remaining --from-file takes a YAML or JSON list under demands with items demand, amount, unit and reason plus shared actor, evidence, reason and occurred-at; the whole batch is validated first, any invalid row refuses it with errors naming row and demand, and demands and audit records are each written once with one audit record per demand, as single calls would write. Single set-remaining writes no actual record, only the remaining amount and an audit record, and the batch keeps that. Review ran one single call with the v0.5.0 build and the new build on two copies of the self plan: the resulting trees are byte-identical. Gate green: lint 0, 54 kit checks, 86 live checks. Codex 00:59:34-01:30:27 (0.51 h, prompt and last-file mtimes); executor brief at 23:43:55 (booked with the previous task), 01:31:01-01:31:28 review, 01:49:30-2026-11-10T01:50:12+07:00 commit, 0.02 h by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.set-remaining-from-file
+  - id: evidence.self.start-publish-release-v0-5-1
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-10T01:50:12+07:00"
+    summary: All agreed consumer findings are done; release preparation started at 01:21:48 (reading the release process and drafting notes).
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-1

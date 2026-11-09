@@ -901,3 +901,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.taskjuggler-candidate-review-flow
+  - id: actual.self-set-remaining-from-file.ai-codex-local.20261110T0150120700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.set-remaining-from-file
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.set-remaining-from-file.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.51
+    unit: agent_hours
+    occurred_at: "2026-11-10T01:50:12+07:00"
+    status_date: "2026-11-10"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.set-remaining-from-file
+  - id: actual.self-set-remaining-from-file.ai-agent-executor.20261110T0150120700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.set-remaining-from-file
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.set-remaining-from-file.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.02
+    unit: agent_hours
+    occurred_at: "2026-11-10T01:50:12+07:00"
+    status_date: "2026-11-10"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.set-remaining-from-file
