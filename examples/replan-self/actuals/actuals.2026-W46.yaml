@@ -355,3 +355,24 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.status-dates-use-project-timezone
+  - id: actual.self-status-dates-use-project-timezone.ci-github-actions.20261109T021911Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.status-dates-use-project-timezone
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.status-dates-use-project-timezone.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-09T02:19:11Z"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-status-dates-use-project-timezone

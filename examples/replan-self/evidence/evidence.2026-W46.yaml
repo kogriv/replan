@@ -165,3 +165,27 @@ evidence:
     targets:
       - kind: task
         id: task.self.status-dates-use-project-timezone
+  - id: evidence.self.accept-status-dates-use-project-timezone
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T02:19:11Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.status-dates-use-project-timezone
+  - id: evidence.self.start-publish-release-v0-5-0
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T09:20:14+07:00"
+    summary: The maintainer accepted the project time zone fix, the last change planned for the release; started on 2026-11-09 as planned. Estimate 1.5 agent hours frozen in baseline.2026-11-09.time-zone-and-release-v0-5-0.
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-0

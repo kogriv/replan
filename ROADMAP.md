@@ -15,7 +15,9 @@ going. The task-level plan is RePlan's own project,
   environments, quotas, budgets), multi-resource demands, capacities and
   availability, dependencies and non-scheduling links, all in YAML files of
   one style (`replan project format`) that live in Git. Tasks, demands,
-  dependencies, deadlines and names are edited with audited commands. Writes
+  dependencies, deadlines and names are edited with audited commands. A task
+  can carry a priority and a lead time (waiting that takes calendar time but
+  no capacity), and a demand can be left out of load levelling. Writes
   to one project are serialized, and an interrupted write is completed by
   the next one.
 - **Workload.** Weekly load per resource and unit, overloads, missing-data and
@@ -27,8 +29,9 @@ going. The task-level plan is RePlan's own project,
   under the default policy only a human actor can approve or apply a change;
   an append-only audit log of every write.
 - **Tracking.** Actual consumption, remaining work, demand lifecycle and status
-  changes, each backed by evidence; a mis-booked actual is corrected by an
-  audited record.
+  changes, each backed by evidence and dated in the project's time zone; a
+  mis-booked actual or a wrong status date is corrected by an audited
+  record.
 - **Baselines.** Sealed snapshots of the approved estimates, of the whole plan
   or of newly planned tasks, and a report of how far the actuals drifted
   from them.
@@ -49,7 +52,10 @@ going. The task-level plan is RePlan's own project,
 - **GitHub Issues.** Read-only import from an exported file or over the API
   into the same staged review as OpenProject.
 - **TaskJuggler.** Optional export, run and import of the result as a scenario
-  for review.
+  for review. The export carries dependencies, the status date, finished
+  work at its dates, working calendars and absences, not-before dates,
+  lead time, unlevelled hours and priority, so a real plan's dates can be
+  drafted; the import proposes only the dates that changed.
 - **Agent kit.** The CLI, the helpers and the operating rules packaged for an
   outside AI agent.
 - **Installation.** Tagged releases with prebuilt archives for Linux, macOS
@@ -64,6 +70,9 @@ before work starts.
   `replan project migrate` exists; the format becomes stable once outside
   users have data in it. The compatibility rules are written in the file
   format spec, and frozen fixtures from earlier releases guard them in CI.
+- **Strict queue order.** A resource that takes its tasks strictly in list
+  order, even when that leaves it idle, on top of the soft priority that
+  exists today; built when a project asks for it.
 - **GitHub Projects fields over the API.** Dates and estimates from GitHub
   Projects are read from an exported file today; the live import needs the
   GraphQL API for them.
