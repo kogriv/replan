@@ -8,10 +8,60 @@ import time
 import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from openproject_http import MissingSettingError, OpenProjectClient, Settings
+from openproject_http import (
+    MissingSettingError,
+    OpenProjectClient,
+    Settings,
+    normalize_openproject_text,
+    openproject_durations_equal,
+    work_package_payload_mismatches,
+)
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
+
+
+class OpenProjectResponseNormalizationTest(unittest.TestCase):
+    def test_duration_normal_forms_and_empty_estimate(self):
+        self.assertTrue(openproject_durations_equal("PT1H30M", "PT1.5H"))
+        self.assertTrue(openproject_durations_equal("PT4H", "PT4.0H"))
+        self.assertTrue(openproject_durations_equal("PT1M1S", "PT61S"))
+        self.assertTrue(openproject_durations_equal(None, ""))
+        self.assertFalse(openproject_durations_equal("PT1H", "PT1H1.1S"))
+
+    def test_text_date_boolean_and_link_normal_forms(self):
+        payload = {
+            "description": {"raw": "First\r\nSecond   \n"},
+            "startDate": None,
+            "dueDate": "2026-11-10",
+            "scheduleManually": 1,
+            "ignoreNonWorkingDays": False,
+            "_links": {
+                "parent": {"href": None},
+                "version": {"href": "/api/v3/versions/4"},
+            },
+        }
+        resource = {
+            "description": {"raw": "First\nSecond"},
+            # A missing startDate and parent link are the normal null forms.
+            "dueDate": "2026-11-10",
+            "scheduleManually": True,
+            "ignoreNonWorkingDays": None,
+            "_links": {"version": {"href": "/api/v3/versions/4"}},
+        }
+        self.assertEqual(work_package_payload_mismatches(resource, payload), [])
+        self.assertEqual(
+            normalize_openproject_text("First\r\nSecond  \n"),
+            "First\nSecond",
+        )
+
+    def test_a_genuinely_dropped_field_is_a_mismatch(self):
+        self.assertEqual(
+            work_package_payload_mismatches(
+                {"estimatedTime": "PT1H"}, {"estimatedTime": "PT2H"}
+            ),
+            ["estimatedTime"],
+        )
 
 
 class _Handler(BaseHTTPRequestHandler):

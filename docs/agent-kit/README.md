@@ -676,10 +676,27 @@ scripts/openproject-work-package-toolkit.sh version list
 scripts/openproject-work-package-toolkit.sh work-package update-metadata --task <task id> --version "Stage 2"
 scripts/openproject-work-package-toolkit.sh work-package update-metadata --task <task id> --clear-version
 scripts/openproject-work-package-toolkit.sh comment add --task <task id> --text "..."
+scripts/openproject-work-package-toolkit.sh comment list --task <task id>
 scripts/openproject-work-package-toolkit.sh status list
 scripts/openproject-work-package-toolkit.sh user list
 scripts/openproject-work-package-toolkit.sh relation list
 ```
+
+`comment add` writes with
+`POST /api/v3/work_packages/{id}/activities`, requires the returned
+`Activity::Comment` to contain the sent text, and reports its `activity_id` and
+`created_at`. Read the activities back with `comment list` and verify that the
+reported id has the exact comment text; the live agent-kit check performs this
+after every comment write. Releases up to v0.5.0 reported comments as saved
+even when OpenProject 17.6 silently dropped them.
+
+The other toolkit and wiki updates also compare OpenProject's answer with what
+they sent: status, dates, estimate, version, assignee, type, parent, subject,
+description and wiki page text. Equivalent forms count as saved (`PT1H30M` and
+`PT1.5H`, CRLF and LF, trailing whitespace). A field missing from the answer
+fails the command with `work_package_fields_not_saved` or
+`wiki_page_fields_not_saved` and names it in `unconfirmed_fields`; read the
+work package or page back before retrying.
 
 ### Use the toolkit without a plan
 
@@ -691,8 +708,8 @@ file.
 The catalog commands `status list`, `type list`, `user list`, `priority list`
 and `version list` work in this mode, as do `work-package list`,
 `work-package inspect --work-package <id>`, `work-package create` without `--task`, every
-`work-package update-* --work-package <id>` command, and `comment add
---work-package <id>`. Create still rejects an existing subject unless
+`work-package update-* --work-package <id>` command, and `comment add` or
+`comment list` with `--work-package <id>`. Create still rejects an existing subject unless
 `--allow-duplicate` is supplied.
 
 Commands that select a RePlan task or otherwise need plan bindings still

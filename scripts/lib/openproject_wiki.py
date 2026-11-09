@@ -28,6 +28,7 @@ import helper_envelope
 from openproject_http import (
     OpenProjectClient,
     Settings,
+    normalize_openproject_text,
     openproject_request_json,
     summarize_error_body,
 )
@@ -180,6 +181,21 @@ def page_text(page):
     return ((page.get("text") or {}).get("raw")) or ""
 
 
+def page_update_mismatches(page, expected_text, text_changed, expected_parent, parent_changed):
+    mismatches = []
+    if text_changed and normalize_openproject_text(
+        page_text(page)
+    ) != normalize_openproject_text(expected_text):
+        mismatches.append("text.raw")
+    if parent_changed:
+        actual_parent = id_from_href(
+            ((page.get("_links") or {}).get("parent") or {}).get("href")
+        )
+        if actual_parent != expected_parent:
+            mismatches.append("_links.parent")
+    return mismatches
+
+
 def read_text_file(path, command):
     try:
         with open(path, encoding="utf-8") as handle:
@@ -285,7 +301,28 @@ def command_page_update(args):
                 diagnostic("wiki_page_changed", f"wiki page {page_id} was changed while this update was being written; nothing was overwritten; read it again and redo the edit", "error", "wiki_page", page_id),
             ]), 2)
         raise
-    action.update({"dry_run": False, "applied": True, "new_lock_version": updated.get("lockVersion")})
+    expected_parent = (
+        None if args.parent_id == "none" else int(args.parent_id)
+    ) if parent_change else current_parent
+    mismatches = page_update_mismatches(
+        updated, new, old != new, expected_parent, parent_change,
+    )
+    action.update({
+        "dry_run": False, "applied": not mismatches,
+        "new_lock_version": updated.get("lockVersion"),
+    })
+    if mismatches:
+        action["unconfirmed_fields"] = mismatches
+        print_json(envelope(
+            command, "apply", ok=False, actions=[action],
+            items=[page_summary(updated)], counts={"applied_actions": 0},
+            errors=[diagnostic(
+                "wiki_page_fields_not_saved",
+                "OpenProject did not return all requested wiki-page fields.",
+                "error", "wiki_page", page_id,
+            )],
+            extra={"applied": False},
+        ), 2)
     print_json(envelope(command, "apply", actions=[action], items=[page_summary(updated)], counts={"applied_actions": 1}))
 
 

@@ -92,6 +92,7 @@ class WorkingDaysToolkitTest(unittest.TestCase):
                     "lockVersion": 4,
                     "startDate": payload.get("startDate", "2026-10-19"),
                     "dueDate": payload.get("dueDate", "2026-10-20"),
+                    "scheduleManually": payload.get("scheduleManually", True),
                     "ignoreNonWorkingDays": payload.get("ignoreNonWorkingDays", owner.current_ignore),
                 }
                 self.reply(response)

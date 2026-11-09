@@ -54,6 +54,7 @@ class OpenProjectHandler(BaseHTTPRequestHandler):
             "subject": "Implement validation command",
             "startDate": cls.start_date,
             "dueDate": cls.due_date,
+            "scheduleManually": True,
             "lockVersion": cls.lock_version,
             "_links": {
                 "self": {"href": "/api/v3/work_packages/123"},

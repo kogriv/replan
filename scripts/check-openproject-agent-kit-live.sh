@@ -152,16 +152,19 @@ run 1 "$TOOLKIT" work-package update-metadata --task "$TASK" --version "Agent ki
 expect "a member sets a work-package version" "d['ok'] and d['counts']['applied_actions'] == 1"
 run 1 "$TOOLKIT" work-package update-metadata --task "$TASK" --clear-version
 expect "a member clears a work-package version" "d['ok'] and d['counts']['applied_actions'] == 1"
+run 1 "$TOOLKIT" work-package update-metadata --task "$TASK" --estimated-hours 1.5
+expect "a fractional estimate survives OpenProject duration normalization" "d['ok'] and d['counts']['applied_actions'] == 1"
 
-run "" "$TOOLKIT" work-package update-text --task "$TASK" --description "Agent kit description v2."
+DESCRIPTION_TEXT="$(printf 'Agent kit description v2.\r\nSecond line.')"
+run "" "$TOOLKIT" work-package update-text --task "$TASK" --description "$DESCRIPTION_TEXT"
 expect "a text dry run reports the current lock version" "d['ok'] and d['mode'] == 'dry_run' and isinstance(d['actions'][0]['current_lock_version'], int)"
 TEXT_LOCK="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["actions"][0]["current_lock_version"])' "$WORK_DIR/out.json")"
-run 1 "$TOOLKIT" work-package update-text --task "$TASK" --description "Agent kit description v2." --lock-version "$TEXT_LOCK"
+run 1 "$TOOLKIT" work-package update-text --task "$TASK" --description "$DESCRIPTION_TEXT" --lock-version "$TEXT_LOCK"
 expect "a member updates a description with the checked lock version" "d['ok'] and d['counts']['openproject_changes'] == 1 and d['counts']['applied_actions'] == 1"
 run 1 "$TOOLKIT" work-package update-text --task "$TASK" --description "Stale description overwrite." --lock-version "$TEXT_LOCK"
 expect "a stale work-package lock version is refused" "not d['ok'] and d['error_codes'] == ['openproject_work_package_changed'] and d['counts'].get('applied_actions', 0) == 0"
 run "" "$TOOLKIT" work-package inspect --task "$TASK"
-expect "the stale text update changed nothing" "d['ok'] and d['items'][0]['user_authored']['description_raw'] == 'Agent kit description v2.'"
+expect "the stale text update changed nothing across CRLF normalization" "d['ok'] and d['items'][0]['user_authored']['description_raw'].replace('\\r\\n', '\\n').rstrip() == 'Agent kit description v2.\nSecond line.'"
 
 run "" "$TOOLKIT" work-package update-text --task "$TASK" --subject "Agent kit corrected task title" --evidence evidence.github.pr.45
 expect "a bound subject dry run plans OpenProject and RePlan title changes" "d['ok'] and d['actions'][0]['openproject_change'] and d['actions'][0]['replan_title_change']"
@@ -183,7 +186,10 @@ expect "a member sets a Sunday date" "d['ok'] and d['counts']['applied_actions']
 run "" "$TOOLKIT" work-package inspect --task "$TASK"
 expect "the Sunday date is stored without scheduler movement" "d['ok'] and d['items'][0]['start_date'] == '2026-10-25' and d['items'][0]['due_date'] == '2026-10-25'"
 run 1 "$TOOLKIT" comment add --task "$TASK" --text "Checked by the agent kit."
-expect "a member comments" "d['ok'] and d['counts']['applied_actions'] == 1"
+expect "a member comments" "d['ok'] and d['counts']['applied_actions'] == 1 and d['actions'][0]['activity_id']"
+COMMENT_ACTIVITY="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["actions"][0]["activity_id"])' "$WORK_DIR/out.json")"
+run "" "$TOOLKIT" comment list --task "$TASK"
+expect "the member comment is read back as the reported activity" "any(item['activity_id'] == '$COMMENT_ACTIVITY' and item['comment'] == 'Checked by the agent kit.' for item in d['items'])"
 run 1 "$TOOLKIT" work-package update-status --task "$TASK" --status "No such status"
 expect "an unknown status is refused, not written" "not d['ok'] and 'invalid_status' in d['error_codes'] and d['counts'].get('applied_actions', 0) == 0"
 run "" "$TOOLKIT" work-package update-status --task "$TASK" --status in_progress
@@ -315,7 +321,10 @@ NO_PLAN_WORK_PACKAGE="$(python3 -c 'import json, sys; print(json.load(open(sys.a
 run 1 env REPLAN_PROJECT= "$TOOLKIT" work-package update-status --work-package "$NO_PLAN_WORK_PACKAGE" --status in_progress
 expect "a member updates status without a RePlan plan" "d['ok'] and d['plan'] == 'none' and d['counts']['applied_actions'] == 1"
 run 1 env REPLAN_PROJECT= "$TOOLKIT" comment add --work-package "$NO_PLAN_WORK_PACKAGE" --text "Checked without a RePlan plan."
-expect "a member comments without a RePlan plan" "d['ok'] and d['plan'] == 'none' and d['counts']['applied_actions'] == 1"
+expect "a member comments without a RePlan plan" "d['ok'] and d['plan'] == 'none' and d['counts']['applied_actions'] == 1 and d['actions'][0]['activity_id']"
+NO_PLAN_COMMENT_ACTIVITY="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["actions"][0]["activity_id"])' "$WORK_DIR/out.json")"
+run "" env REPLAN_PROJECT= "$TOOLKIT" comment list --work-package "$NO_PLAN_WORK_PACKAGE"
+expect "the no-plan comment is read back as the reported activity" "any(item['activity_id'] == '$NO_PLAN_COMMENT_ACTIVITY' and item['comment'] == 'Checked without a RePlan plan.' for item in d['items'])"
 
 PLAN_WORK_PACKAGE="$(python3 -c 'import sys, yaml; d=yaml.safe_load(open(sys.argv[1])); print(d["openproject_private_bindings"]["tasks"][0]["source_ref"]["object_id"])' "$WORK_DIR/bindings.yaml")"
 run 1 env REPLAN_PROJECT= "$TOOLKIT" relation create --from "$NO_PLAN_WORK_PACKAGE" --to "$PLAN_WORK_PACKAGE" --type relates --description "Agent kit live relation"

@@ -103,8 +103,11 @@ class ToolkitUpdateTextTest(unittest.TestCase):
             self.assertIn("REPLAN_ACTOR", out["errors"][0]["message"])
             self.assertIn("--evidence", out["errors"][0]["message"])
 
-    def serve(self, *, patch_status=200, subject="Old subject"):
-        state = {"patches": [], "patch_status": patch_status, "subject": subject}
+    def serve(self, *, patch_status=200, subject="Old subject", drop_description=False):
+        state = {
+            "patches": [], "patch_status": patch_status, "subject": subject,
+            "drop_description": drop_description,
+        }
 
         class Handler(http.server.BaseHTTPRequestHandler):
             def log_message(self, *_args):
@@ -124,16 +127,52 @@ class ToolkitUpdateTextTest(unittest.TestCase):
 
             def do_PATCH(self):
                 length = int(self.headers.get("Content-Length", "0"))
-                state["patches"].append(json.loads(self.rfile.read(length)))
+                payload = json.loads(self.rfile.read(length))
+                state["patches"].append(payload)
                 if state["patch_status"] == 409:
                     self.send_json(409, {"errorIdentifier": "urn:openproject-org:api:v3:errors:UpdateConflict", "message": "Conflict"})
                 else:
-                    self.send_json(200, {"id": 1, "subject": "New subject", "lockVersion": 4})
+                    description = "Old"
+                    if "description" in payload and not state["drop_description"]:
+                        description = payload["description"]["raw"].replace("\r\n", "\n").rstrip()
+                    self.send_json(200, {
+                        "id": 1,
+                        "subject": payload.get("subject", state["subject"]),
+                        "description": {"raw": description},
+                        "lockVersion": 4,
+                    })
 
         server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
         return server, state
+
+    def test_description_normal_form_is_applied_and_a_drop_is_refused(self):
+        text = "First line\r\nSecond line   \n"
+        for dropped, code in ((False, 0), (True, 2)):
+            with self.subTest(dropped=dropped), tempfile.TemporaryDirectory() as tmp:
+                server, _state = self.serve(drop_description=dropped)
+                try:
+                    proc, out = self.run_toolkit(
+                        [
+                            "work-package", "update-text", "--work-package", "1",
+                            "--description", text, "--lock-version", "3",
+                        ],
+                        project=tmp,
+                        base_url=f"http://127.0.0.1:{server.server_port}",
+                        apply="1",
+                    )
+                finally:
+                    server.shutdown()
+                    server.server_close()
+                self.assertEqual(proc.returncode, code, out)
+                if dropped:
+                    self.assertEqual(
+                        out["error_codes"], ["work_package_fields_not_saved"]
+                    )
+                    self.assertFalse(out["actions"][0]["openproject_applied"])
+                else:
+                    self.assertTrue(out["actions"][0]["openproject_applied"])
 
     def test_lock_mismatch_refuses_before_patch_and_409_is_mapped(self):
         for checked, status, want_patches in ((2, 200, 0), (3, 409, 1)):

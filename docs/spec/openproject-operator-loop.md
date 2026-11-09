@@ -648,7 +648,16 @@ It provides:
 - `user list`;
 - `priority list`;
 - `relation list`;
-- `comment add`.
+- `comment add`;
+- `comment list`.
+
+`comment add` uses `POST /api/v3/work_packages/{id}/activities` and treats the
+write as applied only when the `201 Created` response is an
+`Activity::Comment` whose `comment.raw` matches the sent text. Its output
+contains the activity id and creation time. The operator or live check then
+uses `comment list` to read the work package's activities back and requires the
+same activity id and exact text. Releases up to v0.5.0 reported comments as
+saved that OpenProject 17.6 dropped.
 
 Writes are dry-run by default. Live mutation requires `REPLAN_APPLY=1`.
 Fixture mode never applies writes. The script is the approved path for

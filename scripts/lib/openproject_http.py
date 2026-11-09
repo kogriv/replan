@@ -2,6 +2,7 @@ import base64
 from dataclasses import dataclass
 import json
 import os
+import re
 import socket
 import time
 import urllib.error
@@ -22,6 +23,70 @@ DEFAULT_PERIMETER_HEADER = "X-Perimeter-Key"
 ENV_FILE_ENV = "REPLAN_ENV_FILE"
 ENVIRONMENT_ONLY_SETTINGS_FILE = "environment-only-settings.list"
 INTERNAL_ENVIRONMENT_ONLY_FILE_SETTINGS = "REPLAN_INTERNAL_ENVIRONMENT_ONLY_FILE_SETTINGS"
+
+
+def normalize_openproject_text(value):
+    """Normalize line endings and insignificant trailing text whitespace."""
+    return ("" if value is None else str(value)).replace("\r\n", "\n").rstrip()
+
+
+DURATION_RE = re.compile(
+    r"^PT(?:(?P<hours>\d+(?:\.\d+)?)H)?"
+    r"(?:(?P<minutes>\d+(?:\.\d+)?)M)?"
+    r"(?:(?P<seconds>\d+(?:\.\d+)?)S)?$"
+)
+
+
+def openproject_duration_seconds(value):
+    if value in (None, ""):
+        return None
+    match = DURATION_RE.fullmatch(str(value))
+    if not match or not any(match.groupdict().values()):
+        return False
+    return sum((
+        float(match.group("hours") or 0) * 3600,
+        float(match.group("minutes") or 0) * 60,
+        float(match.group("seconds") or 0),
+    ))
+
+
+def openproject_durations_equal(actual, expected):
+    actual_seconds = openproject_duration_seconds(actual)
+    expected_seconds = openproject_duration_seconds(expected)
+    if actual_seconds is None or expected_seconds is None:
+        return actual_seconds is None and expected_seconds is None
+    if actual_seconds is False or expected_seconds is False:
+        return actual == expected
+    return abs(actual_seconds - expected_seconds) <= 1
+
+
+def work_package_payload_mismatches(resource, payload):
+    """Return fields a successful work-package response did not preserve."""
+    mismatches = []
+    for field, expected in payload.items():
+        if field == "_links":
+            actual_links = resource.get("_links") or {}
+            for link_name, expected_link in expected.items():
+                actual_href = (actual_links.get(link_name) or {}).get("href")
+                if actual_href != expected_link.get("href"):
+                    mismatches.append(f"_links.{link_name}")
+        elif field == "description":
+            if normalize_openproject_text(
+                (resource.get("description") or {}).get("raw")
+            ) != normalize_openproject_text(expected.get("raw")):
+                mismatches.append(field)
+        elif field == "estimatedTime":
+            if not openproject_durations_equal(resource.get(field), expected):
+                mismatches.append(field)
+        elif field in {"startDate", "dueDate"}:
+            if resource.get(field) != expected:
+                mismatches.append(field)
+        elif field in {"scheduleManually", "ignoreNonWorkingDays"}:
+            if bool(resource.get(field)) != bool(expected):
+                mismatches.append(field)
+        elif resource.get(field) != expected:
+            mismatches.append(field)
+    return mismatches
 
 
 class ConflictingSettingsError(ValueError):

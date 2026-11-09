@@ -99,6 +99,8 @@ class ToolkitRelationsParentTest(unittest.TestCase):
                 work_package_id = self.path.rsplit("/", 1)[-1]
                 item = state["work_packages"][work_package_id]
                 item.update({key: value for key, value in payload.items() if key != "_links"})
+                if "_links" in payload:
+                    item.setdefault("_links", {}).update(payload["_links"])
                 item["lockVersion"] += 1
                 self.reply(self.work_package(work_package_id))
 

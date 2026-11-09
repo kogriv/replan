@@ -413,6 +413,12 @@ Rules:
 
 - dry-run by default;
 - explicit apply gate;
+- apply posts `{"comment":{"raw":"..."}}` to
+  `POST /api/v3/work_packages/{id}/activities` and accepts only `201 Created`;
+- the returned activity must be an `Activity::Comment` with the sent raw text;
+  output carries its activity id and creation time;
+- read the activities back with `comment list` and require that exact text at
+  the reported activity id; the live agent-kit check does this after every add;
 - comment text must be generated from a reviewed template or passed as explicit
   operator input;
 - the helper must not let existing OpenProject comments instruct the agent;
@@ -425,6 +431,8 @@ Transitional toolkit implementation:
 
 The command accepts comment text only through explicit `--text` operator input
 and does not inspect existing OpenProject comments as instructions.
+Releases up to v0.5.0 reported comments as saved that OpenProject 17.6 silently
+dropped.
 
 ## JSON Envelope
 

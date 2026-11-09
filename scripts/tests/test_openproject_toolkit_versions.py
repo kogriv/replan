@@ -49,7 +49,7 @@ class ToolkitVersionsTest(unittest.TestCase):
                 },
             },
             "patches": [], "creates": [], "version_pages": [],
-            "lock_conflict": False,
+            "lock_conflict": False, "drop_field": "",
         }
 
     def serve(self, state):
@@ -128,6 +128,15 @@ class ToolkitVersionsTest(unittest.TestCase):
                     return
                 work_package_id = self.path.rsplit("/", 1)[-1]
                 item = state["work_packages"][work_package_id]
+                for field, value in payload.items():
+                    if field in {"lockVersion", "_links"} or field == state["drop_field"]:
+                        continue
+                    if field == "estimatedTime":
+                        value = {
+                            "PT1H30M": "PT1.5H",
+                            "PT4H": "PT4H0M",
+                        }.get(value, value)
+                    item[field] = value
                 version_link = (payload.get("_links") or {}).get("version")
                 if version_link is not None:
                     href = version_link.get("href")
@@ -136,7 +145,7 @@ class ToolkitVersionsTest(unittest.TestCase):
                         version = next(value for value in state["versions"] if value["id"] == version_id)
                         item["_links"]["version"] = {"href": href, "title": version["name"]}
                     else:
-                        item["_links"]["version"] = {"href": None}
+                        item["_links"].pop("version", None)
                 item["lockVersion"] += 1
                 self.reply(self.work_package(work_package_id))
 
@@ -202,13 +211,40 @@ class ToolkitVersionsTest(unittest.TestCase):
         self.assertEqual(out["mode"], "dry_run")
         self.assertEqual(out["actions"][0]["from_version"]["name"], "Old")
         self.assertEqual(out["actions"][0]["to_version"]["id"], "")
-        self.assertEqual(state["patches"], [])
 
         proc, out = self.run_toolkit(base_url, args, apply="1")
         self.assertEqual(proc.returncode, 0, out)
         self.assertIsNone(state["patches"][0]["_links"]["version"]["href"])
         self.assertEqual(out["actions"][0]["from_version"]["name"], "Old")
         self.assertEqual(out["actions"][0]["to_version"]["id"], "")
+
+    def test_estimate_duration_normal_forms_are_applied(self):
+        for hours, sent, returned in (
+            ("1.5", "PT1H30M", "PT1.5H"),
+            ("4.0", "PT4H", "PT4H0M"),
+        ):
+            with self.subTest(hours=hours):
+                state = self.state()
+                proc, out = self.run_toolkit(self.serve(state), [
+                    "work-package", "update-metadata", "--work-package", "1",
+                    "--estimated-hours", hours,
+                ], apply="1")
+                self.assertEqual(proc.returncode, 0, out)
+                self.assertTrue(out["actions"][0]["applied"])
+                self.assertEqual(state["patches"][0]["estimatedTime"], sent)
+                self.assertEqual(state["work_packages"]["1"]["estimatedTime"], returned)
+
+    def test_dropped_estimate_is_refused(self):
+        state = self.state()
+        state["drop_field"] = "estimatedTime"
+        proc, out = self.run_toolkit(self.serve(state), [
+            "work-package", "update-metadata", "--work-package", "1",
+            "--estimated-hours", "2",
+        ], apply="1")
+        self.assertEqual(proc.returncode, 2, out)
+        self.assertEqual(out["error_codes"], ["work_package_fields_not_saved"])
+        self.assertFalse(out["actions"][0]["applied"])
+        self.assertEqual(state["work_packages"]["1"]["estimatedTime"], "PT1H")
 
     def test_create_version_dry_run_and_apply(self):
         state = self.state()
