@@ -376,3 +376,24 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-status-dates-use-project-timezone
+  - id: actual.self-publish-release-v0-5-0.ai-agent-executor.20261109T0935570700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-5-0
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.publish-release-v0-5-0.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.26
+    unit: agent_hours
+    occurred_at: "2026-11-09T09:35:57+07:00"
+    status_date: "2026-11-09"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.publish-release-v0-5-0

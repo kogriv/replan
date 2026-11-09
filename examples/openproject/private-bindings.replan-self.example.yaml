@@ -737,6 +737,18 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2348"
         url: https://op.example.internal/work_packages/2348
+    - replan_task_id: task.self.env-only-settings-in-settings-file
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2349"
+        url: https://op.example.internal/work_packages/2349
+    - replan_task_id: task.self.description-trailer-followed-by-text
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2350"
+        url: https://op.example.internal/work_packages/2350
     - replan_task_id: task.self.fix-first-project-defects
       source_ref:
         source: openproject

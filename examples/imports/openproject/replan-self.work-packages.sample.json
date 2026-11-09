@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 248,
-  "count": 248,
+  "total": 250,
+  "count": 250,
   "_embedded": {
     "elements": [
       {
@@ -7186,6 +7186,64 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2348"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2349,
+        "subject": "Warn about environment-only settings found in the settings file",
+        "description": {
+          "raw": "Reported by the second project on 2026-11-09 after moving to its kit. REPLAN_OPENPROJECT_STATUS_SCOPE (like REPLAN_APPLY, REPLAN_ACTOR, REPLAN_KEEP_TEMP, REPLAN_OPENPROJECT_PROFILE and REPLAN_OPENPROJECT_FROM_FILE) is read only from the process environment by design, so a line in .env.local is silently ignored; push-openproject-status-drift.sh --help does not name the setting, and a skipped action with reason status_scope_ready_only does not say how to widen the scope. Warn (a warning code in the helper envelope) when an environment-only setting appears in the settings file, list REPLAN_OPENPROJECT_STATUS_SCOPE in the status helper's --help, and name the setting in the status_scope_ready_only skip; tests and kit README."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-10",
+        "dueDate": "2026-11-10",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2349"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2350,
+        "subject": "Handle a task id trailer followed by text on the same line",
+        "description": {
+          "raw": "Reported by the second project on 2026-11-09. In 12 work packages an older script had joined the RePlan task id trailer and following text on one line (\"RePlan task id: `task.x` Added ...\"). push-openproject-description-drift recognises the trailer only on a line of its own, so it kept no tail and replaced the whole description, trailer included; the text after the trailer was lost silently (a duplicate in that case). Decide and implement the safe behaviour: recognise a trailer at the start of a line followed by text, keep that text as part of the tail or refuse with a named warning instead of overwriting it, and report the case in the dry run; tests and helper docs."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-10",
+        "dueDate": "2026-11-10",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2350"
           },
           "status": {
             "title": "New"

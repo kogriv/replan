@@ -189,3 +189,36 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-0
+  - id: evidence.self.publish-release-v0-5-0
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T09:35:57+07:00"
+    summary: 'Release v0.5.0 published from 31cbbde after its CI run passed, with the roadmap updated before it: six archives built locally (v0.5.0, 31cbbde, go1.24.1); the tag''s Release build workflow (run 42551286460) matches the local SHA256SUMS byte for byte and attested every archive and SHA256SUMS; downloaded archives match, gh attestation verify passes for an archive and SHA256SUMS (refs/tags/v0.5.0), go install of v0.5.0 reports v0.5.0. Kits built from the tag (gate on the same code: 54 offline, 83 live checks). Second project: kit uploaded to its tools wiki page after dry runs, the download matches its checksum, its 14 October snapshot and a 9 November copy validate with the new binary, page text updated; v0.4.1 kept on the page during its move, not deleted. Third project: server kit moved to v0.5.0 with v0.4.1 kept for rollback and v0.4.0 removed; dry runs of list, status, relations and version list pass. Fourth project: kit built and offered. Each session was told. Executor 09:20:14-09:35:57, 0.26 h by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-0
+  - id: evidence.self.plan-env-only-settings-in-settings-file
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T09:37:47+07:00"
+    summary: Reported by the second project on 2026-11-09 after moving to its kit; planned at 0.5 agent hours; waits for the maintainer's agreement before a baseline and start.
+    targets:
+      - kind: task
+        id: task.self.env-only-settings-in-settings-file
+  - id: evidence.self.plan-description-trailer-followed-by-text
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T09:37:47+07:00"
+    summary: Reported by the second project on 2026-11-09 after moving to its kit; planned at 0.5 agent hours; waits for the maintainer's agreement before a baseline and start.
+    targets:
+      - kind: task
+        id: task.self.description-trailer-followed-by-text
