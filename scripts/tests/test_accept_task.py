@@ -321,6 +321,37 @@ os.execv(os.environ['REAL_REPLAN'], [os.environ['REAL_REPLAN'], *args])
         recorded = [item for item in actuals if item.get("demand_ref", {}).get("id") == ci_demand["id"]]
         self.assertEqual([(item["amount"], item["unit"]) for item in recorded], [(12, "ci_minutes")])
 
+    def test_utc_accept_at_after_project_midnight_uses_local_date(self):
+        env = self.environment(
+            REPLAN_ACCEPT_AT="2026-10-25T18:00:00Z",
+            REPLAN_ACCEPT_CI_MINUTES="12",
+        )
+        demands_path = os.path.join(self.project, "canonical", "resource_demands.yaml")
+        demands = load_yaml(demands_path)
+        ci_demand = next(item for item in demands["resource_demands"] if item["id"] == "resource_demand.task-op-1234.openai-quota")
+        ci_demand["unit"] = "ci_minutes"
+        dump_yaml(demands_path, demands)
+        capacities_path = os.path.join(self.project, "canonical", "capacities.yaml")
+        capacities = load_yaml(capacities_path)
+        next(item for item in capacities["capacities"] if item["resource_ref"]["id"] == "resource.service.openai.tokens")["unit"] = "ci_minutes"
+        dump_yaml(capacities_path, capacities)
+
+        proc, out = self.run_helper(apply=True, env=env)
+        self.assertEqual(proc.returncode, 0, out)
+        task = next(item for item in load_yaml(os.path.join(self.project, "canonical", "tasks.yaml"))["tasks"] if item["id"] == "task.op.1234")
+        self.assertEqual((task["planned_start"], task["planned_finish"]), ("2026-10-26", "2026-10-26"))
+        self.assertEqual((OpenProjectHandler.start_date, OpenProjectHandler.due_date), ("2026-10-26", "2026-10-26"))
+        actuals = sum((load_yaml(os.path.join(self.project, "actuals", name)).get("actuals") or [] for name in os.listdir(os.path.join(self.project, "actuals")) if name.endswith(".yaml")), [])
+        accepted = [item for item in actuals if item.get("occurred_at") == "2026-10-25T18:00:00Z"]
+        self.assertTrue(accepted)
+        self.assertTrue(all(item["status_date"] == "2026-10-26" for item in accepted))
+        audit_records = []
+        for name in os.listdir(os.path.join(self.project, "audit")):
+            if name.endswith(".jsonl"):
+                audit_records.extend(json.loads(line) for line in read_text(os.path.join(self.project, "audit", name)).splitlines() if line.strip())
+        status = next(item for item in audit_records if item.get("operation") == "actual_add_status" and item.get("occurred_at") == "2026-10-25T18:00:00Z")
+        self.assertEqual(status["status_date"], "2026-10-26")
+
     def test_refusals_happen_before_writes(self):
         evidence_dir = os.path.join(self.project, "evidence")
         before = sorted(os.listdir(evidence_dir))

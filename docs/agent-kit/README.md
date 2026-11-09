@@ -491,7 +491,9 @@ Optional acceptance settings are:
 
 - `REPLAN_ACCEPT_EVIDENCE_ID`, default
   `evidence.<namespace>.accept-<task-slug>`;
-- `REPLAN_ACCEPT_AT`, default the current RFC3339 time with an offset;
+- `REPLAN_ACCEPT_AT`, default the current RFC3339 time with an offset. UTC is
+  fine: RePlan derives acceptance and consumption dates in the project's time
+  zone;
 - `REPLAN_ACCEPT_CI_MINUTES`, default `0`;
 - `REPLAN_BIN`, default the kit's or repository's locally built binary.
 

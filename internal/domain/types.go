@@ -370,20 +370,21 @@ type CalibrationSizeBand struct {
 }
 
 type Actual struct {
-	ID              string   `json:"id" yaml:"id"`
-	Type            string   `json:"type" yaml:"type"`
-	CorrectsRef     Ref      `json:"corrects_ref,omitempty" yaml:"corrects_ref,omitempty"`
-	CorrectedAmount *float64 `json:"corrected_amount,omitempty" yaml:"corrected_amount,omitempty"`
-	TaskRef         Ref      `json:"task_ref,omitempty" yaml:"task_ref,omitempty"`
-	DemandRef       Ref      `json:"demand_ref,omitempty" yaml:"demand_ref,omitempty"`
-	ResourceRef     Ref      `json:"resource_ref,omitempty" yaml:"resource_ref,omitempty"`
-	Amount          float64  `json:"amount,omitempty" yaml:"amount,omitempty"`
-	Unit            string   `json:"unit,omitempty" yaml:"unit,omitempty"`
-	OccurredAt      string   `json:"occurred_at,omitempty" yaml:"occurred_at,omitempty"`
-	StatusDate      string   `json:"status_date,omitempty" yaml:"status_date,omitempty"`
-	AcceptedBy      Ref      `json:"accepted_by" yaml:"accepted_by"`
-	EvidenceRefs    []Ref    `json:"evidence_refs,omitempty" yaml:"evidence_refs,omitempty"`
-	Reason          string   `json:"reason,omitempty" yaml:"reason,omitempty"`
+	ID                  string   `json:"id" yaml:"id"`
+	Type                string   `json:"type" yaml:"type"`
+	CorrectsRef         Ref      `json:"corrects_ref,omitempty" yaml:"corrects_ref,omitempty"`
+	CorrectedAmount     *float64 `json:"corrected_amount,omitempty" yaml:"corrected_amount,omitempty"`
+	CorrectedStatusDate string   `json:"corrected_status_date,omitempty" yaml:"corrected_status_date,omitempty"`
+	TaskRef             Ref      `json:"task_ref,omitempty" yaml:"task_ref,omitempty"`
+	DemandRef           Ref      `json:"demand_ref,omitempty" yaml:"demand_ref,omitempty"`
+	ResourceRef         Ref      `json:"resource_ref,omitempty" yaml:"resource_ref,omitempty"`
+	Amount              float64  `json:"amount,omitempty" yaml:"amount,omitempty"`
+	Unit                string   `json:"unit,omitempty" yaml:"unit,omitempty"`
+	OccurredAt          string   `json:"occurred_at,omitempty" yaml:"occurred_at,omitempty"`
+	StatusDate          string   `json:"status_date,omitempty" yaml:"status_date,omitempty"`
+	AcceptedBy          Ref      `json:"accepted_by" yaml:"accepted_by"`
+	EvidenceRefs        []Ref    `json:"evidence_refs,omitempty" yaml:"evidence_refs,omitempty"`
+	Reason              string   `json:"reason,omitempty" yaml:"reason,omitempty"`
 }
 
 type Evidence struct {
@@ -443,6 +444,7 @@ type AuditRecord struct {
 	ActorRef           Ref    `json:"actor_ref" yaml:"actor_ref"`
 	Operation          string `json:"operation" yaml:"operation"`
 	TargetRef          Ref    `json:"target_ref,omitempty" yaml:"target_ref,omitempty"`
+	CorrectsRef        *Ref   `json:"corrects_ref,omitempty" yaml:"corrects_ref,omitempty"`
 	NewStatus          string `json:"new_status,omitempty" yaml:"new_status,omitempty"`
 	StatusDate         string `json:"status_date,omitempty" yaml:"status_date,omitempty"`
 	ActualStart        string `json:"actual_start,omitempty" yaml:"actual_start,omitempty"`

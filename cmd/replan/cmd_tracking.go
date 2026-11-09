@@ -124,6 +124,8 @@ func runActual(args []string, stdout, stderr *os.File) int {
 		return runActualCloseDemand(args[1:], stdout, stderr)
 	case "correct":
 		return runActualCorrect(args[1:], stdout, stderr)
+	case "correct-status":
+		return runActualCorrectStatus(args[1:], stdout, stderr)
 	case "add-status":
 		return runActualAddStatus(args[1:], stdout, stderr)
 	case "reopen-demand":
@@ -150,6 +152,7 @@ func runActualCorrect(args []string, stdout, stderr *os.File) int {
 	evidenceID := fs.String("evidence", "", "evidence id")
 	actorID := fs.String("actor", "", "actor id accepting the correction")
 	occurredAt := fs.String("occurred-at", "", "RFC3339 occurrence timestamp")
+	statusDate := fs.String("status-date", "", "corrected status date in YYYY-MM-DD format")
 	writeFlags := addCanonicalWriteFlags(fs)
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
@@ -164,8 +167,8 @@ func runActualCorrect(args []string, stdout, stderr *os.File) int {
 			amountSet = true
 		}
 	})
-	if amountSet == *void {
-		message := "actual correct requires exactly one of --amount or --void"
+	if (amountSet && *void) || (!amountSet && !*void && *statusDate == "") {
+		message := "actual correct requires --amount, --void, or --status-date; --amount and --void conflict"
 		env := envelope{OK: false, Command: "actual correct", ProjectPath: *projectPath, Warnings: []app.Diagnostic{}, Errors: []app.Diagnostic{{Code: "actual_correction_choice_required", Message: message, Severity: "error"}}}
 		if *format == "json" {
 			_ = printEnvelope(stdout, "json", env)
@@ -178,9 +181,50 @@ func runActualCorrect(args []string, stdout, stderr *os.File) int {
 	if *void {
 		corrected = 0
 	}
-	result, err := app.NewActualService(newStore(*projectPath)).Correct(context.Background(), app.ActualCorrectRequest{ActualID: *actualID, CorrectedAmount: &corrected, Reason: *reason, EvidenceID: *evidenceID, ActorID: *actorID, OccurredAt: *occurredAt, DryRun: dryRun})
-	lines := []string{fmt.Sprintf("- Original actual: `%s`", *actualID), fmt.Sprintf("- Effective amount: %g -> %g", result.PreviousAmount, result.CorrectedAmount), fmt.Sprintf("- Correction: `%s`", result.Actual.ID)}
+	var correctedAmount *float64
+	if amountSet || *void {
+		correctedAmount = &corrected
+	}
+	result, err := app.NewActualService(newStore(*projectPath)).Correct(context.Background(), app.ActualCorrectRequest{ActualID: *actualID, CorrectedAmount: correctedAmount, StatusDate: *statusDate, Reason: *reason, EvidenceID: *evidenceID, ActorID: *actorID, OccurredAt: *occurredAt, DryRun: dryRun})
+	lines := []string{fmt.Sprintf("- Original actual: `%s`", *actualID)}
+	if correctedAmount != nil {
+		lines = append(lines, fmt.Sprintf("- Effective amount: %g -> %g", result.PreviousAmount, result.CorrectedAmount))
+	}
+	if *statusDate != "" {
+		lines = append(lines, fmt.Sprintf("- Status date: `%s` -> `%s`", result.PreviousStatusDate, result.CorrectedStatusDate))
+	}
+	lines = append(lines, fmt.Sprintf("- Correction: `%s`", result.Actual.ID))
 	return finishLifecycleCommand(stdout, stderr, *format, "actual correct", "Actual Correct", *projectPath, result.DryRun, result.Applied, result.WrittenFiles, lines, result, result.Warnings, result.Errors, err)
+}
+
+func runActualCorrectStatus(args []string, stdout, stderr *os.File) int {
+	fs := newCLIFlagSet("actual correct-status")
+	projectPath, format := addProjectFormatFlags(fs, "json")
+	auditID := fs.String("audit", "", "actual_add_status audit record id")
+	statusDate := fs.String("status-date", "", "corrected status date in YYYY-MM-DD format")
+	reason := fs.String("reason", "", "reason for the correction")
+	evidenceID := fs.String("evidence", "", "evidence id")
+	actorID := fs.String("actor", "", "actor id accepting the correction")
+	occurredAt := fs.String("occurred-at", "", "RFC3339 correction timestamp")
+	writeFlags := addCanonicalWriteFlags(fs)
+	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+		return code
+	}
+	dryRun, code, done := requireCanonicalWriteChoice("actual correct-status", *projectPath, *format, writeFlags, stdout, stderr)
+	if done {
+		return code
+	}
+	result, err := app.NewActualService(newStore(*projectPath)).CorrectStatus(context.Background(), app.ActualCorrectStatusRequest{
+		AuditID: *auditID, StatusDate: *statusDate, Reason: *reason, EvidenceID: *evidenceID,
+		ActorID: *actorID, OccurredAt: *occurredAt, DryRun: dryRun,
+	})
+	lines := []string{
+		fmt.Sprintf("- Original audit: `%s`", *auditID),
+		fmt.Sprintf("- Task: `%s`", result.TaskID),
+		fmt.Sprintf("- Status date: `%s` -> `%s`", result.PreviousStatusDate, result.CorrectedStatusDate),
+		fmt.Sprintf("- Correction: `%s`", result.AuditRecordPreview.ID),
+	}
+	return finishLifecycleCommand(stdout, stderr, *format, "actual correct-status", "Actual Correct Status", *projectPath, result.DryRun, result.Applied, result.WrittenFiles, lines, result, result.Warnings, result.Errors, err)
 }
 
 func runActualList(args []string, stdout, stderr *os.File) int {

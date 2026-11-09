@@ -14,7 +14,7 @@ type EvidenceService struct {
 }
 
 type EvidenceWriter interface {
-	AppendEvidence(observedAt string, evidence domain.Evidence) (string, error)
+	AppendEvidence(statusDate string, evidence domain.Evidence) (string, error)
 	AppendAudit(record *domain.AuditRecord) (string, error)
 }
 
@@ -76,7 +76,8 @@ func (s EvidenceService) Add(ctx context.Context, req EvidenceAddRequest) (Evide
 		Summary:    req.Summary,
 		Targets:    append([]domain.Ref(nil), req.Targets...),
 	}
-	path := evidencePath(req.ObservedAt)
+	statusDate := projectDate(ws.Project, req.ObservedAt)
+	path := evidencePath(statusDate)
 	recordYAML, err := yaml.Marshal(struct {
 		Evidence []domain.Evidence `yaml:"evidence"`
 	}{Evidence: []domain.Evidence{item}})
@@ -112,7 +113,7 @@ func (s EvidenceService) Add(ctx context.Context, req EvidenceAddRequest) (Evide
 		result.Errors = append(result.Errors, Diagnostic{Code: "storage_write_not_supported", Message: "configured project store does not support evidence writes", Severity: "error", Target: Target{Kind: "project", ID: s.loader.ProjectPath()}})
 		return result, ErrValidationFailed
 	}
-	evidencePath, err := writer.AppendEvidence(req.ObservedAt, item)
+	evidencePath, err := writer.AppendEvidence(statusDate, item)
 	if err != nil {
 		result.Errors = append(result.Errors, Diagnostic{Code: "evidence_write_failed", Message: err.Error(), Severity: "error", Target: Target{Kind: "evidence", ID: req.ID}})
 		return result, err

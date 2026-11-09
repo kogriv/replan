@@ -23,6 +23,7 @@ var canonicalWriteCommands = []string{
 	"actual add-status",
 	"actual close-demand",
 	"actual correct",
+	"actual correct-status",
 	"actual reopen-demand",
 	"actual set-remaining",
 	"baseline create",

@@ -5,6 +5,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/kogriv/replan/internal/app"
@@ -191,6 +192,113 @@ func TestActualAddConsumptionDryRunSmallTeamFixture(t *testing.T) {
 	if result.AuditRecordPreview.ActorRef.ID != "actor.human.operator" {
 		t.Fatalf("unexpected audit actor: %s", result.AuditRecordPreview.ActorRef.ID)
 	}
+}
+
+func TestDerivedStatusDatesUseProjectTimezoneAndExplicitDateWins(t *testing.T) {
+	ws := domain.Workspace{
+		Project:         domain.Project{ID: "project.test", Name: "Test", Timezone: "Asia/Novosibirsk"},
+		Actors:          []domain.Actor{{ID: "actor.test"}},
+		Resources:       []domain.Resource{{ID: "resource.test"}},
+		Tasks:           []domain.Task{{ID: "task.test", TrackingStatus: "not_started"}},
+		ResourceDemands: []domain.ResourceDemand{{ID: "demand.test", TaskRef: domain.Ref{ID: "task.test"}, ResourceRef: domain.Ref{ID: "resource.test"}, Unit: "hours", PlannedAmount: 2}},
+	}
+	service := app.NewActualService(stubLoader{ws: ws})
+	utcAfterLocalMidnight := "2026-11-08T23:59:53Z"
+	status, err := service.AddStatus(context.Background(), app.ActualAddStatusRequest{TaskID: "task.test", Status: "in_progress", ActorID: "actor.test", OccurredAt: utcAfterLocalMidnight, DryRun: true})
+	if err != nil || status.AuditRecordPreview.StatusDate != "2026-11-09" {
+		t.Fatalf("status date = %q, err=%v", status.AuditRecordPreview.StatusDate, err)
+	}
+	consumption, err := service.AddConsumption(context.Background(), app.ActualAddConsumptionRequest{TaskID: "task.test", DemandID: "demand.test", ResourceID: "resource.test", Amount: 1, Unit: "hours", ActorID: "actor.test", OccurredAt: utcAfterLocalMidnight, DryRun: true})
+	if err != nil || consumption.Actual.StatusDate != "2026-11-09" || consumption.PlannedWrites[0].Path != "actuals/actuals.2026-W46.yaml" {
+		t.Fatalf("consumption = %#v, err=%v", consumption, err)
+	}
+	remaining, err := service.SetRemaining(context.Background(), app.ActualSetRemainingRequest{DemandID: "demand.test", Amount: 1, Unit: "hours", ActorID: "actor.test", OccurredAt: utcAfterLocalMidnight, DryRun: true})
+	if err != nil || remaining.AuditRecordPreview.OccurredAt != utcAfterLocalMidnight || !strings.Contains(remaining.PlannedWrites[0].Content, "status_date: \"2026-11-09\"") {
+		t.Fatalf("remaining = %#v, err=%v", remaining, err)
+	}
+	offset, err := service.AddConsumption(context.Background(), app.ActualAddConsumptionRequest{TaskID: "task.test", DemandID: "demand.test", ResourceID: "resource.test", Amount: 1, Unit: "hours", ActorID: "actor.test", OccurredAt: "2026-11-08T18:00:00-05:00", DryRun: true})
+	if err != nil || offset.Actual.StatusDate != "2026-11-09" {
+		t.Fatalf("offset status date = %q, err=%v", offset.Actual.StatusDate, err)
+	}
+	explicit, err := service.AddConsumption(context.Background(), app.ActualAddConsumptionRequest{TaskID: "task.test", DemandID: "demand.test", ResourceID: "resource.test", Amount: 1, Unit: "hours", ActorID: "actor.test", OccurredAt: utcAfterLocalMidnight, StatusDate: "2026-11-10", DryRun: true})
+	if err != nil || explicit.Actual.StatusDate != "2026-11-10" {
+		t.Fatalf("explicit status date = %q, err=%v", explicit.Actual.StatusDate, err)
+	}
+	ws.Project.Timezone = ""
+	withoutZone, err := app.NewActualService(stubLoader{ws: ws}).AddConsumption(context.Background(), app.ActualAddConsumptionRequest{TaskID: "task.test", DemandID: "demand.test", ResourceID: "resource.test", Amount: 1, Unit: "hours", ActorID: "actor.test", OccurredAt: utcAfterLocalMidnight, DryRun: true})
+	if err != nil || withoutZone.Actual.StatusDate != "2026-11-08" {
+		t.Fatalf("status date without zone = %q, err=%v", withoutZone.Actual.StatusDate, err)
+	}
+}
+
+func TestActualWindowUsesProjectTimezoneFallback(t *testing.T) {
+	ws := domain.Workspace{
+		Project: domain.Project{ID: "project.test", Name: "Test", Timezone: "Asia/Novosibirsk"},
+		Actors:  []domain.Actor{{ID: "actor.test"}}, Evidence: []domain.Evidence{{ID: "evidence.test", Type: "test_result"}},
+		Tasks: []domain.Task{{ID: "task.test", TrackingStatus: "accepted"}},
+		AuditRecords: []domain.AuditRecord{
+			{ID: "audit.start", Operation: "actual_add_status", TargetRef: domain.Ref{ID: "task.test"}, NewStatus: "in_progress", OccurredAt: "2026-11-08T18:00:00-05:00"},
+			{ID: "audit.finish", Operation: "actual_add_status", TargetRef: domain.Ref{ID: "task.test"}, NewStatus: "accepted", OccurredAt: "2026-11-08T23:59:53Z"},
+		},
+	}
+	result, err := app.NewTaskService(stubLoader{ws: ws}).RecordActualWindow(context.Background(), app.TaskRecordActualWindowRequest{TaskID: "task.test", ActorID: "actor.test", EvidenceID: "evidence.test", DryRun: true})
+	if err != nil || result.NewStart != "2026-11-09" || result.NewFinish != "2026-11-09" {
+		t.Fatalf("window = %s..%s, err=%v, errors=%#v", result.NewStart, result.NewFinish, err, result.Errors)
+	}
+}
+
+func TestStatusDateCorrectionsApplyAndClearValidationWarnings(t *testing.T) {
+	projectPath := copyAppProjectFixture(t)
+	store := filestore.New(projectPath)
+	service := app.NewActualService(store)
+	badDate, goodDate := "2026-11-08", "2026-11-09"
+	// A status date chosen explicitly (here the next working day) is neither
+	// the timestamp's own date nor the project-zone date and is not flagged.
+	if _, err := service.AddStatus(context.Background(), app.ActualAddStatusRequest{TaskID: "task.op.1234", Status: "review_ready", ActorID: "actor.human.operator", EvidenceID: "evidence.github.pr.45", OccurredAt: "2026-11-04T23:01:04+07:00", StatusDate: "2026-11-05"}); err != nil {
+		t.Fatal(err)
+	}
+	status, err := service.AddStatus(context.Background(), app.ActualAddStatusRequest{TaskID: "task.op.1234", Status: "accepted", ActorID: "actor.human.operator", EvidenceID: "evidence.github.pr.45", OccurredAt: "2026-11-08T23:59:53Z", StatusDate: badDate})
+	if err != nil {
+		t.Fatal(err)
+	}
+	consumption, err := service.AddConsumption(context.Background(), app.ActualAddConsumptionRequest{TaskID: "task.op.1234", DemandID: "resource_demand.task-op-1234.implementer", ResourceID: "resource.human.ivan", Amount: 1, Unit: "hours", ActorID: "actor.human.operator", EvidenceID: "evidence.github.pr.45", OccurredAt: "2026-11-08T23:58:53Z", StatusDate: badDate})
+	if err != nil {
+		t.Fatal(err)
+	}
+	validation, err := app.NewValidateService(store).Validate(context.Background(), app.ValidateRequest{})
+	if err != nil || countAppDiagnosticCode(validation.Warnings, "status_date_outside_project_zone") != 2 {
+		t.Fatalf("warnings before correction = %#v, err=%v", validation.Warnings, err)
+	}
+	dryRun, err := service.CorrectStatus(context.Background(), app.ActualCorrectStatusRequest{AuditID: status.AuditRecordPreview.ID, StatusDate: goodDate, Reason: "Correct UTC-derived date.", ActorID: "actor.human.operator", EvidenceID: "evidence.github.pr.45", OccurredAt: "2026-11-09T02:00:00+07:00", DryRun: true})
+	if err != nil || !dryRun.DryRun || dryRun.Applied || len(dryRun.PlannedWrites) != 1 {
+		t.Fatalf("status correction dry run = %#v, err=%v", dryRun, err)
+	}
+	correctedStatus, err := service.CorrectStatus(context.Background(), app.ActualCorrectStatusRequest{AuditID: status.AuditRecordPreview.ID, StatusDate: goodDate, Reason: "Correct UTC-derived date.", ActorID: "actor.human.operator", EvidenceID: "evidence.github.pr.45", OccurredAt: "2026-11-09T02:00:00+07:00"})
+	if err != nil || !correctedStatus.Applied || correctedStatus.AuditRecordPreview.CorrectsRef == nil {
+		t.Fatalf("status correction = %#v, err=%v", correctedStatus, err)
+	}
+	correctedActual, err := service.Correct(context.Background(), app.ActualCorrectRequest{ActualID: consumption.Actual.ID, StatusDate: goodDate, Reason: "Correct UTC-derived date.", ActorID: "actor.human.operator", EvidenceID: "evidence.github.pr.45", OccurredAt: "2026-11-09T02:01:00+07:00"})
+	if err != nil || !correctedActual.Applied || correctedActual.Actual.CorrectedStatusDate != goodDate {
+		t.Fatalf("actual correction = %#v, err=%v", correctedActual, err)
+	}
+	validation, err = app.NewValidateService(store).Validate(context.Background(), app.ValidateRequest{})
+	if err != nil || countAppDiagnosticCode(validation.Warnings, "status_date_outside_project_zone") != 0 {
+		t.Fatalf("warnings after correction = %#v, err=%v", validation.Warnings, err)
+	}
+	window, err := app.NewTaskService(store).RecordActualWindow(context.Background(), app.TaskRecordActualWindowRequest{TaskID: "task.op.1234", ActorID: "actor.human.operator", EvidenceID: "evidence.github.pr.45", DryRun: true})
+	if err != nil || window.NewFinish != goodDate {
+		t.Fatalf("corrected window = %#v, err=%v", window, err)
+	}
+}
+
+func countAppDiagnosticCode(diags []app.Diagnostic, code string) int {
+	count := 0
+	for _, diag := range diags {
+		if diag.Code == code {
+			count++
+		}
+	}
+	return count
 }
 
 func TestActualAddConsumptionWriteSmallTeamFixture(t *testing.T) {

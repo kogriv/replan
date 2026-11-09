@@ -436,7 +436,7 @@ func calibrationObservations(ws domain.Workspace, baselines []domain.Baseline, s
 		var selected *candidate
 		if reason == "" {
 			for i := range candidates {
-				if baselineApprovedBeforeStart(candidates[i].baseline, window) {
+				if baselineApprovedBeforeStart(ws.Project, candidates[i].baseline, window) {
 					selected = &candidates[i]
 					break
 				}
@@ -463,13 +463,13 @@ func calibrationObservations(ws domain.Workspace, baselines []domain.Baseline, s
 	return observations, excluded
 }
 
-func baselineApprovedBeforeStart(baseline domain.Baseline, window taskActualWindow) bool {
+func baselineApprovedBeforeStart(project domain.Project, baseline domain.Baseline, window taskActualWindow) bool {
 	approvedAt := firstNonEmpty(baseline.ApprovedAt, baseline.CreatedAt)
 	if approved, approvedErr := time.Parse(time.RFC3339, approvedAt); approvedErr == nil && window.StartOccurredAt != "" {
 		started, startedErr := time.Parse(time.RFC3339, window.StartOccurredAt)
 		return startedErr == nil && approved.Before(started)
 	}
-	approvedDate := datePart(approvedAt)
+	approvedDate := projectDate(project, approvedAt)
 	return approvedDate != "" && approvedDate < window.Start
 }
 

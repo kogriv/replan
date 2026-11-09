@@ -181,7 +181,7 @@ func (index overlayIndex) indexFacts(ws domain.Workspace) {
 			}
 			index.evidence[target.ID] = append(index.evidence[target.ID], reports.DashboardOpenProjectOverlayEvidence{
 				ID:      evidence.ID,
-				Date:    datePart(evidence.ObservedAt),
+				Date:    projectDate(ws.Project, evidence.ObservedAt),
 				Kind:    firstNonEmpty(evidence.Subtype, evidence.Type),
 				Summary: evidence.Summary,
 			})
@@ -204,7 +204,7 @@ func (index overlayIndex) indexFacts(ws domain.Workspace) {
 		}
 		resourceID := firstNonEmpty(actual.ResourceRef.ID, demandResourceID(index.demands[actual.DemandRef.ID]))
 		index.actuals[taskID] = append(index.actuals[taskID], reports.DashboardOpenProjectOverlayActual{
-			Date:         firstNonEmpty(actual.StatusDate, datePart(actual.OccurredAt)),
+			Date:         firstNonEmpty(actual.StatusDate, projectDate(ws.Project, actual.OccurredAt)),
 			DemandID:     actual.DemandRef.ID,
 			ResourceID:   resourceID,
 			ResourceName: index.resourceName(resourceID),

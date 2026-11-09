@@ -210,7 +210,7 @@ func (c *workloadCalculation) addCapacities() {
 
 func (c *workloadCalculation) addActuals() {
 	for _, actual := range EffectiveActuals(c.workspace.Actuals) {
-		if actual.Type != "work_consumed" || (c.hasWeekFilter && !actualIntersectsWeek(actual, c.weekStart, c.weekEnd)) || actual.ResourceRef.ID == "" || actual.Unit == "" {
+		if actual.Type != "work_consumed" || (c.hasWeekFilter && !actualIntersectsWeek(c.workspace.Project, actual, c.weekStart, c.weekEnd)) || actual.ResourceRef.ID == "" || actual.Unit == "" {
 			continue
 		}
 		if c.req.ResourceID != "" && actual.ResourceRef.ID != c.req.ResourceID {
@@ -472,10 +472,10 @@ func parseWorkloadDate(value string) (time.Time, bool) {
 	return t, true
 }
 
-func actualIntersectsWeek(actual domain.Actual, weekStart, weekEnd time.Time) bool {
+func actualIntersectsWeek(project domain.Project, actual domain.Actual, weekStart, weekEnd time.Time) bool {
 	dateText := strings.TrimSpace(actual.StatusDate)
 	if dateText == "" {
-		dateText = datePart(actual.OccurredAt)
+		dateText = projectDate(project, actual.OccurredAt)
 	}
 	date, ok := parseWorkloadDate(dateText)
 	if !ok {

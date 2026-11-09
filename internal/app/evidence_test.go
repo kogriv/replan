@@ -83,6 +83,21 @@ func TestEvidenceAddCreatesNewWeekFile(t *testing.T) {
 	}
 }
 
+func TestEvidenceAddChoosesWeekInProjectTimezone(t *testing.T) {
+	projectPath := copyAppProjectFixture(t)
+	req := evidenceRequest()
+	req.ID = "evidence.test.project-zone-week"
+	req.ObservedAt = "2026-11-08T23:59:53Z"
+	req.DryRun = true
+	result, err := app.NewEvidenceService(filestore.New(projectPath)).Add(context.Background(), req)
+	if err != nil {
+		t.Fatalf("Add returned error: %v; diagnostics=%#v", err, result.Errors)
+	}
+	if result.FilePath != "evidence/evidence.2026-W46.yaml" {
+		t.Fatalf("evidence path = %q", result.FilePath)
+	}
+}
+
 func TestEvidenceAddTargetsProjectAndValidates(t *testing.T) {
 	projectPath := copyAppProjectFixture(t)
 	req := evidenceRequest()

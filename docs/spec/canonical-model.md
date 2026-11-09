@@ -1094,6 +1094,12 @@ Rules:
 - actual may represent consumption or state transition;
 - actual does not rewrite baseline;
 - actual contributes to forecast and variance.
+- `status_date` is the calendar date of `occurred_at` in `project.timezone`
+  when a command derives it; an explicitly supplied date is stored unchanged;
+- accepted actuals are append-only. A `correction` actual names the original
+  with `corrects_ref` and may carry `corrected_amount`,
+  `corrected_status_date`, or both. Readers independently use the latest
+  correction for each field and retain the original record as audit history.
 
 ## Baseline
 
@@ -1626,6 +1632,11 @@ Rules:
   is unique; the first record keeps the unsuffixed id;
 - an identical actual in the same timestamp id family is refused as a retry;
 - local MVP audit can be append-only file-based audit.
+- task status changes are `actual_add_status` audit records with `new_status`
+  and `status_date`. An append-only `actual_correct_status` record names the
+  original through `corrects_ref` and supplies its corrected `status_date`;
+  status-window readers treat the correction as an override, not a new status
+  event.
 
 ## PolicyRef
 

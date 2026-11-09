@@ -2280,6 +2280,7 @@ replan actual list
 replan actual add
 replan actual add-consumption
 replan actual correct
+replan actual correct-status
 replan actual set-remaining
 replan actual close-demand
 replan actual reopen-demand
@@ -2293,6 +2294,8 @@ Examples:
 replan actual add-consumption --task task.op.1234 --demand demand.task-op-1234.implementer --resource resource.human.ivan --amount 3 --unit hours --evidence evidence.manual.time-entry.20260706.1 --actor actor.human.operator --apply
 replan actual correct --actual actual.op-1234.human-ivan.20260706T1600000700.work-consumed --amount 0.1 --reason "Correct guessed start duration" --actor actor.human.operator --evidence evidence.manual.time-entry.20260706.2 --dry-run
 replan actual correct --actual actual.op-1234.human-ivan.20260706T1600000700.work-consumed --void --reason "Duplicate booking" --actor actor.human.operator --evidence evidence.manual.time-entry.20260706.2 --dry-run
+replan actual correct --actual actual.op-1234.human-ivan.20260706T1600000700.work-consumed --status-date 2026-07-07 --reason "Recorded in UTC instead of the project zone" --actor actor.human.operator --evidence evidence.manual.time-entry.20260707.1 --dry-run
+replan actual correct-status --audit audit.20260706T1700000700.actual-add-status.task-op-1234 --status-date 2026-07-07 --reason "Recorded in UTC instead of the project zone" --actor actor.human.operator --evidence evidence.manual.time-entry.20260707.1 --dry-run
 replan actual set-remaining --demand demand.task-op-1234.implementer --amount 5 --unit hours --reason "Operator review after pull request" --actor actor.human.operator --apply
 replan actual close-demand --demand demand.task-op-1234.implementer --status consumed --reason "Accepted task demand reviewed" --actor actor.human.operator --apply
 replan actual add-status --task task.op.1234 --status review_ready --evidence evidence.github.pr.45 --dry-run --format json
@@ -2305,7 +2308,8 @@ Implemented command flags:
 ```text
 replan actual list --project -p --bindings --format --demand --resource --task --type
 replan actual add-consumption --project -p --bindings --format --actor --amount --apply --demand --dry-run --evidence --occurred-at --resource --status-date --task --unit
-replan actual correct --project -p --bindings --format --actual --amount --void --reason --actor --evidence --occurred-at --dry-run --apply
+replan actual correct --project -p --bindings --format --actual --amount --void --status-date --reason --actor --evidence --occurred-at --dry-run --apply
+replan actual correct-status --project -p --bindings --format --audit --status-date --reason --actor --evidence --occurred-at --dry-run --apply
 replan actual set-remaining --project -p --bindings --format --actor --amount --apply --demand --dry-run --evidence --occurred-at --reason --status-date --unit
 replan actual close-demand --project -p --bindings --format --actor --apply --demand --dry-run --evidence --occurred-at --reason --status --status-date
 replan actual reopen-demand --project -p --bindings --format --actor --apply --demand --dry-run --evidence --occurred-at --reason --remaining
@@ -2321,9 +2325,15 @@ Rules:
 - actual commands should reference evidence where available;
 - actual commands must not rewrite baseline;
 - `actual correct` appends a `correction` actual and an `actual_correct` audit
-  record. It copies the original task, demand, resource and unit, requires one
-  of a finite non-negative `--amount` or `--void` (zero), and requires reason,
-  actor and evidence. The original stays byte-for-byte unchanged;
+  record. It copies the original task, demand, resource and unit, accepts a
+  finite non-negative `--amount`, `--void` (zero), `--status-date`, or an
+  amount and status date together, and requires reason, actor and evidence.
+  Amount and status-date corrections are independently superseded by their
+  latest correction. The original stays byte-for-byte unchanged;
+- `actual correct-status` appends an `actual_correct_status` audit record whose
+  `corrects_ref` names one `actual_add_status` audit record. It requires the
+  original audit id, corrected status date, reason, actor and evidence. Status
+  window readers project the latest correction onto the original event;
 - `actual add-consumption` refuses an identical same-second retry with
   `actual_already_exists`; a different consumption in the same id family gets
   the next numeric id suffix;
@@ -2335,6 +2345,8 @@ Rules:
   current effective amount is `actual_correction_no_change`. The latest
   correction by occurrence time supersedes earlier corrections of the same
   original;
+- a missing or non-status `--audit` for `correct-status` is refused. Repeating
+  its effective date is `status_correction_no_change`;
 - validation requires every correction to point to an existing correctable
   actual with the same demand and unit. Workload, estimate reporting,
   calibration, tracking forecasts and dashboard views consume the shared
@@ -2359,6 +2371,13 @@ Rules:
 - `remaining_amount: 0` is stored explicitly and means "estimated, nothing
   left"; an absent field means "not estimated";
 - status actuals must use canonical RePlan statuses;
+- when `--status-date` is omitted, dates derived from `occurred_at` use
+  `project.timezone`. Date-only input is preserved; a missing or invalid zone,
+  or non-RFC3339 text, falls back to the timestamp's own date. An explicit
+  `--status-date` always wins. `validate` warns with
+  `status_date_outside_project_zone` when an uncorrected stored date is the
+  timestamp's own date and differs from the project-zone date (a date given
+  with `--status-date` is not flagged);
 - every writing command validates the would-be project before any file
   changes. When validation fails, nothing is written. When the final commit
   itself fails part way, for example on a permission error, the command

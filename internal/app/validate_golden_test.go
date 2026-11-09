@@ -21,6 +21,7 @@ func everyDiagnosticWorkspace() domain.Workspace {
 	return domain.Workspace{
 		Project: domain.Project{
 			DefaultStatusDate: "2026-10-10",
+			Timezone:          "Asia/Novosibirsk",
 			OpenProjectIDs:    "elsewhere",
 			SourceProfiles: []domain.SourceProfile{
 				{Source: "openproject", BaseURL: "https://user:pw@op.example.internal", TokenEnv: "abc-123"},
@@ -125,12 +126,18 @@ func everyDiagnosticWorkspace() domain.Workspace {
 			{ID: "actual.correction.invalid-ref", Type: "correction", CorrectedAmount: domain.Amount(1), AcceptedBy: ref("actor", "actor.ok")},
 			{ID: "actual.correction.dangling", Type: "correction", CorrectsRef: ref("actual", "actual.missing"), CorrectedAmount: domain.Amount(1), AcceptedBy: ref("actor", "actor.ok")},
 			{ID: "actual.correction.status", Type: "correction", CorrectsRef: ref("actual", "actual.status"), CorrectedAmount: domain.Amount(1), AcceptedBy: ref("actor", "actor.ok")},
-			{ID: "actual.correction.bad", Type: "correction", CorrectsRef: ref("actual", "actual.original"), CorrectedAmount: &nan, DemandRef: ref("resource_demand", "demand.b"), Unit: "days", AcceptedBy: ref("actor", "actor.ok")},
+			{ID: "actual.correction.bad", Type: "correction", CorrectsRef: ref("actual", "actual.original"), CorrectedAmount: &nan, CorrectedStatusDate: "soon", DemandRef: ref("resource_demand", "demand.b"), Unit: "days", AcceptedBy: ref("actor", "actor.ok")},
+			{ID: "actual.wrong-date", Type: "work_consumed", OccurredAt: "2026-01-01T23:30:00Z", StatusDate: "2026-01-01", AcceptedBy: ref("actor", "actor.ok")},
 		},
-		Evidence:     []domain.Evidence{{ID: "evidence.bad"}},
-		Proposals:    []domain.Proposal{{ID: "proposal.bad", Status: "pending"}},
-		Scenarios:    []domain.Scenario{{ID: "scenario.bad", Status: "pending"}},
-		AuditRecords: []domain.AuditRecord{{ID: "audit.bad"}},
+		Evidence:  []domain.Evidence{{ID: "evidence.bad"}},
+		Proposals: []domain.Proposal{{ID: "proposal.bad", Status: "pending"}},
+		Scenarios: []domain.Scenario{{ID: "scenario.bad", Status: "pending"}},
+		AuditRecords: []domain.AuditRecord{
+			{ID: "audit.bad"},
+			{ID: "audit.status", OccurredAt: "2026-01-01T23:30:00Z", ActorRef: ref("actor", "actor.ok"), Operation: "actual_add_status", TargetRef: ref("task", "task.a"), NewStatus: "accepted", StatusDate: "2026-01-01"},
+			{ID: "audit.correction.invalid", ActorRef: ref("actor", "actor.ok"), Operation: "actual_correct_status", StatusDate: "soon"},
+			{ID: "audit.correction.nonstatus", ActorRef: ref("actor", "actor.ok"), Operation: "actual_correct_status", CorrectsRef: func() *domain.Ref { value := ref("audit_record", "audit.bad"); return &value }(), StatusDate: "2026-01-02"},
+		},
 	}
 }
 
@@ -179,10 +186,11 @@ func TestValidateFixtureTriggersEveryDiagnosticCode(t *testing.T) {
 	for _, m := range regexp.MustCompile(`(?:add(?:Error|Warning)\(result, |v\.(?:errorf|warn)\(|Code:\s*)"([a-z_]+)"`).FindAllSubmatch(source, -1) {
 		all[string(m[1])] = true
 	}
-	// A few codes need a project without a status date, so the same
-	// workspace is validated once more without one.
+	// A few codes need a project without a status date or time zone, so the
+	// same workspace is validated once more without them.
 	withoutStatusDate := everyDiagnosticWorkspace()
 	withoutStatusDate.Project.DefaultStatusDate = ""
+	withoutStatusDate.Project.Timezone = ""
 	seen := map[string]bool{}
 	for _, ws := range []domain.Workspace{everyDiagnosticWorkspace(), withoutStatusDate} {
 		result := validateForGolden(ws)

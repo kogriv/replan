@@ -5,14 +5,6 @@
   "object_counts": null,
   "warnings": [
     {
-      "code": "missing_project_timezone",
-      "message": "project timezone is recommended",
-      "severity": "warning",
-      "target": {
-        "kind": "project"
-      }
-    },
-    {
       "code": "missing_openproject_credential_ref",
       "message": "OpenProject source profile should reference token_env or credential_profile_ref",
       "severity": "warning",
@@ -135,6 +127,24 @@
       "target": {
         "kind": "task",
         "id": "task.c"
+      }
+    },
+    {
+      "code": "status_date_outside_project_zone",
+      "message": "stored status_date 2026-01-01 differs from project-zone date 2026-01-02 of occurred_at 2026-01-01T23:30:00Z; append a status-date correction",
+      "severity": "warning",
+      "target": {
+        "kind": "actual",
+        "id": "actual.wrong-date"
+      }
+    },
+    {
+      "code": "status_date_outside_project_zone",
+      "message": "stored status_date 2026-01-01 differs from project-zone date 2026-01-02 of occurred_at 2026-01-01T23:30:00Z; append a status-date correction",
+      "severity": "warning",
+      "target": {
+        "kind": "audit_record",
+        "id": "audit.status"
       }
     },
     {
@@ -946,6 +956,15 @@
       }
     },
     {
+      "code": "invalid_status_date",
+      "message": "correction corrected_status_date \"soon\" must use YYYY-MM-DD",
+      "severity": "error",
+      "target": {
+        "kind": "actual",
+        "id": "actual.correction.bad"
+      }
+    },
+    {
       "code": "actual_correction_demand_mismatch",
       "message": "correction demand demand.b does not match original demand demand.a",
       "severity": "error",
@@ -1195,6 +1214,33 @@
       "target": {
         "kind": "audit_record",
         "id": "audit.bad"
+      }
+    },
+    {
+      "code": "invalid_status_correction",
+      "message": "status correction must reference an existing audit record",
+      "severity": "error",
+      "target": {
+        "kind": "audit_record",
+        "id": "audit.correction.invalid"
+      }
+    },
+    {
+      "code": "invalid_status_date",
+      "message": "status correction status_date \"soon\" must use YYYY-MM-DD",
+      "severity": "error",
+      "target": {
+        "kind": "audit_record",
+        "id": "audit.correction.invalid"
+      }
+    },
+    {
+      "code": "status_audit_not_correctable",
+      "message": "status correction target audit.bad is not an actual_add_status record",
+      "severity": "error",
+      "target": {
+        "kind": "audit_record",
+        "id": "audit.correction.nonstatus"
       }
     },
     {

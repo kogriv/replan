@@ -140,6 +140,9 @@ func validateWorkspace(result *ValidateResult, ws domain.Workspace) {
 	v.currentPlan(ws.CurrentPlan)
 	v.auditRecords(ws.AuditRecords)
 	v.overrunReviews(ws.ResourceDemands)
+	for _, diagnostic := range statusDateZoneDiagnostics(ws) {
+		addDiagnostic(result, diagnostic)
+	}
 	for _, diagnostic := range dependencyPlanningDiagnostics(ws) {
 		addDiagnostic(result, diagnostic)
 	}
@@ -663,8 +666,14 @@ func (v *workspaceValidator) actuals(actuals []domain.Actual) {
 		if original.Type == "correction" || !estimateConsumptionTypes[original.Type] {
 			v.errorf("actual_not_correctable", "actual", actual.ID, "correction target actual %s is not correctable", original.ID)
 		}
-		if actual.CorrectedAmount == nil || !validAmount(*actual.CorrectedAmount) {
+		if actual.CorrectedAmount == nil && actual.CorrectedStatusDate == "" {
+			v.errorf("invalid_actual_correction", "actual", actual.ID, "correction must provide corrected_amount or corrected_status_date")
+		}
+		if actual.CorrectedAmount != nil && !validAmount(*actual.CorrectedAmount) {
 			v.errorf("invalid_amount", "actual", actual.ID, "correction corrected_amount must be finite, zero or greater")
+		}
+		if actual.CorrectedStatusDate != "" && !validDate(actual.CorrectedStatusDate) {
+			v.errorf("invalid_status_date", "actual", actual.ID, "correction corrected_status_date %q must use YYYY-MM-DD", actual.CorrectedStatusDate)
 		}
 		if actual.DemandRef.ID != original.DemandRef.ID {
 			v.errorf("actual_correction_demand_mismatch", "actual", actual.ID, "correction demand %s does not match original demand %s", actual.DemandRef.ID, original.DemandRef.ID)
@@ -755,6 +764,10 @@ func (v *workspaceValidator) currentPlan(plan domain.CurrentPlan) {
 }
 
 func (v *workspaceValidator) auditRecords(records []domain.AuditRecord) {
+	byID := make(map[string]domain.AuditRecord, len(records))
+	for _, audit := range records {
+		byID[audit.ID] = audit
+	}
 	for _, audit := range records {
 		v.register("audit_record", audit.ID)
 		if audit.ActorRef.ID == "" {
@@ -763,6 +776,71 @@ func (v *workspaceValidator) auditRecords(records []domain.AuditRecord) {
 		if audit.Operation == "" {
 			v.errorf("missing_audit_operation", "audit_record", audit.ID, "audit operation is required")
 		}
+		if audit.Operation == "actual_correct_status" {
+			var original domain.AuditRecord
+			var ok bool
+			if audit.CorrectsRef != nil {
+				original, ok = byID[audit.CorrectsRef.ID]
+			}
+			if audit.CorrectsRef == nil || audit.CorrectsRef.Kind != "audit_record" || audit.CorrectsRef.ID == "" || !ok {
+				v.errorf("invalid_status_correction", "audit_record", audit.ID, "status correction must reference an existing audit record")
+			} else if original.Operation != "actual_add_status" {
+				v.errorf("status_audit_not_correctable", "audit_record", audit.ID, "status correction target %s is not an actual_add_status record", original.ID)
+			} else if audit.TargetRef != original.TargetRef || audit.NewStatus != original.NewStatus {
+				v.errorf("invalid_status_correction", "audit_record", audit.ID, "status correction task and status must match original %s", original.ID)
+			}
+			if !validDate(audit.StatusDate) {
+				v.errorf("invalid_status_date", "audit_record", audit.ID, "status correction status_date %q must use YYYY-MM-DD", audit.StatusDate)
+			}
+		}
+	}
+}
+
+func statusDateZoneDiagnostics(ws domain.Workspace) []Diagnostic {
+	var diagnostics []Diagnostic
+	actualCorrections := LatestActualCorrections(ws.Actuals)
+	for _, actual := range ws.Actuals {
+		if actual.Type == "correction" || actual.StatusDate == "" || actual.OccurredAt == "" {
+			continue
+		}
+		if correction, covered := actualCorrections[actual.ID]; covered && correction.CorrectedStatusDate != "" {
+			continue
+		}
+		expected := projectDate(ws.Project, actual.OccurredAt)
+		if naiveStatusDateOutsideZone(actual.StatusDate, actual.OccurredAt, expected) {
+			diagnostics = append(diagnostics, statusDateZoneDiagnostic("actual", actual.ID, actual.StatusDate, expected, actual.OccurredAt))
+		}
+	}
+	statusCorrections := LatestStatusCorrections(ws.AuditRecords)
+	for _, audit := range ws.AuditRecords {
+		if audit.Operation != "actual_add_status" || audit.StatusDate == "" || audit.OccurredAt == "" {
+			continue
+		}
+		if _, covered := statusCorrections[audit.ID]; covered {
+			continue
+		}
+		expected := projectDate(ws.Project, audit.OccurredAt)
+		if naiveStatusDateOutsideZone(audit.StatusDate, audit.OccurredAt, expected) {
+			diagnostics = append(diagnostics, statusDateZoneDiagnostic("audit_record", audit.ID, audit.StatusDate, expected, audit.OccurredAt))
+		}
+	}
+	return diagnostics
+}
+
+// naiveStatusDateOutsideZone reports a status date that was taken from the
+// literal date of occurred_at (the behavior before project-zone dating) and
+// differs from the project-zone date. A status date given explicitly with
+// --status-date differs from both and is left alone.
+func naiveStatusDateOutsideZone(stored, occurredAt, expected string) bool {
+	return expected != "" && stored != expected && stored == datePart(occurredAt)
+}
+
+func statusDateZoneDiagnostic(kind, id, stored, expected, occurredAt string) Diagnostic {
+	return Diagnostic{
+		Code:     "status_date_outside_project_zone",
+		Message:  fmt.Sprintf("stored status_date %s differs from project-zone date %s of occurred_at %s; append a status-date correction", stored, expected, occurredAt),
+		Severity: "warning",
+		Target:   Target{Kind: kind, ID: id},
 	}
 }
 

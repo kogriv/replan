@@ -123,7 +123,8 @@ baseline-versus-actual schedule dates. It counts `work_consumed`,
 `consumption` and `runtime_consumed` actuals in the demand's unit. Actual dates
 come first from status audit records that explicitly retain the new status and
 status date, then from consumption actual dates; historical audit rows without
-those facts are not inferred. Added resources get a separate split comparison
+those facts are not inferred. Append-only status-date corrections are applied
+before either source is read. Added resources get a separate split comparison
 against the largest same-task, same-unit reduction, falling back to the task's
 baseline unit total. Resource split groups combine the complete original and
 split-out resource rows, while resources without any counted actual are marked

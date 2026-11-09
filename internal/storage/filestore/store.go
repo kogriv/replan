@@ -1436,8 +1436,8 @@ func (s Store) ApplyImportAcceptDependencies(changes []app.ImportAcceptDependenc
 	return s.withAudit(dependenciesRel, err, audit)
 }
 
-func (s Store) AppendEvidence(observedAt string, evidence domain.Evidence) (string, error) {
-	rel := evidencePath(observedAt)
+func (s Store) AppendEvidence(statusDate string, evidence domain.Evidence) (string, error) {
+	rel := evidencePath(statusDate)
 	err := updateYAML(s, rel, true, func(doc *evidenceDoc) error {
 		doc.Evidence = append(doc.Evidence, evidence)
 		return nil

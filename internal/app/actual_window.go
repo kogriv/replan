@@ -26,11 +26,11 @@ func deriveTaskActualWindow(ws domain.Workspace, taskID string, demandIDs []stri
 	window := taskActualWindow{StartSource: "none", FinishSource: "none"}
 	var starts []actualWindowRecord
 	var finishes []string
-	for _, audit := range ws.AuditRecords {
-		if audit.Operation != "actual_add_status" || audit.TargetRef.ID != taskID || audit.NewStatus == "" {
+	for _, audit := range EffectiveStatusAudits(ws.AuditRecords) {
+		if audit.TargetRef.ID != taskID || audit.NewStatus == "" {
 			continue
 		}
-		date := firstNonEmpty(audit.StatusDate, datePart(audit.OccurredAt))
+		date := firstNonEmpty(audit.StatusDate, projectDate(ws.Project, audit.OccurredAt))
 		if date == "" {
 			continue
 		}
@@ -59,7 +59,7 @@ func deriveTaskActualWindow(ws domain.Workspace, taskID string, demandIDs []stri
 		if !estimateConsumptionTypes[actual.Type] || (actual.TaskRef.ID != taskID && !demands[actual.DemandRef.ID]) {
 			continue
 		}
-		if date := firstNonEmpty(actual.StatusDate, datePart(actual.OccurredAt)); date != "" {
+		if date := firstNonEmpty(actual.StatusDate, projectDate(ws.Project, actual.OccurredAt)); date != "" {
 			record := actualWindowRecord{date: date, occurredAt: actual.OccurredAt}
 			if existing, ok := consumptionRecords[date]; !ok || actualWindowRecordLess(record, existing) {
 				consumptionRecords[date] = record
