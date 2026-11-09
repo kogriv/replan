@@ -749,6 +749,42 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2350"
         url: https://op.example.internal/work_packages/2350
+    - replan_task_id: task.self.dependency-set-command
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2351"
+        url: https://op.example.internal/work_packages/2351
+    - replan_task_id: task.self.missing-format-version-reads-as-one
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2352"
+        url: https://op.example.internal/work_packages/2352
+    - replan_task_id: task.self.taskjuggler-successor-starts-next-working-day
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2353"
+        url: https://op.example.internal/work_packages/2353
+    - replan_task_id: task.self.taskjuggler-candidate-review-flow
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2354"
+        url: https://op.example.internal/work_packages/2354
+    - replan_task_id: task.self.set-remaining-from-file
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2355"
+        url: https://op.example.internal/work_packages/2355
+    - replan_task_id: task.self.date-push-nothing-to-apply-is-ok
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2356"
+        url: https://op.example.internal/work_packages/2356
     - replan_task_id: task.self.fix-first-project-defects
       source_ref:
         source: openproject

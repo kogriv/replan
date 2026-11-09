@@ -222,3 +222,126 @@ evidence:
     targets:
       - kind: task
         id: task.self.description-trailer-followed-by-text
+  - id: evidence.self.accept-publish-release-v0-5-0
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T02:52:30Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-0
+  - id: evidence.self.start-env-only-settings-in-settings-file
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T09:52:16+07:00"
+    summary: The maintainer agreed both consumer helper findings at 0.5 agent hours each (message 09:52:16); estimates frozen in baseline.2026-11-09.consumer-helper-findings, split 0.3 Codex and 0.2 executor. Started on 2026-11-09, a day before plan.
+    targets:
+      - kind: task
+        id: task.self.env-only-settings-in-settings-file
+  - id: evidence.self.plan-dependency-set-command
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T10:11:03+07:00"
+    summary: Reported by the second project on 2026-11-09 while moving its date drafting to v0.5.0; planned at 1.5 agent hours; waits for the maintainer's agreement before a baseline and start.
+    targets:
+      - kind: task
+        id: task.self.dependency-set-command
+  - id: evidence.self.plan-missing-format-version-reads-as-one
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T10:11:03+07:00"
+    summary: Reported by the second project on 2026-11-09 while moving its date drafting to v0.5.0; planned at 0.5 agent hours; waits for the maintainer's agreement before a baseline and start.
+    targets:
+      - kind: task
+        id: task.self.missing-format-version-reads-as-one
+  - id: evidence.self.plan-taskjuggler-successor-starts-next-working-day
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T10:11:03+07:00"
+    summary: Reported by the second project on 2026-11-09 while moving its date drafting to v0.5.0; planned at 1 agent hours; waits for the maintainer's agreement before a baseline and start.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-successor-starts-next-working-day
+  - id: evidence.self.plan-taskjuggler-candidate-review-flow
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T10:11:03+07:00"
+    summary: Reported by the second project on 2026-11-09 while moving its date drafting to v0.5.0; planned at 1 agent hours; waits for the maintainer's agreement before a baseline and start.
+    targets:
+      - kind: task
+        id: task.self.taskjuggler-candidate-review-flow
+  - id: evidence.self.plan-set-remaining-from-file
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T10:11:03+07:00"
+    summary: Reported by the second project on 2026-11-09 while moving its date drafting to v0.5.0; planned at 1 agent hours; waits for the maintainer's agreement before a baseline and start.
+    targets:
+      - kind: task
+        id: task.self.set-remaining-from-file
+  - id: evidence.self.plan-date-push-nothing-to-apply-is-ok
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T10:14:48+07:00"
+    summary: Reported by the second project on 2026-11-09 and seen in the self plan the same day; planned at 0.5 agent hours; waits for the maintainer's agreement before a baseline and start.
+    targets:
+      - kind: task
+        id: task.self.date-push-nothing-to-apply-is-ok
+  - id: evidence.self.start-description-trailer-followed-by-text
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-09T09:52:16+07:00"
+    summary: Agreed by the maintainer with the environment-only settings task (message 09:52:16); estimate 0.5 agent hours frozen in baseline.2026-11-09.consumer-helper-findings, split 0.3 Codex and 0.2 executor. Started on 2026-11-09, a day before plan, once the settings task went to its gate.
+    targets:
+      - kind: task
+        id: task.self.description-trailer-followed-by-text
+  - id: evidence.self.env-only-settings-in-settings-file
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T11:10:35+07:00"
+    summary: 'Feature commit 92a55d3: one list of environment-only settings drives the shell and Python loaders, which keep ignoring such lines in a settings file but warn environment_only_setting_in_file with the file''s basename and names only; the status helper lists REPLAN_OPENPROJECT_STATUS_SCOPE in its help and a status_scope_ready_only skip carries a hint and a next step; kit README in bbf4961. Review checked the list does not overlap settings.list, every listed name is read by a helper, and this repo''s own settings file triggers no warning. The first gate failed only on the self OpenProject sample left stale by newly planned tasks; after the sync the combined gate with the trailer fix passed (lint 0, 54 kit, 83 live checks). Codex 09:55:09-10:19:50 (0.41 h, prompt and last-file mtimes); executor 09:53:32-09:55:25 brief, 10:20:01-10:20:25 review, 10:42:54-10:44:30 gate failure, 0.06 h by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.env-only-settings-in-settings-file
+  - id: evidence.self.description-trailer-followed-by-text
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-09T11:10:35+07:00"
+    summary: 'Fix commit bbf4961: the description push recognises the task id trailer at the start of a line with text after it and keeps the tail byte for byte; the action carries trailer_shares_line and a task_id_trailer_shares_line warning names the work packages; a description without a trailer keeps today''s behaviour (replaced whole, no trailer appended), now written in the kit README. Gate green together with the settings warning (lint 0, 54 kit, 83 live checks). Codex 10:21:32-10:42:24 (0.35 h, prompt and last-file mtimes); executor 10:20:25-10:21:42 start and brief, 10:44:30-10:48:08 review and gate, 11:09:45-11:10:40 commits and booking, 0.1 h by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.description-trailer-followed-by-text

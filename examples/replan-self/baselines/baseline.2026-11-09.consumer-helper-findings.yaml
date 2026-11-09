@@ -1,0 +1,71 @@
+baseline:
+  id: baseline.2026-11-09.consumer-helper-findings
+  name: Helper findings from the second project
+  scope: tasks
+  created_at: "2026-11-09T09:53:32+07:00"
+  approved_at: "2026-11-09T09:53:32+07:00"
+  approved_by:
+    kind: actor
+    id: actor.human.maintainer
+  status_date: "2026-11-09"
+  included_tasks:
+    - kind: task
+      id: task.self.env-only-settings-in-settings-file
+      planned_start: "2026-11-10"
+      planned_finish: "2026-11-10"
+    - kind: task
+      id: task.self.description-trailer-followed-by-text
+      planned_start: "2026-11-10"
+      planned_finish: "2026-11-10"
+  included_demands:
+    - kind: resource_demand
+      id: resource_demand.env-only-settings-in-settings-file.agent
+      task: task.self.env-only-settings-in-settings-file
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 0.5
+    - kind: resource_demand
+      id: resource_demand.env-only-settings-in-settings-file.maintainer
+      task: task.self.env-only-settings-in-settings-file
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.env-only-settings-in-settings-file.local-dev
+      task: task.self.env-only-settings-in-settings-file
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.env-only-settings-in-settings-file.ci
+      task: task.self.env-only-settings-in-settings-file
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+    - kind: resource_demand
+      id: resource_demand.description-trailer-followed-by-text.agent
+      task: task.self.description-trailer-followed-by-text
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 0.5
+    - kind: resource_demand
+      id: resource_demand.description-trailer-followed-by-text.maintainer
+      task: task.self.description-trailer-followed-by-text
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.description-trailer-followed-by-text.local-dev
+      task: task.self.description-trailer-followed-by-text
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.description-trailer-followed-by-text.ci
+      task: task.self.description-trailer-followed-by-text
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  seal:
+    algorithm: sha256
+    digest: 3d67f72429e5369dcc896a04c7e4d66045d884d33131279154b64c7e454fa90a

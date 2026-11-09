@@ -498,6 +498,18 @@ current_plan:
     - kind: task
       id: task.self.description-trailer-followed-by-text
     - kind: task
+      id: task.self.dependency-set-command
+    - kind: task
+      id: task.self.missing-format-version-reads-as-one
+    - kind: task
+      id: task.self.taskjuggler-successor-starts-next-working-day
+    - kind: task
+      id: task.self.taskjuggler-candidate-review-flow
+    - kind: task
+      id: task.self.set-remaining-from-file
+    - kind: task
+      id: task.self.date-push-nothing-to-apply-is-ok
+    - kind: task
       id: task.self.fix-first-project-defects
     - kind: task
       id: task.self.implement-replan-init-and-resource-commands

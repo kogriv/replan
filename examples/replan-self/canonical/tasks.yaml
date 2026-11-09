@@ -7322,7 +7322,7 @@ tasks:
     title: Publish release v0.5.0 and refresh the agent kits
     description: 'Agreed with the operator on 2026-11-09: after the project time zone fix, publish release v0.5.0 so the agent kits carry task lead time and priority, unlevelled demands, their workload, report and next views, the TaskJuggler export of dependencies, status date, finished work, calendars, not-before dates, sub-hour efforts and lead time, the import of changed dates only, the canonical splice style and project time zone status dates: release notes, tag after green CI, six archives built locally and compared with the CI build and its attestation, GitHub release, go install check; then refresh the second and third projects'' kits and the fourth project''s local kit the same way as for v0.4.1 and tell each session what changed.'
     type: release
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-09"
     planned_finish: "2026-11-09"
     assignee_hint:
@@ -7349,15 +7349,17 @@ tasks:
     title: Warn about environment-only settings found in the settings file
     description: 'Reported by the second project on 2026-11-09 after moving to its kit. REPLAN_OPENPROJECT_STATUS_SCOPE (like REPLAN_APPLY, REPLAN_ACTOR, REPLAN_KEEP_TEMP, REPLAN_OPENPROJECT_PROFILE and REPLAN_OPENPROJECT_FROM_FILE) is read only from the process environment by design, so a line in .env.local is silently ignored; push-openproject-status-drift.sh --help does not name the setting, and a skipped action with reason status_scope_ready_only does not say how to widen the scope. Warn (a warning code in the helper envelope) when an environment-only setting appears in the settings file, list REPLAN_OPENPROJECT_STATUS_SCOPE in the status helper''s --help, and name the setting in the status_scope_ready_only skip; tests and kit README.'
     type: implementation
-    tracking_status: not_started
-    planned_start: "2026-11-10"
-    planned_finish: "2026-11-10"
+    tracking_status: review_ready
+    planned_start: "2026-11-09"
+    planned_finish: "2026-11-09"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer
     resource_demands:
       - kind: resource_demand
         id: resource_demand.env-only-settings-in-settings-file.agent
+      - kind: resource_demand
+        id: resource_demand.env-only-settings-in-settings-file.codex
       - kind: resource_demand
         id: resource_demand.env-only-settings-in-settings-file.maintainer
       - kind: resource_demand
@@ -7376,15 +7378,17 @@ tasks:
     title: Handle a task id trailer followed by text on the same line
     description: 'Reported by the second project on 2026-11-09. In 12 work packages an older script had joined the RePlan task id trailer and following text on one line ("RePlan task id: `task.x` Added ..."). push-openproject-description-drift recognises the trailer only on a line of its own, so it kept no tail and replaced the whole description, trailer included; the text after the trailer was lost silently (a duplicate in that case). Decide and implement the safe behaviour: recognise a trailer at the start of a line followed by text, keep that text as part of the tail or refuse with a named warning instead of overwriting it, and report the case in the dry run; tests and helper docs.'
     type: implementation
-    tracking_status: not_started
-    planned_start: "2026-11-10"
-    planned_finish: "2026-11-10"
+    tracking_status: review_ready
+    planned_start: "2026-11-09"
+    planned_finish: "2026-11-09"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer
     resource_demands:
       - kind: resource_demand
         id: resource_demand.description-trailer-followed-by-text.agent
+      - kind: resource_demand
+        id: resource_demand.description-trailer-followed-by-text.codex
       - kind: resource_demand
         id: resource_demand.description-trailer-followed-by-text.maintainer
       - kind: resource_demand
@@ -7399,3 +7403,165 @@ tasks:
         object_type: work_package
         object_id: "2350"
         url: https://op.example.internal/work_packages/2350
+  - id: task.self.dependency-set-command
+    title: Change a dependency's status and required state with a command
+    description: 'Reported by the second project on 2026-11-09 while moving its date drafting to v0.5.0. A dependency can only be listed or added: there is no command to mark it resolved or cancelled with a reason (for example a successor finished before its predecessor), or to change its required_state or criticality (a successor that may start once the predecessor is review_ready). Accepting a review_dependency_resolution proposal only records the decision, by design, so 487 open dependencies behind review_ready predecessors stay open. Add replan dependency set <id> with --status resolved|cancelled|open, --required-state, --criticality, --reason, --actor, --evidence, dry-run/apply and audit, and a --from-file batch like demand set; validate and proposal rules unchanged; tests, CLI docs and the kit README need-to-command table.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-10"
+    planned_finish: "2026-11-10"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.dependency-set-command.agent
+      - kind: resource_demand
+        id: resource_demand.dependency-set-command.maintainer
+      - kind: resource_demand
+        id: resource_demand.dependency-set-command.local-dev
+      - kind: resource_demand
+        id: resource_demand.dependency-set-command.ci
+    tags:
+      - dependencies
+      - consumer-feedback
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2351"
+        url: https://op.example.internal/work_packages/2351
+  - id: task.self.missing-format-version-reads-as-one
+    title: Read a missing format_version the same way in every command
+    description: 'Reported by the second project on 2026-11-09: on a plan whose .replan/project.yaml has no format_version, project set-status-date refused with "project format version 0 is unsupported", while the loader and project migrate read the same plan as version 1. Make every command read a missing format_version as version 1 through the one loader rule, and check the other writers of .replan/project.yaml; tests with a plan without the field.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-10"
+    planned_finish: "2026-11-10"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.missing-format-version-reads-as-one.agent
+      - kind: resource_demand
+        id: resource_demand.missing-format-version-reads-as-one.maintainer
+      - kind: resource_demand
+        id: resource_demand.missing-format-version-reads-as-one.local-dev
+      - kind: resource_demand
+        id: resource_demand.missing-format-version-reads-as-one.ci
+    tags:
+      - file-format
+      - consumer-feedback
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2352"
+        url: https://op.example.internal/work_packages/2352
+  - id: task.self.taskjuggler-successor-starts-next-working-day
+    title: Start TaskJuggler successors on the next working day
+    description: 'Reported by the second project on 2026-11-09: after taskjuggler run and import-result, a task with lead_time that follows a predecessor got a planned_start on the predecessor''s finish day (training 12-18 Nov, cutover with two working days of lead time drafted 18-20 Nov instead of 19-20 Nov), because TaskJuggler starts a dependent task at the predecessor''s end moment, which can be mid-day. OpenProject''s follows relation and the consumer''s own scheduler start a successor on the next working day. Decide where to fix it (export the dependency so the successor starts on the next working day, or move a same-day start in import-result) so drafted dates satisfy OpenProject finish-to-start relations without changing finishes that are already right; check plain effort tasks too; real-tj3 tests.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-11"
+    planned_finish: "2026-11-11"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.taskjuggler-successor-starts-next-working-day.agent
+      - kind: resource_demand
+        id: resource_demand.taskjuggler-successor-starts-next-working-day.maintainer
+      - kind: resource_demand
+        id: resource_demand.taskjuggler-successor-starts-next-working-day.local-dev
+      - kind: resource_demand
+        id: resource_demand.taskjuggler-successor-starts-next-working-day.ci
+    tags:
+      - taskjuggler
+      - consumer-feedback
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2353"
+        url: https://op.example.internal/work_packages/2353
+  - id: task.self.taskjuggler-candidate-review-flow
+    title: Show and close a TaskJuggler candidate in one review flow
+    description: 'Reported by the second project on 2026-11-09: scenario diff --format markdown for a TaskJuggler candidate shows only resources and an empty load table while the JSON has the 13 task date changes; and after scenario apply the taskjuggler_schedule_candidate proposal stays open and has to be accepted separately. Show task date changes in the markdown and text diff, and make applying the candidate scenario and deciding its proposal one consistent flow (apply closes the linked proposal with an audit record, or apply refuses until the proposal is accepted, whichever fits the proposal rules); tests and docs.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-11"
+    planned_finish: "2026-11-11"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.taskjuggler-candidate-review-flow.agent
+      - kind: resource_demand
+        id: resource_demand.taskjuggler-candidate-review-flow.maintainer
+      - kind: resource_demand
+        id: resource_demand.taskjuggler-candidate-review-flow.local-dev
+      - kind: resource_demand
+        id: resource_demand.taskjuggler-candidate-review-flow.ci
+    tags:
+      - taskjuggler
+      - consumer-feedback
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2354"
+        url: https://op.example.internal/work_packages/2354
+  - id: task.self.set-remaining-from-file
+    title: Batch remaining-work updates from a file
+    description: 'Reported by the second project on 2026-11-09: setting remaining work to zero on 339 demands of done work took 339 separate actual set-remaining calls with --apply (about three minutes), while demand set has a --from-file batch. Add --from-file to actual set-remaining (one validation and one commit for the batch, an audit record per demand, refusal of the whole batch on any invalid row), mirroring demand set; tests, CLI docs and the kit README.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-12"
+    planned_finish: "2026-11-12"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.set-remaining-from-file.agent
+      - kind: resource_demand
+        id: resource_demand.set-remaining-from-file.maintainer
+      - kind: resource_demand
+        id: resource_demand.set-remaining-from-file.local-dev
+      - kind: resource_demand
+        id: resource_demand.set-remaining-from-file.ci
+    tags:
+      - tracking
+      - consumer-feedback
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2355"
+        url: https://op.example.internal/work_packages/2355
+  - id: task.self.date-push-nothing-to-apply-is-ok
+    title: Treat an aligned date push as success
+    description: 'Reported by the second project on 2026-11-09 and seen in the self plan the same day: REPLAN_APPLY=1 scripts/push-openproject-date-drift.sh with nothing to apply (date_push_status aligned, planned_actions 0) answers ok false with apply_blocked_reason no_planned_actions and exit 11, while the dry run in the same state is ok true and the status and description helpers return ok true for zero actions. A script with set -e stops on it. Make an aligned apply succeed (ok true, exit 0, applied_actions 0) and keep refusing only when review or blocked actions exist; tests and helper docs.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-10"
+    planned_finish: "2026-11-10"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.date-push-nothing-to-apply-is-ok.agent
+      - kind: resource_demand
+        id: resource_demand.date-push-nothing-to-apply-is-ok.maintainer
+      - kind: resource_demand
+        id: resource_demand.date-push-nothing-to-apply-is-ok.local-dev
+      - kind: resource_demand
+        id: resource_demand.date-push-nothing-to-apply-is-ok.ci
+    tags:
+      - helpers
+      - consumer-feedback
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2356"
+        url: https://op.example.internal/work_packages/2356
