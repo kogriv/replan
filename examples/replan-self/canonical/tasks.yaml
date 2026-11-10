@@ -7720,7 +7720,7 @@ tasks:
     title: Give the first consumer's agent role its review and acceptance transitions
     description: 'Found on 2026-11-10 while fixing the second consumer''s agent role: the first consumer''s agent role has 20 of the 30 project admin workflow rows for Task, missing In progress -> Developed and every transition out of Developed (to Closed, In progress, On hold, Rejected) plus same-status rows, so its agent cannot push review_ready or move an accepted task from Developed to Closed. Its project uses only Task. Copy the missing rows between the kit''s mapped statuses with the reviewed private script (dry run, backup of the role''s rows, read-back), confirm the role''s Task transitions equal the project admin''s, extend the private identity script to copy them, and tell the consumer session; check with its next status push or a read-only check of what the role allows.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-10"
     planned_finish: "2026-11-10"
     assignee_hint:
