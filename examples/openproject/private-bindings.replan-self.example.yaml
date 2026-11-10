@@ -785,6 +785,12 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2360"
         url: https://op.example.internal/work_packages/2360
+    - replan_task_id: task.self.consumer-agent-role-status-transitions
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2361"
+        url: https://op.example.internal/work_packages/2361
     - replan_task_id: task.self.date-push-nothing-to-apply-is-ok
       source_ref:
         source: openproject

@@ -787,3 +787,36 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-1
+  - id: evidence.self.plan-consumer-agent-role-status-transitions
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-10T07:24:35+07:00"
+    summary: The maintainer agreed the fix and its 0.5 agent-hour estimate (message 2026-11-10 07:24:35) after the second consumer project reported that its agent role cannot change any status (message 2026-11-10 06:25:32) and a read-only check found the role has no workflow rows. Estimate from the consumer identity task (0.5 agent hours planned).
+    targets:
+      - kind: task
+        id: task.self.consumer-agent-role-status-transitions
+  - id: evidence.self.start-consumer-agent-role-status-transitions
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-10T07:26:48+07:00"
+    summary: Started at 07:24:43 right after the maintainer agreed, on the planned day. The read-only diagnosis before the agreement (06:25-06:5x, role and workflow counts) is booked to this task.
+    targets:
+      - kind: task
+        id: task.self.consumer-agent-role-status-transitions
+  - id: evidence.self.apply-consumer-agent-role-status-transitions
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-10T07:32:40+07:00"
+    summary: 'Private script agent-role-workflows.rb (dry run by default, backup before write, read-back check) copied 112 project admin workflow rows for Task, Milestone and Summary task between the seven statuses in openproject_status_map.json to the consumer''s agent role, which had 0 rows (backup taken, empty). Read-back: 112 rows, none missing, none outside the kit statuses; a second dry run adds 0. Task transitions now equal the project admin''s. Found during the dry run: no role in that project has a direct New -> Developed for Task (only Feature, Epic, User story, Bug), and the old token''s history shows New -> In progress -> Developed, so the three waiting work packages move in two steps. To be scheduled is not reachable for Task in that project for any role. The private identity script now copies the transitions when it builds the role.'
+    targets:
+      - kind: task
+        id: task.self.consumer-agent-role-status-transitions
