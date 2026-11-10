@@ -512,6 +512,8 @@ current_plan:
     - kind: task
       id: task.self.consumer-agent-role-status-transitions
     - kind: task
+      id: task.self.first-consumer-agent-role-status-transitions
+    - kind: task
       id: task.self.date-push-nothing-to-apply-is-ok
     - kind: task
       id: task.self.toolkit-comment-add-saves-comment

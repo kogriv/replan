@@ -1,0 +1,43 @@
+baseline:
+  id: baseline.2026-11-10.first-consumer-agent-role-status-transitions
+  name: First consumer agent role transitions
+  scope: tasks
+  created_at: "2026-11-10T08:32:16+07:00"
+  approved_at: "2026-11-10T08:32:16+07:00"
+  approved_by:
+    kind: actor
+    id: actor.human.maintainer
+  status_date: "2026-11-10"
+  included_tasks:
+    - kind: task
+      id: task.self.first-consumer-agent-role-status-transitions
+      planned_start: "2026-11-10"
+      planned_finish: "2026-11-10"
+  included_demands:
+    - kind: resource_demand
+      id: resource_demand.first-consumer-agent-role-status-transitions.agent
+      task: task.self.first-consumer-agent-role-status-transitions
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.first-consumer-agent-role-status-transitions.maintainer
+      task: task.self.first-consumer-agent-role-status-transitions
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.first-consumer-agent-role-status-transitions.local-dev
+      task: task.self.first-consumer-agent-role-status-transitions
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.first-consumer-agent-role-status-transitions.ci
+      task: task.self.first-consumer-agent-role-status-transitions
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  seal:
+    algorithm: sha256
+    digest: b8a90811bfd307a7d1c8c53f3dd7145275f11be032847a8f3dcdae5dbd1854e4

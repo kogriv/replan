@@ -831,3 +831,49 @@ evidence:
     targets:
       - kind: task
         id: task.self.consumer-agent-role-status-transitions
+  - id: evidence.self.accept-consumer-agent-role-status-transitions
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-10T01:30:57Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.consumer-agent-role-status-transitions
+  - id: evidence.self.plan-first-consumer-agent-role-status-transitions
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-10T08:30:43+07:00"
+    summary: 'The maintainer agreed the fix and its 0.25 agent-hour estimate (message 2026-11-10 08:30:43). Estimate: the same script already exists; the second consumer''s role fix took 0.32 agent hours including diagnosis.'
+    targets:
+      - kind: task
+        id: task.self.first-consumer-agent-role-status-transitions
+  - id: evidence.self.start-first-consumer-agent-role-status-transitions
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-10T08:32:16+07:00"
+    summary: Started at 08:30:53 right after the maintainer agreed, on the planned day (acceptance of the previous task first). The read-only finding (07:35-07:37) is booked to this task.
+    targets:
+      - kind: task
+        id: task.self.first-consumer-agent-role-status-transitions
+  - id: evidence.self.first-consumer-agent-role-status-transitions
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-10T08:40:12+07:00"
+    summary: 'The private script agent-role-workflows.rb did a dry run, then took a backup of the first consumer''s agent role (20 rows) at 08:36:20 and added 92 rows: the 10 missing Task transitions (In progress -> Developed, all out of Developed, same-status rows) and Milestone and Summary task for parity with the second consumer''s role. Read-back: 112 rows, none missing, none outside the kit statuses; a second dry run adds 0. Task rows equal the project admin''s (30). A read-only contract check shows the agent may set Developed on an In progress task; the project has no Developed task now, so leaving Developed is checked from the workflow rows. The private identity script now copies the transitions. The consumer session was told what changed. Correction to the start record: the 07:35-07:37 read-only finding was already booked to the previous task and is not booked again. Agent time 08:31:37-2026-11-10T08:40:12+07:00 after the previous acceptance, 0.14 h by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.first-consumer-agent-role-status-transitions

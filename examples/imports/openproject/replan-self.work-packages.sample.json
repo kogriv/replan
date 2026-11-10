@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 261,
-  "count": 261,
+  "total": 262,
+  "count": 262,
   "_embedded": {
     "elements": [
       {
@@ -7563,6 +7563,35 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2361"
+          },
+          "status": {
+            "title": "In progress"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2362,
+        "subject": "Give the first consumer's agent role its review and acceptance transitions",
+        "description": {
+          "raw": "Found on 2026-11-10 while fixing the second consumer's agent role: the first consumer's agent role has 20 of the 30 project admin workflow rows for Task, missing In progress -> Developed and every transition out of Developed (to Closed, In progress, On hold, Rejected) plus same-status rows, so its agent cannot push review_ready or move an accepted task from Developed to Closed. Its project uses only Task. Copy the missing rows between the kit's mapped statuses with the reviewed private script (dry run, backup of the role's rows, read-back), confirm the role's Task transitions equal the project admin's, extend the private identity script to copy them, and tell the consumer session; check with its next status push or a read-only check of what the role allows."
+        },
+        "status": {
+          "name": "In progress"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-10",
+        "dueDate": "2026-11-10",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2362"
           },
           "status": {
             "title": "In progress"
