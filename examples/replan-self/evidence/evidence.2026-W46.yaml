@@ -820,3 +820,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.consumer-agent-role-status-transitions
+  - id: evidence.self.consumer-agent-role-status-transitions
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-10T07:41:00+07:00"
+    summary: 'Checked under the consumer''s own agent token (consumer session report 2026-11-10 07:39:37): status update to In progress for its three waiting work packages, dry run and apply ok; status drift push with scope all, dry run 3 actions 0 skipped, apply 3 actions, no errors; drift check after: 0 status, date and title drifts, no missing or extra tasks, dependencies or relation bindings. Read-only check on the server confirms the three are Developed, changed by the agent user. Agent time by tool-call times: 06:25:32-06:29:13 diagnosis, 07:24:43-07:39:05 planning, fix and report, 07:39:37-2026-11-10T07:41:00+07:00 check and close, 0.32 h.'
+    targets:
+      - kind: task
+        id: task.self.consumer-agent-role-status-transitions

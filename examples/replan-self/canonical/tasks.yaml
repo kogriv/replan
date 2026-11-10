@@ -7693,7 +7693,7 @@ tasks:
     title: Give the second consumer's agent role its status transitions
     description: 'Found on 2026-11-10 by the second consumer project on v0.5.1: push-openproject-status-drift skipped three work packages with openproject_workflow_transition_not_allowed, because the agent role created for its own identity on 2026-11-09 has permissions but no workflow rows, so OpenProject allows no status change out of New. The old token worked through the project admin role. Copy to the agent role the project admin workflow transitions for the project''s types between the statuses the kit maps (New, To be scheduled, In progress, On hold, Developed, Closed, Rejected), no others; back up the role''s workflow rows first and dry run; verify with a status drift dry run under the agent''s own token that the three work packages are now allowed, then let the consumer push them; extend the private identity script so a rebuilt role gets its transitions.'
     type: implementation
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-10"
     planned_finish: "2026-11-10"
     assignee_hint:
