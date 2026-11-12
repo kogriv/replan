@@ -1258,3 +1258,24 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.toolkit-version-create
+  - id: actual.self-publish-release-v0-5-2.ai-agent-executor.20261112T1303250700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-5-2
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.publish-release-v0-5-2.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.12
+    unit: agent_hours
+    occurred_at: "2026-11-12T13:03:25+07:00"
+    status_date: "2026-11-12"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.publish-release-v0-5-2
