@@ -7776,7 +7776,7 @@ tasks:
     title: Publish release v0.5.2 and refresh the agent kits
     description: 'Agreed with the operator on 2026-11-12 together with the toolkit version create command: publish release v0.5.2 so the agent kits carry version create: release notes, tag after green CI, six archives built locally and compared with the CI build and its attestation, GitHub release, go install check; then refresh the three consumer projects'' kits as for v0.5.1 and tell each session what changed.'
     type: release
-    tracking_status: not_started
+    tracking_status: in_progress
     planned_start: "2026-11-12"
     planned_finish: "2026-11-12"
     assignee_hint:

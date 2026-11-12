@@ -934,3 +934,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.toolkit-version-create
+  - id: evidence.self.start-publish-release-v0-5-2
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-12T12:47:02+07:00"
+    summary: Started on the planned day once CI passed on the version create commits (868438a, 8a6a0e6); release preparation from 12:46:22 (recovering the v0.5.1 procedure from the transcript).
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-2
