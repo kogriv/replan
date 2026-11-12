@@ -1279,3 +1279,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.publish-release-v0-5-2
+  - id: actual.self-toolkit-version-create.ci-github-actions.20261112T060830Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.toolkit-version-create
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.toolkit-version-create.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-12T06:08:30Z"
+    status_date: "2026-11-12"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-toolkit-version-create
+  - id: actual.self-publish-release-v0-5-2.ci-github-actions.20261112T060924Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-5-2
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.publish-release-v0-5-2.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-12T06:09:24Z"
+    status_date: "2026-11-12"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-publish-release-v0-5-2

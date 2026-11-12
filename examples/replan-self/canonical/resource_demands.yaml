@@ -15505,7 +15505,7 @@ resource_demands:
     planned_amount: 0.5
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.toolkit-version-create.codex
     task_ref:
       kind: task
@@ -15519,7 +15519,7 @@ resource_demands:
     planned_amount: 0.5
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
     overrun_review:
       acknowledged_forecast: 0.52
       unit: agent_hours
@@ -15542,9 +15542,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.toolkit-version-create.local-dev
     task_ref:
       kind: task
@@ -15556,9 +15556,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.toolkit-version-create.ci
     task_ref:
       kind: task
@@ -15570,9 +15570,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.publish-release-v0-5-2.agent
     task_ref:
       kind: task
@@ -15586,7 +15586,7 @@ resource_demands:
     planned_amount: 0.5
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.publish-release-v0-5-2.maintainer
     task_ref:
       kind: task
@@ -15598,9 +15598,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.publish-release-v0-5-2.local-dev
     task_ref:
       kind: task
@@ -15612,9 +15612,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.publish-release-v0-5-2.ci
     task_ref:
       kind: task
@@ -15626,6 +15626,6 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
