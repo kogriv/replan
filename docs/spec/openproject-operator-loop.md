@@ -649,6 +649,8 @@ It provides:
 - `type list`;
 - `user list`;
 - `priority list`;
+- `version list`;
+- `version create`;
 - `relation list`;
 - `comment add`;
 - `comment list`.
@@ -672,6 +674,10 @@ description with an optimistic `lockVersion` apply command. A bound subject is
 kept in step with the canonical RePlan title through audited `task set-title`;
 the OpenProject description is not copied into RePlan's separate planning
 note.
+`version create` validates its name and dates locally, refuses an exact name
+already returned by the project version catalog, and creates only for a token
+with Manage versions permission. It checks the returned name, description,
+dates, status and sharing before reporting the new version id and href.
 
 ## Non-goals for the next slice
 

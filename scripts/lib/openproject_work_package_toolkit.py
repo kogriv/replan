@@ -1,8 +1,10 @@
 """Moved from scripts/openproject-work-package-toolkit.sh (GAP-018). Invoked as `python3 -m openproject_work_package_toolkit`."""
 import argparse
 import atexit
+import datetime
 import json
 import os
+import re
 import shlex
 import shutil
 import subprocess
@@ -46,6 +48,8 @@ RELATION_TYPES = (
     "partof", "requires", "required", "follows", "precedes",
 )
 SCHEDULING_RELATION_TYPES = {"follows", "precedes"}
+VERSION_STATUSES = ("open", "locked", "closed")
+VERSION_SHARING_MODES = ("none", "descendants", "hierarchy", "tree", "system")
 
 
 def command_requires_plan(args):
@@ -162,6 +166,24 @@ def normalize(value):
 
 def normalize_comment(value):
     return normalize_openproject_text(value)
+
+
+def version_payload_mismatches(resource, payload):
+    """Return requested version fields absent from a successful response."""
+    mismatches = []
+    for field, expected in payload.items():
+        if field == "_links":
+            actual_links = resource.get("_links") or {}
+            for link_name, expected_link in expected.items():
+                if (actual_links.get(link_name) or {}).get("href") != expected_link.get("href"):
+                    mismatches.append(f"_links.{link_name}")
+        elif field == "description":
+            actual = (resource.get("description") or {}).get("raw")
+            if normalize_openproject_text(actual) != normalize_openproject_text(expected.get("raw")):
+                mismatches.append(field)
+        elif resource.get(field) != expected:
+            mismatches.append(field)
+    return mismatches
 
 def work_package_id_from_href(href):
     return as_text(href).rstrip("/").split("/")[-1]
@@ -472,7 +494,8 @@ def project_version_catalog(project=None):
             if version_id:
                 values[version_id] = {
                     "id": version_id, "name": name, "status": "",
-                    "sharing": "", "href": href,
+                    "sharing": "", "description": "", "start_date": "",
+                    "due_date": "", "href": href,
                     "source": "fixture_inferred",
                 }
         return list(values.values()), []
@@ -488,9 +511,204 @@ def project_version_catalog(project=None):
             "name": item.get("name") or link.get("title", ""),
             "status": item.get("status", ""),
             "sharing": item.get("sharing", ""),
+            "description": ((item.get("description") or {}).get("raw", "")),
+            "start_date": item.get("startDate") or "",
+            "due_date": item.get("endDate") or "",
             "href": link.get("href", ""),
         })
     return items, []
+
+
+def parse_version_date(value, option):
+    if value is None:
+        return None
+    # date.fromisoformat also takes 20261112 and 2026-W46-4; OpenProject
+    # gets exactly what was sent, so only the extended calendar form passes.
+    try:
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+            raise ValueError(value)
+        return datetime.date.fromisoformat(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{option} must be a real date in YYYY-MM-DD form") from exc
+
+
+def version_create_error(exc, command, action):
+    try:
+        failure = json.loads(str(exc))
+    except ValueError:
+        raise exc
+    status = failure.get("status")
+    response = failure.get("response") or {}
+    messages = [response.get("message", "")]
+    messages.extend(
+        item.get("message", "")
+        for item in response.get("errors", [])
+        if isinstance(item, dict)
+    )
+    messages = [message for message in messages if message]
+    if status == 403:
+        entry = diagnostic(
+            "version_create_forbidden",
+            'OpenProject refused version creation; the token user needs the "Manage versions" permission in the project.',
+            "error", "openproject_project", openproject_project_id,
+        )
+    elif status == 422:
+        entry = diagnostic(
+            "version_refused",
+            "; ".join(messages) or "OpenProject refused the version.",
+            "error", "openproject_project", openproject_project_id,
+        )
+    else:
+        raise exc
+    entry.update({"status": status, "response": response})
+    if messages:
+        entry["openproject_messages"] = messages
+    action.update({"dry_run": False, "apply_required": False, "applied": False})
+    print_json(envelope(
+        command, "apply", ok=False, actions=[action],
+        counts={"applied_actions": 0}, errors=[entry],
+        extra={"dry_run": False, "applied": False},
+    ), helper_envelope.EXIT["external"])
+
+
+def command_version_create(args):
+    command = "openproject version create"
+    name = args.name.strip()
+    errors = []
+    start_date = due_date = None
+    if not name:
+        errors.append(diagnostic("invalid_arguments", "--name must not be empty or whitespace"))
+    try:
+        start_date = parse_version_date(args.start_date, "--start-date")
+    except ValueError as exc:
+        errors.append(diagnostic("invalid_arguments", str(exc)))
+    try:
+        due_date = parse_version_date(args.due_date, "--due-date")
+    except ValueError as exc:
+        errors.append(diagnostic("invalid_arguments", str(exc)))
+    if start_date and due_date and due_date < start_date:
+        errors.append(diagnostic("invalid_arguments", "--due-date must not be before --start-date"))
+    if args.status is not None and args.status not in VERSION_STATUSES:
+        errors.append(diagnostic(
+            "invalid_arguments",
+            f"--status must be one of: {', '.join(VERSION_STATUSES)}",
+        ))
+    if args.sharing is not None and args.sharing not in VERSION_SHARING_MODES:
+        errors.append(diagnostic(
+            "invalid_arguments",
+            f"--sharing must be one of: {', '.join(VERSION_SHARING_MODES)}",
+        ))
+    if errors:
+        print_json(envelope(command, mode, ok=False, errors=errors), 2)
+    if from_file and mode == "apply":
+        print_json(envelope(
+            command, "apply", ok=False,
+            errors=[diagnostic(
+                "apply_not_allowed_with_fixture",
+                "apply is not allowed when REPLAN_OPENPROJECT_FROM_FILE is used",
+            )],
+        ), 2)
+    if not from_file and not token:
+        skip_without_token(command, f"{token_env} is not set")
+
+    project = {"id": openproject_project_id}
+    if not from_file:
+        project = live_project()
+    versions, warnings = project_version_catalog(project)
+    existing = next((item for item in versions if item.get("name") == name), None)
+    if existing:
+        existing_id = as_text(existing.get("id"))
+        existing_href = existing.get("href") or f"/api/v3/versions/{existing_id}"
+        entry = diagnostic(
+            "version_exists",
+            f"OpenProject version {name!r} already exists in project {openproject_project_id} (id {existing_id}).",
+            "error", "openproject_version", existing_id,
+        )
+        entry.update({"version_id": existing_id, "href": existing_href})
+        print_json(envelope(
+            command, mode, ok=False, counts={"planned_actions": 0, "blocked_actions": 1},
+            warnings=warnings, errors=[entry],
+            extra={"existing_version": {
+                "id": existing_id, "name": existing.get("name", ""), "href": existing_href,
+            }},
+        ), 2)
+
+    project_id = as_text(project.get("id"))
+    payload = {
+        "name": name,
+        "_links": {"definingProject": {"href": f"/api/v3/projects/{project_id}"}},
+    }
+    if args.description is not None:
+        payload["description"] = {"raw": args.description}
+    if args.start_date is not None:
+        payload["startDate"] = args.start_date
+    if args.due_date is not None:
+        payload["endDate"] = args.due_date
+    if args.status is not None:
+        payload["status"] = args.status
+    if args.sharing is not None:
+        payload["sharing"] = args.sharing
+    # OpenProject 17 exposes the project-scoped versions endpoint for listing.
+    # Creation uses the global collection and names the defining project link.
+    action = {
+        "action": "create_openproject_version",
+        "endpoint": "POST /api/v3/versions",
+        "payload": payload,
+        "dry_run": mode != "apply",
+        "apply_required": mode != "apply",
+    }
+    if mode != "apply":
+        print_json(envelope(
+            command, "dry_run", actions=[action],
+            counts={"planned_actions": 1}, warnings=warnings,
+            extra={"dry_run": True, "apply_required": True},
+        ))
+
+    try:
+        _, created = client.request_json(
+            "POST", "/api/v3/versions", payload, expected=(201,),
+        )
+    except RuntimeError as exc:
+        version_create_error(exc, command, action)
+        raise
+    version_id = as_text(created.get("id"))
+    href = ((created.get("_links") or {}).get("self") or {}).get("href", "")
+    mismatches = version_payload_mismatches(created, payload)
+    if not version_id:
+        mismatches.append("id")
+    if not href:
+        mismatches.append("_links.self")
+    action.update({
+        "dry_run": False,
+        "apply_required": False,
+        "applied": not mismatches,
+        "version_id": version_id,
+        "href": href,
+    })
+    if mismatches:
+        action["unconfirmed_fields"] = mismatches
+        print_json(envelope(
+            command, "apply", ok=False, actions=[action],
+            counts={"applied_actions": 0}, warnings=warnings,
+            errors=[diagnostic(
+                "version_fields_not_saved",
+                "OpenProject did not return all requested version fields.",
+                "error", "openproject_version", version_id,
+            )],
+            extra={
+                "dry_run": False, "applied": False,
+                "version_id": version_id, "href": href,
+                "unconfirmed_fields": mismatches,
+            },
+        ), 2)
+    print_json(envelope(
+        command, "apply", actions=[action], counts={"applied_actions": 1},
+        warnings=warnings,
+        extra={
+            "dry_run": False, "applied": True,
+            "version_id": version_id, "href": href,
+        },
+    ))
 
 def resolve_version_argument(value, project=None, command="openproject work-package toolkit"):
     if not value:
@@ -1837,6 +2055,13 @@ def main():
     versions = sub.add_parser("version")
     version_sub = versions.add_subparsers(dest="version_command", required=True)
     version_sub.add_parser("list")
+    version_create = version_sub.add_parser("create")
+    version_create.add_argument("--name", default="")
+    version_create.add_argument("--description", default=None)
+    version_create.add_argument("--start-date", default=None)
+    version_create.add_argument("--due-date", default=None)
+    version_create.add_argument("--status", default=None)
+    version_create.add_argument("--sharing", default=None)
     relation = sub.add_parser("relation")
     relation_sub = relation.add_subparsers(dest="relation_command", required=True)
     relation_list = relation_sub.add_parser("list")
@@ -1901,6 +2126,8 @@ def main():
             "openproject version list", "read_only", items=items,
             counts={"items": len(items)}, warnings=warnings,
         ))
+    if args.area == "version" and args.version_command == "create":
+        command_version_create(args)
     if args.area == "relation" and args.relation_command == "list":
         command_relation_list(args)
     if args.area == "relation" and args.relation_command == "create":
@@ -1946,6 +2173,8 @@ except RuntimeError as exc:
         }
     if entry.get("outcome_unknown") and entry.get("method") == "POST" and entry.get("path") == "/api/v3/work_packages":
         extra = {"operator_next_steps": ["Check whether the work package exists before running create again."]}
+    if entry.get("outcome_unknown") and entry.get("method") == "POST" and entry.get("path") == "/api/v3/versions":
+        extra = {"operator_next_steps": ["Run version list before retrying version create."]}
     if entry.get("outcome_unknown") and entry.get("method") == "PATCH":
         extra = {"operator_next_steps": [
             "Inspect the work package status, dates, fields, links, and latest activity before running the command again."

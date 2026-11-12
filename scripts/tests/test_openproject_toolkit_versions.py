@@ -3,6 +3,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 import threading
 import unittest
 
@@ -12,7 +13,7 @@ LIB = os.path.join(ROOT, "scripts", "lib")
 
 
 class ToolkitVersionsTest(unittest.TestCase):
-    def run_toolkit(self, base_url, args, *, apply=""):
+    def run_toolkit(self, base_url, args, *, apply="", from_file="", token="test-token"):
         env = dict(
             os.environ,
             PYTHONPATH=LIB,
@@ -20,8 +21,8 @@ class ToolkitVersionsTest(unittest.TestCase):
             REPLAN_OPENPROJECT_BASE_URL=base_url,
             REPLAN_OPENPROJECT_PROJECT_ID="demo",
             REPLAN_OPENPROJECT_TOKEN_ENV="TEST_TOKEN",
-            TEST_TOKEN="test-token",
-            REPLAN_OPENPROJECT_FROM_FILE="",
+            TEST_TOKEN=token,
+            REPLAN_OPENPROJECT_FROM_FILE=from_file,
             REPLAN_OPENPROJECT_BINDINGS_PATH="",
             REPLAN_APPLY=apply,
         )
@@ -48,8 +49,9 @@ class ToolkitVersionsTest(unittest.TestCase):
                     },
                 },
             },
-            "patches": [], "creates": [], "version_pages": [],
-            "lock_conflict": False, "drop_field": "",
+            "patches": [], "creates": [], "version_creates": [],
+            "version_pages": [], "lock_conflict": False, "drop_field": "",
+            "version_create_status": 201, "drop_version_field": "",
         }
 
     def serve(self, state):
@@ -71,6 +73,9 @@ class ToolkitVersionsTest(unittest.TestCase):
 
             def version(self, item):
                 return {
+                    "description": {"raw": item.get("description", "")},
+                    "startDate": item.get("startDate"),
+                    "endDate": item.get("endDate"),
                     **item,
                     "_links": {"self": {
                         "href": f"/api/v3/versions/{item['id']}",
@@ -108,6 +113,39 @@ class ToolkitVersionsTest(unittest.TestCase):
 
             def do_POST(self):
                 payload = self.body()
+                if self.path == "/api/v3/versions":
+                    if state["version_create_status"] == 403:
+                        self.reply({
+                            "errorIdentifier": "urn:openproject-org:api:v3:errors:MissingPermission",
+                            "message": "You are not authorized to access this resource.",
+                        }, 403)
+                        return
+                    if state["version_create_status"] == 422:
+                        self.reply({
+                            "errorIdentifier": "urn:openproject-org:api:v3:errors:PropertyConstraintViolation",
+                            "message": "Version is invalid.",
+                            "_embedded": {"errors": [{"message": "Name has already been taken."}]},
+                        }, 422)
+                        return
+                    state["version_creates"].append(payload)
+                    created = {
+                        "_type": "Version", "id": 14,
+                        "description": {"raw": ""},
+                        "startDate": None, "endDate": None,
+                        "status": "open", "sharing": "none",
+                        **payload,
+                        "_links": {
+                            **(payload.get("_links") or {}),
+                            "self": {"href": "/api/v3/versions/14", "title": payload["name"]},
+                        },
+                    }
+                    dropped = state["drop_version_field"]
+                    if dropped == "description":
+                        created["description"] = {"raw": "different"}
+                    elif dropped:
+                        created[dropped] = "different"
+                    self.reply(created, 201)
+                    return
                 if self.path == "/api/v3/projects/9/work_packages/form":
                     self.reply({"_embedded": {"validationErrors": {}}})
                     return
@@ -168,6 +206,187 @@ class ToolkitVersionsTest(unittest.TestCase):
                 {"id": "13", "name": "Duplicate", "status": "locked", "sharing": "hierarchy"},
             ],
         )
+        self.assertTrue(all("description" in item for item in out["items"]))
+        self.assertTrue(all("start_date" in item and "due_date" in item for item in out["items"]))
+
+    def test_version_create_dry_run_sends_nothing(self):
+        state = self.state()
+        proc, out = self.run_toolkit(self.serve(state), [
+            "version", "create", "--name", "Beta", "--description", "Delivery stage",
+            "--start-date", "2026-11-16", "--due-date", "2026-11-27",
+            "--status", "locked", "--sharing", "descendants",
+        ])
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertEqual(out["mode"], "dry_run")
+        self.assertEqual(out["counts"]["planned_actions"], 1)
+        action = out["actions"][0]
+        self.assertEqual(action["action"], "create_openproject_version")
+        self.assertEqual(action["endpoint"], "POST /api/v3/versions")
+        self.assertTrue(action["dry_run"])
+        self.assertTrue(action["apply_required"])
+        self.assertEqual(action["payload"]["endDate"], "2026-11-27")
+        self.assertEqual(state["version_creates"], [])
+
+    def test_version_create_apply_reports_identity_and_needs_no_plan(self):
+        state = self.state()
+        proc, out = self.run_toolkit(self.serve(state), [
+            "version", "create", "--name", "Beta", "--description", "Delivery stage",
+            "--start-date", "2026-11-16", "--due-date", "2026-11-27",
+            "--status", "closed", "--sharing", "tree",
+        ], apply="1")
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertTrue(out["ok"])
+        self.assertEqual(out["plan"], "none")
+        self.assertEqual(out["version_id"], "14")
+        self.assertEqual(out["href"], "/api/v3/versions/14")
+        self.assertEqual(out["counts"]["applied_actions"], 1)
+        self.assertEqual(state["version_creates"][0]["endDate"], "2026-11-27")
+        self.assertEqual(
+            state["version_creates"][0]["_links"]["definingProject"]["href"],
+            "/api/v3/projects/9",
+        )
+
+    def test_version_create_omits_unspecified_optional_fields(self):
+        state = self.state()
+        proc, out = self.run_toolkit(
+            self.serve(state), ["version", "create", "--name", "Beta"], apply="1",
+        )
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertEqual(
+            set(state["version_creates"][0]), {"name", "_links"},
+        )
+
+    def test_version_create_refuses_duplicate_in_dry_run_and_apply(self):
+        for apply in ("", "1"):
+            with self.subTest(apply=apply):
+                state = self.state()
+                proc, out = self.run_toolkit(
+                    self.serve(state), ["version", "create", "--name", "Alpha"],
+                    apply=apply,
+                )
+                self.assertEqual(proc.returncode, 2, out)
+                self.assertEqual(out["error_codes"], ["version_exists"])
+                self.assertEqual(out["existing_version"]["id"], "11")
+                self.assertEqual(out["existing_version"]["href"], "/api/v3/versions/11")
+                self.assertEqual(state["version_creates"], [])
+
+    def test_version_create_validates_dates_before_requests(self):
+        for args in (
+            ["--start-date", "2026-02-30"],
+            ["--start-date", "20261116"],
+            ["--due-date", "2026-W48-5"],
+            ["--start-date", "2026-11-20", "--due-date", "2026-11-19"],
+        ):
+            with self.subTest(args=args):
+                state = self.state()
+                proc, out = self.run_toolkit(
+                    self.serve(state), ["version", "create", "--name", "Beta", *args],
+                )
+                self.assertEqual(proc.returncode, 2, out)
+                self.assertEqual(out["error_codes"], ["invalid_arguments"])
+                self.assertEqual(state["version_pages"], [])
+                self.assertEqual(state["version_creates"], [])
+
+    def test_version_create_validates_name_status_and_sharing_before_requests(self):
+        for name, args in (
+            ("   ", []),
+            ("Beta", ["--status", "finished"]),
+            ("Beta", ["--sharing", "all"]),
+        ):
+            with self.subTest(name=name, args=args):
+                state = self.state()
+                proc, out = self.run_toolkit(
+                    self.serve(state), ["version", "create", "--name", name, *args],
+                )
+                self.assertEqual(proc.returncode, 2, out)
+                self.assertEqual(out["error_codes"], ["invalid_arguments"])
+                self.assertEqual(state["version_pages"], [])
+                self.assertEqual(state["version_creates"], [])
+
+        state = self.state()
+        proc, out = self.run_toolkit(self.serve(state), ["version", "create"])
+        self.assertEqual(proc.returncode, 2, out)
+        self.assertEqual(out["error_codes"], ["invalid_arguments"])
+        self.assertEqual(state["version_pages"], [])
+
+    def test_version_create_answer_mismatch_is_unconfirmed(self):
+        state = self.state()
+        state["drop_version_field"] = "description"
+        proc, out = self.run_toolkit(self.serve(state), [
+            "version", "create", "--name", "Beta", "--description", "Expected",
+        ], apply="1")
+        self.assertEqual(proc.returncode, 2, out)
+        self.assertEqual(out["error_codes"], ["version_fields_not_saved"])
+        self.assertEqual(out["unconfirmed_fields"], ["description"])
+        self.assertEqual(out["counts"]["applied_actions"], 0)
+
+    def test_version_create_maps_forbidden(self):
+        state = self.state()
+        state["version_create_status"] = 403
+        proc, out = self.run_toolkit(
+            self.serve(state), ["version", "create", "--name", "Beta"], apply="1",
+        )
+        self.assertEqual(proc.returncode, 6, out)
+        self.assertEqual(out["error_codes"], ["version_create_forbidden"])
+        self.assertIn("Manage versions", out["errors"][0]["message"])
+
+    def test_version_create_maps_refused_messages(self):
+        state = self.state()
+        state["version_create_status"] = 422
+        proc, out = self.run_toolkit(
+            self.serve(state), ["version", "create", "--name", "Beta"], apply="1",
+        )
+        self.assertEqual(proc.returncode, 6, out)
+        self.assertEqual(out["error_codes"], ["version_refused"])
+        self.assertEqual(
+            out["errors"][0]["openproject_messages"],
+            ["Version is invalid.", "Name has already been taken."],
+        )
+
+    def test_version_create_fixture_apply_is_refused(self):
+        fixture = {
+            "_embedded": {"elements": [{
+                "id": 1,
+                "_links": {"version": {
+                    "href": "/api/v3/versions/11", "title": "Alpha",
+                }},
+            }]},
+        }
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=ROOT) as handle:
+            json.dump(fixture, handle)
+            handle.flush()
+            proc, out = self.run_toolkit("", [
+                "version", "create", "--name", "Beta",
+            ], apply="1", from_file=handle.name, token="")
+        self.assertEqual(proc.returncode, 2, out)
+        self.assertEqual(out["error_codes"], ["apply_not_allowed_with_fixture"])
+
+    def test_version_create_fixture_dry_run_uses_catalog(self):
+        fixture = {
+            "_embedded": {"elements": [{
+                "id": 1,
+                "_links": {"version": {
+                    "href": "/api/v3/versions/11", "title": "Alpha",
+                }},
+            }]},
+        }
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=ROOT) as handle:
+            json.dump(fixture, handle)
+            handle.flush()
+            proc, out = self.run_toolkit("", [
+                "version", "create", "--name", "Beta",
+            ], from_file=handle.name, token="")
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertEqual(out["mode"], "dry_run")
+        self.assertEqual(out["counts"]["planned_actions"], 1)
+
+    def test_version_create_without_token_is_skipped(self):
+        proc, out = self.run_toolkit(
+            "http://127.0.0.1:1", ["version", "create", "--name", "Beta"], token="",
+        )
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertEqual(out["mode"], "skipped")
+        self.assertEqual(out["warning_codes"], ["token_env_not_set"])
 
     def test_update_sets_version_by_id_and_exact_name(self):
         for value, expected_id in (("11", "11"), ("Alpha", "11")):

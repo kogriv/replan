@@ -37,6 +37,8 @@
 #   scripts/openproject-work-package-toolkit.sh --help
 #   scripts/openproject-work-package-toolkit.sh work-package list
 #   scripts/openproject-work-package-toolkit.sh version list
+#   scripts/openproject-work-package-toolkit.sh version create --name NAME [--description TEXT] [--start-date YYYY-MM-DD] [--due-date YYYY-MM-DD]
+#       [--status open|locked|closed] [--sharing none|descendants|hierarchy|tree|system]
 #   scripts/openproject-work-package-toolkit.sh work-package create --subject "Task" --version "Release 1"
 #   scripts/openproject-work-package-toolkit.sh work-package update-metadata --task task.example --version "Release 1"
 #   scripts/openproject-work-package-toolkit.sh work-package update-metadata --task task.example --clear-version

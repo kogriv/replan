@@ -46,9 +46,10 @@ fail() {
 REPLAN_AGENT_KIT_KEEP="$WORK_DIR/kit" "$ROOT_DIR/scripts/check-agent-kit.sh" > /dev/null
 KIT="$WORK_DIR/kit"
 
-# A project, an open version and a member with the seeded "Member" role; the
-# version is created during administrator setup before the member token is
-# used. The token goes into a protected file named by the kit's settings file.
+# A project, an open version, a member with the seeded "Member" role, and a
+# second API user whose narrow role can manage versions. The initial version
+# and both users are created during administrator setup before their protected
+# token files are used by the kit.
 docker exec -e PROJECT="$PROJECT" "$WEB_CONTAINER" bundle exec rails runner '
   administrator = User.where(admin: true).first
   raise "administrator missing" unless administrator
@@ -61,16 +62,23 @@ docker exec -e PROJECT="$PROJECT" "$WEB_CONTAINER" bundle exec rails runner '
                       admin: false, password: "Agent-kit-member-2026!", password_confirmation: "Agent-kit-member-2026!")
   Member.create!(project: project, principal: user, roles: [ProjectRole.find_by!(name: "Member")])
   token = Token::API.create!(user: user, data: { name: "agent kit check" })
+  version_role = ProjectRole.create!(name: "Agent kit version manager", permissions: %i[view_project view_work_packages manage_versions])
+  version_manager = User.create!(login: "#{project.identifier}-version-manager", firstname: "Kit", lastname: "Version manager", mail: "#{project.identifier}-version-manager@example.invalid",
+                                 admin: false, password: "Agent-kit-version-2026!", password_confirmation: "Agent-kit-version-2026!")
+  Member.create!(project: project, principal: version_manager, roles: [version_role])
+  version_token = Token::API.create!(user: version_manager, data: { name: "agent kit version check" })
   reader = User.create!(login: "#{project.identifier}-reader", firstname: "Kit", lastname: "Reader", mail: "#{project.identifier}-reader@example.invalid",
                         admin: false, password: "Agent-kit-reader-2026!", password_confirmation: "Agent-kit-reader-2026!")
   Member.create!(project: project, principal: reader, roles: [ProjectRole.find_by!(name: "Reader")])
   reader_token = Token::API.create!(user: reader, data: { name: "agent kit check" })
-  puts "FACTS user=#{user.id} admin=#{user.admin?} token=#{token.plain_value} reader_token=#{reader_token.plain_value} version=#{version.id}"
+  puts "FACTS user=#{user.id} admin=#{user.admin?} token=#{token.plain_value} reader_token=#{reader_token.plain_value} version_manager=#{version_manager.id} version_token=#{version_token.plain_value} version=#{version.id}"
 ' 2>/dev/null | grep '^FACTS ' > "$WORK_DIR/facts" || fail "runner did not set up the member"
 fact() { tr ' ' '\n' < "$WORK_DIR/facts" | sed -n "s/^$1=//p"; }
 [ "$(fact admin)" = "false" ] || fail "the check user is an administrator"
 printf '%s\n' "$(fact token)" > "$WORK_DIR/openproject-token"
 chmod 600 "$WORK_DIR/openproject-token"
+printf '%s\n' "$(fact version_token)" > "$WORK_DIR/openproject-version-token"
+chmod 600 "$WORK_DIR/openproject-version-token"
 
 cp -R "$KIT/examples/small-team" "$WORK_DIR/plan"
 python3 -c '
@@ -146,6 +154,16 @@ expect "the member is the assignee of its own plan" "d['ok'] and 'Kit Member' in
 
 run "" "$TOOLKIT" version list
 expect "the project versions are readable by a member" "d['ok'] and any(item['id'] == '$(fact version)' and item['name'] == 'Agent kit stage' for item in d['items'])"
+run 1 env REPLAN_PROJECT= "$TOOLKIT" version create --name "Member forbidden stage"
+expect "a member without manage_versions cannot create a version" "not d['ok'] and d['error_codes'] == ['version_create_forbidden'] and 'Manage versions' in d['errors'][0]['message']"
+run "" env REPLAN_PROJECT= REPLAN_OPENPROJECT_TOKEN_FILE="$WORK_DIR/openproject-version-token" "$TOOLKIT" version create --name "Agent kit created stage" --description "Created by the agent kit." --start-date 2026-11-16 --due-date 2026-11-27
+expect "a version manager dry-runs version creation without a RePlan plan" "d['ok'] and d['plan'] == 'none' and d['mode'] == 'dry_run' and d['actions'][0]['action'] == 'create_openproject_version' and d['counts']['planned_actions'] == 1"
+run 1 env REPLAN_PROJECT= REPLAN_OPENPROJECT_TOKEN_FILE="$WORK_DIR/openproject-version-token" "$TOOLKIT" version create --name "Agent kit created stage" --description "Created by the agent kit." --start-date 2026-11-16 --due-date 2026-11-27
+expect "a version manager creates a version" "d['ok'] and d['plan'] == 'none' and d['version_id'] and d['href'] and d['counts']['applied_actions'] == 1"
+run "" env REPLAN_PROJECT= REPLAN_OPENPROJECT_TOKEN_FILE="$WORK_DIR/openproject-version-token" "$TOOLKIT" version list
+expect "version list returns the created version fields" "d['ok'] and any(item['name'] == 'Agent kit created stage' and item['description'] == 'Created by the agent kit.' and item['start_date'] == '2026-11-16' and item['due_date'] == '2026-11-27' and item['status'] == 'open' and item['sharing'] == 'none' for item in d['items'])"
+run 1 env REPLAN_PROJECT= REPLAN_OPENPROJECT_TOKEN_FILE="$WORK_DIR/openproject-version-token" "$TOOLKIT" version create --name "Agent kit created stage"
+expect "a duplicate version name is refused before create" "not d['ok'] and d['error_codes'] == ['version_exists'] and d['existing_version']['id'] and d['existing_version']['href'] and d['counts']['planned_actions'] == 0"
 run "" "$TOOLKIT" work-package update-metadata --task "$TASK" --version "Agent kit stage"
 expect "a version dry run shows the old and new version" "d['ok'] and d['mode'] == 'dry_run' and d['actions'][0]['from_version']['id'] == '' and d['actions'][0]['to_version']['id'] == '$(fact version)'"
 run 1 "$TOOLKIT" work-package update-metadata --task "$TASK" --version "Agent kit stage"

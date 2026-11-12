@@ -448,7 +448,7 @@ one.
 | Draft dates from capacity and load | `bin/replan taskjuggler run`, `bin/replan taskjuggler import-result`, then review the scenario with `bin/replan scenario diff` and `bin/replan scenario apply` (needs TaskJuggler's `tj3`) |
 | Record work and accept a task | `bin/replan actual add-consumption`, `bin/replan actual add-status`, `scripts/accept-task.sh` |
 | Create work packages and relations | `scripts/apply-openproject-bootstrap.sh`, `scripts/apply-openproject-relations.sh` |
-| Change one work package | `scripts/openproject-work-package-toolkit.sh` for status, dates, text, metadata and Version (stage); list project versions with `version list` |
+| Change one work package | `scripts/openproject-work-package-toolkit.sh` for status, dates, text, metadata and Version (stage); list or create project versions with `version list` or `version create` |
 | Read and edit the project wiki | `scripts/openproject-wiki.sh` |
 | Bring files written by an older tool into the current style | `bin/replan project format` |
 
@@ -502,6 +502,7 @@ to its root. A write to OpenProject or the bindings file is a dry run unless
 | Dates from OpenProject | `bin/replan task set-dates ... --dry-run` | Reviewed one-task acceptance. For a stored snapshot use `bin/replan import accept <snapshot-id> --accept-dates --dry-run`. The live batch helper keeps private-binding matching, then writes audited `task set-dates` changes and requires `REPLAN_ACTOR` with `REPLAN_APPLY=1`. |
 | Change and push a task description | `bin/replan task set-description ... --dry-run`, then `scripts/push-openproject-description-drift.sh` | The CLI changes the audited canonical description. The helper previews bound work-package differences, preserves an existing bootstrap trailer and all OpenProject text from it byte-for-byte (also flagging text joined to its line), and pushes only with `REPLAN_APPLY=1`; without a trailer it replaces the whole description and does not append one; `REPLAN_TASKS` optionally limits the task ids. |
 | Correct subject or description | `scripts/openproject-work-package-toolkit.sh work-package update-text ...` | Shows old/new text and the current lock version. A bound subject is preflighted and synchronized with audited `bin/replan task set-title`; an OpenProject description is not copied into the separate RePlan planning note. |
+| Create an OpenProject Version (stage) | `scripts/openproject-work-package-toolkit.sh version create --name <exact-name> ...` | Refuses an exact existing name, previews the API payload, and creates only with `REPLAN_APPLY=1`. The token user needs the project's Manage versions permission. |
 | Set or clear one work package's Version (stage) | `scripts/openproject-work-package-toolkit.sh work-package update-metadata --task <id> --version <id-or-exact-name>` | Use `version list` to inspect the selected project's versions; use `--clear-version` to remove one. Both are dry-run first and use the work package's current lock version on apply. |
 | Drift check | `scripts/check-openproject-drift.sh` | Read-only comparison; a person chooses the direction. |
 | Overlay build and publish | `scripts/build-openproject-live-overlay.sh`, then `scripts/publish-openproject-overlay.sh` | Builds locally with private bindings, then publishes only to the selected project's directory. Publish is a dry run unless `REPLAN_APPLY=1`; the private target comes only from the environment or ignored `.env.local`. |
@@ -692,6 +693,7 @@ scripts/openproject-work-package-toolkit.sh work-package update-status --task <t
 scripts/openproject-work-package-toolkit.sh work-package update-dates --task <task id> --start-date 2026-10-12 --due-date 2026-10-14
 scripts/openproject-work-package-toolkit.sh work-package update-text --task <task id> --subject "Corrected subject" --evidence <evidence id>
 scripts/openproject-work-package-toolkit.sh version list
+scripts/openproject-work-package-toolkit.sh version create --name "Stage 3" --description "Third delivery stage" --start-date 2026-11-16 --due-date 2026-11-27
 scripts/openproject-work-package-toolkit.sh work-package update-metadata --task <task id> --version "Stage 2"
 scripts/openproject-work-package-toolkit.sh work-package update-metadata --task <task id> --clear-version
 scripts/openproject-work-package-toolkit.sh comment add --task <task id> --text "..."
@@ -710,12 +712,14 @@ after every comment write. Releases up to v0.5.0 reported comments as saved
 even when OpenProject 17.6 silently dropped them.
 
 The other toolkit and wiki updates also compare OpenProject's answer with what
-they sent: status, dates, estimate, version, assignee, type, parent, subject,
-description and wiki page text. Equivalent forms count as saved (`PT1H30M` and
-`PT1.5H`, CRLF and LF, trailing whitespace). A field missing from the answer
-fails the command with `work_package_fields_not_saved` or
-`wiki_page_fields_not_saved` and names it in `unconfirmed_fields`; read the
-work package or page back before retrying.
+they sent: work-package status, dates, estimate, version, assignee, type,
+parent, subject and description; a newly created Version's name, description,
+dates, status and sharing; and wiki page text. Equivalent forms count as saved
+(`PT1H30M` and `PT1.5H`, CRLF and LF, trailing whitespace). A field missing
+from the answer fails the command with `work_package_fields_not_saved`,
+`version_fields_not_saved` or `wiki_page_fields_not_saved` and names it in
+`unconfirmed_fields`; read the work package, Version or page back before
+retrying.
 
 ### Use the toolkit without a plan
 
@@ -725,11 +729,13 @@ For an OpenProject-only project, omit `REPLAN_PROJECT`. Keep
 file.
 
 The catalog commands `status list`, `type list`, `user list`, `priority list`
-and `version list` work in this mode, as do `work-package list`,
-`work-package inspect --work-package <id>`, `work-package create` without `--task`, every
-`work-package update-* --work-package <id>` command, and `comment add` or
-`comment list` with `--work-package <id>`. Create still rejects an existing subject unless
-`--allow-duplicate` is supplied.
+and `version list` work in this mode. So does `version create`; it still needs
+the project id and a token with Manage versions permission, but not a RePlan
+plan. The commands `work-package list`, `work-package inspect --work-package
+<id>`, `work-package create` without `--task`, every `work-package update-*
+--work-package <id>` command, and `comment add` or `comment list` with
+`--work-package <id>` also work. Create still rejects an existing subject
+unless `--allow-duplicate` is supplied.
 
 Commands that select a RePlan task or otherwise need plan bindings still
 require `REPLAN_PROJECT`: `work-package bind`, all `--task` forms, `backlog
@@ -790,8 +796,21 @@ scripts/openproject-work-package-toolkit.sh work-package list
 `In progress`, `On hold`, `Developed`, `Closed`, `Rejected`).
 
 `version list` reads every page of the selected project's versions and reports
-each version's id, exact name, status and sharing mode. `work-package create`
-and `work-package update-metadata` accept `--version <id-or-exact-name>`;
+each version's id, exact name, description, start and due dates, status and
+sharing mode. `version create --name <name>` previews one create action and
+requires `REPLAN_APPLY=1` to write. Optional `--description`, `--start-date`,
+`--due-date`, `--status` and `--sharing` values are omitted from the request
+when absent, so OpenProject's defaults apply. The command rejects dates that
+are not real `YYYY-MM-DD` dates and a due date before the start date, and refuses an exact existing name with `version_exists` before
+writing. OpenProject 17 creates through `POST /api/v3/versions`; the payload's
+`_links.definingProject` selects this project. A successful apply reports the
+returned version id and href; a token without Manage versions permission gets
+`version_create_forbidden`, and a validation refusal from OpenProject gets
+`version_refused` with its messages. If a POST outcome is unknown, run
+`version list` before retrying.
+
+`work-package create` and `work-package update-metadata` accept
+`--version <id-or-exact-name>`;
 `update-metadata --clear-version` removes it. A duplicate exact name is refused
 with `version_ambiguous` and the matching ids, and an unknown id or name with
 `version_not_found`. Dry runs show `from_version` and `to_version`; apply still

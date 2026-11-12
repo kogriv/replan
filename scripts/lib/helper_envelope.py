@@ -60,6 +60,8 @@ EXTERNAL_CODES = {
     "openproject_malformed_response",
     "openproject_project_not_found",
     "assignee_refused",
+    "version_create_forbidden",
+    "version_refused",
 }
 
 
