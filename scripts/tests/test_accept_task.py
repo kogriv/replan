@@ -266,7 +266,14 @@ class AcceptTaskTest(unittest.TestCase):
         self.assertTrue(second["no_op"], second)
         self.assertEqual(second["counts"]["applied"], 0)
         self.assertEqual(next(item for item in second["actions"] if item["step"] == 6)["state"], "already_done")
-        self.assertEqual(next(item for item in second["actions"] if item["step"] == 7)["state"], "already_done")
+        second_dates = next(item for item in second["actions"] if item["step"] == 7)
+        self.assertEqual(second_dates["state"], "already_done")
+        self.assertTrue(second_dates["cli_dry_run"]["no_op"])
+        second_status = next(item for item in second["actions"] if item["step"] == 9)
+        self.assertEqual(second_status["state"], "already_done")
+        # An accepted work package is recognised from inspect, without a
+        # status dry run that could fail for an unrelated reason.
+        self.assertNotIn("cli_dry_run", second_status)
 
         # A date push that failed after RePlan recorded the window is retried.
         OpenProjectHandler.start_date = ""

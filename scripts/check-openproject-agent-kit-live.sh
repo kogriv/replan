@@ -168,6 +168,10 @@ run "" "$TOOLKIT" work-package update-metadata --task "$TASK" --version "Agent k
 expect "a version dry run shows the old and new version" "d['ok'] and d['mode'] == 'dry_run' and d['actions'][0]['from_version']['id'] == '' and d['actions'][0]['to_version']['id'] == '$(fact version)'"
 run 1 "$TOOLKIT" work-package update-metadata --task "$TASK" --version "Agent kit stage"
 expect "a member sets a work-package version" "d['ok'] and d['counts']['applied_actions'] == 1"
+run "" "$TOOLKIT" work-package update-metadata --task "$TASK" --version "Agent kit stage"
+expect "a repeated version dry run is a no-op" "d['ok'] and d['no_op'] and d['counts']['planned_actions'] == 0 and d['actions'][0]['no_op'] and '_links.version' in d['actions'][0]['unchanged_fields']"
+run 1 "$TOOLKIT" work-package update-metadata --task "$TASK" --version "Agent kit stage"
+expect "a repeated version apply sends no action" "d['ok'] and d['no_op'] and d['counts']['planned_actions'] == 0 and d['counts']['applied_actions'] == 0"
 run 1 "$TOOLKIT" work-package update-metadata --task "$TASK" --clear-version
 expect "a member clears a work-package version" "d['ok'] and d['counts']['applied_actions'] == 1"
 run 1 "$TOOLKIT" work-package update-metadata --task "$TASK" --estimated-hours 1.5
@@ -197,6 +201,10 @@ run "" "$TOOLKIT" work-package update-dates --task "$TASK" --start-date 2026-10-
 expect "a dry run plans the dates" "d['ok'] and d['mode'] == 'dry_run' and d['counts']['planned_actions'] == 1"
 run 1 "$TOOLKIT" work-package update-dates --task "$TASK" --start-date 2026-10-12 --due-date 2026-10-13
 expect "a member sets the dates" "d['ok'] and d['counts']['applied_actions'] == 1"
+run "" "$TOOLKIT" work-package update-dates --task "$TASK" --start-date 2026-10-12 --due-date 2026-10-13
+expect "a repeated date dry run is a no-op" "d['ok'] and d['no_op'] and d['counts']['planned_actions'] == 0 and d['actions'][0]['no_op'] and all(field in d['actions'][0]['unchanged_fields'] for field in ('startDate', 'dueDate', 'scheduleManually'))"
+run 1 "$TOOLKIT" work-package update-dates --task "$TASK" --start-date 2026-10-12 --due-date 2026-10-13
+expect "a repeated date apply sends no action" "d['ok'] and d['no_op'] and d['counts']['planned_actions'] == 0 and d['counts']['applied_actions'] == 0"
 run "" "$TOOLKIT" work-package update-dates --task "$TASK" --start-date 2026-10-25 --due-date 2026-10-25
 expect "a Sunday date dry run keeps the non-working day" "d['ok'] and d['actions'][0]['set_ignore_non_working_days'] and 'Sunday' in d['actions'][0]['ignore_non_working_days_reason']"
 run 1 "$TOOLKIT" work-package update-dates --task "$TASK" --start-date 2026-10-25 --due-date 2026-10-25

@@ -176,21 +176,43 @@ class ToolkitRelationsParentTest(unittest.TestCase):
         )
 
     def test_parent_set_and_clear_payloads_include_lock_version(self):
-        for extra, expected_parent in (
-            (["--parent", "2"], {"href": "/api/v3/work_packages/2"}),
-            (["--clear-parent"], {"href": None}),
-        ):
-            with self.subTest(extra=extra):
-                state = self.state()
-                base = self.serve(state)
-                proc, out = self.run_toolkit(base, [
-                    "work-package", "update-metadata", "--work-package", "1",
-                    *extra,
-                ], apply="1")
-                self.assertEqual(proc.returncode, 0, out)
-                payload = state["patches"][0][1]
-                self.assertEqual(payload["lockVersion"], 3)
-                self.assertEqual(payload["_links"]["parent"], expected_parent)
+        state = self.state()
+        base = self.serve(state)
+        proc, out = self.run_toolkit(base, [
+            "work-package", "update-metadata", "--work-package", "1",
+            "--parent", "2",
+        ], apply="1")
+        self.assertEqual(proc.returncode, 0, out)
+        payload = state["patches"][0][1]
+        self.assertEqual(payload["lockVersion"], 3)
+        self.assertEqual(
+            payload["_links"]["parent"], {"href": "/api/v3/work_packages/2"},
+        )
+
+    def test_clear_existing_parent_sends_a_null_link_with_lock_version(self):
+        state = self.state()
+        state["work_packages"]["1"]["_links"] = {
+            "parent": {"href": "/api/v3/work_packages/2"},
+        }
+        proc, out = self.run_toolkit(self.serve(state), [
+            "work-package", "update-metadata", "--work-package", "1",
+            "--clear-parent",
+        ], apply="1")
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertFalse(out.get("no_op"), out)
+        payload = state["patches"][0][1]
+        self.assertEqual(payload["lockVersion"], 3)
+        self.assertEqual(payload["_links"]["parent"], {"href": None})
+
+    def test_clear_absent_parent_is_a_no_op(self):
+        state = self.state()
+        proc, out = self.run_toolkit(self.serve(state), [
+            "work-package", "update-metadata", "--work-package", "1",
+            "--clear-parent",
+        ], apply="1")
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertTrue(out["no_op"], out)
+        self.assertEqual(state["patches"], [])
 
     def test_parent_permission_errors_are_mapped(self):
         cases = (

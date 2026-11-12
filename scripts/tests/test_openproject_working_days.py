@@ -199,7 +199,7 @@ class WorkingDaysToolkitTest(unittest.TestCase):
         )
         return proc, json.loads(proc.stdout)
 
-    def test_weekend_dry_run_and_apply_set_the_one_way_flag(self):
+    def test_weekend_dry_run_and_apply_keep_an_existing_one_way_flag(self):
         with tempfile.TemporaryDirectory() as tmp:
             bindings = self.project(tmp)
             proc, dry = self.run_update(tmp, bindings, "2026-10-25", "2026-10-25")
@@ -210,8 +210,19 @@ class WorkingDaysToolkitTest(unittest.TestCase):
 
             proc, out = self.run_update(tmp, bindings, "2026-10-25", "2026-10-25", apply=True)
             self.assertEqual(proc.returncode, 0, out)
-            self.assertIs(self.patches[0]["ignoreNonWorkingDays"], True)
+            self.assertNotIn("ignoreNonWorkingDays", self.patches[0])
+            self.assertIn("ignoreNonWorkingDays", out["actions"][0]["unchanged_fields"])
             self.assertEqual(self.week_reads, 2)
+
+    def test_weekend_apply_sets_the_flag_when_it_is_off(self):
+        self.current_ignore = False
+        with tempfile.TemporaryDirectory() as tmp:
+            bindings = self.project(tmp)
+            proc, out = self.run_update(tmp, bindings, "2026-10-25", "2026-10-25", apply=True)
+
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertIs(self.patches[0]["ignoreNonWorkingDays"], True)
+        self.assertNotIn("ignoreNonWorkingDays", out["actions"][0].get("unchanged_fields", []))
 
     def test_weekday_does_not_send_or_reset_existing_true(self):
         with tempfile.TemporaryDirectory() as tmp:

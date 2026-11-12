@@ -405,7 +405,7 @@ else:
     # rerun after a failed date push must still push it.
     date_preview = preflight_json(date_command, env=toolkit_dry_env)
     date_actions = date_preview.get("actions") or []
-    if date_actions and date_actions[0].get("from_start_date") == actual_start and date_actions[0].get("from_due_date") == actual_finish:
+    if date_preview.get("no_op") or (date_actions and date_actions[0].get("from_start_date") == actual_start and date_actions[0].get("from_due_date") == actual_finish):
         date_step = step(7, "update_openproject_dates", "already_done", "OpenProject dates already match the derived actual window", date_command, cli_dry_run=date_preview)
     else:
         date_step = action_for(date_command, 7, "update_openproject_dates", "OpenProject dates differ from the derived actual window", cli_dry_run=date_preview)
@@ -427,7 +427,10 @@ else:
         op_step = step(9, "update_openproject_status", "already_done", f"work package {wp.get('work_package_id', '')} already has accepted status", update_command, work_package_id=wp.get("work_package_id", ""), inspect=inspect)
     else:
         update_preview = preflight_json(update_command, env=toolkit_dry_env)
-        op_step = action_for(update_command, 9, "update_openproject_status", f"work package status is {wp.get('source_status', '')!r}", work_package_id=wp.get("work_package_id", ""), cli_dry_run=update_preview)
+        if update_preview.get("no_op"):
+            op_step = step(9, "update_openproject_status", "already_done", f"work package {wp.get('work_package_id', '')} already has the accepted OpenProject status", update_command, work_package_id=wp.get("work_package_id", ""), inspect=inspect, cli_dry_run=update_preview)
+        else:
+            op_step = action_for(update_command, 9, "update_openproject_status", f"work package status is {wp.get('source_status', '')!r}", work_package_id=wp.get("work_package_id", ""), cli_dry_run=update_preview)
 planned.append(op_step)
 
 overlay_commands = [[overlay_build], [overlay_publish]]

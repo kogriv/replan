@@ -664,9 +664,11 @@ same activity id and exact text. Releases up to v0.5.0 reported comments as
 saved that OpenProject 17.6 dropped.
 
 Writes are dry-run by default. Live mutation requires `REPLAN_APPLY=1`.
-Fixture mode never applies writes. The script is the approved path for
-day-to-day OpenProject work-package manipulation until the same contract is
-moved into the first-class `replan openproject ...` CLI surface.
+Fixture mode never applies a write; an apply request whose fields already
+match the fixture may return a successful no-op because it sends nothing. The
+script is the approved path for day-to-day OpenProject work-package
+manipulation until the same contract is moved into the first-class `replan
+openproject ...` CLI surface.
 `work-package update-status --status` accepts the seven RePlan tracking
 statuses or their exact mapped OpenProject names.
 `work-package update-text` previews old/new subject and raw Markdown
@@ -678,6 +680,20 @@ note.
 already returned by the project version catalog, and creates only for a token
 with Manage versions permission. It checks the returned name, description,
 dates, status and sharing before reporting the new version id and href.
+
+The status, date and metadata update commands compare their complete proposed
+payload with the current work package before checking a real status transition
+or planning a PATCH. An exact repeat returns `ok: true`, `no_op: true`, zero
+planned actions and, in apply mode, zero applied actions. Its descriptive
+action remains in `actions`, has `no_op: true`, lists `unchanged_fields`, and
+does not require apply. An unchanged status does not request the workflow form,
+so a workflow without a self-transition does not turn a no-op into a refusal.
+For a partial match, only differing scalar fields and HAL links are sent, along
+with the normal current `lockVersion`, and only those sent fields are verified
+in the PATCH answer. Equivalent durations, normalized text and null or absent
+cleared Version and parent links compare equal. Date comparison includes
+`scheduleManually` and any `ignoreNonWorkingDays` flag added by the real manual
+scheduling payload.
 
 ## Non-goals for the next slice
 

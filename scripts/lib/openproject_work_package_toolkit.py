@@ -454,10 +454,21 @@ def fixture_work_package(work_package_id):
 def status_catalog():
     if from_file:
         values = {}
-        for row in load_work_package_rows()[0]:
-            name = row.get("source_status", "")
+        raw_items, _ = elements_from_fixture()
+        for index, item in enumerate(raw_items, 1):
+            status_link = ((item.get("_links") or {}).get("status") or {})
+            raw_status = item.get("status") or {}
+            name = (
+                status_link.get("title")
+                or (raw_status.get("name", "") if isinstance(raw_status, dict) else "")
+                or item.get("source_status", "")
+            )
             if name:
-                values[name] = {"name": name, "href": f"/api/v3/statuses/{len(values)+1}", "source": "fixture_inferred"}
+                values[name] = {
+                    "name": name,
+                    "href": status_link.get("href") or f"/api/v3/statuses/{index}",
+                    "source": "fixture_inferred",
+                }
         return list(values.values()), []
     _, data = client.request_json("GET", "/api/v3/statuses", expected=(200,))
     items = []
@@ -1301,15 +1312,60 @@ def command_status_list(_args):
     items, warnings = status_catalog()
     print_json(envelope("openproject status list", "read_only", items=items, counts={"items": len(items)}, warnings=warnings))
 
+
+def differing_work_package_payload(resource, payload):
+    """Return the requested fields that differ and the fields already equal."""
+    mismatches = set(work_package_payload_mismatches(resource, payload))
+    differing = {}
+    unchanged = []
+    for field, value in payload.items():
+        if field != "_links":
+            if field in mismatches:
+                differing[field] = value
+            else:
+                unchanged.append(field)
+            continue
+        differing_links = {}
+        for link_name, link_value in value.items():
+            field_name = f"_links.{link_name}"
+            if field_name in mismatches:
+                differing_links[link_name] = link_value
+            else:
+                unchanged.append(field_name)
+        if differing_links:
+            differing["_links"] = differing_links
+    return differing, sorted(unchanged)
+
+
+def emit_update_no_op(command, action, warnings):
+    action.update({
+        "dry_run": False,
+        "apply_required": False,
+        "no_op": True,
+    })
+    counts = {"planned_actions": 0, "blocked_actions": 0}
+    if mode == "apply":
+        counts["applied_actions"] = 0
+    print_json(envelope(
+        command, mode, actions=[action], counts=counts, warnings=warnings,
+        extra={
+            "dry_run": mode != "apply",
+            "apply_required": False,
+            "applied": False,
+            "no_op": True,
+            "message": "Nothing needs to change; every requested field already matches OpenProject.",
+            "suggested_next_actions": ["No OpenProject update is needed."],
+        },
+    ))
+
 def update_action(args, kind):
     wp_id, task_id = resolve_work_package_id(args)
-    if from_file and mode == "apply":
-        print_json(envelope(f"openproject work-package {kind}", "apply", ok=False, errors=[diagnostic("apply_not_allowed_with_fixture", "apply is not allowed when REPLAN_OPENPROJECT_FROM_FILE is used")]), 2)
+    command = f"openproject work-package {kind}"
     if not from_file and not token:
-        skip_without_token(f"openproject work-package {kind}", f"{token_env} is not set")
+        skip_without_token(command, f"{token_env} is not set")
     current = fixture_work_package(wp_id) if from_file else live_work_package(wp_id)
     if not current:
-        print_json(envelope(f"openproject work-package {kind}", mode, ok=False, errors=[diagnostic("missing_live_work_package", f"work package {wp_id} was not found", "error", "openproject_work_package", wp_id)]), 2)
+        print_json(envelope(command, mode, ok=False, errors=[diagnostic("missing_live_work_package", f"work package {wp_id} was not found", "error", "openproject_work_package", wp_id)]), 2)
     candidate = task_candidate_from_wp(current, binding_maps()[2]) if "subject" in current else current
     action = {
         "work_package_id": wp_id,
@@ -1320,22 +1376,18 @@ def update_action(args, kind):
     payload = {}
     blocked = []
     warnings = []
+    status_href = ""
     if kind == "update-status":
         try:
             openproject_status = resolve_status_argument(args.status)
         except ValueError as exc:
             action.update({"action": "update_openproject_status", "from_status": candidate.get("source_status", ""), "to_status": args.status, "to_status_href": "", "blocked": True})
-            print_json(envelope(f"openproject work-package {kind}", mode, ok=False, actions=[action], counts={"planned_actions": 0, "blocked_actions": 1}, errors=[diagnostic("invalid_status", str(exc), "error", "openproject_status", args.status)]), 2)
+            print_json(envelope(command, mode, ok=False, actions=[action], counts={"planned_actions": 0, "blocked_actions": 1}, errors=[diagnostic("invalid_status", str(exc), "error", "openproject_status", args.status)]), 2)
         status_hrefs = status_href_by_name()
         status_href = status_hrefs.get(openproject_status, "")
         action.update({"action": "update_openproject_status", "from_status": candidate.get("source_status", ""), "to_status": openproject_status, "to_status_href": status_href})
         if not status_href:
             blocked.append(diagnostic("openproject_status_missing", f"OpenProject status {openproject_status!r} was not found", "error", "openproject_status", openproject_status))
-        elif not from_file:
-            allowed = allowed_status_hrefs(wp_id, current.get("lockVersion"))
-            action["allowed_status_hrefs"] = sorted(allowed)
-            if status_href not in allowed:
-                blocked.append(diagnostic("openproject_workflow_transition_not_allowed", f"status transition to {openproject_status!r} is not allowed for work package {wp_id}", "error", "openproject_work_package", wp_id))
         payload = {"_links": {"status": {"href": status_href}}}
     elif kind == "update-dates":
         action.update({"action": "update_openproject_dates", "from_start_date": candidate.get("start_date", ""), "to_start_date": args.start_date or candidate.get("start_date", ""), "from_due_date": candidate.get("due_date", ""), "to_due_date": args.due_date or candidate.get("due_date", "")})
@@ -1394,9 +1446,26 @@ def update_action(args, kind):
             blocked.append(diagnostic("missing_metadata_change", "at least one metadata change is required"))
     if blocked:
         action["blocked"] = True
-        print_json(envelope(f"openproject work-package {kind}", mode, ok=False, actions=[action], counts={"planned_actions": 0, "blocked_actions": 1}, warnings=warnings, errors=blocked), 2)
+        print_json(envelope(command, mode, ok=False, actions=[action], counts={"planned_actions": 0, "blocked_actions": 1}, warnings=warnings, errors=blocked), 2)
+
+    payload, unchanged_fields = differing_work_package_payload(current, payload)
+    action["unchanged_fields"] = unchanged_fields
+    if not payload:
+        emit_update_no_op(command, action, warnings)
+
+    if from_file and mode == "apply":
+        print_json(envelope(command, "apply", ok=False, actions=[action], errors=[diagnostic("apply_not_allowed_with_fixture", "apply is not allowed when REPLAN_OPENPROJECT_FROM_FILE is used")]), 2)
+
+    if kind == "update-status" and not from_file:
+        allowed = allowed_status_hrefs(wp_id, current.get("lockVersion"))
+        action["allowed_status_hrefs"] = sorted(allowed)
+        if status_href not in allowed:
+            action["blocked"] = True
+            blocked.append(diagnostic("openproject_workflow_transition_not_allowed", f"status transition to {openproject_status!r} is not allowed for work package {wp_id}", "error", "openproject_work_package", wp_id))
+            print_json(envelope(command, mode, ok=False, actions=[action], counts={"planned_actions": 0, "blocked_actions": 1}, warnings=warnings, errors=blocked), 2)
+
     if mode != "apply":
-        print_json(envelope(f"openproject work-package {kind}", "dry_run", actions=[action], counts={"planned_actions": 1, "blocked_actions": 0}, warnings=warnings, extra={"dry_run": True, "apply_required": True, "suggested_next_actions": ["Review the planned action and rerun with REPLAN_APPLY=1 to apply."]}))
+        print_json(envelope(command, "dry_run", actions=[action], counts={"planned_actions": 1, "blocked_actions": 0}, warnings=warnings, extra={"dry_run": True, "apply_required": True, "suggested_next_actions": ["Review the planned action and rerun with REPLAN_APPLY=1 to apply."]}))
     try:
         updated = patch_work_package(wp_id, payload)
     except RuntimeError as exc:
@@ -1406,7 +1475,7 @@ def update_action(args, kind):
                 "permission to manage work package hierarchies (subtasks)."
             )
             print_json(envelope(
-                f"openproject work-package {kind}", "apply", ok=False,
+                command, "apply", ok=False,
                 actions=[action], counts={"applied_actions": 0},
                 errors=[diagnostic(
                     "openproject_permission_missing", message, "error",
@@ -1422,7 +1491,7 @@ def update_action(args, kind):
     if mismatches:
         action["unconfirmed_fields"] = mismatches
         print_json(envelope(
-            f"openproject work-package {kind}", "apply", ok=False,
+            command, "apply", ok=False,
             actions=[action], counts={"applied_actions": 0}, warnings=warnings,
             errors=[diagnostic(
                 "work_package_fields_not_saved",
@@ -1432,7 +1501,7 @@ def update_action(args, kind):
             extra={"dry_run": False, "applied": False,
                    "verification_command": "scripts/check-openproject-drift.sh"},
         ), 2)
-    print_json(envelope(f"openproject work-package {kind}", "apply", actions=[action], counts={"applied_actions": 1}, warnings=warnings, extra={"dry_run": False, "applied": True, "verification_command": "scripts/check-openproject-drift.sh"}))
+    print_json(envelope(command, "apply", actions=[action], counts={"applied_actions": 1}, warnings=warnings, extra={"dry_run": False, "applied": True, "verification_command": "scripts/check-openproject-drift.sh"}))
 
 def command_wp_update_text(args):
     command = "openproject work-package update-text"

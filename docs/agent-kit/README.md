@@ -721,6 +721,22 @@ from the answer fails the command with `work_package_fields_not_saved`,
 `unconfirmed_fields`; read the work package, Version or page back before
 retrying.
 
+Before `work-package update-status`, `update-dates` or `update-metadata` plans
+or applies a write, it compares every requested field with the current work
+package. If all fields already match, the answer has `no_op: true`, keeps the
+descriptive action with `unchanged_fields`, reports zero planned and applied
+actions, and sends neither a PATCH nor a status workflow-form request. If only
+some fields match, the PATCH contains only the differing fields plus the
+current `lockVersion`; write-answer verification covers that smaller payload.
+Duration, text, boolean and HAL-link normalization is the same before and
+after a write, including an absent link matching a requested null link when a
+Version or parent is already cleared.
+
+Fixture dry runs use the values present in the fixture for the same comparison.
+A live-shaped fixture with HAL link hrefs can therefore prove the same no-op
+behavior, and an apply-mode no-op is safe and succeeds without a write. A real
+fixture-mode change is still refused because fixtures cannot be mutated.
+
 ### Use the toolkit without a plan
 
 For an OpenProject-only project, omit `REPLAN_PROJECT`. Keep
