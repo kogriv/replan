@@ -1072,3 +1072,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.consumer-second-user-perimeter-key
+  - id: evidence.self.consumer-second-user-perimeter-key
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-12T16:10:49+07:00"
+    summary: 'At 16:10 one key line for the third consumer''s analyst was added to the nginx perimeter key map, same format and a dated comment naming whom it is for and how to revoke it; the map was backed up first, nginx -t passed and nginx reloaded (5 keys). The key was generated on the host and written only to a private 0600 file on the maintainer''s machine; it was never printed. Checked from outside: with the new key the public API path is answered by OpenProject itself (401 JSON for a missing token, no Basic Auth challenge); with a wrong key or none nginx still answers with the Basic Auth challenge. The consumer session got the file path for the private handover. Agent time 16:08:21-16:10:49, 0.04 h by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.consumer-second-user-perimeter-key
+  - id: evidence.self.start-toolkit-write-answers-name-ids
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-12T16:11:50+07:00"
+    summary: Started on the planned day after the perimeter key task; reading the toolkit's create, bind, relation and comment answers to brief Codex.
+    targets:
+      - kind: task
+        id: task.self.toolkit-write-answers-name-ids
