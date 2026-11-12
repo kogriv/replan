@@ -890,3 +890,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.first-consumer-agent-role-status-transitions
+  - id: evidence.self.plan-toolkit-version-create
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-12T11:41:29+07:00"
+    summary: The maintainer agreed (message 2026-11-12 11:41:29) the toolkit version create command at Codex 0.5 and agent 0.5 hours, asked for by the second consumer project, whose agent role already has manage_versions. Estimate from the comment fix (Codex 0.7, agent 0.78 actual), a smaller change.
+    targets:
+      - kind: task
+        id: task.self.toolkit-version-create
+  - id: evidence.self.plan-publish-release-v0-5-2
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-12T11:41:29+07:00"
+    summary: The maintainer agreed (message 2026-11-12 11:41:29) release v0.5.2 with version create and the kit refresh for the three consumer projects at 0.5 agent hours, from release v0.5.1 (0.34 h actual).
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-2

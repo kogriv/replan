@@ -7743,3 +7743,59 @@ tasks:
         object_type: work_package
         object_id: "2362"
         url: https://op.example.internal/work_packages/2362
+  - id: task.self.toolkit-version-create
+    title: Create OpenProject versions with the work-package toolkit
+    description: 'Asked on 2026-11-12 by the second consumer project, whose owner wants a new version for 14 new tasks: the toolkit can list versions but not create one, so an agent with the manage_versions permission still has to ask an administrator. Add version create to openproject-work-package-toolkit.sh: --name required, optional --description, --start-date, --due-date, --status (open, locked, closed) and --sharing (none, descendants, hierarchy, tree, system); dry run by default and a write only with REPLAN_APPLY=1; refuse a name that already exists in the project; POST to the project''s versions endpoint, compare the answer with what was sent (checked write answers, as for other toolkit writes) and report the version id and href; map 403 and 422 to clear error codes. Unit tests, the live agent kit check, the kit README and the toolkit help.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-12"
+    planned_finish: "2026-11-12"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.toolkit-version-create.agent
+      - kind: resource_demand
+        id: resource_demand.toolkit-version-create.codex
+      - kind: resource_demand
+        id: resource_demand.toolkit-version-create.maintainer
+      - kind: resource_demand
+        id: resource_demand.toolkit-version-create.local-dev
+      - kind: resource_demand
+        id: resource_demand.toolkit-version-create.ci
+    tags:
+      - openproject
+      - consumer-feedback
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2363"
+        url: https://op.example.internal/work_packages/2363
+  - id: task.self.publish-release-v0-5-2
+    title: Publish release v0.5.2 and refresh the agent kits
+    description: 'Agreed with the operator on 2026-11-12 together with the toolkit version create command: publish release v0.5.2 so the agent kits carry version create: release notes, tag after green CI, six archives built locally and compared with the CI build and its attestation, GitHub release, go install check; then refresh the three consumer projects'' kits as for v0.5.1 and tell each session what changed.'
+    type: release
+    tracking_status: not_started
+    planned_start: "2026-11-12"
+    planned_finish: "2026-11-12"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.publish-release-v0-5-2.agent
+      - kind: resource_demand
+        id: resource_demand.publish-release-v0-5-2.maintainer
+      - kind: resource_demand
+        id: resource_demand.publish-release-v0-5-2.local-dev
+      - kind: resource_demand
+        id: resource_demand.publish-release-v0-5-2.ci
+    tags:
+      - release
+      - consumer-feedback
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2364"
+        url: https://op.example.internal/work_packages/2364
