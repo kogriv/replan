@@ -1153,3 +1153,38 @@ evidence:
     targets:
       - kind: task
         id: task.self.status-push-through-allowed-statuses
+  - id: evidence.self.accept-status-push-through-allowed-statuses
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-12T11:18:30Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.status-push-through-allowed-statuses
+  - id: evidence.self.plan-publish-release-v0-5-3
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-12T18:18:22+07:00"
+    summary: The maintainer agreed release v0.5.3 with the kit refresh for the three consumer projects at 0.5 agent hours (message 2026-11-12 18:18:22), from release v0.5.2 (0.12 h actual).
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-3
+  - id: evidence.self.start-publish-release-v0-5-3
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-12T18:20:10+07:00"
+    summary: Started on the planned day right after the maintainer agreed (18:18:22) and the previous acceptance; planning from 18:18:30.
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-3

@@ -1531,3 +1531,24 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.status-push-through-allowed-statuses
+  - id: actual.self-status-push-through-allowed-statuses.ci-github-actions.20261112T111830Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.status-push-through-allowed-statuses
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.status-push-through-allowed-statuses.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-12T11:18:30Z"
+    status_date: "2026-11-12"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-status-push-through-allowed-statuses

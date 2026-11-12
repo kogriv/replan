@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 268,
-  "count": 268,
+  "total": 269,
+  "count": 269,
   "_embedded": {
     "elements": [
       {
@@ -7769,6 +7769,35 @@
           },
           "status": {
             "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2369,
+        "subject": "Publish release v0.5.3 and refresh the agent kits",
+        "description": {
+          "raw": "Agreed with the operator on 2026-11-12: publish release v0.5.3 so the agent kits carry the toolkit update no-op, the created object in write answers with create --bind, and the forward status path: release notes, tag after green CI, six archives built locally and compared with the CI build and its attestation, GitHub release, go install check; then refresh the three consumer projects' kits as for v0.5.2 and tell each session what changed."
+        },
+        "status": {
+          "name": "In progress"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-12",
+        "dueDate": "2026-11-12",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2369"
+          },
+          "status": {
+            "title": "In progress"
           },
           "assignee": {
             "href": "/api/v3/users/101",
