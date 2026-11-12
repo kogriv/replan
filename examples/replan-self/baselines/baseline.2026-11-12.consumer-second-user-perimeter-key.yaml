@@ -1,0 +1,43 @@
+baseline:
+  id: baseline.2026-11-12.consumer-second-user-perimeter-key
+  name: consumer-second-user-perimeter-key
+  scope: tasks
+  created_at: "2026-11-12T16:08:21+07:00"
+  approved_at: "2026-11-12T16:08:21+07:00"
+  approved_by:
+    kind: actor
+    id: actor.human.maintainer
+  status_date: "2026-11-12"
+  included_tasks:
+    - kind: task
+      id: task.self.consumer-second-user-perimeter-key
+      planned_start: "2026-11-12"
+      planned_finish: "2026-11-12"
+  included_demands:
+    - kind: resource_demand
+      id: resource_demand.consumer-second-user-perimeter-key.agent
+      task: task.self.consumer-second-user-perimeter-key
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.consumer-second-user-perimeter-key.maintainer
+      task: task.self.consumer-second-user-perimeter-key
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.consumer-second-user-perimeter-key.local-dev
+      task: task.self.consumer-second-user-perimeter-key
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.consumer-second-user-perimeter-key.ci
+      task: task.self.consumer-second-user-perimeter-key
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  seal:
+    algorithm: sha256
+    digest: 9058665a27a7d5ad2d0ba2237d3dfba7f0073941d5c8b077554a5dfe6471467a

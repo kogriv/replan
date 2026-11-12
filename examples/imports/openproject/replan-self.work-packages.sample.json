@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 265,
-  "count": 265,
+  "total": 268,
+  "count": 268,
   "_embedded": {
     "elements": [
       {
@@ -7682,6 +7682,93 @@
           },
           "status": {
             "title": "In progress"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2366,
+        "subject": "Give the third consumer's second user a perimeter key",
+        "description": {
+          "raw": "Asked on 2026-11-12 by the third consumer project: its analyst works through the agent kit with her own OpenProject API token and needs her own perimeter key for the public OpenProject path. Add one key line for her to the nginx perimeter key map in the same format as the other consumers' keys, with a dated comment naming whom it is for and how to revoke it; back up the map first, nginx -t, reload, keep the key only in a 0600 file and hand over the path, never print it; check that the key is accepted and that a wrong key is still refused."
+        },
+        "status": {
+          "name": "In progress"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-12",
+        "dueDate": "2026-11-12",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2366"
+          },
+          "status": {
+            "title": "In progress"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2367,
+        "subject": "Make toolkit write answers name the created id and the bind step",
+        "description": {
+          "raw": "Found on 2026-11-12 by two consumer projects: both looked for the created id of comment add and version create in items, which write answers leave empty (the id is in actions[0] and, for version create, at the top level), and work-package create --task creates the work package without writing the private binding while its answer only says to add the source_ref to the binding layer. Repeat the created object's identity (work package id, activity id, version id, relation id) as one row in items for every toolkit write that creates something; make work-package create --task name the exact work-package bind command in its next steps and add an opt-in --bind that writes the binding after a successful create, with the same checks as bind. Unit tests, the live agent kit check, the kit README and help text. Ships with the next release."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-12",
+        "dueDate": "2026-11-12",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2367"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2368,
+        "subject": "Push a status through the workflow's allowed intermediate statuses",
+        "description": {
+          "raw": "Found on 2026-11-10 and 2026-11-12 by two consumer projects: push-openproject-status-drift skips a work package with openproject_workflow_transition_not_allowed when the target status is not directly reachable (New -> Developed is not in the Task workflow for any role), and the consumers then step through In progress by hand. Add an opt-in setting that lets the status push walk the shortest path of allowed transitions to the target, one checked PATCH per step using the statuses the workflow offers at each step (no guessing from names), only through statuses the kit maps; refuse with a clear code when no path exists or a step fails, and report every step. Default behaviour stays a skip. Unit tests, the live agent kit check, the kit README. Ships with the next release."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-13",
+        "dueDate": "2026-11-13",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2368"
+          },
+          "status": {
+            "title": "New"
           },
           "assignee": {
             "href": "/api/v3/users/101",

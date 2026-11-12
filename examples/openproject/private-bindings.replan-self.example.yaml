@@ -815,6 +815,24 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2365"
         url: https://op.example.internal/work_packages/2365
+    - replan_task_id: task.self.consumer-second-user-perimeter-key
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2366"
+        url: https://op.example.internal/work_packages/2366
+    - replan_task_id: task.self.toolkit-write-answers-name-ids
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2367"
+        url: https://op.example.internal/work_packages/2367
+    - replan_task_id: task.self.status-push-through-allowed-statuses
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2368"
+        url: https://op.example.internal/work_packages/2368
     - replan_task_id: task.self.date-push-nothing-to-apply-is-ok
       source_ref:
         source: openproject
