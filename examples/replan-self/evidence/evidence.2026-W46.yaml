@@ -1004,3 +1004,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.toolkit-update-no-op
+  - id: evidence.self.toolkit-update-no-op
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-12T14:44:07+07:00"
+    summary: 'Feature commit a5cb5cb: update-status, update-dates and update-metadata compare the request with the current work package; an exact repeat answers ok, no_op true, zero planned and applied actions, keeps the action with unchanged_fields and sends no PATCH or workflow form request (so the current status is not refused by a workflow without a self-transition); a partial change sends and verifies only the differing fields. accept-task treats a no-op dry run as already done. Review: Codex had rewritten two existing tests for the new rule and lost coverage of clearing an existing parent and setting the non-working-days flag when it is off, both restored as tests; Codex had made accept-task run a status dry run even for an accepted work package, which could fail an acceptance that used to pass, so the inspect shortcut was restored and its test adjusted. Gate green: lint 0, 54 kit checks, unit suites, smoke and isolated smoke, throwaway OpenProject 17 with 95 live kit checks (91 before; four new repeat version and date updates as no-ops). Codex 13:57:14-14:18:03 (0.35 h, prompt and last-file mtimes). Executor 13:54:38-13:57:28 planning and brief, 14:18:20-14:21:03 review and fixes, 14:43:22-14:44:07 commit, 0.1 h by tool-call times; the read-only confirmation at 13:11:53 belonged to the acceptance follow-up and is not booked.'
+    targets:
+      - kind: task
+        id: task.self.toolkit-update-no-op
