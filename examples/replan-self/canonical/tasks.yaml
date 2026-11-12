@@ -7832,7 +7832,7 @@ tasks:
     title: Give the third consumer's second user a perimeter key
     description: 'Asked on 2026-11-12 by the third consumer project: its analyst works through the agent kit with her own OpenProject API token and needs her own perimeter key for the public OpenProject path. Add one key line for her to the nginx perimeter key map in the same format as the other consumers'' keys, with a dated comment naming whom it is for and how to revoke it; back up the map first, nginx -t, reload, keep the key only in a 0600 file and hand over the path, never print it; check that the key is accepted and that a wrong key is still refused.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-12"
     planned_finish: "2026-11-12"
     assignee_hint:

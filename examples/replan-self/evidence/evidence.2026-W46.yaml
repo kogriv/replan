@@ -1094,3 +1094,16 @@ evidence:
     targets:
       - kind: task
         id: task.self.toolkit-write-answers-name-ids
+  - id: evidence.self.accept-consumer-second-user-perimeter-key
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-12T09:16:55Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.consumer-second-user-perimeter-key

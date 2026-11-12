@@ -1405,3 +1405,24 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.consumer-second-user-perimeter-key
+  - id: actual.self-consumer-second-user-perimeter-key.ci-github-actions.20261112T091655Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.consumer-second-user-perimeter-key
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.consumer-second-user-perimeter-key.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-12T09:16:55Z"
+    status_date: "2026-11-12"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-consumer-second-user-perimeter-key
