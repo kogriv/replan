@@ -7747,7 +7747,7 @@ tasks:
     title: Create OpenProject versions with the work-package toolkit
     description: 'Asked on 2026-11-12 by the second consumer project, whose owner wants a new version for 14 new tasks: the toolkit can list versions but not create one, so an agent with the manage_versions permission still has to ask an administrator. Add version create to openproject-work-package-toolkit.sh: --name required, optional --description, --start-date, --due-date, --status (open, locked, closed) and --sharing (none, descendants, hierarchy, tree, system); dry run by default and a write only with REPLAN_APPLY=1; refuse a name that already exists in the project; POST to the project''s versions endpoint, compare the answer with what was sent (checked write answers, as for other toolkit writes) and report the version id and href; map 403 and 422 to clear error codes. Unit tests, the live agent kit check, the kit README and the toolkit help.'
     type: implementation
-    tracking_status: not_started
+    tracking_status: in_progress
     planned_start: "2026-11-12"
     planned_finish: "2026-11-12"
     assignee_hint:

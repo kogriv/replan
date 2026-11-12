@@ -912,3 +912,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-2
+  - id: evidence.self.start-toolkit-version-create
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-12T11:44:34+07:00"
+    summary: Started on the planned day right after planning (11:43:08); reading the toolkit, its version tests and the live kit check to brief Codex from 11:44.
+    targets:
+      - kind: task
+        id: task.self.toolkit-version-create
