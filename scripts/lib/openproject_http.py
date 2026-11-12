@@ -258,9 +258,10 @@ class Settings:
 
     ``token_env`` may override REPLAN_OPENPROJECT_TOKEN_ENV; both default to
     OPENPROJECT_TOKEN. REPLAN_APPLY, REPLAN_ACTOR, REPLAN_KEEP_TEMP,
-    REPLAN_OPENPROJECT_PROFILE, REPLAN_OPENPROJECT_FROM_FILE and
-    REPLAN_OPENPROJECT_STATUS_SCOPE are process-environment-only settings and
-    are deliberately absent from the dotenv allowlist in settings.list.
+    REPLAN_OPENPROJECT_PROFILE, REPLAN_OPENPROJECT_FROM_FILE,
+    REPLAN_OPENPROJECT_STATUS_SCOPE and REPLAN_OPENPROJECT_STATUS_PATH are
+    process-environment-only settings and are deliberately absent from the
+    dotenv allowlist in settings.list.
     """
 
     base_url: str = ""
@@ -270,6 +271,7 @@ class Settings:
     host_header: str = ""
     forwarded_proto: str = ""
     status_scope: str = "ready_only"
+    status_path: str = "direct"
     assignee_user_id: str = ""
     assignee_name: str = ""
     target_project_id: str = ""
@@ -326,6 +328,7 @@ class Settings:
             host_header=environ.get("REPLAN_OPENPROJECT_HOST_HEADER", ""),
             forwarded_proto=environ.get("REPLAN_OPENPROJECT_FORWARDED_PROTO", ""),
             status_scope=environ.get("REPLAN_OPENPROJECT_STATUS_SCOPE", "") or "ready_only",
+            status_path=environ.get("REPLAN_OPENPROJECT_STATUS_PATH", "") or "direct",
             assignee_user_id=environ.get("REPLAN_OPENPROJECT_ASSIGNEE_USER_ID", ""),
             assignee_name=environ.get("REPLAN_OPENPROJECT_ASSIGNEE_NAME", ""),
             target_project_id=project_id,

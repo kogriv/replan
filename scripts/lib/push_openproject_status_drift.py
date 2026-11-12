@@ -23,6 +23,7 @@ project_path, bindings_path = settings.project_path, settings.bindings_path
 base_url, openproject_project_id = settings.base_url, settings.project_id
 token_env, host_header = settings.token_env, settings.host_header
 forwarded_proto, status_scope = settings.forwarded_proto, settings.status_scope
+status_path = settings.status_path
 apply, keep_temp = settings.apply, settings.keep_temp
 
 mode = "apply" if apply == "1" else "dry_run"
@@ -35,6 +36,13 @@ client = OpenProjectClient(
 )
 
 tracking_to_openproject_status = TRACKING_TO_OPENPROJECT_STATUS
+progression_tracking_statuses = (
+    "not_started", "ready", "in_progress", "review_ready", "accepted",
+)
+progression_statuses = tuple(
+    tracking_to_openproject_status[tracking_status]
+    for tracking_status in progression_tracking_statuses
+)
 
 def load_yaml(path):
     with open(path) as fh:
@@ -79,7 +87,150 @@ def allowed_status_hrefs(work_package_id):
     links = status_schema.get("_links") or {}
     return {item.get("href", "") for item in links.get("allowedValues") or [] if item.get("href", "")}
 
+def allowed_status_state(work_package_id):
+    _, wp = client.request_json("GET", f"/api/v3/work_packages/{work_package_id}", expected=(200,))
+    payload = {"lockVersion": wp.get("lockVersion")}
+    _, form = client.request_json(
+        "POST", f"/api/v3/work_packages/{work_package_id}/form", payload,
+        expected=(200,), idempotent=True,
+    )
+    schema = (form.get("_embedded") or {}).get("schema") or {}
+    status_schema = (schema.get("_embedded") or {}).get("status") or schema.get("status") or {}
+    links = status_schema.get("_links") or {}
+    allowed = {item.get("href", "") for item in links.get("allowedValues") or [] if item.get("href", "")}
+    return wp, allowed
+
+def update_forward_status(work_package_id, lock_version, status_name, status_href):
+    payload = {
+        "lockVersion": lock_version,
+        "_links": {"status": {"href": status_href}},
+    }
+    partial_apply.writing()
+    _, data = client.request_json(
+        "PATCH", f"/api/v3/work_packages/{work_package_id}", payload, expected=(200,)
+    )
+    stored = data.get("_links", {}).get("status") or {}
+    if stored.get("href") != status_href and stored.get("title") != status_name:
+        raise ValueError(
+            f"OpenProject stored status {stored.get('href') or stored.get('title') or '<missing>'} "
+            f"instead of {status_href}"
+        )
+    return data
+
+def forward_eligible(current_status, desired_status):
+    if current_status not in progression_statuses or desired_status not in progression_statuses:
+        return False
+    return progression_statuses.index(current_status) < progression_statuses.index(desired_status)
+
+def forward_candidates(current_status, desired_status, status_hrefs):
+    current_index = progression_statuses.index(current_status)
+    target_index = progression_statuses.index(desired_status)
+    return [
+        (name, status_hrefs.get(name, ""))
+        for name in progression_statuses[current_index + 1:target_index]
+        if status_hrefs.get(name, "")
+    ]
+
+def path_step(from_status, to_status, to_href, **extra):
+    return {"from": from_status, "to": to_status, "to_href": to_href, **extra}
+
+def path_not_found(task_id, wp_id, tracking_status, desired_status, current_status,
+                   desired_href, allowed_hrefs, path):
+    return {
+        "task_id": task_id,
+        "work_package_id": wp_id,
+        "replan_tracking_status": tracking_status,
+        "openproject_source_status": current_status,
+        "desired_openproject_status": desired_status,
+        "desired_status_href": desired_href,
+        "path": path,
+        "current_openproject_status": current_status,
+        "allowed_status_hrefs": sorted(allowed_hrefs),
+        "reason": "openproject_status_path_not_found",
+    }
+
+def plan_forward_path(current_status, desired_status, desired_href, allowed_hrefs,
+                      status_hrefs):
+    if desired_href in allowed_hrefs:
+        first_name, first_href = desired_status, desired_href
+    else:
+        allowed_intermediates = [
+            pair for pair in forward_candidates(current_status, desired_status, status_hrefs)
+            if pair[1] in allowed_hrefs
+        ]
+        if not allowed_intermediates:
+            return []
+        first_name, first_href = allowed_intermediates[-1]
+    planned = [path_step(current_status, first_name, first_href, verified=True)]
+    if first_name != desired_status:
+        first_index = progression_statuses.index(first_name)
+        target_index = progression_statuses.index(desired_status)
+        previous = first_name
+        for name in progression_statuses[first_index + 1:target_index + 1]:
+            planned.append(path_step(previous, name, status_hrefs[name], verified=False))
+            previous = name
+    return planned
+
+def apply_forward_path(action, task_id, wp_id, tracking_status, current_status,
+                       desired_status, desired_href, status_hrefs):
+    path = []
+    current = current_status
+    for _ in range(len(progression_statuses)):
+        wp, allowed_hrefs = allowed_status_state(wp_id)
+        if desired_href in allowed_hrefs:
+            next_status, next_href = desired_status, desired_href
+        else:
+            intermediates = [
+                pair for pair in forward_candidates(current, desired_status, status_hrefs)
+                if pair[1] in allowed_hrefs
+            ]
+            if not intermediates:
+                partial_apply.clear()
+                return path_not_found(
+                    task_id, wp_id, tracking_status, desired_status, current,
+                    desired_href, allowed_hrefs, path,
+                )
+            next_status, next_href = intermediates[-1]
+        attempted = {
+            "action": "push_openproject_status_path_step",
+            "task_id": task_id,
+            "work_package_id": wp_id,
+            **path_step(current, next_status, next_href),
+        }
+        partial_apply.attempting(attempted)
+        updated = update_forward_status(
+            wp_id, wp.get("lockVersion"), next_status, next_href
+        )
+        step = path_step(
+            current, next_status, next_href,
+            updated_lock_version=updated.get("lockVersion"),
+        )
+        path.append(step)
+        partial_apply.applied({**attempted, **step})
+        current = next_status
+        if current == desired_status:
+            action["path"] = path
+            action["final_openproject_status"] = current
+            action["updated_lock_version"] = updated.get("lockVersion")
+            action["updated_openproject_status"] = current
+            return None
+    partial_apply.clear()
+    return path_not_found(
+        task_id, wp_id, tracking_status, desired_status, current,
+        desired_href, set(), path,
+    )
+
 def main():
+    if status_path not in ("direct", "forward"):
+        helper_envelope.emit({
+            "ok": False,
+            "command": "push-openproject-status-drift",
+            "mode": "invalid",
+            "errors": [helper_envelope.diagnostic(
+                "invalid_status_path",
+                "REPLAN_OPENPROJECT_STATUS_PATH must be direct or forward",
+            )],
+        }, helper_envelope.EXIT["usage"])
     data = json.load(open(import_path))
     result = data.get("result") or {}
     warnings = data.get("warnings") or result.get("warnings") or []
@@ -135,6 +286,35 @@ def main():
             "to_openproject_status": desired_status,
             "to_status_href": status_href,
         }
+        use_forward = status_path == "forward" and forward_eligible(
+            current_source_status, desired_status
+        )
+        if use_forward:
+            if mode == "apply":
+                skipped_item = apply_forward_path(
+                    action, task_id, wp_id, tracking_status,
+                    current_source_status, desired_status, status_href, status_hrefs,
+                )
+                if skipped_item:
+                    skipped.append(skipped_item)
+                    continue
+            else:
+                _, allowed_hrefs = allowed_status_state(wp_id)
+                planned_path = plan_forward_path(
+                    current_source_status, desired_status, status_href,
+                    allowed_hrefs, status_hrefs,
+                )
+                if not planned_path:
+                    skipped.append(path_not_found(
+                        task_id, wp_id, tracking_status, desired_status,
+                        current_source_status, status_href, allowed_hrefs, [],
+                    ))
+                    continue
+                action["planned_path"] = planned_path
+                action["path_note"] = "Later steps are checked one by one during apply."
+                action["final_openproject_status"] = desired_status
+            actions.append(action)
+            continue
         if mode == "apply":
             partial_apply.attempting(action)
         allowed_hrefs = allowed_status_hrefs(wp_id)
@@ -187,6 +367,8 @@ def main():
         ],
         "temp_retained": bool(keep_temp),
     }
+    if status_path == "forward":
+        out["policy"]["status_path"] = status_path
     if any(item.get("reason") == "status_scope_ready_only" for item in skipped):
         out["operator_next_steps"].insert(
             0,
@@ -194,7 +376,11 @@ def main():
         )
     if keep_temp:
         out["outputs_dir"] = tmp_dir
-    applied = sum(1 for action in actions if action.get("updated_lock_version") is not None)
+    applied = (
+        len(partial_apply.applied_so_far)
+        if status_path == "forward"
+        else sum(1 for action in actions if action.get("updated_lock_version") is not None)
+    )
     helper_envelope.emit(out, helper_envelope.apply_exit_code(out, applied), mode)
 
 try:

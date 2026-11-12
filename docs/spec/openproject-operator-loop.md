@@ -477,6 +477,33 @@ explicit `REPLAN_ENV_FILE`; placing it there produces
 `status_scope_ready_only` and tells the operator how to select `all` in both
 the action `hint` and one `operator_next_steps` entry.
 
+`REPLAN_OPENPROJECT_STATUS_PATH=direct` is the default and retains the exact
+single-transition contract and `openproject_workflow_transition_not_allowed`
+skip. The opt-in `forward` value walks only toward later statuses in the
+status-map-derived progression for `not_started`, `ready`, `in_progress`,
+`review_ready` and `accepted`. It does not walk backward, through an unmapped
+status, or to/through `blocked` or `cancelled`; those cases use the direct
+contract. Unknown values are usage errors. This setting is environment-only
+for the same reason as status scope.
+
+On apply, the helper reads the form for the current persisted work-package
+status. It uses the target when directly allowed; otherwise it chooses the
+furthest allowed mapped progression status strictly between the current and
+target statuses. It PATCHes with the lock version read for that form, verifies
+the returned status, and repeats, capped at the progression length. Each
+action reports `path` entries with `from`, `to`, `to_href` and
+`updated_lock_version`, plus the final status. If a later form offers no valid
+intermediate, `openproject_status_path_not_found` reports steps already made,
+the now-persisted status and allowed hrefs. A request failure uses the normal
+partial-apply envelope, including completed path steps, so rerunning the dry
+run does not repeat a persisted step.
+
+A forward dry run sends no PATCH and can verify only the first form. Its
+`planned_path` marks that first selected step `verified: true`, predicts the
+remaining progression steps with `verified: false`, and explains that apply
+checks them one by one. No first step produces
+`openproject_status_path_not_found` without a write.
+
 The date write-back design and backlog live in
 [`../roadmap/openproject-replan-sync-plan.md`](../roadmap/openproject-replan-sync-plan.md).
 

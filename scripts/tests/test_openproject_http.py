@@ -462,6 +462,7 @@ class SettingsTest(unittest.TestCase):
             "REPLAN_OPENPROJECT_HOST_HEADER": "op.internal",
             "REPLAN_OPENPROJECT_FORWARDED_PROTO": "https",
             "REPLAN_OPENPROJECT_STATUS_SCOPE": "all",
+            "REPLAN_OPENPROJECT_STATUS_PATH": "forward",
             "REPLAN_OPENPROJECT_ASSIGNEE_USER_ID": "7",
             "REPLAN_OPENPROJECT_ASSIGNEE_NAME": "Operator",
             "REPLAN_OPENPROJECT_PROJECT_NAME": "Project",
@@ -478,6 +479,7 @@ class SettingsTest(unittest.TestCase):
         self.assertEqual(settings.base_url, "https://op.example")
         self.assertEqual(settings.project_id, "project")
         self.assertEqual(settings.status_scope, "all")
+        self.assertEqual(settings.status_path, "forward")
         self.assertEqual(settings.target_project_id, "project")
         self.assertEqual(settings.target_project_name, "Project")
         self.assertEqual(settings.apply, "1")
@@ -574,19 +576,24 @@ class DotenvSettingsListTest(unittest.TestCase):
             explicit.write_text(
                 "REPLAN_OPENPROJECT_PROJECT_ID=file-project\n"
                 "export REPLAN_OPENPROJECT_STATUS_SCOPE=all\n"
+                "REPLAN_OPENPROJECT_STATUS_PATH=forward\n"
                 "REPLAN_APPLY=1\n"
                 "REPLAN_FORMAT=\n"
             )
             settings = Settings.from_env(environ={"REPLAN_ENV_FILE": str(explicit)})
         self.assertEqual(settings.project_id, "file-project")
         self.assertEqual(settings.status_scope, "ready_only")
+        self.assertEqual(settings.status_path, "direct")
         self.assertEqual(settings.apply, "")
         self.assertEqual(len(settings.warnings), 1)
         warning = settings.warnings[0]
         self.assertEqual(warning["code"], "environment_only_setting_in_file")
         self.assertEqual(warning["file"], "private-project.settings")
         self.assertEqual(warning["target"], {"kind": "settings_file", "id": "private-project.settings"})
-        self.assertEqual(warning["settings"], ["REPLAN_APPLY", "REPLAN_OPENPROJECT_STATUS_SCOPE"])
+        self.assertEqual(
+            warning["settings"],
+            ["REPLAN_APPLY", "REPLAN_OPENPROJECT_STATUS_PATH", "REPLAN_OPENPROJECT_STATUS_SCOPE"],
+        )
         self.assertNotIn(str(explicit), json.dumps(warning))
 
     def test_python_settings_refuse_missing_explicit_file(self):

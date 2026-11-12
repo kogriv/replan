@@ -254,6 +254,111 @@ class ExitCodeFromOkTest(unittest.TestCase):
                               env=dict(os.environ, PYTHONPATH=LIB, **(env or {})), timeout=60)
         return proc.returncode, json.loads(proc.stdout)
 
+    def status_path_case(self, *, current, tracking_status, transitions,
+                         apply="", status_path="forward", fail_patch=0,
+                         extra_statuses=()):
+        names = [
+            "New", "To be scheduled", "In progress", "On hold", "Developed",
+            "Closed", "Rejected", *extra_statuses,
+        ]
+        hrefs = {name: f"/api/v3/statuses/{index + 1}" for index, name in enumerate(names)}
+        state = {"status": current, "lock": 3}
+        patches = []
+        forms = []
+
+        class OpenProject(http.server.BaseHTTPRequestHandler):
+            def reply(self, body, status=200):
+                data = json.dumps(body).encode()
+                self.send_response(status)
+                self.send_header("Content-Type", "application/hal+json")
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+
+            def consume(self):
+                length = int(self.headers.get("Content-Length") or 0)
+                return json.loads(self.rfile.read(length) or b"{}")
+
+            def do_GET(self):
+                if self.path == "/api/v3/statuses":
+                    self.reply({"_embedded": {"elements": [
+                        {"name": name, "_links": {"self": {"href": href}}}
+                        for name, href in hrefs.items()
+                    ]}})
+                else:
+                    self.reply({
+                        "id": 1,
+                        "lockVersion": state["lock"],
+                        "_links": {"status": {
+                            "href": hrefs[state["status"]],
+                            "title": state["status"],
+                        }},
+                    })
+
+            def do_POST(self):
+                self.consume()
+                forms.append(state["status"])
+                self.reply({"_embedded": {"schema": {"status": {"_links": {
+                    "allowedValues": [
+                        {"href": hrefs[name]} for name in transitions.get(state["status"], ())
+                    ],
+                }}}}})
+
+            def do_PATCH(self):
+                payload = self.consume()
+                target_href = payload["_links"]["status"]["href"]
+                target = next(name for name, href in hrefs.items() if href == target_href)
+                patches.append({"from": state["status"], "to": target, "payload": payload})
+                if fail_patch and len(patches) == fail_patch:
+                    self.reply({"message": "stand-in failure"}, 500)
+                    return
+                if payload["lockVersion"] != state["lock"]:
+                    self.reply({"message": "stale lock"}, 409)
+                    return
+                state["status"] = target
+                state["lock"] += 1
+                self.reply({
+                    "lockVersion": state["lock"],
+                    "_links": {"status": {"href": target_href, "title": target}},
+                })
+
+            def log_message(self, *args):
+                pass
+
+        server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), OpenProject)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                bindings = self.project(tmp, [{
+                    "id": "task.a", "title": "A", "tracking_status": tracking_status,
+                }])
+                imp = os.path.join(tmp, "import.json")
+                with open(imp, "w") as fh:
+                    json.dump({"ok": True, "result": {"task_candidates": [{
+                        "source_id": "1", "source_status": current,
+                    }]}}, fh)
+                env = {
+                    "REPLAN_PROJECT": tmp,
+                    "REPLAN_OPENPROJECT_BINDINGS_PATH": bindings,
+                    "REPLAN_OPENPROJECT_BASE_URL": f"http://127.0.0.1:{server.server_address[1]}",
+                    "REPLAN_OPENPROJECT_PROJECT_ID": "demo",
+                    "REPLAN_OPENPROJECT_TOKEN_ENV": "TEST_TOKEN",
+                    "REPLAN_OPENPROJECT_STATUS_SCOPE": "all",
+                    "REPLAN_OPENPROJECT_STATUS_PATH": status_path,
+                    "REPLAN_APPLY": apply,
+                    "TEST_TOKEN": "t",
+                }
+                code, out = self.run_module(
+                    "push_openproject_status_drift", "--import-json", imp,
+                    "--tmp-dir", tmp, "--root-dir", ROOT, env=env,
+                )
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join()
+        return code, out, patches, forms, dict(state)
+
     def test_unknown_internal_option_is_a_json_failure(self):
         code, out = self.run_module("plan_openproject_bootstrap", "--not-a-wrapper-option")
         self.assertEqual(code, 8, out)
@@ -591,6 +696,133 @@ class ExitCodeFromOkTest(unittest.TestCase):
                     self.assertFalse(out["ok"])
                     self.assertEqual([s["reason"] for s in out["skipped"]], ["openproject_workflow_transition_not_allowed"])
                     self.assertEqual(sum(1 for a in out["actions"] if a.get("updated_lock_version") is not None), want_applied)
+
+    def test_status_push_default_direct_is_unchanged(self):
+        code, out, patches, forms, _ = self.status_path_case(
+            current="New", tracking_status="review_ready",
+            transitions={"New": ("In progress",)}, status_path="",
+        )
+
+        self.assertEqual(code, 11, out)
+        self.assertEqual(patches, [])
+        self.assertEqual(forms, ["New"])
+        self.assertEqual(out["skipped"][0]["reason"], "openproject_workflow_transition_not_allowed")
+        self.assertNotIn("status_path", out["policy"])
+        self.assertNotIn("path", out["skipped"][0])
+
+    def test_status_push_forward_applies_intermediate_with_fresh_locks(self):
+        code, out, patches, forms, state = self.status_path_case(
+            current="New", tracking_status="review_ready", apply="1",
+            transitions={"New": ("In progress",), "In progress": ("Developed",)},
+        )
+
+        self.assertEqual(code, 0, out)
+        self.assertEqual(forms, ["New", "In progress"])
+        self.assertEqual([patch["to"] for patch in patches], ["In progress", "Developed"])
+        self.assertEqual([patch["payload"]["lockVersion"] for patch in patches], [3, 4])
+        self.assertEqual(
+            [(step["from"], step["to"], step["updated_lock_version"]) for step in out["actions"][0]["path"]],
+            [("New", "In progress", 4), ("In progress", "Developed", 5)],
+        )
+        self.assertEqual(out["actions"][0]["final_openproject_status"], "Developed")
+        self.assertEqual(state["status"], "Developed")
+
+    def test_status_push_forward_uses_direct_target_when_allowed(self):
+        code, out, patches, forms, _ = self.status_path_case(
+            current="New", tracking_status="review_ready", apply="1",
+            transitions={"New": ("In progress", "Developed")},
+        )
+
+        self.assertEqual(code, 0, out)
+        self.assertEqual(forms, ["New"])
+        self.assertEqual([patch["to"] for patch in patches], ["Developed"])
+        self.assertEqual(len(out["actions"][0]["path"]), 1)
+
+    def test_status_push_forward_dry_run_verifies_only_first_step(self):
+        code, out, patches, forms, state = self.status_path_case(
+            current="New", tracking_status="review_ready",
+            transitions={"New": ("In progress",)},
+        )
+
+        self.assertEqual(code, 0, out)
+        self.assertEqual((patches, forms, state["status"]), ([], ["New"], "New"))
+        planned = out["actions"][0]["planned_path"]
+        self.assertEqual(
+            [(step["from"], step["to"], step["verified"]) for step in planned],
+            [("New", "In progress", True), ("In progress", "Developed", False)],
+        )
+        self.assertIn("checked one by one during apply", out["actions"][0]["path_note"])
+
+    def test_status_push_forward_refuses_when_first_step_is_not_mapped(self):
+        code, out, patches, forms, _ = self.status_path_case(
+            current="New", tracking_status="review_ready",
+            transitions={"New": ("Custom",)}, extra_statuses=("Custom",),
+        )
+
+        self.assertEqual(code, 11, out)
+        self.assertEqual((patches, forms), ([], ["New"]))
+        skipped = out["skipped"][0]
+        self.assertEqual(skipped["reason"], "openproject_status_path_not_found")
+        self.assertEqual(skipped["path"], [])
+        self.assertEqual(skipped["current_openproject_status"], "New")
+        self.assertTrue(skipped["allowed_status_hrefs"])
+
+    def test_status_push_forward_stuck_after_one_step_reports_partial_path(self):
+        code, out, patches, forms, state = self.status_path_case(
+            current="New", tracking_status="review_ready", apply="1",
+            transitions={"New": ("In progress",), "In progress": ()},
+        )
+
+        self.assertEqual(code, 7, out)
+        self.assertEqual([patch["to"] for patch in patches], ["In progress"])
+        self.assertEqual(forms, ["New", "In progress"])
+        skipped = out["skipped"][0]
+        self.assertEqual(skipped["reason"], "openproject_status_path_not_found")
+        self.assertEqual(skipped["current_openproject_status"], "In progress")
+        self.assertEqual([step["to"] for step in skipped["path"]], ["In progress"])
+        self.assertEqual(state["status"], "In progress")
+
+    def test_status_push_forward_never_walks_backward_or_to_blocked_statuses(self):
+        cases = (
+            ("Developed", "in_progress", {"Developed": ()}),
+            ("New", "blocked", {"New": ("In progress",)}),
+            ("New", "cancelled", {"New": ("In progress",)}),
+        )
+        for current, tracking_status, transitions in cases:
+            with self.subTest(current=current, tracking_status=tracking_status):
+                code, out, patches, _, _ = self.status_path_case(
+                    current=current, tracking_status=tracking_status,
+                    transitions=transitions,
+                )
+                self.assertEqual(code, 11, out)
+                self.assertEqual(patches, [])
+                self.assertEqual(
+                    out["skipped"][0]["reason"],
+                    "openproject_workflow_transition_not_allowed",
+                )
+
+    def test_status_push_forward_second_patch_failure_lists_first_step(self):
+        code, out, patches, _, state = self.status_path_case(
+            current="New", tracking_status="review_ready", apply="1", fail_patch=2,
+            transitions={"New": ("In progress",), "In progress": ("Developed",)},
+        )
+
+        self.assertEqual(code, 7, out)
+        self.assertEqual([patch["to"] for patch in patches], ["In progress", "Developed"])
+        self.assertEqual(out["applied_so_far"][0]["to"], "In progress")
+        self.assertEqual(out["failed_step"]["from"], "In progress")
+        self.assertEqual(out["failed_step"]["to"], "Developed")
+        self.assertEqual(state["status"], "In progress")
+
+    def test_status_push_refuses_unknown_status_path(self):
+        code, out, patches, forms, _ = self.status_path_case(
+            current="New", tracking_status="review_ready", transitions={},
+            status_path="sideways",
+        )
+
+        self.assertEqual(code, 8, out)
+        self.assertEqual(out["error_codes"], ["invalid_status_path"])
+        self.assertEqual((patches, forms), ([], []))
 
     def test_status_push_ready_only_skip_explains_all_scope(self):
         tasks = [{"id": "task.a", "title": "A", "tracking_status": "review_ready"}]
@@ -1054,6 +1286,7 @@ class WrapperFailurePathsTest(unittest.TestCase):
             stream.write(
                 "REPLAN_OPENPROJECT_PROJECT_ID=replan-self\n"
                 "REPLAN_OPENPROJECT_STATUS_SCOPE=all\n"
+                "REPLAN_OPENPROJECT_STATUS_PATH=forward\n"
                 "export REPLAN_APPLY=1\n"
             )
         for name in ("push-openproject-status-drift", "review-resource-pool"):
@@ -1071,12 +1304,15 @@ class WrapperFailurePathsTest(unittest.TestCase):
                 self.assertEqual(warnings[0]["file"], "operator.settings")
                 self.assertEqual(
                     warnings[0]["settings"],
-                    ["REPLAN_APPLY", "REPLAN_OPENPROJECT_STATUS_SCOPE"],
+                    [
+                        "REPLAN_APPLY", "REPLAN_OPENPROJECT_STATUS_PATH",
+                        "REPLAN_OPENPROJECT_STATUS_SCOPE",
+                    ],
                 )
                 self.assertNotEqual(out["mode"], "apply")
                 self.assertNotIn(settings_file, proc.stdout + proc.stderr)
 
-    def test_status_push_help_lists_environment_only_scope(self):
+    def test_status_push_help_lists_environment_only_scope_and_path(self):
         proc = subprocess.run(
             [os.path.join(self.tmp, "scripts", "push-openproject-status-drift.sh"), "--help"],
             capture_output=True, text=True,
@@ -1085,6 +1321,17 @@ class WrapperFailurePathsTest(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertIn("REPLAN_OPENPROJECT_STATUS_SCOPE", proc.stdout)
         self.assertIn("default ready_only; values ready_only or all; environment only", proc.stdout)
+        self.assertIn("REPLAN_OPENPROJECT_STATUS_PATH", proc.stdout)
+        self.assertIn("default direct; values direct or forward; environment only", proc.stdout)
+
+    def test_status_push_wrapper_refuses_unknown_path_before_openproject(self):
+        proc = self.run_wrapper(
+            "push-openproject-status-drift",
+            REPLAN_OPENPROJECT_STATUS_PATH="sideways",
+        )
+        self.assert_failure(
+            "push-openproject-status-drift", proc, "invalid_status_path", 8,
+        )
 
     def test_address_and_project_id_belong_together(self):
         for name, code in SETTINGS.items():

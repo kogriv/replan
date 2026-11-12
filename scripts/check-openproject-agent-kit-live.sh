@@ -61,6 +61,21 @@ docker exec -e PROJECT="$PROJECT" "$WEB_CONTAINER" bundle exec rails runner '
   user = User.create!(login: "#{project.identifier}-member", firstname: "Kit", lastname: "Member", mail: "#{project.identifier}-member@example.invalid",
                       admin: false, password: "Agent-kit-member-2026!", password_confirmation: "Agent-kit-member-2026!")
   Member.create!(project: project, principal: user, roles: [ProjectRole.find_by!(name: "Member")])
+  # This throwaway instance deliberately lacks the direct New -> Developed
+  # transition, while retaining New -> In progress -> Developed, so the kit
+  # exercises its opt-in forward status walk against real OpenProject forms.
+  member_role = ProjectRole.find_by!(name: "Member")
+  new_status = Status.find_by!(name: "New")
+  in_progress_status = Status.find_by!(name: "In progress")
+  developed_status = Status.find_by!(name: "Developed")
+  project.types.each do |type|
+    direct = { role_id: member_role.id, type_id: type.id, old_status_id: new_status.id, new_status_id: developed_status.id }
+    first = { role_id: member_role.id, type_id: type.id, old_status_id: new_status.id, new_status_id: in_progress_status.id }
+    second = { role_id: member_role.id, type_id: type.id, old_status_id: in_progress_status.id, new_status_id: developed_status.id }
+    Workflow.where(direct).delete_all
+    Workflow.find_or_create_by!(first)
+    Workflow.find_or_create_by!(second)
+  end
   token = Token::API.create!(user: user, data: { name: "agent kit check" })
   version_role = ProjectRole.create!(name: "Agent kit version manager", permissions: %i[view_project view_work_packages manage_versions])
   version_manager = User.create!(login: "#{project.identifier}-version-manager", firstname: "Kit", lastname: "Version manager", mail: "#{project.identifier}-version-manager@example.invalid",
@@ -88,6 +103,13 @@ with open(path, encoding="utf-8") as handle: document = yaml.safe_load(handle)
 document["dependencies"].append({"id": "dependency.repair-pump-related-validation", "type": "relates", "predecessor_ref": {"kind": "task", "id": "task.offline.repair-pump"}, "successor_ref": {"kind": "task", "id": "task.op.1234"}, "status": "open", "criticality": "optional", "notes": "Throwaway agent-kit check for a non-scheduling symmetric link."})
 with open(path, "w", encoding="utf-8") as handle: yaml.safe_dump(document, handle, sort_keys=False)
 ' "$WORK_DIR/plan/canonical/dependencies.yaml"
+python3 -c '
+import sys, yaml
+path = sys.argv[1]
+with open(path, encoding="utf-8") as handle: document = yaml.safe_load(handle)
+next(task for task in document["tasks"] if task["id"] == "task.offline.repair-pump")["tracking_status"] = "not_started"
+with open(path, "w", encoding="utf-8") as handle: yaml.safe_dump(document, handle, sort_keys=False)
+' "$WORK_DIR/plan/canonical/tasks.yaml"
 sed -e "s#^REPLAN_OPENPROJECT_BASE_URL=.*#REPLAN_OPENPROJECT_BASE_URL=$WEB_URL#" \
     -e "s#^REPLAN_OPENPROJECT_PROJECT_ID=.*#REPLAN_OPENPROJECT_PROJECT_ID=$PROJECT#" \
     -e "s#^REPLAN_OPENPROJECT_PROJECT_NAME=.*#REPLAN_OPENPROJECT_PROJECT_NAME=Agent kit check#" \
@@ -226,6 +248,34 @@ expect "the drift check reads the project as a member" "d['counts']['local_tasks
 expect "the drift check finds no automatically scheduled bound work package" "'openproject_automatic_scheduling' not in d['warning_codes']"
 run "" scripts/openproject-operator-report.sh
 expect "the operator report reads the project as a member" "d['counts']['mapped_tasks'] == 2"
+
+# The work package was bootstrapped as New. Move its RePlan task to
+# review_ready and prove that forward dry-run checks only New -> In progress,
+# then apply checks In progress -> Developed from the newly persisted status.
+python3 -c '
+import sys, yaml
+path = sys.argv[1]
+with open(path, encoding="utf-8") as handle: document = yaml.safe_load(handle)
+next(task for task in document["tasks"] if task["id"] == "task.offline.repair-pump")["tracking_status"] = "review_ready"
+# The other task stays New in OpenProject; its RePlan status ready maps to To
+# be scheduled, which no role reaches from New for this type, so the push
+# would rightly skip it. Align it for this step and restore it afterwards.
+next(task for task in document["tasks"] if task["id"] == sys.argv[2])["tracking_status"] = "not_started"
+with open(path, "w", encoding="utf-8") as handle: yaml.safe_dump(document, handle, sort_keys=False)
+' "$WORK_DIR/plan/canonical/tasks.yaml" "$TASK"
+run "" env REPLAN_OPENPROJECT_STATUS_SCOPE=all REPLAN_OPENPROJECT_STATUS_PATH=forward scripts/push-openproject-status-drift.sh
+expect "forward status dry run verifies only the first transition" "d['ok'] and d['mode'] == 'dry_run' and [s['to'] for s in d['actions'][0]['planned_path']] == ['In progress', 'Developed'] and [s['verified'] for s in d['actions'][0]['planned_path']] == [True, False] and d['counts']['status_actions'] == 1"
+run 1 env REPLAN_OPENPROJECT_STATUS_SCOPE=all REPLAN_OPENPROJECT_STATUS_PATH=forward scripts/push-openproject-status-drift.sh
+expect "forward status apply walks the two allowed transitions" "d['ok'] and d['mode'] == 'apply' and [s['to'] for s in d['actions'][0]['path']] == ['In progress', 'Developed'] and all(s['updated_lock_version'] for s in d['actions'][0]['path']) and d['actions'][0]['final_openproject_status'] == 'Developed'"
+run "" scripts/check-openproject-drift.sh
+expect "forward status apply clears its drift" "d['counts']['status_drifts'] == 0"
+python3 -c '
+import sys, yaml
+path = sys.argv[1]
+with open(path, encoding="utf-8") as handle: document = yaml.safe_load(handle)
+next(task for task in document["tasks"] if task["id"] == sys.argv[2])["tracking_status"] = "ready"
+with open(path, "w", encoding="utf-8") as handle: yaml.safe_dump(document, handle, sort_keys=False)
+' "$WORK_DIR/plan/canonical/tasks.yaml" "$TASK"
 
 # The bindings file is lost: it is rebuilt from OpenProject by title.
 cp "$WORK_DIR/bindings.yaml" "$WORK_DIR/bindings.before"

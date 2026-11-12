@@ -19,6 +19,7 @@
 #   REPLAN_OPENPROJECT_HOST_HEADER          default empty
 #   REPLAN_OPENPROJECT_FORWARDED_PROTO      default empty
 #   REPLAN_OPENPROJECT_STATUS_SCOPE         default ready_only; values ready_only or all; environment only
+#   REPLAN_OPENPROJECT_STATUS_PATH          default direct; values direct or forward; environment only
 #   REPLAN_BIN                              default build locally
 #   REPLAN_KEEP_TEMP                        default empty
 #   REPLAN_FORMAT                           only json; any other value is refused
@@ -51,6 +52,15 @@ OPENPROJECT_HOST_HEADER="${REPLAN_OPENPROJECT_HOST_HEADER:-}"
 OPENPROJECT_FORWARDED_PROTO="${REPLAN_OPENPROJECT_FORWARDED_PROTO:-}"
 OPENPROJECT_TOKEN_ENV="${REPLAN_OPENPROJECT_TOKEN_ENV:-OPENPROJECT_TOKEN}"
 KEEP_TEMP="${REPLAN_KEEP_TEMP:-}"
+STATUS_PATH="${REPLAN_OPENPROJECT_STATUS_PATH:-direct}"
+
+case "$STATUS_PATH" in
+  direct|forward) ;;
+  *)
+    replan_fail_json "push-openproject-status-drift" invalid invalid_status_path \
+      "REPLAN_OPENPROJECT_STATUS_PATH must be direct or forward" 8
+    ;;
+esac
 
 replan_require_json_format "push-openproject-status-drift"
 replan_require_settings "push-openproject-status-drift" REPLAN_PROJECT REPLAN_OPENPROJECT_PROJECT_ID

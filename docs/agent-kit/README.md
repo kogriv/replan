@@ -59,6 +59,7 @@ Settings that control one run or one acceptance are environment-only. They
 include `REPLAN_APPLY`, `REPLAN_ACTOR`, `REPLAN_BIN`, `REPLAN_FORMAT`,
 `REPLAN_KEEP_TEMP`, `REPLAN_ENV_FILE`, `REPLAN_OPENPROJECT_PROFILE`,
 `REPLAN_OPENPROJECT_FROM_FILE`, `REPLAN_OPENPROJECT_STATUS_SCOPE`,
+`REPLAN_OPENPROJECT_STATUS_PATH`,
 `REPLAN_TASK`, `REPLAN_ACCEPTED_BY` and the `REPLAN_ACCEPT_*` settings. The
 complete list shipped with the helpers is
 `scripts/lib/environment-only-settings.list`. A non-empty environment-only
@@ -296,6 +297,24 @@ every mapped RePlan tracking status. Do not put this setting in a settings
 file: it is environment-only. A `status_scope_ready_only` skipped action
 includes this instruction in its `hint` and once in `operator_next_steps`.
 
+The separate environment-only setting `REPLAN_OPENPROJECT_STATUS_PATH`
+defaults to `direct`, preserving the one-transition behavior. With
+`REPLAN_OPENPROJECT_STATUS_PATH=forward`, the helper may walk forward through
+the mapped progression `not_started`, `ready`, `in_progress`, `review_ready`,
+`accepted`. The actual OpenProject names come from the shipped status map. It
+never walks backward or through `blocked`/On hold or `cancelled`/Rejected; those
+updates remain direct. Each apply step rereads the work-package form for the
+persisted status, uses that response's current lock version, verifies the
+PATCH response, and then checks the next step. A stopped walk reports
+`openproject_status_path_not_found`, the path already applied, the current
+status and the currently allowed hrefs.
+
+A forward dry run cannot prove later transitions because OpenProject computes
+the form from the persisted status. It checks only the first step and reports
+`planned_path`: the first step has `verified: true`, later progression steps
+have `verified: false`, and no PATCH is sent. Apply checks those later steps
+one at a time. An unknown path setting is a usage error.
+
 RePlan owns descriptions of bound tasks once a person pushes them with
 `scripts/push-openproject-description-drift.sh`. OpenProject description edits
 are overwritten only by a reviewed apply, never by the default dry run. Review
@@ -495,7 +514,7 @@ to its root. A write to OpenProject or the bindings file is a dry run unless
 | Actuals and acceptance | `scripts/accept-task.sh` | Accepts one review-ready task through evidence, actuals, dependency candidates and its one OpenProject work package. It is dry-run by default and resumable. Use individual `bin/replan actual ... --dry-run` commands for facts that are not task acceptance. |
 | Correct a mis-booked actual | `bin/replan actual correct --project "$REPLAN_PROJECT" --actual <actual-id> (--amount <n>\|--void) --reason <text> --actor <id> --evidence <id> --dry-run` | Appends an audited correction; the original remains unchanged. Review the effective amount, then repeat with `--apply`. Later corrections supersede earlier corrections of the same original. |
 | Replace stale planned dates with actuals | `bin/replan task record-actual-window ... --dry-run` | Derives one finished task's actual window from status audit facts and current-demand consumption actuals, then writes both dates with one audit record. Review before `--apply`. |
-| Status to OpenProject | `scripts/push-openproject-status-drift.sh` | Pushes reviewed RePlan tracking status. |
+| Status to OpenProject | `scripts/push-openproject-status-drift.sh` | Pushes reviewed RePlan tracking status. Direct transitions are the default; export `REPLAN_OPENPROJECT_STATUS_PATH=forward` to check and apply allowed forward intermediate statuses one at a time. |
 | Status from OpenProject | `bin/replan import accept <snapshot-id> --accept-tracking-status --dry-run` | Review a stored import snapshot; apply with `--apply --actor <id>`. The soft-drift helper does not accept status. |
 | Import GitHub Issues | `bin/replan import github --project "$REPLAN_PROJECT" --profile <id> --dry-run` | A profile names `repository` and `token_env`; explicit `--repository` is also available. File replay uses `--from-file`. Review candidates, omit `--dry-run` to stage the snapshot, then use the shared `import accept` modes. No GitHub write-back is implemented. |
 | Planned dates to OpenProject | `scripts/push-openproject-date-drift.sh` | Toolkit `work-package update-dates` is the single-work-package surface. |
