@@ -982,3 +982,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-2
+  - id: evidence.self.plan-toolkit-update-no-op
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-12T13:54:26+07:00"
+    summary: The maintainer agreed the no-op fix at Codex 0.5 and agent 0.5 hours (message 2026-11-12 13:54:26) after the second consumer project reported a dry run planning an unchanged version (message 2026-11-12, confirmed in update_action). No release date was set; it ships with the next release as proposed. Estimate from version create (Codex 0.52, agent 0.09 actual).
+    targets:
+      - kind: task
+        id: task.self.toolkit-update-no-op
+  - id: evidence.self.start-toolkit-update-no-op
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-12T13:55:23+07:00"
+    summary: Started on the planned day right after the maintainer agreed (13:54:26); planning from 13:54:38, then the Codex brief. The read-only confirmation in update_action (13:1x) was part of acceptance follow-up and is not booked here.
+    targets:
+      - kind: task
+        id: task.self.toolkit-update-no-op

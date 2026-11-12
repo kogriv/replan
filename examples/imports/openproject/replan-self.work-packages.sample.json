@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 264,
-  "count": 264,
+  "total": 265,
+  "count": 265,
   "_embedded": {
     "elements": [
       {
@@ -7653,6 +7653,35 @@
           },
           "status": {
             "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2365,
+        "subject": "Answer no-op when a toolkit update changes nothing",
+        "description": {
+          "raw": "Found on 2026-11-12 by the second consumer project after setting a version on 14 work packages: work-package update-status, update-dates and update-metadata never compare the request with what OpenProject already has, so a dry run always plans one action and apply still sends the PATCH; re-checking 14 tasks took over two minutes for nothing. When the work package already has every requested value (status, start and due dates, estimate, version or cleared version, assignee, type, parent, priority, whatever the command sets), answer ok with no_op true and 0 planned actions, show the unchanged fields, and send nothing on apply; when some fields differ, send only those. Unit tests, the live agent kit check, the kit README and the operator loop spec. Ships with the next release."
+        },
+        "status": {
+          "name": "In progress"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-12",
+        "dueDate": "2026-11-12",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2365"
+          },
+          "status": {
+            "title": "In progress"
           },
           "assignee": {
             "href": "/api/v3/users/101",
