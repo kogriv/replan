@@ -1426,3 +1426,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-consumer-second-user-perimeter-key
+  - id: actual.self-toolkit-write-answers-name-ids.ai-codex-local.20261112T1656240700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.toolkit-write-answers-name-ids
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.toolkit-write-answers-name-ids.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.38
+    unit: agent_hours
+    occurred_at: "2026-11-12T16:56:24+07:00"
+    status_date: "2026-11-12"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.toolkit-write-answers-name-ids
+  - id: actual.self-toolkit-write-answers-name-ids.ai-agent-executor.20261112T1656240700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.toolkit-write-answers-name-ids
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.toolkit-write-answers-name-ids.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.06
+    unit: agent_hours
+    occurred_at: "2026-11-12T16:56:24+07:00"
+    status_date: "2026-11-12"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.toolkit-write-answers-name-ids

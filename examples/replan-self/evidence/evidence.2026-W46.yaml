@@ -1107,3 +1107,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.consumer-second-user-perimeter-key
+  - id: evidence.self.toolkit-write-answers-name-ids
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-12T16:56:24+07:00"
+    summary: 'Feature commit 42d1d4e: work-package create, relation create, comment add and version create repeat the created object as one items row (kind, id, href, identifying fields), an existing relation found by relation create too; dry runs and failures keep items empty and no existing field moved. work-package create --task names the exact bind command; --bind runs the task-side checks before sending anything, writes the binding after the create, and on a binding failure keeps the created id with binding_not_written, the finish command and exit 7, never creating twice. Review found no changes needed; existing tests were only extended. Gate green: lint 0, 54 kit checks, unit suites, smoke and isolated smoke, throwaway OpenProject 17 with 98 live kit checks (95 before; existing create expectations now also read items, plus a create-and-bind dry run, apply and inspect). Codex 16:13:04-16:35:37 (0.38 h, prompt and last-file mtimes). Executor 16:11:50-16:14:14 brief, 16:35:43-16:36:23 review, 16:55:39-16:56:24 commit, 0.06 h by tool-call times; the acceptance of the previous task in between is not booked here.'
+    targets:
+      - kind: task
+        id: task.self.toolkit-write-answers-name-ids
+  - id: evidence.self.start-status-push-through-allowed-statuses
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-12T16:57:29+07:00"
+    summary: Started a day ahead of plan (planned 2026-11-13) right after the write answer ids task; reading the status push helper to brief Codex.
+    targets:
+      - kind: task
+        id: task.self.status-push-through-allowed-statuses
