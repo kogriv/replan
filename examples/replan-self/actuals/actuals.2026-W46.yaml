@@ -1363,3 +1363,24 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.toolkit-update-no-op
+  - id: actual.self-toolkit-update-no-op.ci-github-actions.20261112T090510Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.toolkit-update-no-op
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.toolkit-update-no-op.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-12T09:05:10Z"
+    status_date: "2026-11-12"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-toolkit-update-no-op

@@ -7803,7 +7803,7 @@ tasks:
     title: Answer no-op when a toolkit update changes nothing
     description: 'Found on 2026-11-12 by the second consumer project after setting a version on 14 work packages: work-package update-status, update-dates and update-metadata never compare the request with what OpenProject already has, so a dry run always plans one action and apply still sends the PATCH; re-checking 14 tasks took over two minutes for nothing. When the work package already has every requested value (status, start and due dates, estimate, version or cleared version, assignee, type, parent, priority, whatever the command sets), answer ok with no_op true and 0 planned actions, show the unchanged fields, and send nothing on apply; when some fields differ, send only those. Unit tests, the live agent kit check, the kit README and the operator loop spec. Ships with the next release.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-12"
     planned_finish: "2026-11-12"
     assignee_hint:
