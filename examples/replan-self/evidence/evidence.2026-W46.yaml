@@ -923,3 +923,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.toolkit-version-create
+  - id: evidence.self.toolkit-version-create
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-12T12:39:32+07:00"
+    summary: 'Feature commit 868438a: toolkit version create (dry run by default, REPLAN_APPLY=1, POST /api/v3/versions with definingProject because the project versions endpoint only lists in OpenProject 17, version_exists before sending, checked answer with version_fields_not_saved, 403 version_create_forbidden naming Manage versions, 422 version_refused, no plan needed); version list also reports description and dates. Review found that date.fromisoformat accepts 20261112 and 2026-W46-4 and the raw text was sent: dates are now strict YYYY-MM-DD, with tests. Gate green: lint 0, 54 kit checks, unit suites, smoke and isolated smoke, throwaway OpenProject 17 runtime with 91 live kit checks (86 before; the five new ones prove the Member 403, a manage_versions user''s dry run, create, list read-back and the duplicate refusal). Codex 11:45:56-12:16:54 (0.52 h, prompt and last-file mtimes); executor 11:44:34-11:46:15 brief, 12:17:20-12:19:35 review and fix, 12:38:14-2026-11-12T12:39:32+07:00 commit, 0.09 h by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.toolkit-version-create
