@@ -1468,3 +1468,66 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.toolkit-write-answers-name-ids
+  - id: actual.self-toolkit-write-answers-name-ids.ci-github-actions.20261112T110908Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.toolkit-write-answers-name-ids
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.toolkit-write-answers-name-ids.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-12T11:09:08Z"
+    status_date: "2026-11-12"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-toolkit-write-answers-name-ids
+  - id: actual.self-status-push-through-allowed-statuses.ai-codex-local.20261112T1811360700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.status-push-through-allowed-statuses
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.status-push-through-allowed-statuses.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.38
+    unit: agent_hours
+    occurred_at: "2026-11-12T18:11:36+07:00"
+    status_date: "2026-11-12"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.status-push-through-allowed-statuses
+  - id: actual.self-status-push-through-allowed-statuses.ai-agent-executor.20261112T1811360700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.status-push-through-allowed-statuses
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.status-push-through-allowed-statuses.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.14
+    unit: agent_hours
+    occurred_at: "2026-11-12T18:11:36+07:00"
+    status_date: "2026-11-12"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.status-push-through-allowed-statuses

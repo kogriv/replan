@@ -1129,3 +1129,27 @@ evidence:
     targets:
       - kind: task
         id: task.self.status-push-through-allowed-statuses
+  - id: evidence.self.accept-toolkit-write-answers-name-ids
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-12T11:09:08Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.toolkit-write-answers-name-ids
+  - id: evidence.self.status-push-through-allowed-statuses
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-12T18:11:36+07:00"
+    summary: 'Feature commit 8017f8f: REPLAN_OPENPROJECT_STATUS_PATH=forward (environment only, default direct unchanged) lets the status push walk forward along the kit''s progression through allowed intermediate statuses, one checked PATCH per step from the persisted status, never backward or through On hold, Rejected or unmapped statuses; a dead end is skipped with openproject_status_path_not_found listing the steps made; a dry run verifies only the first step because OpenProject computes allowed statuses from the persisted status. Review: logic and partial-apply bookkeeping checked (clear keeps applied steps). The first gate failed in the live check, not the code: with status scope all the second check task (ready -> To be scheduled, unreachable for Task) was rightly skipped, so the answer was not ok; diagnosed with a temporary fuller failure output and a live-only rerun (a first rerun was stopped by mistake), then the check aligns that task for the step and restores it, debug output removed. Second gate green: lint 0, 54 kit checks, unit suites, smoke and isolated smoke, throwaway OpenProject 17 with 101 live kit checks (98 before; forward dry run, apply through In progress and the drift check). Codex 16:59:27-17:22:10 (0.38 h, prompt and last-file mtimes). Executor 16:57:29-16:59:46, 17:22:39-17:23:29, 17:42:39-17:44:06, 17:48:38-17:49:17, 18:08:31-18:11:36 (the last interval includes about a minute for the previous task''s acceptance), 0.14 h by tool-call times.'
+    targets:
+      - kind: task
+        id: task.self.status-push-through-allowed-statuses

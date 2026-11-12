@@ -7859,7 +7859,7 @@ tasks:
     title: Make toolkit write answers name the created id and the bind step
     description: 'Found on 2026-11-12 by two consumer projects: both looked for the created id of comment add and version create in items, which write answers leave empty (the id is in actions[0] and, for version create, at the top level), and work-package create --task creates the work package without writing the private binding while its answer only says to add the source_ref to the binding layer. Repeat the created object''s identity (work package id, activity id, version id, relation id) as one row in items for every toolkit write that creates something; make work-package create --task name the exact work-package bind command in its next steps and add an opt-in --bind that writes the binding after a successful create, with the same checks as bind. Unit tests, the live agent kit check, the kit README and help text. Ships with the next release.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-12"
     planned_finish: "2026-11-12"
     assignee_hint:
@@ -7888,7 +7888,7 @@ tasks:
     title: Push a status through the workflow's allowed intermediate statuses
     description: 'Found on 2026-11-10 and 2026-11-12 by two consumer projects: push-openproject-status-drift skips a work package with openproject_workflow_transition_not_allowed when the target status is not directly reachable (New -> Developed is not in the Task workflow for any role), and the consumers then step through In progress by hand. Add an opt-in setting that lets the status push walk the shortest path of allowed transitions to the target, one checked PATCH per step using the statuses the workflow offers at each step (no guessing from names), only through statuses the kit maps; refuse with a clear code when no path exists or a step fails, and report every step. Default behaviour stays a skip. Unit tests, the live agent kit check, the kit README. Ships with the next release.'
     type: implementation
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-12"
     planned_finish: "2026-11-12"
     assignee_hint:
