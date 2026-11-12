@@ -1188,3 +1188,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-3
+  - id: evidence.self.publish-release-v0-5-3
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-12T18:34:14+07:00"
+    summary: 'Release v0.5.3 published from db66437 after its CI run passed; format_version stays 1. Six archives built locally (v0.5.3, db66437, go1.24.1); the tag''s Release build workflow (run 43209091119) matches the local SHA256SUMS byte for byte; downloaded release archives match; gh attestation verify passes for an archive and SHA256SUMS (refs/tags/v0.5.3); go install of v0.5.3 reports v0.5.3. Kits built from a worktree of the tag, leak scans clean, the forward status path present. First project: vps kit switched to v0.5.3 (v0.5.2 kept for rollback), read-only work-package and version list pass. Second project: kit uploaded to its tools wiki page after dry runs, the download matches its checksum, the new binary validates a copy of its current plan (0 errors), page text updated with a dry run first and the expected lock version. Third project: kit handed over for its own install. Each session was told what changed. Agent time by tool-call times without CI waits, excluding the previous acceptance: 18:19:14-18:21:14, 18:25:24-18:26:31, 18:29:39-18:34:14, 0.13 h.'
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-3
