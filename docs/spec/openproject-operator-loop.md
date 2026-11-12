@@ -641,6 +641,7 @@ It provides:
 
 - `work-package list`;
 - `work-package inspect`;
+- `work-package create` and `work-package bind`;
 - `work-package update-status`;
 - `work-package update-dates`;
 - `work-package update-metadata`;
@@ -652,6 +653,7 @@ It provides:
 - `version list`;
 - `version create`;
 - `relation list`;
+- `relation create` and `relation delete`;
 - `comment add`;
 - `comment list`.
 
@@ -662,6 +664,13 @@ contains the activity id and creation time. The operator or live check then
 uses `comment list` to read the work package's activities back and requires the
 same activity id and exact text. Releases up to v0.5.0 reported comments as
 saved that OpenProject 17.6 dropped.
+
+A successful apply of `work-package create`, `relation create`, `comment add`
+or `version create` returns exactly one normalized row in `items`, with the
+created object's `kind`, `id`, `href` and its identifying fields. Existing
+action-specific and top-level identity fields remain part of the contract.
+Dry runs and failures return no items. An idempotent `relation create` is a
+successful lookup and returns the existing relation as its one item.
 
 Writes are dry-run by default. Live mutation requires `REPLAN_APPLY=1`.
 Fixture mode never applies a write; an apply request whose fields already
@@ -680,6 +689,16 @@ note.
 already returned by the project version catalog, and creates only for a token
 with Manage versions permission. It checks the returned name, description,
 dates, status and sharing before reporting the new version id and href.
+
+`work-package create --task <id>` names the exact follow-up `work-package
+bind` command, with `<id>` during preview and the returned work-package id
+after apply. Adding `--bind` is an opt-in combined operation across the remote create
+and local binding: task existence, an absent task binding and a configured
+bindings path are checked before any POST. After a successful create the
+binding is appended. A binding-write failure is partial success: the answer
+retains the created id, reports `binding_not_written` and `binding_written:
+false`, exits nonzero, and gives the exact bind command; the operator must not
+retry create. `--bind` without `--task` is a usage error.
 
 The status, date and metadata update commands compare their complete proposed
 payload with the current work package before checking a real status transition

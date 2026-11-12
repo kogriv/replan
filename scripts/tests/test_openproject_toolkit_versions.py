@@ -219,6 +219,7 @@ class ToolkitVersionsTest(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, out)
         self.assertEqual(out["mode"], "dry_run")
         self.assertEqual(out["counts"]["planned_actions"], 1)
+        self.assertEqual(out["items"], [])
         action = out["actions"][0]
         self.assertEqual(action["action"], "create_openproject_version")
         self.assertEqual(action["endpoint"], "POST /api/v3/versions")
@@ -239,6 +240,10 @@ class ToolkitVersionsTest(unittest.TestCase):
         self.assertEqual(out["plan"], "none")
         self.assertEqual(out["version_id"], "14")
         self.assertEqual(out["href"], "/api/v3/versions/14")
+        self.assertEqual(out["items"], [{
+            "kind": "version", "id": "14",
+            "href": "/api/v3/versions/14", "name": "Beta",
+        }])
         self.assertEqual(out["counts"]["applied_actions"], 1)
         self.assertEqual(state["version_creates"][0]["endDate"], "2026-11-27")
         self.assertEqual(

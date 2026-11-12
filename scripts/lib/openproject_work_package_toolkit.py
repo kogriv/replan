@@ -713,7 +713,12 @@ def command_version_create(args):
             },
         ), 2)
     print_json(envelope(
-        command, "apply", actions=[action], counts={"applied_actions": 1},
+        command, "apply", items=[{
+            "kind": "version",
+            "id": version_id,
+            "href": href,
+            "name": name,
+        }], actions=[action], counts={"applied_actions": 1},
         warnings=warnings,
         extra={
             "dry_run": False, "applied": True,
@@ -755,6 +760,21 @@ def version_href(version):
     if not version:
         return ""
     return version.get("href") or f"/api/v3/versions/{version.get('id')}"
+
+
+def created_href(resource, kind, object_id):
+    href = ((resource.get("_links") or {}).get("self") or {}).get("href", "")
+    return href or f"/api/v3/{kind}/{object_id}"
+
+
+def work_package_bind_command(task_id, work_package_id):
+    work_package_arg = (
+        work_package_id if work_package_id == "<id>" else shlex.quote(work_package_id)
+    )
+    return (
+        "scripts/openproject-work-package-toolkit.sh work-package bind "
+        f"--task {shlex.quote(task_id)} --work-package {work_package_arg}"
+    )
 
 def allowed_status_hrefs(work_package_id, lock_version):
     if from_file:
@@ -1158,14 +1178,46 @@ def command_wp_create(args):
     errors = []
     warnings = []
     subject = args.subject.strip()
+    task_id = args.task.strip()
     if not subject:
         errors.append(diagnostic("missing_subject", "--subject is required"))
+    if args.bind and not task_id:
+        errors.append(diagnostic("invalid_arguments", "--bind requires --task"))
     if from_file and mode == "apply":
         errors.append(diagnostic("apply_not_allowed_with_fixture", "apply is not allowed when REPLAN_OPENPROJECT_FROM_FILE is used"))
+    if errors:
+        exit_code = helper_envelope.EXIT["usage"] if args.bind and not task_id else 2
+        print_json(envelope("openproject work-package create", mode, ok=False, errors=errors), exit_code)
+
+    if args.bind:
+        bind_errors = []
+        if not task_exists(task_id):
+            bind_errors.append(diagnostic(
+                "missing_replan_task", f"RePlan task {task_id} was not found",
+                "error", "task", task_id,
+            ))
+        if not bindings_path:
+            bind_errors.append(diagnostic(
+                "missing_bindings_path",
+                "a private bindings file must be configured to use --bind",
+            ))
+        else:
+            _, task_wp_by_id, _, _ = binding_maps()
+            if task_wp_by_id.get(task_id):
+                bind_errors.append(diagnostic(
+                    "task_already_bound",
+                    f"RePlan task {task_id} is already bound to an OpenProject work package",
+                    "error", "task", task_id,
+                ))
+        if bind_errors:
+            print_json(envelope(
+                "openproject work-package create", mode, ok=False,
+                counts={"planned_actions": 0, "blocked_actions": 1},
+                errors=bind_errors,
+            ), 2)
+
     if not from_file and not token:
         skip_without_token("openproject work-package create", f"{token_env} is not set")
-    if errors:
-        print_json(envelope("openproject work-package create", mode, ok=False, errors=errors), 2)
 
     project = {"id": openproject_project_id}
     if not from_file:
@@ -1182,7 +1234,7 @@ def command_wp_create(args):
             "existing_work_package_id": duplicate.get("work_package_id", ""),
             "existing_task_id": duplicate.get("task_id", ""),
             "subject": subject,
-            "task_id": args.task,
+            "task_id": task_id,
             "dry_run": mode != "apply",
             "apply_required": mode != "apply",
         }
@@ -1205,7 +1257,7 @@ def command_wp_create(args):
 
     action = {
         "action": "create_openproject_work_package",
-        "task_id": args.task,
+        "task_id": task_id,
         "subject": subject,
         "description_preview": args.description,
         "start_date": args.start_date,
@@ -1236,10 +1288,13 @@ def command_wp_create(args):
             (("start date", args.start_date), ("due date", args.due_date)),
         )
     if mode != "apply":
+        next_steps = ["Review the planned action and rerun with REPLAN_APPLY=1 to apply."]
+        if task_id and not args.bind:
+            next_steps.append(work_package_bind_command(task_id, "<id>"))
         extra = {
             "dry_run": True,
             "apply_required": True,
-            "suggested_next_actions": ["Review the planned action and rerun with REPLAN_APPLY=1 to apply.", "After apply, add the returned source_ref to the private binding layer if --task was provided."],
+            "suggested_next_actions": next_steps,
         }
         print_json(envelope("openproject work-package create", "dry_run", actions=[action], counts={"planned_actions": 1, "blocked_actions": 0}, warnings=warnings, extra=extra))
 
@@ -1263,12 +1318,48 @@ def command_wp_create(args):
         "created_source_ref": source_ref,
         "verification_command": "scripts/check-openproject-drift.sh",
     }
-    if args.task:
+    item = {
+        "kind": "work_package",
+        "id": wp_id,
+        "href": created_href(created, "work_packages", wp_id),
+        "subject": subject,
+        "source_ref": source_ref,
+    }
+    if task_id:
+        item["task_id"] = task_id
         extra["private_binding_suggestion"] = {
-            "replan_task_id": args.task,
+            "replan_task_id": task_id,
             "source_ref": source_ref,
         }
-    print_json(envelope("openproject work-package create", "apply", actions=[action], counts={"applied_actions": 1}, warnings=warnings, extra=extra))
+    if args.bind:
+        try:
+            append_task_binding(task_id, source_ref)
+        except Exception:
+            finish_command = work_package_bind_command(task_id, wp_id)
+            action["binding_written"] = False
+            extra.update({
+                "binding_written": False,
+                "finish_binding_command": finish_command,
+                "operator_next_steps": [finish_command],
+            })
+            print_json(envelope(
+                "openproject work-package create", "apply", ok=False,
+                actions=[action], counts={"applied_actions": 1}, warnings=warnings,
+                errors=[diagnostic(
+                    "binding_not_written",
+                    "The work package was created, but its private binding was not written. Run finish_binding_command to finish without creating it again.",
+                    "error", "openproject_work_package", wp_id,
+                )], extra=extra,
+            ), helper_envelope.EXIT["partial"])
+        action["binding_written"] = True
+        item["binding_written"] = True
+        extra["binding_written"] = True
+    elif task_id:
+        extra["suggested_next_actions"] = [work_package_bind_command(task_id, wp_id)]
+    print_json(envelope(
+        "openproject work-package create", "apply", items=[item], actions=[action],
+        counts={"applied_actions": 1}, warnings=warnings, extra=extra,
+    ))
 
 def command_wp_list(_args):
     rows, source_mode = load_work_package_rows()
@@ -1775,7 +1866,12 @@ def command_comment_add(args):
         action["activity_id"] = as_text(activity.get("id"))
         action["created_at"] = activity.get("createdAt", "")
         print_json(envelope(
-            "openproject comment add", "apply", actions=[action],
+            "openproject comment add", "apply", items=[{
+                "kind": "activity",
+                "id": action["activity_id"],
+                "href": created_href(activity, "activities", action["activity_id"]),
+                "work_package_id": wp_id,
+            }], actions=[action],
             counts={"applied_actions": 1},
             extra={"dry_run": False, "applied": True},
         ))
@@ -1887,15 +1983,26 @@ def command_relation_create(args):
     ), None)
     request = {"method": "POST", "path": path, "body": payload}
     if existing:
+        relation_id = as_text(existing.get("id"))
+        existing_type, existing_from, existing_to = relation_tuple(existing)
         action = {
             "action": "already_exists",
-            "relation_id": as_text(existing.get("id")),
+            "relation_id": relation_id,
             "relation_type": args.relation_type,
             "from_work_package_id": from_id,
             "to_work_package_id": to_id,
         }
+        existing_item = {
+            "kind": "relation",
+            "id": relation_id,
+            "href": created_href(existing, "relations", relation_id),
+            "type": existing_type,
+            "from": existing_from,
+            "to": existing_to,
+        }
         print_json(envelope(
-            command, mode, actions=[action],
+            command, mode,
+            items=[existing_item] if mode == "apply" else [], actions=[action],
             counts={"already_exists": 1, "planned_actions": 0, "applied_actions": 0},
             extra={"already_exists": True, "planned_request": request},
         ))
@@ -1944,6 +2051,7 @@ def command_relation_create(args):
         "apply_required": False,
         "applied": True,
     })
+    relation_id = action["relation_id"]
 
     restored = []
     if before:
@@ -1981,7 +2089,14 @@ def command_relation_create(args):
                 "work_package_ids": sorted(set(unread)),
             })
     print_json(envelope(
-        command, "apply", actions=[action], counts={
+        command, "apply", items=[{
+            "kind": "relation",
+            "id": relation_id,
+            "href": created_href(created, "relations", relation_id),
+            "type": args.relation_type,
+            "from": from_id,
+            "to": to_id,
+        }], actions=[action], counts={
             "applied_actions": 1, "created_relation": 1,
             "restored_work_packages": len(restored),
         }, warnings=warnings, extra={
@@ -2068,6 +2183,7 @@ def main():
     create.add_argument("--start-date", default="")
     create.add_argument("--due-date", default="")
     create.add_argument("--allow-duplicate", action="store_true")
+    create.add_argument("--bind", action="store_true")
     bind = wp_sub.add_parser("bind")
     bind.add_argument("--task", required=True)
     bind.add_argument("--work-package", required=True)

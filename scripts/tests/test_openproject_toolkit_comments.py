@@ -112,6 +112,10 @@ class ToolkitCommentsTest(unittest.TestCase):
         self.assertTrue(out["ok"], out)
         self.assertTrue(out["applied"])
         self.assertEqual(out["actions"][0]["activity_id"], "77")
+        self.assertEqual(out["items"], [{
+            "kind": "activity", "id": "77", "href": "/api/v3/activities/77",
+            "work_package_id": "1234",
+        }])
         self.assertEqual(
             out["actions"][0]["created_at"], "2026-11-09T12:34:56Z"
         )
@@ -138,6 +142,7 @@ class ToolkitCommentsTest(unittest.TestCase):
         self.assertFalse(out["applied"])
         self.assertFalse(out["actions"][0]["applied"])
         self.assertEqual(out["error_codes"], ["comment_not_saved"])
+        self.assertEqual(out["items"], [])
         self.assertNotIn("Expected text", out["errors"][0]["message"])
 
     def test_dry_run_names_activity_endpoint(self):
@@ -147,6 +152,7 @@ class ToolkitCommentsTest(unittest.TestCase):
         ])
         self.assertEqual(proc.returncode, 0, out)
         self.assertEqual(out["mode"], "dry_run")
+        self.assertEqual(out["items"], [])
         self.assertEqual(
             out["actions"][0]["endpoint"],
             "POST /api/v3/work_packages/1234/activities",

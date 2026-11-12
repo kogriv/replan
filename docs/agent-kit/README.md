@@ -487,7 +487,7 @@ to its root. A write to OpenProject or the bindings file is a dry run unless
 | Compare estimates with actuals | `bin/replan report estimates --project "$REPLAN_PROJECT" --baseline <id>` | Read-only resource and split-group summary followed by baseline-task demand, split and schedule detail; resources without counted actuals are explicit. JSON is available with `--format json`. |
 | Calibrate estimates | `bin/replan estimate calibrate ... [--all-baselines] [--by-size] --dry-run` | Builds a sealed calibration from at least eight clean finished tasks. For a new project, use `--prior 0.21 --source "replan-self, 39 tasks, 2026-11-02"`. Review the source, exclusions and factors, then replace `--dry-run` with `--apply`; the approver must be human. |
 | Apply a calibration as a what-if | `bin/replan estimate apply --calibration <id> --scenario-id <id> --actor <id> --dry-run` | Creates one calibration-linked scenario on apply. Inspect it with `scenario diff`, then use the existing reviewed `scenario apply` flow. |
-| Create or bind a work package | `scripts/apply-openproject-bootstrap.sh` | Creates missing work packages and bindings. For one item, toolkit `work-package create` or `bind`; use `backlog reconcile` to rebuild bindings. |
+| Create or bind a work package | `scripts/apply-openproject-bootstrap.sh` | Creates missing work packages and bindings. For one item, use toolkit `work-package create --task <id> --bind`; omit `--bind` to create first and receive the exact follow-up `work-package bind` command. Use `backlog reconcile` to rebuild bindings. |
 | Relations to OpenProject | `scripts/apply-openproject-relations.sh` | Applies supported canonical dependencies as OpenProject relations. The toolkit can list or delete a single relation. |
 | Record evidence | `bin/replan evidence add ... --dry-run` | Review the selected week file and item, then replace `--dry-run` with `--apply`; the actor and every target must already exist. |
 | Set remaining work | `bin/replan actual set-remaining ... --dry-run` | Updates one demand, or an all-or-nothing `--from-file` batch under the top-level `demands` key. Batch rows contain `demand`, `amount`, `unit` and optional item `reason`; review the shared actor, evidence, timestamp and reason before `--apply`. |
@@ -688,6 +688,7 @@ Work on single work packages:
 ```sh
 scripts/openproject-work-package-toolkit.sh work-package inspect --task <task id>
 scripts/openproject-work-package-toolkit.sh work-package create --subject "..." --type-name Task
+scripts/openproject-work-package-toolkit.sh work-package create --task <task id> --bind --subject "..." --type-name Task
 scripts/openproject-work-package-toolkit.sh work-package bind --task <task id> --work-package <number>
 scripts/openproject-work-package-toolkit.sh work-package update-status --task <task id> --status "In progress"
 scripts/openproject-work-package-toolkit.sh work-package update-dates --task <task id> --start-date 2026-10-12 --due-date 2026-10-14
@@ -710,6 +711,13 @@ scripts/openproject-work-package-toolkit.sh relation list
 reported id has the exact comment text; the live agent-kit check performs this
 after every comment write. Releases up to v0.5.0 reported comments as saved
 even when OpenProject 17.6 silently dropped them.
+
+Successful toolkit creates put the created identity in exactly one `items`
+row: `kind`, `id`, `href` and the identifying fields for a work package,
+relation, comment activity or Version. The existing action-specific and
+top-level ids remain for compatibility. Dry runs and failed writes keep
+`items` empty; an idempotent `relation create` returns the existing relation
+as its one item.
 
 The other toolkit and wiki updates also compare OpenProject's answer with what
 they sent: work-package status, dates, estimate, version, assignee, type,
@@ -832,6 +840,13 @@ with `version_ambiguous` and the matching ids, and an unknown id or name with
 `version_not_found`. Dry runs show `from_version` and `to_version`; apply still
 requires `REPLAN_APPLY=1` and sends the work package's current `lockVersion`.
 OpenProject remains authoritative for refusing a closed or locked version.
+With `--task` but without `--bind`, create reports the exact `work-package
+bind` command in its next steps, using `<id>` in a dry run and the returned id
+after apply. `work-package create --task <id> --bind` checks that the RePlan
+task exists, is unbound and has a configured private binding layer before any
+POST; apply then creates and writes the binding. If that local write fails,
+the answer keeps the created work-package id, exits nonzero and gives the
+exact bind command to finish without creating the work package again.
 
 `update-text` accepts `--subject`, `--description` or `--description-file`,
 with at least one required. Its dry run reports each changed field's old and
@@ -861,6 +876,11 @@ OpenProject by matching titles:
 scripts/openproject-work-package-toolkit.sh backlog reconcile
 REPLAN_APPLY=1 scripts/openproject-work-package-toolkit.sh backlog reconcile
 ```
+
+For a newly created single work package, prefer `work-package create --task
+<id> --bind`. If it was created without `--bind`, or its binding write failed,
+run the exact `work-package bind --task ... --work-package ...` command in the
+create answer instead of running create again.
 
 ## The project wiki
 

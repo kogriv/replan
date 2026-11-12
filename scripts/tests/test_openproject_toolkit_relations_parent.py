@@ -145,6 +145,10 @@ class ToolkitRelationsParentTest(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, out)
         self.assertTrue(out["already_exists"])
         self.assertEqual(out["actions"][0]["relation_id"], "90")
+        self.assertEqual(out["items"], [{
+            "kind": "relation", "id": "90", "href": "/api/v3/relations/90",
+            "type": "relates", "from": "2", "to": "1",
+        }])
         self.assertEqual(state["posts"], [])
 
         proc, out = self.run_toolkit(
@@ -153,6 +157,24 @@ class ToolkitRelationsParentTest(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, out)
         self.assertEqual(out["items"][0]["relation_id"], "90")
         self.assertEqual(out["items"][0]["from_work_package_id"], "2")
+
+    def test_existing_relation_dry_run_keeps_items_empty(self):
+        state = self.state()
+        state["relations"] = [{
+            "id": 90, "type": "relates", "description": "Existing",
+            "_links": {
+                "from": {"href": "/api/v3/work_packages/1"},
+                "to": {"href": "/api/v3/work_packages/2"},
+            },
+        }]
+        proc, out = self.run_toolkit(self.serve(state), [
+            "relation", "create", "--from", "1", "--to", "2",
+            "--type", "relates",
+        ])
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertTrue(out["already_exists"])
+        self.assertEqual(out["items"], [])
+        self.assertEqual(state["posts"], [])
 
     def test_follows_create_restores_manual_scheduling_and_endpoint_dates(self):
         state = self.state()
@@ -163,6 +185,10 @@ class ToolkitRelationsParentTest(unittest.TestCase):
         ], apply="1")
         self.assertEqual(proc.returncode, 0, out)
         self.assertEqual(out["counts"]["created_relation"], 1)
+        self.assertEqual(out["items"], [{
+            "kind": "relation", "id": "91", "href": "/api/v3/relations/91",
+            "type": "follows", "from": "2", "to": "1",
+        }])
         self.assertEqual(out["counts"]["restored_work_packages"], 2)
         self.assertEqual(state["posts"][0][0], "/api/v3/work_packages/2/relations")
         self.assertEqual(state["posts"][0][1]["description"], "After one")

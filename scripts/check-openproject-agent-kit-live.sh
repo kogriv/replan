@@ -159,7 +159,7 @@ expect "a member without manage_versions cannot create a version" "not d['ok'] a
 run "" env REPLAN_PROJECT= REPLAN_OPENPROJECT_TOKEN_FILE="$WORK_DIR/openproject-version-token" "$TOOLKIT" version create --name "Agent kit created stage" --description "Created by the agent kit." --start-date 2026-11-16 --due-date 2026-11-27
 expect "a version manager dry-runs version creation without a RePlan plan" "d['ok'] and d['plan'] == 'none' and d['mode'] == 'dry_run' and d['actions'][0]['action'] == 'create_openproject_version' and d['counts']['planned_actions'] == 1"
 run 1 env REPLAN_PROJECT= REPLAN_OPENPROJECT_TOKEN_FILE="$WORK_DIR/openproject-version-token" "$TOOLKIT" version create --name "Agent kit created stage" --description "Created by the agent kit." --start-date 2026-11-16 --due-date 2026-11-27
-expect "a version manager creates a version" "d['ok'] and d['plan'] == 'none' and d['version_id'] and d['href'] and d['counts']['applied_actions'] == 1"
+expect "a version manager creates a version" "d['ok'] and d['plan'] == 'none' and d['version_id'] == d['items'][0]['id'] and d['href'] == d['items'][0]['href'] and d['items'][0]['kind'] == 'version' and d['counts']['applied_actions'] == 1"
 run "" env REPLAN_PROJECT= REPLAN_OPENPROJECT_TOKEN_FILE="$WORK_DIR/openproject-version-token" "$TOOLKIT" version list
 expect "version list returns the created version fields" "d['ok'] and any(item['name'] == 'Agent kit created stage' and item['description'] == 'Created by the agent kit.' and item['start_date'] == '2026-11-16' and item['due_date'] == '2026-11-27' and item['status'] == 'open' and item['sharing'] == 'none' for item in d['items'])"
 run 1 env REPLAN_PROJECT= REPLAN_OPENPROJECT_TOKEN_FILE="$WORK_DIR/openproject-version-token" "$TOOLKIT" version create --name "Agent kit created stage"
@@ -212,8 +212,8 @@ expect "a member sets a Sunday date" "d['ok'] and d['counts']['applied_actions']
 run "" "$TOOLKIT" work-package inspect --task "$TASK"
 expect "the Sunday date is stored without scheduler movement" "d['ok'] and d['items'][0]['start_date'] == '2026-10-25' and d['items'][0]['due_date'] == '2026-10-25'"
 run 1 "$TOOLKIT" comment add --task "$TASK" --text "Checked by the agent kit."
-expect "a member comments" "d['ok'] and d['counts']['applied_actions'] == 1 and d['actions'][0]['activity_id']"
-COMMENT_ACTIVITY="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["actions"][0]["activity_id"])' "$WORK_DIR/out.json")"
+expect "a member comments" "d['ok'] and d['counts']['applied_actions'] == 1 and d['actions'][0]['activity_id'] == d['items'][0]['id'] and d['items'][0]['kind'] == 'activity'"
+COMMENT_ACTIVITY="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["items"][0]["id"])' "$WORK_DIR/out.json")"
 run "" "$TOOLKIT" comment list --task "$TASK"
 expect "the member comment is read back as the reported activity" "any(item['activity_id'] == '$COMMENT_ACTIVITY' and item['comment'] == 'Checked by the agent kit.' for item in d['items'])"
 run 1 "$TOOLKIT" work-package update-status --task "$TASK" --status "No such status"
@@ -236,6 +236,24 @@ checks=$((checks + 1))
 diff <(grep -A4 "replan_task_id: task\." "$WORK_DIR/bindings.before" | grep -E "replan_task_id|object_id") \
      <(grep -A4 "replan_task_id: task\." "$WORK_DIR/bindings.yaml" | grep -E "replan_task_id|object_id") > /dev/null \
   || fail "rebuilt bindings differ from the lost ones"
+
+# One fresh task exercises single-item create-and-bind. It is added after the
+# bootstrap and drift-count checks so those still cover the kit's sample plan.
+CREATE_BIND_TASK="task.agent-kit.create-bind"
+python3 -c '
+import sys, yaml
+path = sys.argv[1]
+with open(path, encoding="utf-8") as handle: document = yaml.safe_load(handle)
+document["tasks"].append({"id": sys.argv[2], "title": "Agent kit create and bind", "description": "Throwaway create-and-bind live check.", "type": "software", "tracking_status": "ready", "resource_demands": [], "tags": ["agent-kit-check"]})
+with open(path, "w", encoding="utf-8") as handle: yaml.safe_dump(document, handle, sort_keys=False)
+' "$WORK_DIR/plan/canonical/tasks.yaml" "$CREATE_BIND_TASK"
+run "" "$TOOLKIT" work-package create --task "$CREATE_BIND_TASK" --bind --subject "Agent kit create and bind"
+expect "create and bind dry run plans no created item" "d['ok'] and d['mode'] == 'dry_run' and d['items'] == [] and d['counts']['planned_actions'] == 1"
+run 1 "$TOOLKIT" work-package create --task "$CREATE_BIND_TASK" --bind --subject "Agent kit create and bind"
+expect "a member creates and binds one plan task" "d['ok'] and d['actions'][0]['binding_written'] and d['items'][0]['binding_written'] and d['items'][0]['id'] == d['created_work_package_id']"
+CREATE_BIND_WORK_PACKAGE="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["items"][0]["id"])' "$WORK_DIR/out.json")"
+run "" "$TOOLKIT" work-package inspect --task "$CREATE_BIND_TASK"
+expect "the new private binding resolves the created work package" "d['ok'] and d['items'][0]['task_id'] == '$CREATE_BIND_TASK' and d['items'][0]['work_package_id'] == '$CREATE_BIND_WORK_PACKAGE'"
 
 # The wiki, where an outside member mostly works: pages and attachments,
 # with the member's own permissions.
@@ -342,22 +360,22 @@ expect "the missing link field is reported" "not d['ok'] and set(d['error_codes'
 # token file again, so the file is what the helpers read.
 sed -i "s#^OPENPROJECT_TOKEN=.*#OPENPROJECT_TOKEN=#" "$KIT/.env.local"
 run 1 env REPLAN_PROJECT= "$TOOLKIT" work-package create --subject "Agent kit no-plan work package"
-expect "a member creates a work package without a RePlan plan" "d['ok'] and d['plan'] == 'none' and 'private_binding_layer' not in d and d['counts']['applied_actions'] == 1"
-NO_PLAN_WORK_PACKAGE="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["created_work_package_id"])' "$WORK_DIR/out.json")"
+expect "a member creates a work package without a RePlan plan" "d['ok'] and d['plan'] == 'none' and 'private_binding_layer' not in d and d['created_work_package_id'] == d['items'][0]['id'] and d['counts']['applied_actions'] == 1"
+NO_PLAN_WORK_PACKAGE="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["items"][0]["id"])' "$WORK_DIR/out.json")"
 run 1 env REPLAN_PROJECT= "$TOOLKIT" work-package update-status --work-package "$NO_PLAN_WORK_PACKAGE" --status in_progress
 expect "a member updates status without a RePlan plan" "d['ok'] and d['plan'] == 'none' and d['counts']['applied_actions'] == 1"
 run 1 env REPLAN_PROJECT= "$TOOLKIT" comment add --work-package "$NO_PLAN_WORK_PACKAGE" --text "Checked without a RePlan plan."
-expect "a member comments without a RePlan plan" "d['ok'] and d['plan'] == 'none' and d['counts']['applied_actions'] == 1 and d['actions'][0]['activity_id']"
-NO_PLAN_COMMENT_ACTIVITY="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["actions"][0]["activity_id"])' "$WORK_DIR/out.json")"
+expect "a member comments without a RePlan plan" "d['ok'] and d['plan'] == 'none' and d['counts']['applied_actions'] == 1 and d['actions'][0]['activity_id'] == d['items'][0]['id']"
+NO_PLAN_COMMENT_ACTIVITY="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["items"][0]["id"])' "$WORK_DIR/out.json")"
 run "" env REPLAN_PROJECT= "$TOOLKIT" comment list --work-package "$NO_PLAN_WORK_PACKAGE"
 expect "the no-plan comment is read back as the reported activity" "any(item['activity_id'] == '$NO_PLAN_COMMENT_ACTIVITY' and item['comment'] == 'Checked without a RePlan plan.' for item in d['items'])"
 
 PLAN_WORK_PACKAGE="$(python3 -c 'import sys, yaml; d=yaml.safe_load(open(sys.argv[1])); print(d["openproject_private_bindings"]["tasks"][0]["source_ref"]["object_id"])' "$WORK_DIR/bindings.yaml")"
 run 1 env REPLAN_PROJECT= "$TOOLKIT" relation create --from "$NO_PLAN_WORK_PACKAGE" --to "$PLAN_WORK_PACKAGE" --type relates --description "Agent kit live relation"
-expect "a member creates a relation by work-package id without a plan" "d['ok'] and d['plan'] == 'none' and d['counts']['created_relation'] == 1"
-RELATION="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["actions"][0]["relation_id"])' "$WORK_DIR/out.json")"
+expect "a member creates a relation by work-package id without a plan" "d['ok'] and d['plan'] == 'none' and d['counts']['created_relation'] == 1 and d['actions'][0]['relation_id'] == d['items'][0]['id']"
+RELATION="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["items"][0]["id"])' "$WORK_DIR/out.json")"
 run 1 env REPLAN_PROJECT= "$TOOLKIT" relation create --from "$NO_PLAN_WORK_PACKAGE" --to "$PLAN_WORK_PACKAGE" --type relates --description "Agent kit live relation"
-expect "repeating relation create is idempotent" "d['ok'] and d['already_exists'] and d['actions'][0]['relation_id'] == '$RELATION' and d['counts']['applied_actions'] == 0"
+expect "repeating relation create is idempotent" "d['ok'] and d['already_exists'] and d['actions'][0]['relation_id'] == '$RELATION' and d['items'][0]['id'] == '$RELATION' and d['counts']['applied_actions'] == 0"
 run "" env REPLAN_PROJECT= "$TOOLKIT" relation list --work-package "$NO_PLAN_WORK_PACKAGE"
 expect "relations are listed by work-package id without a plan" "d['ok'] and any(item['relation_id'] == '$RELATION' for item in d['items'])"
 run 1 env REPLAN_PROJECT= "$TOOLKIT" relation delete --relation "$RELATION"
@@ -368,7 +386,7 @@ cp "$WORK_DIR/out.json" "$WORK_DIR/no-plan.before-follows.json"
 run "" env REPLAN_PROJECT= "$TOOLKIT" work-package inspect --work-package "$PLAN_WORK_PACKAGE"
 cp "$WORK_DIR/out.json" "$WORK_DIR/plan.before-follows.json"
 run 1 env REPLAN_PROJECT= "$TOOLKIT" relation create --from "$NO_PLAN_WORK_PACKAGE" --to "$PLAN_WORK_PACKAGE" --type follows
-expect "a member creates follows by id and schedule restoration completes" "d['ok'] and d['counts']['created_relation'] == 1 and 'rescheduling_unknown' not in d['warning_codes']"
+expect "a member creates follows by id and schedule restoration completes" "d['ok'] and d['counts']['created_relation'] == 1 and d['actions'][0]['relation_id'] == d['items'][0]['id'] and 'rescheduling_unknown' not in d['warning_codes']"
 run "" env REPLAN_PROJECT= "$TOOLKIT" work-package inspect --work-package "$NO_PLAN_WORK_PACKAGE"
 cp "$WORK_DIR/out.json" "$WORK_DIR/no-plan.after-follows.json"
 run "" env REPLAN_PROJECT= "$TOOLKIT" work-package inspect --work-package "$PLAN_WORK_PACKAGE"
@@ -382,8 +400,8 @@ python3 -c 'import json, sys; rows=[json.load(open(p))["items"][0] for p in sys.
 # The parent is a fresh work package: OpenProject refuses a parent that the
 # child already follows.
 run 1 env REPLAN_PROJECT= "$TOOLKIT" work-package create --subject "Agent kit no-plan parent"
-expect "a member creates a parent work package without a plan" "d['ok'] and d['counts']['applied_actions'] == 1"
-PARENT_WORK_PACKAGE="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["created_work_package_id"])' "$WORK_DIR/out.json")"
+expect "a member creates a parent work package without a plan" "d['ok'] and d['counts']['applied_actions'] == 1 and d['created_work_package_id'] == d['items'][0]['id']"
+PARENT_WORK_PACKAGE="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["items"][0]["id"])' "$WORK_DIR/out.json")"
 run 1 env REPLAN_PROJECT= "$TOOLKIT" work-package update-metadata --work-package "$NO_PLAN_WORK_PACKAGE" --parent "$PARENT_WORK_PACKAGE"
 if python3 -c 'import json, sys; sys.exit(0 if json.load(open(sys.argv[1]))["ok"] else 1)' "$WORK_DIR/out.json"; then
   expect "an ordinary member sets a parent by work-package id" "d['counts']['applied_actions'] == 1"
