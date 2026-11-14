@@ -1326,3 +1326,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.scenario-id-flag
+  - id: evidence.self.scenario-id-flag
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-14T22:46:46+07:00"
+    summary: 'Feature commit 91f1543: scenario show, diff and apply accept --scenario-id as well as the positional id (one helper next to requireSinglePositional); the same value in both forms is accepted, different values exit 8 with conflicting_argument, a missing id names both forms, an extra positional stays unexpected_argument. Usage lines, help, the dashboard scenario page''s apply command and the agent kit, CLI spec, getting-started and TaskJuggler experiment docs show the flag form; the --scenario overlay flag of workload, report, export and taskjuggler run is unchanged on purpose. Tests for every form per command, the conflict and missing cases, top-level usage and a dry-run apply equal in both forms; the executor added a smoke call with the flag. Review: Codex also added an openproject_sync_pending note because it had no OpenProject access; dropped, the task already has its work package. Gate: vet, lint 0, shellcheck, unit suites, smoke, isolated smoke, 55 kit checks and 101 live kit checks pass. Codex 21:54:16-22:22:11 (0.47 h, prompt and last-file mtimes). Executor 0.11 h by tool-call times, excluding waits for Codex and the gate.'
+    targets:
+      - kind: task
+        id: task.self.scenario-id-flag
