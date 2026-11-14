@@ -7944,7 +7944,7 @@ tasks:
     title: Make the agent kit work on Windows under Git Bash
     description: 'Asked on 2026-11-14 by the third consumer project for its analyst, who works on Windows without WSL; the maintainer chose the Git Bash route. The kit''s helpers are bash scripts, many using GNU-only tools (rsync, sed -i, mktemp, readlink -f), and call Python as python3, which a Windows Python install usually does not provide. Make the helpers run under Git Bash from Git for Windows with a Windows Python 3 and PyYAML: find Python under python3, python or py, replace or guard GNU-only tool use, handle Windows paths and CRLF, keep Linux behaviour unchanged; build a windows-amd64 kit with replan.exe; write Windows install notes (Git for Windows, Python and PyYAML, where to unpack, settings file, token and perimeter key files, CRLF); check the kit on a real Windows instance of our own (unpack, validate, read-only toolkit calls and a dry run against OpenProject) besides the Linux gate.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-14"
     planned_finish: "2026-11-14"
     assignee_hint:
@@ -7973,9 +7973,9 @@ tasks:
     title: Publish release v0.5.4 with the Windows agent kit
     description: 'Agreed with the operator on 2026-11-14 together with the Windows agent kit: publish release v0.5.4 (release notes, tag after green CI, archives compared with the CI build and its attestation, GitHub release, go install check), build the linux and windows kits, refresh the three consumer projects'' kits as before and hand the Windows kit to the third consumer project for its analyst.'
     type: release
-    tracking_status: not_started
-    planned_start: "2026-11-16"
-    planned_finish: "2026-11-16"
+    tracking_status: in_progress
+    planned_start: "2026-11-14"
+    planned_finish: "2026-11-14"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer

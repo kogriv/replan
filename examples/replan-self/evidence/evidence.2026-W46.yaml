@@ -1256,3 +1256,27 @@ evidence:
     targets:
       - kind: task
         id: task.self.windows-agent-kit
+  - id: evidence.self.accept-windows-agent-kit
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-14T04:12:00Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.windows-agent-kit
+  - id: evidence.self.start-publish-release-v0-5-4
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-14T11:11:50+07:00"
+    summary: The maintainer asked not to postpone the release (answer 2026-11-14 11:11:50); started two days ahead of plan (planned 2026-11-16) right after the Windows kit acceptance.
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-4

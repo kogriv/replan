@@ -1636,3 +1636,24 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.windows-agent-kit
+  - id: actual.self-windows-agent-kit.ci-github-actions.20261114T041200Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.windows-agent-kit
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.windows-agent-kit.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 3
+    unit: ci_minutes
+    occurred_at: "2026-11-14T04:12:00Z"
+    status_date: "2026-11-14"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-windows-agent-kit
