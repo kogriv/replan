@@ -1291,3 +1291,16 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-4
+  - id: evidence.self.accept-publish-release-v0-5-4
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-14T04:32:16Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review.
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-4
