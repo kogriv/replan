@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 271,
-  "count": 271,
+  "total": 272,
+  "count": 272,
   "_embedded": {
     "elements": [
       {
@@ -7856,6 +7856,35 @@
           },
           "status": {
             "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2372,
+        "subject": "Accept --scenario-id in the scenario commands",
+        "description": {
+          "raw": "Reported on 2026-11-14 by the second consumer project after a full cycle on v0.5.4: scenario diff takes the scenario id as a positional argument while taskjuggler import-result and estimate apply take --scenario-id, which tripped the agent. Make scenario show, diff and apply also accept --scenario-id, keep the positional form working, refuse a positional id and a different --scenario-id together with a usage error, and update the usage lines, help, getting-started and agent kit docs and tests."
+        },
+        "status": {
+          "name": "In progress"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-16",
+        "dueDate": "2026-11-16",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2372"
+          },
+          "status": {
+            "title": "In progress"
           },
           "assignee": {
             "href": "/api/v3/users/101",

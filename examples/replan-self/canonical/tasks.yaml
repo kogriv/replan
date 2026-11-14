@@ -7996,3 +7996,32 @@ tasks:
         object_type: work_package
         object_id: "2371"
         url: https://op.example.internal/work_packages/2371
+  - id: task.self.scenario-id-flag
+    title: Accept --scenario-id in the scenario commands
+    description: 'Reported on 2026-11-14 by the second consumer project after a full cycle on v0.5.4: scenario diff takes the scenario id as a positional argument while taskjuggler import-result and estimate apply take --scenario-id, which tripped the agent. Make scenario show, diff and apply also accept --scenario-id, keep the positional form working, refuse a positional id and a different --scenario-id together with a usage error, and update the usage lines, help, getting-started and agent kit docs and tests.'
+    type: implementation
+    tracking_status: in_progress
+    planned_start: "2026-11-16"
+    planned_finish: "2026-11-16"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.scenario-id-flag.agent
+      - kind: resource_demand
+        id: resource_demand.scenario-id-flag.codex
+      - kind: resource_demand
+        id: resource_demand.scenario-id-flag.maintainer
+      - kind: resource_demand
+        id: resource_demand.scenario-id-flag.local-dev
+      - kind: resource_demand
+        id: resource_demand.scenario-id-flag.ci
+    tags:
+      - cli
+      - consumer-feedback
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2372"
+        url: https://op.example.internal/work_packages/2372

@@ -1,0 +1,49 @@
+baseline:
+  id: baseline.2026-11-14.scenario-id-flag
+  name: scenario-id-flag
+  scope: tasks
+  created_at: "2026-11-14T21:52:08+07:00"
+  approved_at: "2026-11-14T21:52:08+07:00"
+  approved_by:
+    kind: actor
+    id: actor.human.maintainer
+  status_date: "2026-11-14"
+  included_tasks:
+    - kind: task
+      id: task.self.scenario-id-flag
+      planned_start: "2026-11-16"
+      planned_finish: "2026-11-16"
+  included_demands:
+    - kind: resource_demand
+      id: resource_demand.scenario-id-flag.agent
+      task: task.self.scenario-id-flag
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 0.5
+    - kind: resource_demand
+      id: resource_demand.scenario-id-flag.codex
+      task: task.self.scenario-id-flag
+      resource: resource.ai.codex.local
+      unit: agent_hours
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.scenario-id-flag.maintainer
+      task: task.self.scenario-id-flag
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.scenario-id-flag.local-dev
+      task: task.self.scenario-id-flag
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.scenario-id-flag.ci
+      task: task.self.scenario-id-flag
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  seal:
+    algorithm: sha256
+    digest: 374cfabb31c471cdbc2725cfaa235a4ff711ed868a9442953c12fc3c8643695f

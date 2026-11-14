@@ -851,6 +851,12 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2371"
         url: https://op.example.internal/work_packages/2371
+    - replan_task_id: task.self.scenario-id-flag
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2372"
+        url: https://op.example.internal/work_packages/2372
     - replan_task_id: task.self.date-push-nothing-to-apply-is-ok
       source_ref:
         source: openproject
