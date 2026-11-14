@@ -528,6 +528,10 @@ current_plan:
     - kind: task
       id: task.self.publish-release-v0-5-3
     - kind: task
+      id: task.self.windows-agent-kit
+    - kind: task
+      id: task.self.publish-release-v0-5-4
+    - kind: task
       id: task.self.date-push-nothing-to-apply-is-ok
     - kind: task
       id: task.self.toolkit-comment-add-saves-comment

@@ -1212,3 +1212,36 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-3
+  - id: evidence.self.plan-windows-agent-kit
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-14T09:26:19+07:00"
+    summary: The maintainer chose the Git Bash route for a Windows agent kit at Codex 2 and agent 1.5 hours (answer 2026-11-14 09:26:19), asked for by the third consumer project, and allowed testing on one of the Windows containers on the shared machine with its session's consent or an own instance on the compute machine.
+    targets:
+      - kind: task
+        id: task.self.windows-agent-kit
+  - id: evidence.self.plan-publish-release-v0-5-4
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-14T09:26:19+07:00"
+    summary: The maintainer agreed release v0.5.4 with the Windows kit at 0.5 agent hours (answer 2026-11-14 09:26:19), from release v0.5.3 (0.13 h actual).
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-4
+  - id: evidence.self.start-windows-agent-kit
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-14T09:27:43+07:00"
+    summary: Started on the planned day right after the maintainer's answer (09:26:19); planning and the Windows test instance from 09:26:29.
+    targets:
+      - kind: task
+        id: task.self.windows-agent-kit

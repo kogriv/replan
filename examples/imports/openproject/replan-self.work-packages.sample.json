@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 269,
-  "count": 269,
+  "total": 271,
+  "count": 271,
   "_embedded": {
     "elements": [
       {
@@ -7798,6 +7798,64 @@
           },
           "status": {
             "title": "In progress"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2370,
+        "subject": "Make the agent kit work on Windows under Git Bash",
+        "description": {
+          "raw": "Asked on 2026-11-14 by the third consumer project for its analyst, who works on Windows without WSL; the maintainer chose the Git Bash route. The kit's helpers are bash scripts, many using GNU-only tools (rsync, sed -i, mktemp, readlink -f), and call Python as python3, which a Windows Python install usually does not provide. Make the helpers run under Git Bash from Git for Windows with a Windows Python 3 and PyYAML: find Python under python3, python or py, replace or guard GNU-only tool use, handle Windows paths and CRLF, keep Linux behaviour unchanged; build a windows-amd64 kit with replan.exe; write Windows install notes (Git for Windows, Python and PyYAML, where to unpack, settings file, token and perimeter key files, CRLF); check the kit on a real Windows instance of our own (unpack, validate, read-only toolkit calls and a dry run against OpenProject) besides the Linux gate."
+        },
+        "status": {
+          "name": "In progress"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-14",
+        "dueDate": "2026-11-16",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2370"
+          },
+          "status": {
+            "title": "In progress"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2371,
+        "subject": "Publish release v0.5.4 with the Windows agent kit",
+        "description": {
+          "raw": "Agreed with the operator on 2026-11-14 together with the Windows agent kit: publish release v0.5.4 (release notes, tag after green CI, archives compared with the CI build and its attestation, GitHub release, go install check), build the linux and windows kits, refresh the three consumer projects' kits as before and hand the Windows kit to the third consumer project for its analyst."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-16",
+        "dueDate": "2026-11-16",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2371"
+          },
+          "status": {
+            "title": "New"
           },
           "assignee": {
             "href": "/api/v3/users/101",
