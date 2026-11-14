@@ -7973,7 +7973,7 @@ tasks:
     title: Publish release v0.5.4 with the Windows agent kit
     description: 'Agreed with the operator on 2026-11-14 together with the Windows agent kit: publish release v0.5.4 (release notes, tag after green CI, archives compared with the CI build and its attestation, GitHub release, go install check), build the linux and windows kits, refresh the three consumer projects'' kits as before and hand the Windows kit to the third consumer project for its analyst.'
     type: release
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-14"
     planned_finish: "2026-11-14"
     assignee_hint:
