@@ -101,13 +101,13 @@ if [ -z "$BIN" ]; then
 fi
 
 json_quote() {
-  python3 -c 'import json, sys; print(json.dumps(sys.argv[1]))' "$1"
+  replan_python -c 'import json, sys; print(json.dumps(sys.argv[1]))' "$1"
 }
 
 json_get() {
   file="$1"
   expr="$2"
-  python3 -c 'import json, sys; data=json.load(open(sys.argv[1])); print(eval(sys.argv[2], {}, {"data": data}))' "$file" "$expr"
+  replan_python -c 'import json, sys; data=json.load(open(sys.argv[1])); print(eval(sys.argv[2], {}, {"data": data}))' "$file" "$expr"
 }
 
 normalize_optional_path() {
@@ -140,12 +140,12 @@ OPENPROJECT_RESOURCE_DEMANDS_SIDECAR="$(normalize_optional_path "$OPENPROJECT_RE
 
 json_summary() {
   file="$1"
-  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" python3 -m envelope_check import-summary "$file"
+  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m envelope_check import-summary "$file"
 }
 
 assert_json_ok() {
   file="$1"
-  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" python3 -m envelope_check require-ok "$file" --with-warnings \
+  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m envelope_check require-ok "$file" --with-warnings \
     || fail step_failed "a replan step returned ok false: $(basename "$file")" 1
 }
 
@@ -157,7 +157,10 @@ copy_project() {
 set_openproject_ids_canonical() {
   project="$1"
   # This disposable copy tests import machinery, not the private-id policy.
-  sed -i 's/^  openproject_ids: private_bindings$/  openproject_ids: canonical/' "$project/.replan/project.yaml"
+  project_file="$project/.replan/project.yaml"
+  project_file_tmp="$project_file.tmp"
+  sed 's/^  openproject_ids: private_bindings$/  openproject_ids: canonical/' "$project_file" >"$project_file_tmp"
+  mv "$project_file_tmp" "$project_file"
 }
 
 build_live_import_args() {
@@ -214,7 +217,7 @@ run_live_import() {
   "$(sed -n '1p' "$args_file")" $(sed -n '2,$p' "$args_file") >"$output" || import_exit=$?
   if [ "$import_exit" -ne 0 ]; then
     if [ "$FORMAT" = "json" ]; then
-      PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" python3 -m openproject_import_failure --command validate-openproject-live --status-key live_api_validation --status-value failed --import-json "$output" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR" --profile --import-exit "$import_exit" || exit $?
+      PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m openproject_import_failure --command validate-openproject-live --status-key live_api_validation --status-value failed --import-json "$output" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR" --profile --import-exit "$import_exit" || exit $?
     fi
     printf 'OpenProject live validation failed during live import\n' >&2
     exit 6

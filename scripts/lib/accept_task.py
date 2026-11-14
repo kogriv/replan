@@ -9,6 +9,7 @@ import subprocess
 from datetime import datetime
 
 import yaml
+from platform_compat import shell_script_command
 
 import helper_envelope
 from openproject_http import Settings
@@ -237,9 +238,12 @@ if mode == "apply" and token_missing:
 if mode == "apply" and not settings.from_file and not settings.base_url:
     refuse("missing_setting", "REPLAN_OPENPROJECT_BASE_URL is required under apply", 8, kind="env", target_id="REPLAN_OPENPROJECT_BASE_URL", extra={"missing_settings": ["REPLAN_OPENPROJECT_BASE_URL"]})
 
-toolkit = os.path.join(args.root_dir, "scripts", "openproject-work-package-toolkit.sh")
-overlay_build = os.path.join(args.root_dir, "scripts", "build-openproject-live-overlay.sh")
-overlay_publish = os.path.join(args.root_dir, "scripts", "publish-openproject-overlay.sh")
+toolkit_path = os.path.join(args.root_dir, "scripts", "openproject-work-package-toolkit.sh")
+overlay_build_path = os.path.join(args.root_dir, "scripts", "build-openproject-live-overlay.sh")
+overlay_publish_path = os.path.join(args.root_dir, "scripts", "publish-openproject-overlay.sh")
+toolkit = shell_script_command(toolkit_path)
+overlay_build = shell_script_command(overlay_build_path)
+overlay_publish = shell_script_command(overlay_publish_path)
 base = [args.replan_bin]
 common_actual = ["--evidence", evidence_id, "--actor", recorder or accepted_by, "--occurred-at", accept_at, "--format", "json"]
 
@@ -395,7 +399,7 @@ toolkit_dry_env.pop("REPLAN_APPLY", None)
 actual_window_result = actual_window_preview.get("result") or {}
 actual_start = actual_window_result.get("new_planned_start", "")
 actual_finish = actual_window_result.get("new_planned_finish", "")
-date_command = [toolkit, "work-package", "update-dates", "--task", task_id, "--start-date", actual_start, "--due-date", actual_finish]
+date_command = toolkit + ["work-package", "update-dates", "--task", task_id, "--start-date", actual_start, "--due-date", actual_finish]
 if actual_window_step["state"] == "skipped":
     date_step = step(7, "update_openproject_dates", "skipped", "the actual window is unknown", date_command)
 elif token_missing:
@@ -414,15 +418,15 @@ planned.append(proposal_step)
 
 op_step = None
 if token_missing and not settings.from_file:
-    op_step = step(9, "update_openproject_status", "skipped", f"{settings.token_env} is not set", [toolkit, "work-package", "update-status", "--task", task_id, "--status", "accepted"])
+    op_step = step(9, "update_openproject_status", "skipped", f"{settings.token_env} is not set", toolkit + ["work-package", "update-status", "--task", task_id, "--status", "accepted"])
 else:
-    inspect_command = [toolkit, "work-package", "inspect", "--task", task_id]
+    inspect_command = toolkit + ["work-package", "inspect", "--task", task_id]
     inspect = preflight_json(inspect_command, env=toolkit_dry_env)
     rows = inspect.get("items") or []
     if len(rows) != 1:
         refuse("openproject_work_package_count", f"task {task_id} must resolve to exactly one OpenProject work package; found {len(rows)}", 2, kind="task", target_id=task_id)
     wp = rows[0]
-    update_command = [toolkit, "work-package", "update-status", "--task", task_id, "--status", "accepted"]
+    update_command = toolkit + ["work-package", "update-status", "--task", task_id, "--status", "accepted"]
     if wp.get("mapped_status") == "accepted":
         op_step = step(9, "update_openproject_status", "already_done", f"work package {wp.get('work_package_id', '')} already has accepted status", update_command, work_package_id=wp.get("work_package_id", ""), inspect=inspect)
     else:
@@ -433,7 +437,7 @@ else:
             op_step = action_for(update_command, 9, "update_openproject_status", f"work package status is {wp.get('source_status', '')!r}", work_package_id=wp.get("work_package_id", ""), cli_dry_run=update_preview)
 planned.append(op_step)
 
-overlay_commands = [[overlay_build], [overlay_publish]]
+overlay_commands = [overlay_build, overlay_publish]
 overlay_warnings = []
 overlay_target = os.environ.get("REPLAN_OVERLAY_PUBLISH_TARGET", "").strip()
 overlay_output_dir = os.environ.get("REPLAN_OVERLAY_OUTPUT_DIR", "").strip() or os.path.join(args.root_dir, "tmp", "openproject-live-overlay", "latest")
@@ -450,7 +454,7 @@ try:
         overlay_marker_done = json.load(marker_stream) == overlay_marker_expected
 except (FileNotFoundError, OSError, ValueError):
     overlay_marker_done = False
-if not (os.path.isfile(overlay_build) and os.path.isfile(overlay_publish)):
+if not (os.path.isfile(overlay_build_path) and os.path.isfile(overlay_publish_path)):
     overlay_step = step(10, "refresh_overlay", "skipped", "overlay scripts are not present next to accept-task", commands=overlay_commands)
     overlay_warnings.append(warning("accept_overlay_scripts_unavailable", "overlay scripts are unavailable in this partial helper copy; overlay refresh was skipped"))
 elif not overlay_target:
@@ -528,13 +532,13 @@ try:
     if overlay_step["state"] == "would_run":
         partial_apply.attempting({"step": 10, "name": "build_overlay"})
         partial_apply.writing()
-        build_answer = run_json([overlay_build])
+        build_answer = run_json(overlay_build)
         partial_apply.applied({"step": 10, "name": "build_overlay"})
         overlay_apply_env = dict(os.environ)
         overlay_apply_env["REPLAN_APPLY"] = "1"
         partial_apply.attempting({"step": 10, "name": "publish_overlay"})
         partial_apply.writing()
-        publish_answer = run_json([overlay_publish], env=overlay_apply_env)
+        publish_answer = run_json(overlay_publish, env=overlay_apply_env)
         partial_apply.applied({"step": 10, "name": "publish_overlay"})
         partial_apply.attempting({"step": 10, "name": "record_overlay_publish"})
         partial_apply.writing()

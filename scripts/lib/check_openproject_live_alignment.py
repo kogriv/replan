@@ -19,9 +19,9 @@ import_path, tmp_dir = args.import_json, args.tmp_dir
 project_path, profile, keep_temp = settings.project_path, settings.profile, settings.keep_temp
 openproject_project_id, bindings_path = settings.project_id, settings.bindings_path
 helper_envelope.guard("check-openproject-live-alignment")
-data = json.load(open(import_path))
+data = json.load(open(import_path, encoding="utf-8"))
 tasks_path = os.path.join(project_path, "canonical", "tasks.yaml")
-tasks_data = yaml.safe_load(open(tasks_path)) or {}
+tasks_data = yaml.safe_load(open(tasks_path, encoding="utf-8")) or {}
 tasks = tasks_data.get("tasks") or []
 result = data.get("result") or {}
 warnings = data.get("warnings") or result.get("warnings") or []

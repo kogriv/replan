@@ -14,13 +14,13 @@ project_path = Settings.from_env().project_path
 helper_envelope.guard("plan-resource-demand-calibration", "dry_run")
 
 def load_yaml(rel):
-    with open(os.path.join(project_path, rel)) as fh:
+    with open(os.path.join(project_path, rel), encoding="utf-8") as fh:
         return yaml.safe_load(fh) or {}
 
 def load_actuals():
     out = []
     for path in sorted(glob.glob(os.path.join(project_path, "actuals", "*.yaml"))):
-        with open(path) as fh:
+        with open(path, encoding="utf-8") as fh:
             data = yaml.safe_load(fh) or {}
         for actual in data.get("actuals") or []:
             actual = dict(actual)

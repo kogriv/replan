@@ -18,7 +18,7 @@ helper_envelope.guard("plan-openproject-bootstrap", "dry_run")
 
 def load_yaml(relative_path):
     path = os.path.join(project_path, relative_path)
-    with open(path) as fh:
+    with open(path, encoding="utf-8") as fh:
         return yaml.safe_load(fh) or {}
 
 tasks = load_yaml("canonical/tasks.yaml").get("tasks") or []

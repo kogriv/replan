@@ -40,4 +40,4 @@ if [ -z "$BIN" ]; then
   (cd "$ROOT_DIR" && go build -o "$BIN" ./cmd/replan)
 fi
 
-PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" python3 -m check_resource_schedule_drift --replan-bin "$BIN"
+PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m check_resource_schedule_drift --replan-bin "$BIN"

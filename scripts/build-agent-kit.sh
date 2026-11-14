@@ -8,6 +8,7 @@
 #   REPLAN_AGENT_KIT_DIR      default dist
 #   REPLAN_AGENT_KIT_VERSION  default current git date and revision
 #   REPLAN_AGENT_KIT_PURPOSE  default work agreed with the owner
+#   REPLAN_AGENT_KIT_TARGET   default linux/amd64; linux/arm64 or windows/amd64
 #   TMPDIR                    default /tmp
 #
 # Does not write a live OpenProject; it writes only local or disposable
@@ -29,7 +30,14 @@ OUT_DIR="${REPLAN_AGENT_KIT_DIR:-$ROOT_DIR/dist}"
 VERSION="${REPLAN_AGENT_KIT_VERSION:-$(cd "$ROOT_DIR" && git log -1 --format=%cd-%h --date=format:%Y%m%d 2>/dev/null || echo dev)}"
 COMMIT="$(cd "$ROOT_DIR" && git rev-parse HEAD 2>/dev/null || echo dev)"
 BUILD_DATE="$(cd "$ROOT_DIR" && git show -s --format=%cI HEAD 2>/dev/null || echo dev)"
-NAME="replan-agent-kit-$VERSION-linux-amd64"
+TARGET="${REPLAN_AGENT_KIT_TARGET:-linux/amd64}"
+case "$TARGET" in
+  linux/amd64) GOOS=linux; GOARCH=amd64; BINARY=replan; EXTENSION=tar.gz ;;
+  linux/arm64) GOOS=linux; GOARCH=arm64; BINARY=replan; EXTENSION=tar.gz ;;
+  windows/amd64) GOOS=windows; GOARCH=amd64; BINARY=replan.exe; EXTENSION=zip ;;
+  *) printf 'unsupported REPLAN_AGENT_KIT_TARGET: %s\n' "$TARGET" >&2; exit 8 ;;
+esac
+NAME="replan-agent-kit-$VERSION-${GOOS}-${GOARCH}"
 
 # The helpers an outside agent needs; plugin builds and runtime checks stay
 # in the repository.
@@ -69,6 +77,8 @@ explain_resource_overload.py
 helper_envelope.py
 import_candidates.py
 load-dotenv.sh
+platform.sh
+platform_compat.py
 settings.list
 environment-only-settings.list
 openproject_http.py
@@ -101,7 +111,7 @@ mkdir -p "$KIT/bin" "$KIT/scripts/lib" "$KIT/examples"
 LDFLAGS="-s -w -X github.com/kogriv/replan/internal/buildinfo.Version=$VERSION -X github.com/kogriv/replan/internal/buildinfo.Commit=$COMMIT -X github.com/kogriv/replan/internal/buildinfo.BuildDate=$BUILD_DATE"
 # The commit and date come from ldflags; VCS stamping would fail under a stray
 # .git above TMPDIR and mark a clean worktree +dirty.
-(cd "$ROOT_DIR" && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -buildvcs=false -ldflags "$LDFLAGS" -o "$KIT/bin/replan" ./cmd/replan)
+(cd "$ROOT_DIR" && CGO_ENABLED=0 GOOS="$GOOS" GOARCH="$GOARCH" go build -trimpath -buildvcs=false -ldflags "$LDFLAGS" -o "$KIT/bin/$BINARY" ./cmd/replan)
 
 for script in $SCRIPTS; do
   install -m 755 "$ROOT_DIR/scripts/$script" "$KIT/scripts/$script"
@@ -113,6 +123,10 @@ cp -R "$ROOT_DIR/examples/small-team" "$KIT/examples/small-team"
 rm -rf "$KIT/examples/small-team/reports/latest"
 install -m 644 "$ROOT_DIR/docs/agent-kit/README.md" "$KIT/README.md"
 install -m 644 "$ROOT_DIR/docs/agent-kit/env.local.example" "$KIT/env.local.example"
+install -m 644 "$ROOT_DIR/docs/agent-kit/.gitattributes" "$KIT/.gitattributes"
+if [ "$GOOS" = windows ]; then
+  install -m 644 "$ROOT_DIR/docs/agent-kit/WINDOWS.md" "$KIT/WINDOWS.md"
+fi
 # The repository licence and notice travel with the kit. What the archive is
 # handed over for is an informational note set at build time, because it may
 # name a private project.
@@ -123,6 +137,11 @@ chmod 644 "$KIT/NOTICE.md"
 printf '%s\n' "$VERSION" > "$KIT/VERSION"
 
 mkdir -p "$OUT_DIR"
-tar -C "$WORK_DIR" --owner=0 --group=0 --numeric-owner -czf "$OUT_DIR/$NAME.tar.gz" "$NAME"
-(cd "$OUT_DIR" && sha256sum "$NAME.tar.gz" > "$NAME.tar.gz.sha256")
-printf '%s\n' "$OUT_DIR/$NAME.tar.gz"
+ARCHIVE="$OUT_DIR/$NAME.$EXTENSION"
+if [ "$GOOS" = windows ]; then
+  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m build_agent_kit_zip "$KIT" "$ARCHIVE"
+else
+  tar -C "$WORK_DIR" --owner=0 --group=0 --numeric-owner -czf "$ARCHIVE" "$NAME"
+fi
+(cd "$OUT_DIR" && sha256sum "$(basename "$ARCHIVE")" > "$(basename "$ARCHIVE").sha256")
+printf '%s\n' "$ARCHIVE"

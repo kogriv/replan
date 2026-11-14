@@ -61,7 +61,7 @@ def safe_main(fn):
         helper_envelope.emit(out, code)
 
 def load_yaml(path):
-    with open(path) as fh:
+    with open(path, encoding="utf-8") as fh:
         return yaml.safe_load(fh) or {}
 
 # RePlan dependency types that become OpenProject relations; the others stay

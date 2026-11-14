@@ -18,6 +18,7 @@ class CutPublicTreeTest(unittest.TestCase):
         for rel in (
             "scripts/cut-public-tree.sh",
             "scripts/lib/envelope.sh",
+            "scripts/lib/platform.sh",
             "scripts/lib/helper_envelope.py",
             "scripts/lib/cut_public_tree.py",
         ):

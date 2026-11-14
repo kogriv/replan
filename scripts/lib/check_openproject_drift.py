@@ -20,13 +20,13 @@ import_path, tmp_dir = args.import_json, args.tmp_dir
 project_path, bindings_path = settings.project_path, settings.bindings_path
 openproject_project_id, keep_temp = settings.project_id, settings.keep_temp
 helper_envelope.guard("check-openproject-drift")
-data = json.load(open(import_path))
+data = json.load(open(import_path, encoding="utf-8"))
 result = data.get("result") or {}
 warnings = list(data.get("warnings") or result.get("warnings") or [])
 errors = data.get("errors") or result.get("errors") or []
 
 def load_yaml(path):
-    with open(path) as fh:
+    with open(path, encoding="utf-8") as fh:
         return yaml.safe_load(fh) or {}
 
 def norm(value):

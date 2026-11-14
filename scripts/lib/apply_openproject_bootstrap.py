@@ -40,7 +40,7 @@ client = OpenProjectClient(
     base_url, settings, host_header, forwarded_proto,
     default_expected=(200, 201, 204, 404),
 )
-with open(plan_path) as plan_file:
+with open(plan_path, encoding="utf-8") as plan_file:
     plan = json.load(plan_file)
 
 

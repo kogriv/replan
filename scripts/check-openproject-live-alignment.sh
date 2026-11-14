@@ -79,7 +79,7 @@ if [ -z "$BIN" ]; then
 fi
 
 json_quote() {
-  python3 -c 'import json, sys; print(json.dumps(sys.argv[1]))' "$1"
+  replan_python -c 'import json, sys; print(json.dumps(sys.argv[1]))' "$1"
 }
 
 token_value="$(printenv "$OPENPROJECT_TOKEN_ENV" || true)"
@@ -123,7 +123,7 @@ set -- "$@" --dry-run --format json
 import_exit=0
 "$@" >"$IMPORT_JSON" || import_exit=$?
 if [ "$import_exit" -ne 0 ]; then
-  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" python3 -m openproject_import_failure --command check-openproject-live-alignment --status-key live_alignment --status-value failed --import-json "$IMPORT_JSON" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR" --profile --import-exit "$import_exit" || exit $?
+  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m openproject_import_failure --command check-openproject-live-alignment --status-key live_alignment --status-value failed --import-json "$IMPORT_JSON" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR" --profile --import-exit "$import_exit" || exit $?
 fi
 
-PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" python3 -m check_openproject_live_alignment --import-json "$IMPORT_JSON" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR"
+PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m check_openproject_live_alignment --import-json "$IMPORT_JSON" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR"

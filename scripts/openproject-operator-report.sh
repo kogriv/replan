@@ -83,7 +83,7 @@ if [ -z "$BIN" ]; then
 fi
 
 json_quote() {
-  python3 -c 'import json, sys; print(json.dumps(sys.argv[1]))' "$1"
+  replan_python -c 'import json, sys; print(json.dumps(sys.argv[1]))' "$1"
 }
 
 if [ -n "$OPENPROJECT_IMPORT_JSON" ]; then
@@ -106,7 +106,7 @@ elif [ -n "$OPENPROJECT_FROM_FILE" ]; then
   import_exit=0
   "$@" >"$IMPORT_JSON" || import_exit=$?
   if [ "$import_exit" -ne 0 ]; then
-    PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" python3 -m openproject_import_failure --command "openproject operator report" --status-key mode --status-value failed --import-json "$IMPORT_JSON" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR" --bindings --import-exit "$import_exit" || exit $?
+    PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m openproject_import_failure --command "openproject operator report" --status-key mode --status-value failed --import-json "$IMPORT_JSON" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR" --bindings --import-exit "$import_exit" || exit $?
   fi
 else
   token_value="$(printenv "$OPENPROJECT_TOKEN_ENV" || true)"
@@ -146,8 +146,8 @@ else
   import_exit=0
   "$@" >"$IMPORT_JSON" || import_exit=$?
   if [ "$import_exit" -ne 0 ]; then
-    PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" python3 -m openproject_import_failure --command "openproject operator report" --status-key mode --status-value failed --import-json "$IMPORT_JSON" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR" --bindings --import-exit "$import_exit" || exit $?
+    PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m openproject_import_failure --command "openproject operator report" --status-key mode --status-value failed --import-json "$IMPORT_JSON" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR" --bindings --import-exit "$import_exit" || exit $?
   fi
 fi
 
-PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" python3 -m openproject_operator_report --import-json "$IMPORT_JSON" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR"
+PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m openproject_operator_report --import-json "$IMPORT_JSON" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR"

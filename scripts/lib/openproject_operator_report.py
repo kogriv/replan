@@ -22,7 +22,7 @@ from_file, keep_temp = settings.from_file, settings.keep_temp
 helper_envelope.guard("openproject operator report")
 
 def load_yaml(path):
-    with open(path) as fh:
+    with open(path, encoding="utf-8") as fh:
         return yaml.safe_load(fh) or {}
 
 def norm(value):
@@ -33,7 +33,7 @@ def as_text(value):
         return ""
     return str(value)
 
-data = json.load(open(import_path))
+data = json.load(open(import_path, encoding="utf-8"))
 result = data.get("result") or {}
 warnings = data.get("warnings") or result.get("warnings") or []
 errors = data.get("errors") or result.get("errors") or []

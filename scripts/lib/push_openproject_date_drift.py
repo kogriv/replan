@@ -43,7 +43,7 @@ client = OpenProjectClient(
 )
 
 def load_yaml(path):
-    with open(path) as fh:
+    with open(path, encoding="utf-8") as fh:
         return yaml.safe_load(fh) or {}
 
 def norm(value):
@@ -74,7 +74,7 @@ def dependency_key(dep):
         as_text((dep.get("successor_ref") or {}).get("id")),
     )
 
-data = json.load(open(import_path))
+data = json.load(open(import_path, encoding="utf-8"))
 result = data.get("result") or {}
 warnings = data.get("warnings") or result.get("warnings") or []
 errors = data.get("errors") or result.get("errors") or []

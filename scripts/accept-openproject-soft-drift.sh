@@ -81,7 +81,7 @@ if [ -z "$BIN" ]; then
 fi
 
 json_quote() {
-  python3 -c 'import json, sys; print(json.dumps(sys.argv[1]))' "$1"
+  replan_python -c 'import json, sys; print(json.dumps(sys.argv[1]))' "$1"
 }
 
 token_value="$(printenv "$OPENPROJECT_TOKEN_ENV" || true)"
@@ -119,7 +119,7 @@ set -- "$@" --dry-run --format json
 import_exit=0
 "$@" >"$IMPORT_JSON" || import_exit=$?
 if [ "$import_exit" -ne 0 ]; then
-  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" python3 -m openproject_import_failure --command accept-openproject-soft-drift --status-key mode --status-value apply_failed --import-json "$IMPORT_JSON" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR" --bindings --import-exit "$import_exit" || exit $?
+  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m openproject_import_failure --command accept-openproject-soft-drift --status-key mode --status-value apply_failed --import-json "$IMPORT_JSON" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR" --bindings --import-exit "$import_exit" || exit $?
 fi
 
-PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" python3 -m accept_openproject_soft_drift --import-json "$IMPORT_JSON" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR" --replan-bin "$BIN"
+PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m accept_openproject_soft_drift --import-json "$IMPORT_JSON" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR" --replan-bin "$BIN"

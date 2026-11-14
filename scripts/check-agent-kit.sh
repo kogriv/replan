@@ -8,6 +8,7 @@
 # Settings:
 #   REPLAN_AGENT_KIT_KEEP         default empty
 #   REPLAN_PRIVATE_LEAK_PATTERNS  default private/leak-patterns.txt
+#   REPLAN_AGENT_KIT_TARGET       default linux/amd64; also windows/amd64
 #   TMPDIR                        default /tmp
 #
 # Read only against live project state; temporary or disposable test data may
@@ -26,6 +27,12 @@ replan_require_no_args_text "check-agent-kit.sh" "$@"
 WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/replan-agent-kit-check.XXXXXX")"
 trap 'rm -rf "$WORK_DIR"' EXIT INT TERM
 checks=0
+TARGET="${REPLAN_AGENT_KIT_TARGET:-linux/amd64}"
+case "$TARGET" in
+  windows/amd64) KIT_OS=windows; BINARY_NAME=replan.exe ;;
+  linux/amd64|linux/arm64) KIT_OS=linux; BINARY_NAME=replan ;;
+  *) printf 'unsupported REPLAN_AGENT_KIT_TARGET: %s\n' "$TARGET" >&2; exit 8 ;;
+esac
 
 fail() {
   printf 'agent kit check failed: %s\n' "$1" >&2
@@ -40,8 +47,28 @@ check
 (cd "$WORK_DIR/dist" && sha256sum -c --quiet "$(basename "$ARCHIVE").sha256") || fail "checksum does not match the archive"
 
 mkdir "$WORK_DIR/unpacked"
-tar -C "$WORK_DIR/unpacked" -xzf "$ARCHIVE"
+if [ "$KIT_OS" = windows ]; then
+  replan_python -m zipfile -e "$ARCHIVE" "$WORK_DIR/unpacked"
+else
+  tar -C "$WORK_DIR/unpacked" -xzf "$ARCHIVE"
+fi
 KIT="$(find "$WORK_DIR/unpacked" -mindepth 1 -maxdepth 1 -type d)"
+if [ -z "$KIT" ] || [ "$(printf '%s\n' "$KIT" | wc -l)" != 1 ]; then
+  fail "archive must contain exactly one kit root"
+fi
+BINARY="$KIT/bin/$BINARY_NAME"
+[ -f "$BINARY" ] || fail "archive lacks bin/$BINARY_NAME"
+if [ "$KIT_OS" = windows ]; then
+  replan_python -c 'import sys, zipfile
+with zipfile.ZipFile(sys.argv[1]) as z:
+    scripts = [i for i in z.infolist() if i.filename.endswith(".sh") and i.filename.count("/") == 2]
+    assert scripts and all(((i.external_attr >> 16) & 0o111) for i in scripts)' "$ARCHIVE" \
+    || fail "Windows ZIP does not preserve executable script attributes"
+  # Python's extractor intentionally ignores the stored Unix mode. Restore it
+  # after checking the archive metadata so the repository's README checker can
+  # inspect the unpacked copy on Linux.
+  chmod +x "$KIT"/scripts/*.sh
+fi
 
 # Nothing private and nothing that needs the repository travels in the kit.
 # Generic patterns live here; the names of the operator's own hosts, paths
@@ -64,8 +91,8 @@ check
 leaks="$(grep -rIlE "$leak_patterns" "$KIT" || true)"
 [ -z "$leaks" ] || fail "private detail in: $leaks"
 check
-binary_leaks="$(grep -aoE "$binary_patterns" "$KIT/bin/replan" | sort -u | head -n 5 || true)"
-[ -z "$binary_leaks" ] || fail "private detail in bin/replan: $binary_leaks"
+binary_leaks="$(grep -aoE "$binary_patterns" "$BINARY" | sort -u | head -n 5 || true)"
+[ -z "$binary_leaks" ] || fail "private detail in bin/$BINARY_NAME: $binary_leaks"
 check
 unwanted="$(find "$KIT" \( -name '.env' -o -name '.env.local' -o -name '*.go' -o -name '*.rb' -o -name '__pycache__' -o -path '*/private/*' \) -print)"
 [ -z "$unwanted" ] || fail "unwanted files: $unwanted"
@@ -79,14 +106,49 @@ grep -q '^Provided for: [^@]' "$KIT/NOTICE.md" 2>/dev/null || fail "the kit noti
 
 # Every module and helper a kit script calls is in the kit.
 check
-grep -rhoE 'python3 -m [a-z_]+' "$KIT/scripts" | awk '{print $3}' | sort -u > "$WORK_DIR/modules"
+grep -rhoE 'replan_python -m [a-z_]+' "$KIT/scripts" | awk '{print $3}' | sort -u > "$WORK_DIR/modules"
 while IFS= read -r module; do
   [ -f "$KIT/scripts/lib/$module.py" ] || fail "scripts call python module $module, which the kit lacks"
 done < "$WORK_DIR/modules"
+check
+crlf_files="$(find "$KIT/scripts" -type f \( -name '*.sh' -o -name '*.py' \) -exec grep -Il "$(printf '\r')" {} + || true)"
+[ -z "$crlf_files" ] || fail "kit scripts contain CRLF: $crlf_files"
+[ -f "$KIT/.gitattributes" ] || fail "kit lacks .gitattributes"
 # Every repository helper module a kit module imports is in the kit too.
 check
 missing_imports="$(PYTHONPATH="$ROOT_DIR/scripts/lib" python3 -m kit_module_imports "$KIT/scripts/lib" "$ROOT_DIR/scripts/lib")"
 [ -z "$missing_imports" ] || fail "kit modules import helpers the kit lacks: $missing_imports"
+
+if [ "$KIT_OS" = windows ]; then
+  check
+  [ -f "$KIT/WINDOWS.md" ] || fail "Windows kit lacks WINDOWS.md"
+  grep -q 'Windows (Git Bash)' "$KIT/README.md" || fail "README lacks Windows (Git Bash) notes"
+  grep -q 'python -m pip install pyyaml' "$KIT/WINDOWS.md" || fail "WINDOWS.md lacks PyYAML setup"
+  check
+  replan_python -c 'import struct, sys
+p = open(sys.argv[1], "rb").read()
+assert p[:2] == b"MZ"
+offset = struct.unpack_from("<I", p, 0x3c)[0]
+assert p[offset:offset + 4] == b"PE\0\0"
+assert struct.unpack_from("<H", p, offset + 4)[0] == 0x8664' "$BINARY" || fail "replan.exe is not a PE amd64 binary"
+  check
+  helper_issues="$(PYTHONPATH="$ROOT_DIR/scripts/lib" python3 -m check_agent_kit_readme helpers "$KIT/README.md" --kit "$KIT" || true)"
+  [ -z "$helper_issues" ] || fail "$helper_issues"
+  lib_issues="$(PYTHONPATH="$ROOT_DIR/scripts/lib" python3 -m check_agent_kit_readme lib "$KIT/README.md" || true)"
+  [ -z "$lib_issues" ] || fail "$lib_issues"
+  for script in "$KIT"/scripts/*.sh; do
+    sh -n "$script" 2>/dev/null || bash -n "$script" || fail "syntax: $script"
+  done
+  python3 -m py_compile "$KIT"/scripts/lib/*.py || fail "a python module does not compile"
+  find "$KIT" -name '__pycache__' -prune -exec rm -rf {} +
+  if [ -n "${REPLAN_AGENT_KIT_KEEP:-}" ]; then
+    rm -rf "$REPLAN_AGENT_KIT_KEEP"
+    mkdir -p "$(dirname "$REPLAN_AGENT_KIT_KEEP")"
+    cp -R "$KIT" "$REPLAN_AGENT_KIT_KEEP"
+  fi
+  printf 'agent kit ok: %s static checks, %s; executable/helper runtime checks require Windows Git Bash\n' "$checks" "$(basename "$ARCHIVE")"
+  exit 0
+fi
 check
 grep -rhoE 'scripts/[a-z-]+\.sh' "$KIT/scripts" "$KIT/README.md" | sort -u > "$WORK_DIR/helpers"
 while IFS= read -r helper; do
@@ -96,7 +158,7 @@ done < "$WORK_DIR/helpers"
 # The guide's public command names come only from the unpacked kit. The
 # binary's own usage is the command inventory; the archive is the helper
 # inventory. Keep library implementation files out of operator commands.
-"$KIT/bin/replan" --help > "$WORK_DIR/replan-help.txt" \
+"$BINARY" --help > "$WORK_DIR/replan-help.txt" \
   || fail "the kit binary did not print its usage"
 check
 command_issues="$(PYTHONPATH="$ROOT_DIR/scripts/lib" python3 -m check_agent_kit_readme commands \

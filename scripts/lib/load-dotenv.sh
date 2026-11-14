@@ -3,6 +3,21 @@
 # Load local OpenProject connection settings without executing .env as shell.
 # Precedence: already exported environment > REPLAN_ENV_FILE, or
 # already exported environment > .env.local > .env.
+replan_resolve_binary() {
+  replan_binary_root=$1
+  replan_binary_configured=${2:-${REPLAN_BIN:-}}
+  if [ -n "$replan_binary_configured" ]; then
+    if [ ! -f "$replan_binary_configured" ] && [ -f "$replan_binary_configured.exe" ]; then
+      replan_binary_configured=$replan_binary_configured.exe
+    fi
+    printf '%s\n' "$replan_binary_configured"
+  elif [ -x "$replan_binary_root/bin/replan" ]; then
+    printf '%s\n' "$replan_binary_root/bin/replan"
+  elif [ -f "$replan_binary_root/bin/replan.exe" ]; then
+    printf '%s\n' "$replan_binary_root/bin/replan.exe"
+  fi
+}
+
 replan_load_openproject_dotenv() {
   root_dir=$1
   replan_settings_command=${2:-${0##*/}}
@@ -45,8 +60,12 @@ replan_load_openproject_dotenv() {
   export REPLAN_INTERNAL_FILE_SETTINGS REPLAN_INTERNAL_ENVIRONMENT_ONLY_FILE_SETTINGS
   # A release unpacked without the Go sources carries its own binary; the
   # helpers use it instead of building one.
-  if [ -z "${REPLAN_BIN:-}" ] && [ -x "$root_dir/bin/replan" ]; then
-    export REPLAN_BIN="$root_dir/bin/replan"
+  if [ -z "${REPLAN_BIN:-}" ]; then
+    REPLAN_BIN=$(replan_resolve_binary "$root_dir")
+    [ -z "$REPLAN_BIN" ] || export REPLAN_BIN
+  elif [ ! -f "$REPLAN_BIN" ] && [ -f "$REPLAN_BIN.exe" ]; then
+    REPLAN_BIN=$REPLAN_BIN.exe
+    export REPLAN_BIN
   fi
 }
 
@@ -55,6 +74,7 @@ replan_load_openproject_dotenv_file() {
   [ -f "$dotenv_path" ] || return 0
 
   while IFS= read -r line || [ -n "$line" ]; do
+    line=${line%"$(printf '\r')"}
     case "$line" in
       ""|\#*) continue ;;
       export\ *) line=${line#export } ;;

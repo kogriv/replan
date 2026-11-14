@@ -28,4 +28,4 @@ replan_require_no_args_json "cut-public-tree" "cut-public-tree.sh" "$@"
 replan_require_settings "cut-public-tree" REPLAN_PUBLIC_CUT_DIR REPLAN_PUBLIC_CUT_AUTHOR_NAME REPLAN_PUBLIC_CUT_AUTHOR_EMAIL
 
 PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" \
-  python3 -m cut_public_tree --root-dir "$ROOT_DIR"
+  replan_python -m cut_public_tree --root-dir "$ROOT_DIR"

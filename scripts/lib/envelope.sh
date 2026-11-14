@@ -3,6 +3,8 @@
 # The shared JSON envelope for shell wrappers (scripts/lib/helper_envelope.py).
 # Source it after ROOT_DIR is set.
 
+. "$ROOT_DIR/scripts/lib/platform.sh"
+
 # replan_has_help_arg [ARG...] succeeds when one whole argument before `--` is
 # -h or --help. Text inside a value, such as a description that mentions
 # " -h ", is not a help request.
@@ -64,7 +66,7 @@ replan_require_no_args_text() {
 # table in docs/spec/cli.md: 8 for usage and settings, 6 for an external
 # source, 1 for anything else.
 replan_fail_json() {
-  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" python3 -m helper_envelope fail "$@"
+  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m helper_envelope fail "$@"
   exit "$5"
 }
 
@@ -73,7 +75,7 @@ replan_fail_json() {
 # a function in a pipeline runs in a subshell, and its exit would not end the
 # script.
 replan_emit_json() {
-  printf '%s\n' "$3" | PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" python3 -m helper_envelope normalize "$1" "$2" || true
+  printf '%s\n' "$3" | PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m helper_envelope normalize "$1" "$2" || true
   exit "$2"
 }
 
@@ -92,7 +94,7 @@ replan_resolve_openproject_settings() {
   _replan_settings_mode=${2:-invalid}
   _replan_settings_output=$(
     PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" \
-      python3 -m helper_envelope resolve-openproject-settings
+      replan_python -m helper_envelope resolve-openproject-settings
   ) || {
     case "$_replan_settings_output" in
       missing_setting:*)
@@ -121,7 +123,7 @@ replan_token_missing() {
   if [ "${REPLAN_APPLY:-}" = "1" ]; then
     replan_fail_json "$command" apply token_env_not_set "$token_env is not set; nothing was applied" 8 "token_env=$token_env" "$@"
   fi
-  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" python3 -m helper_envelope skip "$command" "$token_env" "$@"
+  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m helper_envelope skip "$command" "$token_env" "$@"
   exit 0
 }
 
@@ -131,7 +133,7 @@ replan_token_skip() {
   command=$1
   token_env=$2
   shift 2
-  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" python3 -m helper_envelope skip "$command" "$token_env" "$@"
+  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m helper_envelope skip "$command" "$token_env" "$@"
   exit 0
 }
 

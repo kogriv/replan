@@ -34,4 +34,4 @@ replan_resolve_openproject_settings "plan-openproject-bootstrap" dry_run
 replan_require_json_format "plan-openproject-bootstrap"
 replan_require_settings "plan-openproject-bootstrap" REPLAN_PROJECT REPLAN_OPENPROJECT_PROJECT_ID
 
-PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" python3 -m plan_openproject_bootstrap
+PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m plan_openproject_bootstrap

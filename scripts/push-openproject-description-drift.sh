@@ -64,4 +64,4 @@ if [ -z "${REPLAN_OPENPROJECT_BASE_URL:-}" ]; then
 fi
 
 PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" \
-  python3 -m push_openproject_description_drift --root-dir "$ROOT_DIR"
+  replan_python -m push_openproject_description_drift --root-dir "$ROOT_DIR"

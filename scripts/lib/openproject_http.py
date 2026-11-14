@@ -9,6 +9,8 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+from platform_compat import normalize_windows_path
+
 
 TRANSIENT_HTTP_STATUSES = {408, 429, 500, 502, 503, 504}
 
@@ -133,7 +135,7 @@ def _explicit_settings_environ(environ):
     """Load REPLAN_ENV_FILE for direct Python callers; shell wrappers mark it loaded."""
     if ENV_FILE_ENV not in environ or "REPLAN_INTERNAL_FILE_SETTINGS" in environ:
         return environ
-    path = environ.get(ENV_FILE_ENV, "")
+    path = normalize_windows_path(environ.get(ENV_FILE_ENV, ""))
     try:
         lib_dir = os.path.dirname(__file__)
         with open(os.path.join(lib_dir, "settings.list"), encoding="utf-8") as stream:
@@ -223,7 +225,7 @@ def _secret_setting(environ, value_name, file_name):
     value = environ.get(value_name, "")
     if value:
         return value
-    path = environ.get(file_name, "")
+    path = normalize_windows_path(environ.get(file_name, ""))
     if not path:
         return ""
     try:
@@ -312,7 +314,8 @@ class Settings:
             "REPLAN_OPENPROJECT_TARGET_PROJECT_NAME",
         )
         project_name = project_name or project_id
-        bindings_path = environ.get("REPLAN_OPENPROJECT_BINDINGS_PATH", "")
+        root_dir = normalize_windows_path(root_dir)
+        bindings_path = normalize_windows_path(environ.get("REPLAN_OPENPROJECT_BINDINGS_PATH", ""))
         if not bindings_path and root_dir is not None:
             bindings_path = os.path.join(
                 root_dir, "private", "openproject", f"{project_id}-bindings.yaml"
@@ -334,11 +337,11 @@ class Settings:
             target_project_id=project_id,
             target_project_name=project_name,
             profile=environ.get("REPLAN_OPENPROJECT_PROFILE", "") or "openproject.demo",
-            from_file=environ.get("REPLAN_OPENPROJECT_FROM_FILE", ""),
+            from_file=normalize_windows_path(environ.get("REPLAN_OPENPROJECT_FROM_FILE", "")),
             bindings_path=bindings_path,
             apply=environ.get("REPLAN_APPLY", ""),
             keep_temp=environ.get("REPLAN_KEEP_TEMP", ""),
-            project_path=environ.get("REPLAN_PROJECT", ""),
+            project_path=normalize_windows_path(environ.get("REPLAN_PROJECT", "")),
             perimeter_key=_secret_setting(
                 environ, PERIMETER_KEY_ENV, PERIMETER_KEY_FILE_ENV
             ),

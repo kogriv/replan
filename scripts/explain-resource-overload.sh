@@ -41,4 +41,4 @@ if [ -z "$BIN" ]; then
   (cd "$ROOT_DIR" && go build -o "$BIN" ./cmd/replan)
 fi
 
-PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" python3 -m explain_resource_overload --replan-bin "$BIN"
+PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m explain_resource_overload --replan-bin "$BIN"

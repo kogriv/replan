@@ -61,16 +61,16 @@ esac
 [ -f "$OVERLAY" ] || fail overlay_not_built "no built overlay; run scripts/build-openproject-live-overlay.sh first" 4
 [ -n "$TARGET" ] || fail missing_publish_target "REPLAN_OVERLAY_PUBLISH_TARGET is required" 8
 
-owner="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1])).get("openproject_project_id") or "")' "$OVERLAY")"
+owner="$(replan_python -c 'import json, sys; print(json.load(open(sys.argv[1], encoding="utf-8")).get("openproject_project_id") or "")' "$OVERLAY")"
 if [ "$owner" != "$OPENPROJECT_PROJECT_ID" ]; then
   fail overlay_other_project "the built overlay names another OpenProject project, or none; set project_id in the plan's OpenProject source profile" 2
 fi
-scenario_id="$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1])).get("scenario_id") or "")' "$OVERLAY")"
+scenario_id="$(replan_python -c 'import json, sys; print(json.load(open(sys.argv[1], encoding="utf-8")).get("scenario_id") or "")' "$OVERLAY")"
 if [ -n "$scenario_id" ]; then
   fail overlay_is_scenario "a what-if overlay is never published as the plan" 2
 fi
 command -v rsync >/dev/null 2>&1 || fail rsync_not_found "rsync is required to publish the overlay" 4
-rows="$(python3 -c 'import json, sys; print(len(json.load(open(sys.argv[1]))["work_packages"]))' "$OVERLAY")"
+rows="$(replan_python -c 'import json, sys; print(len(json.load(open(sys.argv[1], encoding="utf-8"))["work_packages"]))' "$OVERLAY")"
 
 if [ "$mode" = "apply" ]; then
   rsync -a --delete --mkpath --chmod=D755,F644 "$SOURCE_DIR/" "${TARGET%/}/$OPENPROJECT_PROJECT_ID/" \

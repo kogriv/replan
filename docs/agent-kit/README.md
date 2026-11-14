@@ -6,8 +6,8 @@ repository and without an OpenProject administrator token.
 
 It contains:
 
-- `bin/replan`: the RePlan command-line program (Linux, x86-64, no
-  dependencies);
+- `bin/replan` on Linux or `bin/replan.exe` on Windows: the RePlan
+  command-line program, with no runtime dependencies;
 - `scripts/`: the OpenProject helpers, each a shell script that prints JSON:
   for work packages and the plan, and `openproject-wiki.sh` for the project's
   wiki;
@@ -21,10 +21,11 @@ below says what that means and what to do when a command is missing.
 
 ## What you need
 
-- Linux on x86-64, `sh` and `bash`;
-- Python 3.10 or newer with PyYAML (`python3 -c 'import yaml'` must work);
-  CI runs the helpers' tests and the kit checks on 3.10;
-- `rsync`, for publishing the RePlan overlay to OpenProject;
+- Linux, or Windows 10 or newer with Git Bash from Git for Windows;
+- Python 3.9 or newer with PyYAML. The helpers try `python3`, `python`, then
+  `py -3`, or use the executable named by `REPLAN_PYTHON`;
+- `rsync`, only for the maintainer-oriented overlay publish helper (Git Bash
+  does not include it; ordinary consumer workflows do not need it);
 - an OpenProject account that is a member of your project, and an API token
   of that account: in OpenProject, "My account", "Access tokens", "API";
 - a RePlan project directory, the plan. Keep it in a version-control
@@ -32,6 +33,44 @@ below says what that means and what to do when a command is missing.
 
 No administrator is needed for daily work. An OpenProject administrator is
 needed once, for what the list under "What needs an administrator" names.
+
+## Windows (Git Bash)
+
+Use the `windows-amd64.zip` kit with native Git Bash; WSL is optional. Install
+Git for Windows, then Python 3.9 or newer from python.org with **Add Python to
+PATH** selected (Microsoft Store Python also works), and run:
+
+```sh
+python -m pip install pyyaml
+```
+
+If Python is not on `PATH`, export `REPLAN_PYTHON` with the full path to its
+executable. Unpack the ZIP to a path without spaces when practical. A path
+with spaces is supported, but it must always be quoted in commands. Open Git
+Bash in the kit folder and copy `env.local.example` to `.env.local`.
+
+Keep the API token and perimeter key as one-line files in the user profile,
+for example `~/.config/replan/` (the same directory is
+`C:\Users\<name>\.config\replan\` to Windows), and put those file paths in
+`.env.local`. NTFS mode bits do not protect a `chmod 600` file, so rely on the
+Windows account/profile permissions and do not put secrets in a shared folder.
+
+The kit's `.sh` and `.py` files must retain LF endings; `.gitattributes`
+records that rule. Do not let Git or an editor rewrite them to CRLF. Notepad
+CRLF in `.env.local` and the one-line token/key files is accepted.
+
+Run these read-only checks first:
+
+```sh
+bin/replan.exe version
+bin/replan.exe validate examples/small-team
+scripts/openproject-work-package-toolkit.sh work-package list
+```
+
+The Linux build checks the Windows ZIP layout, PE/amd64 header, line endings,
+documentation and leak rules. Running the executable and helpers is checked
+only on Windows Git Bash. See `WINDOWS.md` in the Windows ZIP for the short
+setup checklist. WSL with the Linux kit remains an alternative.
 
 ## Set up
 
@@ -885,7 +924,8 @@ description, while the RePlan task description remains its planning note.
 If the requested subject already matches OpenProject but RePlan still reports
 `title_drift`, the helper skips the PATCH and applies only `task set-title`;
 when both titles match it reports an unchanged no-op. For this bound-title
-step it uses `REPLAN_BIN` when set, then the kit's `bin/replan`, otherwise it
+step it uses `REPLAN_BIN` when set, then the kit's `bin/replan` or
+`bin/replan.exe`, otherwise it
 builds a temporary checkout binary and removes it when the helper exits.
 
 Lost the bindings file, or working on a second machine? Rebuild it from

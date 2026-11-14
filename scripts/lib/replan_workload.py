@@ -18,7 +18,7 @@ class WorkloadError(RuntimeError):
 
 
 def _load_yaml(project_path, rel):
-    with open(os.path.join(project_path, rel)) as fh:
+    with open(os.path.join(project_path, rel), encoding="utf-8") as fh:
         return yaml.safe_load(fh) or {}
 
 

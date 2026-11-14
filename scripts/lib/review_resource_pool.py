@@ -23,7 +23,7 @@ def load_yaml(relative_path):
     path = os.path.join(project_path, relative_path)
     if not os.path.exists(path):
         return {}
-    with open(path) as fh:
+    with open(path, encoding="utf-8") as fh:
         return yaml.safe_load(fh) or {}
 
 resources = load_yaml("canonical/resources.yaml").get("resources") or []
@@ -34,7 +34,7 @@ tasks = load_yaml("canonical/tasks.yaml").get("tasks") or []
 
 actuals = []
 for path in sorted(glob.glob(os.path.join(project_path, "actuals", "*.yaml"))):
-    with open(path) as fh:
+    with open(path, encoding="utf-8") as fh:
         actuals.extend((yaml.safe_load(fh) or {}).get("actuals") or [])
 
 task_status_by_id = {task.get("id"): task.get("tracking_status", "") for task in tasks}

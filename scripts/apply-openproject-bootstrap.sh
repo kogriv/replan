@@ -78,4 +78,4 @@ REPLAN_OPENPROJECT_PROJECT_ID="$TARGET_PROJECT_ID" \
 REPLAN_OPENPROJECT_PROJECT_NAME="$TARGET_PROJECT_NAME" \
 "$ROOT_DIR/scripts/plan-openproject-bootstrap.sh" >"$PLAN_JSON"
 
-PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" python3 -m apply_openproject_bootstrap --plan-json "$PLAN_JSON" --root-dir "$ROOT_DIR"
+PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m apply_openproject_bootstrap --plan-json "$PLAN_JSON" --root-dir "$ROOT_DIR"

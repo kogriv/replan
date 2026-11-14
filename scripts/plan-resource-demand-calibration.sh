@@ -28,4 +28,4 @@ replan_refuse_mixed_project_settings "plan-resource-demand-calibration" invalid 
 replan_require_json_format "plan-resource-demand-calibration"
 replan_require_settings "plan-resource-demand-calibration" REPLAN_PROJECT
 
-PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" python3 -m plan_resource_demand_calibration
+PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m plan_resource_demand_calibration

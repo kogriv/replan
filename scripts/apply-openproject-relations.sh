@@ -57,4 +57,4 @@ if [ -z "$token_value" ]; then
   replan_token_missing "apply-openproject-relations" "$OPENPROJECT_TOKEN_ENV"
 fi
 
-PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" python3 -m apply_openproject_relations --root-dir "$ROOT_DIR"
+PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m apply_openproject_relations --root-dir "$ROOT_DIR"

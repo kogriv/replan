@@ -345,7 +345,7 @@ class ModuleInventoryTest(unittest.TestCase):
         for path in sorted(glob.glob(os.path.join(LIB, "*.py"))):
             py_compile.compile(path, doraise=True)
             name = os.path.splitext(os.path.basename(path))[0]
-            invoked = re.search(r"python3 -m %s\b" % re.escape(name), scripts)
+            invoked = re.search(r"(?:python3|replan_python) -m %s\b" % re.escape(name), scripts)
             used = re.search(r"^(from %s import|import %s\b)" % (name, name), imported, re.M)
             if not invoked and not used and name != "wiki_api_throwaway_cases":
                 orphans.append(name)

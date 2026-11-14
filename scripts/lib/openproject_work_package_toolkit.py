@@ -13,6 +13,7 @@ import tempfile
 import urllib.parse
 
 import yaml
+from platform_compat import resolve_replan_binary
 from openproject_http import (
     MissingSettingError,
     MixedProjectSettingsError,
@@ -148,11 +149,11 @@ def skip_without_token(command, message):
     print_json(envelope(command, "skipped", warnings=[diagnostic("token_env_not_set", message, "warning", "env", token_env)]))
 
 def load_yaml(path):
-    with open(path) as fh:
+    with open(path, encoding="utf-8") as fh:
         return yaml.safe_load(fh) or {}
 
 def load_json(path):
-    with open(path) as fh:
+    with open(path, encoding="utf-8") as fh:
         return json.load(fh)
 
 def as_text(value):
@@ -824,10 +825,8 @@ def patch_work_package(work_package_id, payload):
 def replan_binary():
     global temporary_replan_dir
     configured = os.environ.get("REPLAN_BIN", "")
-    if configured:
-        return configured
-    kit_binary = os.path.join(root_dir, "bin", "replan")
-    if os.path.isfile(kit_binary) and os.access(kit_binary, os.X_OK):
+    kit_binary = resolve_replan_binary(root_dir, configured)
+    if os.path.isfile(kit_binary):
         return kit_binary
     if not temporary_replan_dir:
         temporary_replan_dir = tempfile.mkdtemp(prefix="replan-work-package-toolkit.")

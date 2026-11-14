@@ -27,4 +27,4 @@ replan_refuse_mixed_project_settings "review-resource-pool" invalid REPLAN_PROJE
 replan_require_json_format "review-resource-pool"
 replan_require_settings "review-resource-pool" REPLAN_PROJECT
 
-PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" python3 -m review_resource_pool
+PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m review_resource_pool

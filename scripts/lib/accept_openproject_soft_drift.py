@@ -38,7 +38,7 @@ warnings = data.get("warnings") or result.get("warnings") or []
 errors = data.get("errors") or result.get("errors") or []
 
 def load_yaml(path):
-    with open(path) as fh:
+    with open(path, encoding="utf-8") as fh:
         return yaml.safe_load(fh) or {}
 
 def as_text(value):

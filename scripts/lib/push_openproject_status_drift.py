@@ -45,7 +45,7 @@ progression_statuses = tuple(
 )
 
 def load_yaml(path):
-    with open(path) as fh:
+    with open(path, encoding="utf-8") as fh:
         return yaml.safe_load(fh) or {}
 
 def as_text(value):
@@ -231,7 +231,7 @@ def main():
                 "REPLAN_OPENPROJECT_STATUS_PATH must be direct or forward",
             )],
         }, helper_envelope.EXIT["usage"])
-    data = json.load(open(import_path))
+    data = json.load(open(import_path, encoding="utf-8"))
     result = data.get("result") or {}
     warnings = data.get("warnings") or result.get("warnings") or []
     errors = data.get("errors") or result.get("errors") or []

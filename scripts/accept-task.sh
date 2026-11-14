@@ -88,4 +88,4 @@ if [ -z "$BIN" ]; then
 fi
 
 PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" \
-  python3 -m accept_task --root-dir "$ROOT_DIR" --tmp-dir "$TMP_DIR" --replan-bin "$BIN"
+  replan_python -m accept_task --root-dir "$ROOT_DIR" --tmp-dir "$TMP_DIR" --replan-bin "$BIN"
