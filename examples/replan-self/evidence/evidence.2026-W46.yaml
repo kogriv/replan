@@ -1245,3 +1245,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.windows-agent-kit
+  - id: evidence.self.windows-agent-kit
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-14T11:04:04+07:00"
+    summary: 'Feature commit d79a0b4: a windows/amd64 agent kit (zip with replan.exe, WINDOWS.md, LF .gitattributes) and helpers that run under Git Bash: one Python resolver (REPLAN_PYTHON, python3, python, py -3; Store stubs rejected; PyYAML check; UTF-8 I/O), replan or replan.exe resolution, Windows path conversion, CR stripped from settings, token and key files, the GNU sed -i use removed; Linux unchanged. Review: Codex wrote to the dogfood evidence and audit files, which were excluded from the patch; replacing exec python3 with a shell function made two helpers print help twice and then run, fixed with exit and checked byte for byte against main; one shellcheck SC2015 in check-agent-kit.sh fixed. Windows test on an own Windows 10 Russian VM (dockur on the compute machine, own key, ports on localhost only): Git for Windows 2.47.1, Python 3.12.8, PyYAML 6.0.3; replan.exe version and validate; ten helpers on the self-plan fixture pass in a plain path and in a path with a space and Cyrillic; Store stubs ahead of Python on PATH resolved to py -3, and to python with Python first; a bad REPLAN_PYTHON gives python_not_found; CRLF settings and perimeter key files work and a live request through the perimeter was answered by OpenProject itself (test token invalid on purpose; key and token files removed afterwards). Found on the way: the OEM ssh script grants by English group names, which fail on Russian Windows; fixed on the VM with SIDs. Linux gate: lint 0, unit suites, smoke, isolated smoke, 55 linux kit checks, 11 windows static kit checks, 101 live kit checks. Codex 09:42:43-10:26:06 (0.72 h, prompt and last-file mtimes). Executor 0.51 h by tool-call times including foreground copies and test runs, excluding waits for Codex and the gate.'
+    targets:
+      - kind: task
+        id: task.self.windows-agent-kit

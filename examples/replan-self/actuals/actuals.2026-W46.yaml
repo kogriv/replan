@@ -1594,3 +1594,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-publish-release-v0-5-3
+  - id: actual.self-windows-agent-kit.ai-codex-local.20261114T1104040700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.windows-agent-kit
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.windows-agent-kit.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.72
+    unit: agent_hours
+    occurred_at: "2026-11-14T11:04:04+07:00"
+    status_date: "2026-11-14"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.windows-agent-kit
+  - id: actual.self-windows-agent-kit.ai-agent-executor.20261114T1104040700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.windows-agent-kit
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.windows-agent-kit.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.51
+    unit: agent_hours
+    occurred_at: "2026-11-14T11:04:04+07:00"
+    status_date: "2026-11-14"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.windows-agent-kit
