@@ -2293,6 +2293,9 @@ func TestPositionalCommandHelpAndMissingArguments(t *testing.T) {
 				if !strings.HasPrefix(help, "Usage: replan "+strings.Join(tc.command, " ")+" ") || !strings.Contains(strings.SplitN(help, "\n", 2)[0], tc.argument) {
 					t.Errorf("help first line does not name %s: %q", tc.argument, strings.SplitN(help, "\n", 2)[0])
 				}
+				if strings.HasPrefix(tc.name, "scenario ") && !strings.Contains(help, "-scenario-id string") {
+					t.Errorf("help does not list --scenario-id: %s", help)
+				}
 			}
 			if tc.optional {
 				return
@@ -2304,16 +2307,32 @@ func TestPositionalCommandHelpAndMissingArguments(t *testing.T) {
 					t.Fatalf("%v exit = %d, want %d; stdout=%s stderr=%s", args, code, exitInvalidUsage, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
 				}
 				output := readFileString(t, stdout.Name())
-				messageFound := strings.Contains(output, tc.name+" needs the "+strings.Trim(tc.argument, "<>[]")+" argument")
+				wantMessage := tc.name + " needs the " + strings.Trim(tc.argument, "<>[]") + " argument"
+				if strings.HasPrefix(tc.name, "scenario ") {
+					wantMessage = tc.name + " needs the scenario-id as the argument or with --scenario-id"
+				}
+				messageFound := strings.Contains(output, wantMessage)
 				if format == "json" {
 					env := readCLIEnvelope(t, stdout.Name())
-					messageFound = len(env.Errors) == 1 && env.Errors[0].Message == tc.name+" needs the "+strings.Trim(tc.argument, "<>[]")+" argument"
+					messageFound = len(env.Errors) == 1 && env.Errors[0].Message == wantMessage
 				}
 				if !strings.Contains(output, "missing_argument") || !messageFound {
 					t.Errorf("%v missing-argument output = %s", args, output)
 				}
 			}
 		})
+	}
+}
+
+func TestTopLevelUsageShowsScenarioIDAlternatives(t *testing.T) {
+	stdout, _ := tempOutputFiles(t)
+	printUsage(stdout)
+	usage := readFileString(t, stdout.Name())
+	for _, command := range []string{"show", "diff", "apply"} {
+		want := "replan scenario " + command + " (<scenario-id> | --scenario-id <id>)"
+		if !strings.Contains(usage, want) {
+			t.Errorf("top-level usage missing %q", want)
+		}
 	}
 }
 

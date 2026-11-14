@@ -503,7 +503,7 @@ one.
 | Change demands or move work to another resource | `bin/replan demand add`, `bin/replan demand set`, `bin/replan demand move` |
 | Add or change dependencies and add deadlines | `bin/replan dependency add`, `bin/replan dependency set`, `bin/replan deadline add`; each accepts one item or a `--from-file` batch |
 | Set dates | `bin/replan task set-dates`, then `scripts/push-openproject-date-drift.sh` |
-| Draft dates from capacity and load | `bin/replan taskjuggler run`, `bin/replan taskjuggler import-result`, then review the scenario with `bin/replan scenario diff` and `bin/replan scenario apply` (needs TaskJuggler's `tj3`) |
+| Draft dates from capacity and load | `bin/replan taskjuggler run`, `bin/replan taskjuggler import-result`, then review with `bin/replan scenario diff --scenario-id <id>` and `bin/replan scenario apply --scenario-id <id>` (needs TaskJuggler's `tj3`) |
 | Record work and accept a task | `bin/replan actual add-consumption`, `bin/replan actual add-status`, `scripts/accept-task.sh` |
 | Create work packages and relations | `scripts/apply-openproject-bootstrap.sh`, `scripts/apply-openproject-relations.sh` |
 | Change one work package | `scripts/openproject-work-package-toolkit.sh` for status, dates, text, metadata and Version (stage); list or create project versions with `version list` or `version create` |
@@ -511,11 +511,11 @@ one.
 | Bring files written by an older tool into the current style | `bin/replan project format` |
 
 For drafted dates, use the scenario id returned by `taskjuggler import-result
---write-candidate`: inspect it with `scenario diff --format markdown`, preview
-`scenario apply --dry-run`, and then repeat with `--apply`, a human `--actor`
-and a `--reason`. Apply accepts the linked open TaskJuggler proposal in the
-same audited write. If the proposal was accepted first, apply still works; if
-it was rejected, apply refuses.
+--write-candidate`: inspect it with `scenario diff --scenario-id <id> --format
+markdown`, preview `scenario apply --scenario-id <id> --dry-run`, and then
+repeat with `--apply`, a human `--actor` and a `--reason`. Apply accepts the
+linked open TaskJuggler proposal in the same audited write. If the proposal was
+accepted first, apply still works; if it was rejected, apply refuses.
 
 When something is missing, do not work around RePlan's internals. Open an
 issue in the RePlan repository, or tell whoever gave you this kit, saying

@@ -229,6 +229,29 @@ func requireSinglePositional(fs *flag.FlagSet, leading, command, argument, proje
 	return value, exitSuccess, false
 }
 
+func requireSinglePositionalOrFlag(fs *flag.FlagSet, leading, flagValue, command, argument, flagName, projectPath, format string, stdout, stderr *os.File) (string, int, bool) {
+	positionalValue := positionalArg(leading, fs)
+	extra := fs.Args()
+	if leading == "" && len(extra) > 0 {
+		extra = extra[1:]
+	}
+	if len(extra) > 0 {
+		return "", printPositionalUsageError(stdout, stderr, format, command, projectPath, "unexpected_argument", fmt.Sprintf("%s got unexpected argument %q", command, extra[0])), true
+	}
+	if positionalValue != "" && flagValue != "" && positionalValue != flagValue {
+		message := fmt.Sprintf("%s got conflicting values: positional argument %q and --%s %q", command, positionalValue, flagName, flagValue)
+		return "", printPositionalUsageError(stdout, stderr, format, command, projectPath, "conflicting_argument", message), true
+	}
+	if positionalValue != "" {
+		return positionalValue, exitSuccess, false
+	}
+	if flagValue != "" {
+		return flagValue, exitSuccess, false
+	}
+	message := fmt.Sprintf("%s needs the %s as the argument or with --%s", command, strings.Trim(argument, "<>[]"), flagName)
+	return "", printPositionalUsageError(stdout, stderr, format, command, projectPath, "missing_argument", message), true
+}
+
 func printPositionalUsageError(stdout, stderr *os.File, format, command, projectPath, code, message string) int {
 	env := envelope{
 		OK:          false,

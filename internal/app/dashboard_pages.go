@@ -156,7 +156,7 @@ func (s ReportService) dashboardScenariosPage(ctx context.Context, ws domain.Wor
 			CalibrationRef: scenario.CalibrationRef.ID, Changes: []reports.DashboardScenarioChange{}, AffectedResources: diff.AffectedResources,
 			AffectedTasks: scenarioAffectedTaskIDs(scenario), WorkloadBefore: workloadRows(diff.WorkloadBefore), WorkloadAfter: workloadRows(diff.WorkloadAfter),
 			Warnings: diagnosticsToReportIssues(diff.Warnings), Errors: diagnosticsToReportIssues(diff.Errors),
-			ApplyCommand: fmt.Sprintf("replan scenario apply --project <project> --dry-run --format json %s", scenario.ID),
+			ApplyCommand: fmt.Sprintf("replan scenario apply --project <project> --scenario-id %s --dry-run --format json", scenario.ID),
 		}
 		for _, change := range scenario.Changes {
 			detail.Changes = append(detail.Changes, reports.DashboardScenarioChange{Op: change.Op, Path: change.Path, Value: change.Value})

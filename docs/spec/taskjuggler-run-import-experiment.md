@@ -255,9 +255,9 @@ replan taskjuggler import-result \
 Review and apply the written candidate as one flow:
 
 ```bash
-replan scenario diff --project examples/small-team --format markdown scenario.tj.20260713T200000Z
-replan scenario apply --project examples/small-team --actor actor.human.operator --reason "Accept generated dates." --dry-run --format markdown scenario.tj.20260713T200000Z
-replan scenario apply --project examples/small-team --actor actor.human.operator --reason "Accept generated dates." --apply --format markdown scenario.tj.20260713T200000Z
+replan scenario diff --project examples/small-team --scenario-id scenario.tj.20260713T200000Z --format markdown
+replan scenario apply --project examples/small-team --scenario-id scenario.tj.20260713T200000Z --actor actor.human.operator --reason "Accept generated dates." --dry-run --format markdown
+replan scenario apply --project examples/small-team --scenario-id scenario.tj.20260713T200000Z --actor actor.human.operator --reason "Accept generated dates." --apply --format markdown
 ```
 
 The diff shows task id, title, changed date field, current value and candidate

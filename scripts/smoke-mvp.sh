@@ -723,6 +723,7 @@ test -s "$html_project/reports/weekly/$WEEK.html"
 run_json_ok scenario-show-leading "$BIN" scenario show scenario.ivan-unavailable-week-28 --project "$PROJECT_PATH" --format json
 run_json_ok scenario-show-trailing "$BIN" scenario show --project "$PROJECT_PATH" --format json scenario.ivan-unavailable-week-28
 run_json_ok scenario-diff "$BIN" scenario diff --project "$PROJECT_PATH" --against current --format json scenario.ivan-unavailable-week-28
+run_json_ok scenario-diff-flag "$BIN" scenario diff --project "$PROJECT_PATH" --scenario-id scenario.ivan-unavailable-week-28 --against current --format json
 run_json_ok scenario-apply-dry-run "$BIN" scenario apply --project "$PROJECT_PATH" --dry-run --format json scenario.task-op-1234-remaining-5
 
 run_json_ok proposal-list "$BIN" proposal list --project "$PROJECT_PATH" --status open --format json

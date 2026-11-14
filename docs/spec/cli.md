@@ -597,6 +597,7 @@ These forms must be equivalent:
 ```bash
 replan scenario diff scenario.ivan-unavailable-week-28 --project examples/small-team --format json
 replan scenario diff --project examples/small-team --format json scenario.ivan-unavailable-week-28
+replan scenario diff --project examples/small-team --format json --scenario-id scenario.ivan-unavailable-week-28
 replan proposal accept --project examples/small-team proposal.adjust-remaining-task-op-1234.20260706 --actor actor.human.operator --apply
 ```
 
@@ -610,9 +611,9 @@ The same rule applies to:
 - `replan demand move <demand-id>`;
 - `replan baseline show <id>`;
 - `replan estimate show <id>`;
-- `replan scenario show`;
-- `replan scenario diff`;
-- `replan scenario apply`;
+- `replan scenario show (<scenario-id> | --scenario-id <id>)`;
+- `replan scenario diff (<scenario-id> | --scenario-id <id>)`;
+- `replan scenario apply (<scenario-id> | --scenario-id <id>)`;
 - `replan proposal show`;
 - `replan proposal accept`;
 - `replan proposal reject`;
@@ -625,6 +626,10 @@ message that names the command and argument, for example `demand set needs
 the demand-id argument`. An extra positional also exits `8` before workspace loading and
 uses `unexpected_argument`. `audit list` and `audit verify` take no positional
 argument.
+
+For `scenario show`, `scenario diff` and `scenario apply`, the positional id
+and `--scenario-id` are equivalent. Supplying both with the same value is
+allowed; different values use `conflicting_argument`.
 
 Reason:
 
@@ -1455,9 +1460,9 @@ Implemented command flags:
 
 ```text
 replan scenario list --project -p --bindings --format
-replan scenario show --project -p --bindings --format
-replan scenario diff --project -p --bindings --format --against --week
-replan scenario apply --project -p --bindings --format --actor --apply --dry-run --evidence --reason
+replan scenario show --project -p --bindings --format --scenario-id
+replan scenario diff --project -p --bindings --format --scenario-id --against --week
+replan scenario apply --project -p --bindings --format --scenario-id --actor --apply --dry-run --evidence --reason
 ```
 
 `scenario list --format markdown|text` renders id, name, status and change
@@ -3304,9 +3309,9 @@ Import-result command shape:
 ```bash
 replan taskjuggler import-result --project examples/small-team --run-dir exports/taskjuggler/scenario.ivan-capacity-6/run.20260713T200000Z --dry-run --format json
 replan taskjuggler import-result --project examples/small-team --run-dir exports/taskjuggler/scenario.ivan-capacity-6/run.20260713T200000Z --write-candidate --actor actor.human.operator --format json
-replan scenario diff --project examples/small-team --format markdown scenario.taskjuggler.<run-id>
-replan scenario apply --project examples/small-team --actor actor.human.operator --reason "Accept the generated schedule." --dry-run --format markdown scenario.taskjuggler.<run-id>
-replan scenario apply --project examples/small-team --actor actor.human.operator --reason "Accept the generated schedule." --apply --format markdown scenario.taskjuggler.<run-id>
+replan scenario diff --project examples/small-team --scenario-id scenario.taskjuggler.<run-id> --format markdown
+replan scenario apply --project examples/small-team --scenario-id scenario.taskjuggler.<run-id> --actor actor.human.operator --reason "Accept the generated schedule." --dry-run --format markdown
+replan scenario apply --project examples/small-team --scenario-id scenario.taskjuggler.<run-id> --actor actor.human.operator --reason "Accept the generated schedule." --apply --format markdown
 ```
 
 Current import-result rules:

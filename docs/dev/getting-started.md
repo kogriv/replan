@@ -106,6 +106,9 @@ go run ./cmd/replan scenario show scenario.ivan-unavailable-week-28 --project ex
 go run ./cmd/replan scenario diff scenario.ivan-unavailable-week-28 --project examples/small-team --week 2026-W28 --against current --format markdown
 ```
 
+`scenario show`, `scenario diff` and `scenario apply` accept the scenario id
+either positionally or as `--scenario-id <id>`.
+
 Workload Markdown and text contain the resource rows and optional demand
 breakdown. Scenario list contains id, name, status and change count; scenario
 show contains the scenario metadata and each change's target, field, old value

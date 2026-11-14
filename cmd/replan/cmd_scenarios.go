@@ -56,19 +56,20 @@ func runScenarioList(args []string, stdout, stderr *os.File) int {
 
 func runScenarioShow(args []string, stdout, stderr *os.File) int {
 	fs := newCLIFlagSet("scenario show")
-	setCommandUsage(fs, "replan scenario show <scenario-id> [flags]")
+	setCommandUsage(fs, "replan scenario show (<scenario-id> | --scenario-id <id>) [flags]")
 	projectPath, format := addProjectFormatFlags(fs, "json")
+	scenarioID := fs.String("scenario-id", "", "scenario id; same as the positional argument")
 
 	positionalID, args := splitSinglePositional(args, fs)
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
 	}
-	positionalID, code, done := requireSinglePositional(fs, positionalID, "scenario show", "<scenario-id>", *projectPath, *format, true, stdout, stderr)
+	resolvedID, code, done := requireSinglePositionalOrFlag(fs, positionalID, *scenarioID, "scenario show", "<scenario-id>", "scenario-id", *projectPath, *format, stdout, stderr)
 	if done {
 		return code
 	}
 
-	result, err := app.NewScenarioService(newStore(*projectPath)).Show(context.Background(), app.ScenarioShowRequest{ID: positionalID})
+	result, err := app.NewScenarioService(newStore(*projectPath)).Show(context.Background(), app.ScenarioShowRequest{ID: resolvedID})
 	env := envelope{
 		OK:          err == nil && len(result.Errors) == 0,
 		Command:     "scenario show",
@@ -82,8 +83,9 @@ func runScenarioShow(args []string, stdout, stderr *os.File) int {
 
 func runScenarioDiff(args []string, stdout, stderr *os.File) int {
 	fs := newCLIFlagSet("scenario diff")
-	setCommandUsage(fs, "replan scenario diff <scenario-id> [flags]")
+	setCommandUsage(fs, "replan scenario diff (<scenario-id> | --scenario-id <id>) [flags]")
 	projectPath, format := addProjectFormatFlags(fs, "json")
+	scenarioID := fs.String("scenario-id", "", "scenario id; same as the positional argument")
 	against := fs.String("against", "current", "comparison base")
 	week := fs.String("week", "", "ISO week, for example 2026-W28")
 
@@ -91,7 +93,7 @@ func runScenarioDiff(args []string, stdout, stderr *os.File) int {
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
 	}
-	positionalID, code, done := requireSinglePositional(fs, positionalID, "scenario diff", "<scenario-id>", *projectPath, *format, true, stdout, stderr)
+	resolvedID, code, done := requireSinglePositionalOrFlag(fs, positionalID, *scenarioID, "scenario diff", "<scenario-id>", "scenario-id", *projectPath, *format, stdout, stderr)
 	if done {
 		return code
 	}
@@ -101,7 +103,7 @@ func runScenarioDiff(args []string, stdout, stderr *os.File) int {
 	}
 
 	result, err := app.NewScenarioService(newStore(*projectPath)).Diff(context.Background(), app.ScenarioDiffRequest{
-		ID:      positionalID,
+		ID:      resolvedID,
 		Against: *against,
 		Week:    *week,
 	})
@@ -134,8 +136,9 @@ func runScenarioDiff(args []string, stdout, stderr *os.File) int {
 
 func runScenarioApply(args []string, stdout, stderr *os.File) int {
 	fs := newCLIFlagSet("scenario apply")
-	setCommandUsage(fs, "replan scenario apply <scenario-id> [flags]")
+	setCommandUsage(fs, "replan scenario apply (<scenario-id> | --scenario-id <id>) [flags]")
 	projectPath, format := addProjectFormatFlags(fs, "json")
+	scenarioID := fs.String("scenario-id", "", "scenario id; same as the positional argument")
 	writeFlags := addCanonicalWriteFlags(fs)
 	actorID := fs.String("actor", "", "actor id applying the scenario; required unless --dry-run is used")
 	reason := fs.String("reason", "", "apply reason")
@@ -145,7 +148,7 @@ func runScenarioApply(args []string, stdout, stderr *os.File) int {
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
 	}
-	positionalID, code, done := requireSinglePositional(fs, positionalID, "scenario apply", "<scenario-id>", *projectPath, *format, true, stdout, stderr)
+	resolvedID, code, done := requireSinglePositionalOrFlag(fs, positionalID, *scenarioID, "scenario apply", "<scenario-id>", "scenario-id", *projectPath, *format, stdout, stderr)
 	if done {
 		return code
 	}
@@ -154,7 +157,7 @@ func runScenarioApply(args []string, stdout, stderr *os.File) int {
 		return code
 	}
 	result, err := app.NewScenarioService(newStore(*projectPath)).Apply(context.Background(), app.ScenarioApplyRequest{
-		ID:         positionalID,
+		ID:         resolvedID,
 		ActorID:    *actorID,
 		Reason:     *reason,
 		EvidenceID: *evidenceID,
