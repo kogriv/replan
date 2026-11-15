@@ -8143,7 +8143,7 @@ tasks:
     title: Let calibration count tasks in review that have actuals
     description: 'Reported on 2026-11-15 by the second consumer project: estimate calibrate counts only accepted, done or closed tasks, and there the owner accepts weeks after review_ready, so the clean sample stays empty although the work and its actuals are complete. Add an explicit opt-in (--include-review-ready) that also samples review_ready tasks with counted actuals, record the choice in the sealed calibration scope, report how many sample tasks were review_ready, and keep the default unchanged.'
     type: implementation
-    tracking_status: not_started
+    tracking_status: in_progress
     planned_start: "2026-11-16"
     planned_finish: "2026-11-16"
     assignee_hint:
@@ -8172,9 +8172,9 @@ tasks:
     title: Book measured CI minutes and the reviewer's own time at acceptance
     description: 'Found on 2026-11-15: the self project''s CI actuals are not measured; accept-task books whatever REPLAN_ACCEPT_CI_MINUTES says, which was a judged 4 minutes for every task, so a CI calibration (factor 0.3, p25 = p75) only reflects that habit. The maintainer''s review time is never booked, so human estimates cannot be calibrated. Add a helper that reads GitHub Actions run timing (job start and finish per run through gh) and returns billable minutes, let accept-task take run ids (REPLAN_ACCEPT_CI_RUNS) and book the measured minutes with the runs in the evidence, and add REPLAN_ACCEPT_REVIEW_MINUTES so the accepting person''s stated review time is booked on their hour demand. The maintainer agreed on 2026-11-15 to state review minutes at acceptance.'
     type: implementation
-    tracking_status: in_progress
-    planned_start: "2026-11-16"
-    planned_finish: "2026-11-16"
+    tracking_status: review_ready
+    planned_start: "2026-11-15"
+    planned_finish: "2026-11-15"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer

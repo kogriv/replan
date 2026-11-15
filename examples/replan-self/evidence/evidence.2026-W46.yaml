@@ -1666,3 +1666,36 @@ evidence:
     targets:
       - kind: task
         id: task.self.calibration-since-window
+  - id: evidence.self.ack-ci-overrun-calibration-since-window
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-15T21:09:07+07:00"
+    summary: The maintainer approved in chat (answer 2026-11-15 21:09) acknowledging measured CI overruns for the calibration batch; here the 11 billable minutes measured from GitHub Actions run 43714507564 exceed the 10 planned. The 10 minutes per task predates measuring CI from runs.
+    targets:
+      - kind: task
+        id: task.self.calibration-since-window
+  - id: evidence.self.measured-ci-and-review-actuals
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-15T21:11:23+07:00"
+    summary: 'Feature commit 46e76b0: new read-only scripts/github-actions-run-minutes.sh sums a run''s billable minutes through gh with per-job rounding (live check: runs 43714507564 and 43709662513 give 22 minutes, matching the hand count); accept-task books them with REPLAN_ACCEPT_CI_RUNS (source measured; REPLAN_ACCEPT_CI_MINUTES stays as source stated; both together refused conflicting_ci_settings) and books REPLAN_ACCEPT_REVIEW_MINUTES on the accepting person''s demand in a new idempotent step 2.5 (actor to resource via the resource link, else the single human demand; refusals review_demand_ambiguous, review_unit_unsupported). Review: clean. Gate: vet, lint 0, shellcheck, Go and Python suites, smoke, isolated smoke, 56 kit checks, live kit check 108 checks. Codex 19:07:52-19:40:07 (0.54 h, prompt and last-file mtimes). Executor 0.17 h: 0.1 brief before the start, review and booking from transcript activity, excluding waits.'
+    targets:
+      - kind: task
+        id: task.self.measured-ci-and-review-actuals
+  - id: evidence.self.start-calibration-review-ready-sample
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-15T19:42:24+07:00"
+    summary: 'Started a day before the planned day once the calibration window code was in: the Codex round began at 19:42:24 while the measured CI gate ran; recorded after that gate.'
+    targets:
+      - kind: task
+        id: task.self.calibration-review-ready-sample
