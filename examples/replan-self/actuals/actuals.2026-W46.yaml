@@ -1909,3 +1909,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.estimate-report-no-actuals-and-default-unit
+  - id: actual.self-estimate-report-no-actuals-and-default-unit.human-maintainer.20261115T1904460700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.estimate-report-no-actuals-and-default-unit
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.estimate-report-no-actuals-and-default-unit.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.08
+    unit: hours
+    occurred_at: "2026-11-15T19:04:46+07:00"
+    status_date: "2026-11-15"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.review-estimate-report-no-actuals-and-default-unit
+  - id: actual.self-estimate-report-no-actuals-and-default-unit.ci-github-actions.20261115T120448Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.estimate-report-no-actuals-and-default-unit
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.estimate-report-no-actuals-and-default-unit.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 11
+    unit: ci_minutes
+    occurred_at: "2026-11-15T12:04:48Z"
+    status_date: "2026-11-15"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-estimate-report-no-actuals-and-default-unit

@@ -1585,3 +1585,27 @@ evidence:
     targets:
       - kind: task
         id: task.self.calibration-since-window
+  - id: evidence.self.review-estimate-report-no-actuals-and-default-unit
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-15T19:04:46+07:00"
+    summary: 'The maintainer accepted the task in chat and stated 5 minutes of review time. CI measured from GitHub Actions run 43709662513 for 9f01b4d: four jobs of 188, 278, 30 and 24 seconds, 11 billable minutes (each job rounded up to a minute).'
+    targets:
+      - kind: task
+        id: task.self.estimate-report-no-actuals-and-default-unit
+  - id: evidence.self.accept-estimate-report-no-actuals-and-default-unit
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-15T12:04:48Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review; 5 review minutes stated; CI measured from run 43709662513.
+    targets:
+      - kind: task
+        id: task.self.estimate-report-no-actuals-and-default-unit
