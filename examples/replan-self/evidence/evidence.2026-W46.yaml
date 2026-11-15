@@ -1350,3 +1350,36 @@ evidence:
     targets:
       - kind: task
         id: task.self.scenario-id-flag
+  - id: evidence.self.plan-skip-cancelled-dependencies
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-15T11:08:54+07:00"
+    summary: The maintainer agreed the cancelled-dependency fix in the OpenProject helpers at Codex 1.5 and agent 0.5 hours (answer 2026-11-15 11:08:54), reported by the second consumer project, which meanwhile pushes dates with work-package update-dates and does not apply relations.
+    targets:
+      - kind: task
+        id: task.self.skip-cancelled-dependencies
+  - id: evidence.self.plan-publish-release-v0-5-5
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-15T11:08:54+07:00"
+    summary: The maintainer agreed release v0.5.5 right after the cancelled-dependency fix, with --scenario-id in the scenario commands, at 0.5 agent hours (answer 2026-11-15 11:08:54).
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-5
+  - id: evidence.self.start-skip-cancelled-dependencies
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-15T11:11:18+07:00"
+    summary: Started a day before the planned day, right after the maintainer's answer (11:08:54); the code reading that confirmed the bug ran 11:03-11:04 under the consumer report, planning and the work packages from 11:09.
+    targets:
+      - kind: task
+        id: task.self.skip-cancelled-dependencies

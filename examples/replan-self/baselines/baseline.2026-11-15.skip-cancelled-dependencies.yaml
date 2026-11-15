@@ -1,0 +1,49 @@
+baseline:
+  id: baseline.2026-11-15.skip-cancelled-dependencies
+  name: skip-cancelled-dependencies
+  scope: tasks
+  created_at: "2026-11-15T11:11:18+07:00"
+  approved_at: "2026-11-15T11:11:18+07:00"
+  approved_by:
+    kind: actor
+    id: actor.human.maintainer
+  status_date: "2026-11-15"
+  included_tasks:
+    - kind: task
+      id: task.self.skip-cancelled-dependencies
+      planned_start: "2026-11-16"
+      planned_finish: "2026-11-16"
+  included_demands:
+    - kind: resource_demand
+      id: resource_demand.skip-cancelled-dependencies.agent
+      task: task.self.skip-cancelled-dependencies
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 0.5
+    - kind: resource_demand
+      id: resource_demand.skip-cancelled-dependencies.codex
+      task: task.self.skip-cancelled-dependencies
+      resource: resource.ai.codex.local
+      unit: agent_hours
+      planned_amount: 1.5
+    - kind: resource_demand
+      id: resource_demand.skip-cancelled-dependencies.maintainer
+      task: task.self.skip-cancelled-dependencies
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.skip-cancelled-dependencies.local-dev
+      task: task.self.skip-cancelled-dependencies
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.skip-cancelled-dependencies.ci
+      task: task.self.skip-cancelled-dependencies
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  seal:
+    algorithm: sha256
+    digest: 34b0cacd6a99950ea0f80f338356171c204bfacab6d993cac11e8ea86cdbe98f

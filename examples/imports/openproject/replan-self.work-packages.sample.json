@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 272,
-  "count": 272,
+  "total": 274,
+  "count": 274,
   "_embedded": {
     "elements": [
       {
@@ -7885,6 +7885,64 @@
           },
           "status": {
             "title": "In progress"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2373,
+        "subject": "Skip cancelled dependencies in the OpenProject helpers",
+        "description": {
+          "raw": "Reported on 2026-11-15 by the second consumer project on v0.5.4: after cancelling two dependencies in the plan (dependency set --status cancelled) and deleting their OpenProject relations with relation delete --remove-private-binding, push-openproject-date-drift still blocked with missing_live_dependency. The OpenProject helpers (push-openproject-date-drift, check-openproject-drift, apply-openproject-relations, plan-openproject-bootstrap, the operator report and the toolkit's plan-backed relation commands) read every dependency without looking at its status, while the RePlan core already ignores cancelled ones; apply-openproject-relations would even recreate the deleted relations. Make the helpers skip cancelled dependencies as expected relations, report a cancelled dependency whose relation still exists in OpenProject for review with the relation delete command instead of blocking, document the order for taking a dependency off the plan and out of OpenProject, and cover it with unit tests and the throwaway OpenProject live check."
+        },
+        "status": {
+          "name": "In progress"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-16",
+        "dueDate": "2026-11-16",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2373"
+          },
+          "status": {
+            "title": "In progress"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2374,
+        "subject": "Publish release v0.5.5 with the cancelled-dependency fix",
+        "description": {
+          "raw": "Agreed with the operator on 2026-11-15 together with the cancelled-dependency fix: publish release v0.5.5 with that fix and --scenario-id in the scenario commands (release notes, tag after green CI, archives compared with the CI build and its attestation, GitHub release, go install check), build the linux and windows kits, refresh the three consumer projects' kits as before and tell the second consumer project that the fix is out."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-16",
+        "dueDate": "2026-11-16",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2374"
+          },
+          "status": {
+            "title": "New"
           },
           "assignee": {
             "href": "/api/v3/users/101",
