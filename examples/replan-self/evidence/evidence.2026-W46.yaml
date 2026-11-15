@@ -1442,3 +1442,124 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-5
+  - id: evidence.self.plan-estimate-report-no-actuals-and-default-unit
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-15T17:32:02+07:00"
+    summary: The maintainer agreed the calibration work plan of ten tasks, this one at Codex 1 and agent 0.5 hours (answer 2026-11-15 17:32:02), after a review of the self project's estimate accuracy and answers from the consumer project sessions; estimates stay natural and calibration corrects load and dates, and the maintainer states review minutes at acceptance.
+    targets:
+      - kind: task
+        id: task.self.estimate-report-no-actuals-and-default-unit
+  - id: evidence.self.plan-calibration-since-window
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-15T17:32:02+07:00"
+    summary: The maintainer agreed the calibration work plan of ten tasks, this one at Codex 1.5 and agent 0.5 hours (answer 2026-11-15 17:32:02), after a review of the self project's estimate accuracy and answers from the consumer project sessions; estimates stay natural and calibration corrects load and dates, and the maintainer states review minutes at acceptance.
+    targets:
+      - kind: task
+        id: task.self.calibration-since-window
+  - id: evidence.self.plan-calibration-review-ready-sample
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-15T17:32:02+07:00"
+    summary: The maintainer agreed the calibration work plan of ten tasks, this one at Codex 1.5 and agent 0.5 hours (answer 2026-11-15 17:32:02), after a review of the self project's estimate accuracy and answers from the consumer project sessions; estimates stay natural and calibration corrects load and dates, and the maintainer states review minutes at acceptance.
+    targets:
+      - kind: task
+        id: task.self.calibration-review-ready-sample
+  - id: evidence.self.plan-measured-ci-and-review-actuals
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-15T17:32:02+07:00"
+    summary: The maintainer agreed the calibration work plan of ten tasks, this one at Codex 1.5 and agent 0.5 hours (answer 2026-11-15 17:32:02), after a review of the self project's estimate accuracy and answers from the consumer project sessions; estimates stay natural and calibration corrects load and dates, and the maintainer states review minutes at acceptance.
+    targets:
+      - kind: task
+        id: task.self.measured-ci-and-review-actuals
+  - id: evidence.self.plan-agent-session-consumption-helper
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-15T17:32:02+07:00"
+    summary: The maintainer agreed the calibration work plan of ten tasks, this one at Codex 3 and agent 1 hours (answer 2026-11-15 17:32:02), after a review of the self project's estimate accuracy and answers from the consumer project sessions; estimates stay natural and calibration corrects load and dates, and the maintainer states review minutes at acceptance.
+    targets:
+      - kind: task
+        id: task.self.agent-session-consumption-helper
+  - id: evidence.self.plan-backfill-actual-windows-from-openproject
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-15T17:32:02+07:00"
+    summary: The maintainer agreed the calibration work plan of ten tasks, this one at Codex 2.5 and agent 1 hours (answer 2026-11-15 17:32:02), after a review of the self project's estimate accuracy and answers from the consumer project sessions; estimates stay natural and calibration corrects load and dates, and the maintainer states review minutes at acceptance.
+    targets:
+      - kind: task
+        id: task.self.backfill-actual-windows-from-openproject
+  - id: evidence.self.plan-measured-wait-report
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-15T17:32:02+07:00"
+    summary: The maintainer agreed the calibration work plan of ten tasks, this one at Codex 2.5 and agent 1 hours (answer 2026-11-15 17:32:02), after a review of the self project's estimate accuracy and answers from the consumer project sessions; estimates stay natural and calibration corrects load and dates, and the maintainer states review minutes at acceptance.
+    targets:
+      - kind: task
+        id: task.self.measured-wait-report
+  - id: evidence.self.plan-agent-kit-estimating-guide
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-15T17:32:02+07:00"
+    summary: The maintainer agreed the calibration work plan of ten tasks, this one at agent 1 hours (answer 2026-11-15 17:32:02), after a review of the self project's estimate accuracy and answers from the consumer project sessions; estimates stay natural and calibration corrects load and dates, and the maintainer states review minutes at acceptance.
+    targets:
+      - kind: task
+        id: task.self.agent-kit-estimating-guide
+  - id: evidence.self.plan-recalibrate-self-agent-estimates
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-15T17:32:02+07:00"
+    summary: The maintainer agreed the calibration work plan of ten tasks, this one at agent 0.5 hours (answer 2026-11-15 17:32:02), after a review of the self project's estimate accuracy and answers from the consumer project sessions; estimates stay natural and calibration corrects load and dates, and the maintainer states review minutes at acceptance.
+    targets:
+      - kind: task
+        id: task.self.recalibrate-self-agent-estimates
+  - id: evidence.self.plan-publish-release-v0-5-6
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-15T17:32:02+07:00"
+    summary: The maintainer agreed the calibration work plan of ten tasks, this one at agent 1.5 hours (answer 2026-11-15 17:32:02), after a review of the self project's estimate accuracy and answers from the consumer project sessions; estimates stay natural and calibration corrects load and dates, and the maintainer states review minutes at acceptance.
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-6
+  - id: evidence.self.start-estimate-report-no-actuals-and-default-unit
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-15T17:37:49+07:00"
+    summary: Started a day before the planned day, right after the maintainer agreed the calibration work plan; first of ten tasks.
+    targets:
+      - kind: task
+        id: task.self.estimate-report-no-actuals-and-default-unit

@@ -1,0 +1,49 @@
+baseline:
+  id: baseline.2026-11-15.estimate-report-no-actuals-and-default-unit
+  name: estimate-report-no-actuals-and-default-unit
+  scope: tasks
+  created_at: "2026-11-15T17:37:01+07:00"
+  approved_at: "2026-11-15T17:37:01+07:00"
+  approved_by:
+    kind: actor
+    id: actor.human.maintainer
+  status_date: "2026-11-15"
+  included_tasks:
+    - kind: task
+      id: task.self.estimate-report-no-actuals-and-default-unit
+      planned_start: "2026-11-16"
+      planned_finish: "2026-11-16"
+  included_demands:
+    - kind: resource_demand
+      id: resource_demand.estimate-report-no-actuals-and-default-unit.agent
+      task: task.self.estimate-report-no-actuals-and-default-unit
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 0.5
+    - kind: resource_demand
+      id: resource_demand.estimate-report-no-actuals-and-default-unit.codex
+      task: task.self.estimate-report-no-actuals-and-default-unit
+      resource: resource.ai.codex.local
+      unit: agent_hours
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.estimate-report-no-actuals-and-default-unit.maintainer
+      task: task.self.estimate-report-no-actuals-and-default-unit
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.estimate-report-no-actuals-and-default-unit.local-dev
+      task: task.self.estimate-report-no-actuals-and-default-unit
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.estimate-report-no-actuals-and-default-unit.ci
+      task: task.self.estimate-report-no-actuals-and-default-unit
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  seal:
+    algorithm: sha256
+    digest: 8fd6cf43067dd6a094b42bb1bbb241648fe10b2d0396db9c95c92697ddb59343

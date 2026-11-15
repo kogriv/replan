@@ -869,6 +869,66 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2374"
         url: https://op.example.internal/work_packages/2374
+    - replan_task_id: task.self.estimate-report-no-actuals-and-default-unit
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2375"
+        url: https://op.example.internal/work_packages/2375
+    - replan_task_id: task.self.calibration-since-window
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2376"
+        url: https://op.example.internal/work_packages/2376
+    - replan_task_id: task.self.calibration-review-ready-sample
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2377"
+        url: https://op.example.internal/work_packages/2377
+    - replan_task_id: task.self.measured-ci-and-review-actuals
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2378"
+        url: https://op.example.internal/work_packages/2378
+    - replan_task_id: task.self.agent-session-consumption-helper
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2379"
+        url: https://op.example.internal/work_packages/2379
+    - replan_task_id: task.self.backfill-actual-windows-from-openproject
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2380"
+        url: https://op.example.internal/work_packages/2380
+    - replan_task_id: task.self.measured-wait-report
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2381"
+        url: https://op.example.internal/work_packages/2381
+    - replan_task_id: task.self.agent-kit-estimating-guide
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2382"
+        url: https://op.example.internal/work_packages/2382
+    - replan_task_id: task.self.recalibrate-self-agent-estimates
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2383"
+        url: https://op.example.internal/work_packages/2383
+    - replan_task_id: task.self.publish-release-v0-5-6
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2384"
+        url: https://op.example.internal/work_packages/2384
     - replan_task_id: task.self.date-push-nothing-to-apply-is-ok
       source_ref:
         source: openproject

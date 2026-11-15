@@ -1,0 +1,49 @@
+baseline:
+  id: baseline.2026-11-15.agent-session-consumption-helper
+  name: agent-session-consumption-helper
+  scope: tasks
+  created_at: "2026-11-15T17:37:01+07:00"
+  approved_at: "2026-11-15T17:37:01+07:00"
+  approved_by:
+    kind: actor
+    id: actor.human.maintainer
+  status_date: "2026-11-15"
+  included_tasks:
+    - kind: task
+      id: task.self.agent-session-consumption-helper
+      planned_start: "2026-11-17"
+      planned_finish: "2026-11-17"
+  included_demands:
+    - kind: resource_demand
+      id: resource_demand.agent-session-consumption-helper.agent
+      task: task.self.agent-session-consumption-helper
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.agent-session-consumption-helper.codex
+      task: task.self.agent-session-consumption-helper
+      resource: resource.ai.codex.local
+      unit: agent_hours
+      planned_amount: 3
+    - kind: resource_demand
+      id: resource_demand.agent-session-consumption-helper.maintainer
+      task: task.self.agent-session-consumption-helper
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.agent-session-consumption-helper.local-dev
+      task: task.self.agent-session-consumption-helper
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.agent-session-consumption-helper.ci
+      task: task.self.agent-session-consumption-helper
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  seal:
+    algorithm: sha256
+    digest: d3d48e58f3755461af90cfe3ce4e4031d96d03ace71c493481ada3cf9762603d

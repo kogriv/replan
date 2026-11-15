@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 274,
-  "count": 274,
+  "total": 284,
+  "count": 284,
   "_embedded": {
     "elements": [
       {
@@ -7940,6 +7940,296 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2374"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2375,
+        "subject": "Show missing actuals in the estimate report and default the set-remaining unit",
+        "description": {
+          "raw": "Reported on 2026-11-15 by the second consumer project: replan report estimates shows an actual/baseline ratio of 0.00 for finished tasks that have no actuals at all, which reads as work that took no time; it should say that no actuals are recorded and leave such tasks out of ratios and totals visibly. replan actual set-remaining fails with missing_unit when --unit is omitted although the demand has exactly one unit; default to the demand's own unit and refuse only a conflicting one."
+        },
+        "status": {
+          "name": "In progress"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-16",
+        "dueDate": "2026-11-16",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2375"
+          },
+          "status": {
+            "title": "In progress"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2376,
+        "subject": "Calibrate estimates over a recent window",
+        "description": {
+          "raw": "On 2026-11-15 the self project's clean agent sample showed that estimating changed once calibration existed: tasks started in October used a median 0.23 of the estimate, tasks started after 2026-11-02 a median 0.37. A calibration over all baselines mixes both habits and gives 0.28, which over-corrects current estimates. Add estimate calibrate --since <date> that samples only tasks whose actual start is on or after that date, record the window in the sealed calibration, show it in estimate list/show and report estimates, and make replan next suggest a recalibration when at least eight clean tasks started after the newest calibration's window or approval in the same scope."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-16",
+        "dueDate": "2026-11-16",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2376"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2377,
+        "subject": "Let calibration count tasks in review that have actuals",
+        "description": {
+          "raw": "Reported on 2026-11-15 by the second consumer project: estimate calibrate counts only accepted, done or closed tasks, and there the owner accepts weeks after review_ready, so the clean sample stays empty although the work and its actuals are complete. Add an explicit opt-in (--include-review-ready) that also samples review_ready tasks with counted actuals, record the choice in the sealed calibration scope, report how many sample tasks were review_ready, and keep the default unchanged."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-16",
+        "dueDate": "2026-11-16",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2377"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2378,
+        "subject": "Book measured CI minutes and the reviewer's own time at acceptance",
+        "description": {
+          "raw": "Found on 2026-11-15: the self project's CI actuals are not measured; accept-task books whatever REPLAN_ACCEPT_CI_MINUTES says, which was a judged 4 minutes for every task, so a CI calibration (factor 0.3, p25 = p75) only reflects that habit. The maintainer's review time is never booked, so human estimates cannot be calibrated. Add a helper that reads GitHub Actions run timing (job start and finish per run through gh) and returns billable minutes, let accept-task take run ids (REPLAN_ACCEPT_CI_RUNS) and book the measured minutes with the runs in the evidence, and add REPLAN_ACCEPT_REVIEW_MINUTES so the accepting person's stated review time is booked on their hour demand. The maintainer agreed on 2026-11-15 to state review minutes at acceptance."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-16",
+        "dueDate": "2026-11-16",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2378"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2379,
+        "subject": "Turn agent session logs into consumption amounts",
+        "description": {
+          "raw": "Both the self project and the second consumer project assemble agent actuals by hand: the orchestrating Claude Code session's active time from transcript timestamps with long gaps removed, plus Codex run minutes from its session logs. Add a read-only helper that takes a task's window (from its tracking status or explicit from/to), reads Claude Code transcript jsonl files and Codex session jsonl files, merges activity into intervals with a configurable idle gap, and prints per-resource agent_hours with the intervals as evidence and the actual add-consumption commands to run. It writes nothing; document it in the agent kit."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-17",
+        "dueDate": "2026-11-17",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2379"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2380,
+        "subject": "Backfill actual start and finish from OpenProject status history",
+        "description": {
+          "raw": "Reported on 2026-11-15 by the second consumer project: 104 historic tasks are excluded from calibration as actual_start_unknown and there is no cheap way to recover when they started and finished. Add a read-only helper that reads each bound work package's activity journals, finds the first change into an in-progress status and the last change into a closed or review status, and proposes replan task record-actual-window commands (or tracking status records) with the journal ids as evidence; dry-run by default, apply only through the existing reviewed commands."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-17",
+        "dueDate": "2026-11-17",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2380"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2381,
+        "subject": "Report measured waits from tracking history",
+        "description": {
+          "raw": "Both consumer projects report on 2026-11-15 that human waiting, not agent work, dominates calendar time: tasks sit in review_ready for days or weeks and price checks wait for the owner. RePlan models planned waits with lead_time but never measures them. Add a read-only report of measured waits per task from tracking status history (time from review_ready to accepted, from blocked to unblocked, from planned to started), with medians per status and resource, and compare them with the plan's lead_time values so a project can set realistic waits."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-17",
+        "dueDate": "2026-11-17",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2381"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2382,
+        "subject": "Document plan, actuals and calibration in the agent kit",
+        "description": {
+          "raw": "The agent kit explains the operator loop but not how a project builds a calibration: freeze an estimate with baseline create --task before a task starts, record actuals from timestamps (with the new session helper), measured CI and review minutes, run estimate calibrate with a window, start from a prior factor cited from another project, read calibrated load and dates, and keep typing natural estimates (agreed by the maintainer on 2026-11-15). Write that section with the commands, and point to the measured wait report."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-18",
+        "dueDate": "2026-11-18",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2382"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2383,
+        "subject": "Recalibrate the self project's agent estimates over the recent window",
+        "description": {
+          "raw": "After the window option exists, write a new sealed agent calibration for the self project over tasks started since 2026-11-02, by size band, approved by the maintainer, and check the calibrated load, the scenario route for open demands and replan next. CI stays uncalibrated until measured CI actuals accumulate."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-18",
+        "dueDate": "2026-11-18",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2383"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2384,
+        "subject": "Publish release v0.5.6 with the calibration work and refresh the kits",
+        "description": {
+          "raw": "Tag and publish v0.5.6 with the calibration and actuals work, verify the archives and attestations, build the agent kits for the consumer projects, install them where each consumer takes them and tell each consumer session what changed and how to start calibrating."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-18",
+        "dueDate": "2026-11-18",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2384"
           },
           "status": {
             "title": "New"

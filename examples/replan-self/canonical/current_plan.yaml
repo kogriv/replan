@@ -538,6 +538,26 @@ current_plan:
     - kind: task
       id: task.self.publish-release-v0-5-5
     - kind: task
+      id: task.self.estimate-report-no-actuals-and-default-unit
+    - kind: task
+      id: task.self.calibration-since-window
+    - kind: task
+      id: task.self.calibration-review-ready-sample
+    - kind: task
+      id: task.self.measured-ci-and-review-actuals
+    - kind: task
+      id: task.self.agent-session-consumption-helper
+    - kind: task
+      id: task.self.backfill-actual-windows-from-openproject
+    - kind: task
+      id: task.self.measured-wait-report
+    - kind: task
+      id: task.self.agent-kit-estimating-guide
+    - kind: task
+      id: task.self.recalibrate-self-agent-estimates
+    - kind: task
+      id: task.self.publish-release-v0-5-6
+    - kind: task
       id: task.self.date-push-nothing-to-apply-is-ok
     - kind: task
       id: task.self.toolkit-comment-add-saves-comment
