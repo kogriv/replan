@@ -8114,7 +8114,7 @@ tasks:
     title: Calibrate estimates over a recent window
     description: 'On 2026-11-15 the self project''s clean agent sample showed that estimating changed once calibration existed: tasks started in October used a median 0.23 of the estimate, tasks started after 2026-11-02 a median 0.37. A calibration over all baselines mixes both habits and gives 0.28, which over-corrects current estimates. Add estimate calibrate --since <date> that samples only tasks whose actual start is on or after that date, record the window in the sealed calibration, show it in estimate list/show and report estimates, and make replan next suggest a recalibration when at least eight clean tasks started after the newest calibration''s window or approval in the same scope.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-15"
     planned_finish: "2026-11-15"
     assignee_hint:

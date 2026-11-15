@@ -1993,3 +1993,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.calibration-since-window
+  - id: actual.self-calibration-since-window.human-maintainer.20261115T1939110700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.calibration-since-window
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.calibration-since-window.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.17
+    unit: hours
+    occurred_at: "2026-11-15T19:39:11+07:00"
+    status_date: "2026-11-15"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.review-calibration-since-window
+  - id: actual.self-calibration-since-window.ci-github-actions.20261115T123912Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.calibration-since-window
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.calibration-since-window.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 11
+    unit: ci_minutes
+    occurred_at: "2026-11-15T12:39:12Z"
+    status_date: "2026-11-15"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-calibration-since-window

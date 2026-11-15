@@ -1642,3 +1642,27 @@ evidence:
     targets:
       - kind: task
         id: task.self.measured-ci-and-review-actuals
+  - id: evidence.self.review-calibration-since-window
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-15T19:39:11+07:00"
+    summary: 'The maintainer accepted the task in chat and stated 10 minutes of review time. CI measured from GitHub Actions run 43714507564 for 403781a: four jobs of 232, 29, 282 and 17 seconds, 11 billable minutes; the CI demand is planned at 10.'
+    targets:
+      - kind: task
+        id: task.self.calibration-since-window
+  - id: evidence.self.accept-calibration-since-window
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-15T12:39:12Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review; 10 review minutes stated; CI measured from run 43714507564.
+    targets:
+      - kind: task
+        id: task.self.calibration-since-window
