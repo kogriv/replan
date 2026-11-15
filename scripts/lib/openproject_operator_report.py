@@ -35,7 +35,7 @@ def as_text(value):
 
 data = json.load(open(import_path, encoding="utf-8"))
 result = data.get("result") or {}
-warnings = data.get("warnings") or result.get("warnings") or []
+warnings = list(data.get("warnings") or result.get("warnings") or [])
 errors = data.get("errors") or result.get("errors") or []
 
 tasks_doc = load_yaml(os.path.join(project_path, "canonical", "tasks.yaml"))
@@ -59,6 +59,14 @@ deps = [
     dep for dep in deps_doc.get("dependencies") or []
     if (dep.get("predecessor_ref") or {}).get("id", "") in planned_task_set
     and (dep.get("successor_ref") or {}).get("id", "") in planned_task_set
+]
+expected_deps = [
+    dep for dep in deps
+    if openproject_bindings.dependency_expected_in_openproject(dep)
+]
+cancelled_deps = [
+    dep for dep in deps
+    if not openproject_bindings.dependency_expected_in_openproject(dep)
 ]
 
 task_wp_by_id = {}
@@ -145,7 +153,7 @@ for candidate in task_candidates:
     })
 
 local_dep_tuples = {}
-for dep in deps:
+for dep in expected_deps:
     key = import_candidates.dependency_key(
         as_text(dep.get("type")),
         as_text((dep.get("predecessor_ref") or {}).get("id")),
@@ -162,12 +170,48 @@ for candidate in dep_candidates:
     )
     live_dep_tuples[key] = candidate
 
+live_dep_by_relation = {
+    as_text(candidate.get("source_id")): candidate
+    for candidate in dep_candidates
+    if candidate.get("source_id") is not None
+}
+cancelled_live_keys = set()
+for dep in cancelled_deps:
+    dep_id = as_text(dep.get("id"))
+    predecessor, successor = openproject_bindings.dependency_endpoints(dep)
+    key = import_candidates.dependency_key(
+        as_text(dep.get("type")), predecessor, successor,
+    )
+    bound_relation_id = dep_relation_by_id.get(dep_id, "")
+    candidate = live_dep_tuples.get(key) or live_dep_by_relation.get(bound_relation_id)
+    if candidate:
+        candidate_key = import_candidates.dependency_key(
+            as_text(candidate.get("dependency_type")),
+            as_text(candidate.get("predecessor_task_id")),
+            as_text(candidate.get("successor_task_id")),
+        )
+        cancelled_live_keys.add(candidate_key)
+        warnings.append(openproject_bindings.cancelled_dependency_warning(
+            dep, as_text(candidate.get("source_id")) or bound_relation_id,
+            live=True,
+            predecessor_work_package_id=task_wp_by_id.get(predecessor, ""),
+            successor_work_package_id=task_wp_by_id.get(successor, ""),
+            from_work_package_id=candidate.get("from_work_package_id", ""),
+            to_work_package_id=candidate.get("to_work_package_id", ""),
+        ))
+    elif bound_relation_id:
+        warnings.append(openproject_bindings.cancelled_dependency_warning(
+            dep, bound_relation_id,
+            predecessor_work_package_id=task_wp_by_id.get(predecessor, ""),
+            successor_work_package_id=task_wp_by_id.get(successor, ""),
+        ))
+
 relation_rows = []
 unbound_local_dependencies = []
 missing_live_dependencies = []
 extra_live_relations = []
 relation_binding_mismatches = []
-for dep in deps:
+for dep in expected_deps:
     dep_id = dep.get("id", "")
     key = import_candidates.dependency_key(
         as_text(dep.get("type")),
@@ -214,7 +258,7 @@ for dep in deps:
         relation_binding_mismatches.append(row)
 
 for key, candidate in live_dep_tuples.items():
-    if key not in local_dep_tuples:
+    if key not in local_dep_tuples and key not in cancelled_live_keys:
         extra_live_relations.append({
             "relation_id": as_text(candidate.get("source_id")),
             "relation_type": as_text(candidate.get("relation_type")),
@@ -297,6 +341,7 @@ out = {
         "status_drifts": len(status_drifts),
         "date_drifts": len(date_drifts),
         "local_dependencies": len(deps),
+        "skipped_cancelled_dependencies": len(cancelled_deps),
         "mapped_relations": len(relation_rows),
         "live_relation_candidates": len(dep_candidates),
         "unbound_local_dependencies": len(unbound_local_dependencies),

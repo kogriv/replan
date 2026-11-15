@@ -297,6 +297,10 @@ and `rescheduled_work_packages` lists it. Set
 wants OpenProject to schedule successors.
 The drift check emits `openproject_date_drift` once per affected task and
 `openproject_automatic_scheduling` once per bound work package left automatic.
+`cancelled_dependency_still_live` means a cancelled RePlan dependency still
+has a matching live relation; `cancelled_dependency_binding_left` means only
+its private relation binding remains. Both are warnings, not hard drift, and
+include the reviewed toolkit cleanup command.
 `openproject_scheduling_unknown` means the live scheduling-mode collection
 could not be read; it does not change the otherwise computed drift status.
 For the former, review `push-openproject-date-drift.sh`; for the latter, use
@@ -695,6 +699,28 @@ dependency is refused as `unsupported_dependency_type`, with its id and the
 supported types, and gets no relation. While any dependency is refused, the
 other relations are still created but the private bindings file is not
 written; change the type (for example to `relates`) and run again.
+
+### Take a dependency off the plan
+
+Cancel the dependency in RePlan first, then delete its OpenProject relation:
+
+```sh
+bin/replan dependency set <dependency-id> --status cancelled \
+  --reason "No longer part of the plan." --actor <human-actor-id> --apply
+REPLAN_APPLY=1 scripts/openproject-work-package-toolkit.sh relation delete \
+  --relation <relation-id> --remove-private-binding
+```
+
+Cancelled dependencies are not expected OpenProject relations. Bootstrap and
+relation apply skip them; plan-backed `relation list` shows their RePlan status
+instead of calling them unbound. Date push, drift check and the operator report
+do not block on a cancelled dependency. If its relation is still present, they
+report `cancelled_dependency_still_live` with its endpoints and the exact
+delete command. If only the private binding remains, they report
+`cancelled_dependency_binding_left`. Run that same delete command even after
+the relation is gone: the toolkit accepts the 404 response and removes the
+binding. Relation apply reports `skip_cancelled_dependency` and never deletes
+the relation itself, so deletion remains a separate reviewed action.
 
 The relations dry run warns when planned `follows` relations may move
 successor dates. After apply, run `scripts/check-openproject-drift.sh`; if the

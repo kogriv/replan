@@ -157,6 +157,7 @@ expect "a second run creates nothing" "d['ok'] and d['counts']['created_work_pac
 run "" "$TOOLKIT" work-package list
 cp "$WORK_DIR/out.json" "$WORK_DIR/work-packages.before-relations.json"
 run 1 scripts/apply-openproject-relations.sh
+cp "$WORK_DIR/out.json" "$WORK_DIR/relations.apply.json"
 expect "a member creates follows and skips relates on the occupied pair" "d['counts']['created_relation'] == 1 and d['counts']['skipped_relation'] == 1 and d['private_binding_layer']['dependency_bindings'] == 1 and 'openproject_pair_already_related' in d['warning_codes'] and any(a['relation_type'] == 'relates' and a['action'] == 'skip_relation' and a['reason'] == 'openproject_pair_already_related' for a in d['actions'])"
 expect "the dates around the new relation are read back and any move is reported" "'rescheduling_unknown' not in d.get('warning_codes', []) and (('openproject_rescheduled' in d.get('warning_codes', [])) == bool(d.get('rescheduled_work_packages')))"
 run "" scripts/apply-openproject-relations.sh
@@ -168,6 +169,36 @@ python3 -c 'import json, sys; before = json.load(open(sys.argv[1])); after = jso
   "$WORK_DIR/work-packages.before-relations.json" "$WORK_DIR/out.json" \
   || fail "relation apply changed a sample work-package date"
 
+# A cancelled RePlan dependency is no longer an expected OpenProject relation.
+# Keep the pair-conflict fixture from becoming an unrelated missing dependency
+# while this sequence isolates the live follows relation.
+CANCELLED_DEPENDENCY="dependency.repair-pump-before-validation"
+run 1 bin/replan dependency set "$CANCELLED_DEPENDENCY" --project "$WORK_DIR/plan" \
+  --status cancelled --reason "Throwaway check takes the dependency off the plan." \
+  --actor actor.human.operator --apply --format json
+expect "the kit binary cancels the live dependency" "d['ok'] and d['result']['applied']"
+run 1 bin/replan dependency set dependency.repair-pump-related-validation --project "$WORK_DIR/plan" \
+  --status cancelled --reason "Keep the pair-conflict fixture out of the cleanup check." \
+  --actor actor.human.operator --apply --format json
+expect "the pair-conflict dependency is also out of the cleanup check" "d['ok'] and d['result']['applied']"
+# The sample plan also holds a resource dependency that relation apply refuses,
+# so the private bindings file is not written; take the relation id from the
+# apply output instead.
+CANCELLED_RELATION="$(python3 -c 'import json, sys; d=json.load(open(sys.argv[1])); ids=[a["openproject_relation_id"] for a in d["actions"] if a.get("replan_dependency_id") == sys.argv[2] and a.get("openproject_relation_id")]; print(ids[0] if ids else "")' "$WORK_DIR/relations.apply.json" "$CANCELLED_DEPENDENCY")"
+[ -n "$CANCELLED_RELATION" ] || fail "relation apply did not report a relation for $CANCELLED_DEPENDENCY"
+
+run "" scripts/push-openproject-date-drift.sh
+expect "a live cancelled relation is review-only for date push" "d['ok'] and d['date_push_status'] != 'blocked' and d['counts']['blocked_actions'] == 0 and 'cancelled_dependency_still_live' in d['warning_codes'] and any(a.get('blocks_date_push') is False and '--relation $CANCELLED_RELATION --remove-private-binding' in a.get('delete_command', '') for a in d['review_actions'])"
+run 1 "$TOOLKIT" relation delete --relation "$CANCELLED_RELATION" --remove-private-binding
+expect "the cancelled relation is deleted explicitly" "d['ok'] and d['counts']['applied_actions'] == 1"
+run "" scripts/push-openproject-date-drift.sh
+expect "date drift is clean after cancelled relation cleanup" "d['ok'] and d['date_push_status'] != 'blocked' and d['counts']['blocked_actions'] == 0 and not ({'cancelled_dependency_still_live', 'cancelled_dependency_binding_left'} & set(d['warning_codes']))"
+run "" scripts/check-openproject-drift.sh
+expect "strict drift skips the cleaned cancelled dependencies" "d['ok'] and d['counts']['skipped_cancelled_dependencies'] == 2 and d['counts']['unbound_local_dependencies'] == 0 and d['counts']['missing_live_dependencies'] == 0 and not ({'cancelled_dependency_still_live', 'cancelled_dependency_binding_left'} & set(d['warning_codes']))"
+run "" scripts/apply-openproject-relations.sh
+expect "relation apply skips cancelled dependencies without creating" "d['counts']['skip_cancelled_dependency'] == 2 and d['counts']['create_relation'] == 0 and all(a['action'] == 'skip_cancelled_dependency' for a in d['actions'])"
+
+run "" "$TOOLKIT" work-package list
 expect "the work packages are listed and mapped" "d['ok'] and d['counts'] == {'mapped': 2, 'unmapped': 0, 'work_packages': 2}"
 run "" "$TOOLKIT" user list
 expect "the project's assignees are readable by a member" "d['ok'] and any(item.get('name') == 'Kit Member' for item in d['items'])"

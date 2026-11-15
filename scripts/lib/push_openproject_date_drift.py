@@ -76,7 +76,7 @@ def dependency_key(dep):
 
 data = json.load(open(import_path, encoding="utf-8"))
 result = data.get("result") or {}
-warnings = data.get("warnings") or result.get("warnings") or []
+warnings = list(data.get("warnings") or result.get("warnings") or [])
 errors = data.get("errors") or result.get("errors") or []
 
 tasks_doc = load_yaml(os.path.join(project_path, "canonical", "tasks.yaml"))
@@ -97,6 +97,14 @@ local_tasks = {
 local_deps = [
     dep for dep in deps_doc.get("dependencies") or []
     if dependency_key(dep)[1] in planned_task_set and dependency_key(dep)[2] in planned_task_set
+]
+expected_local_deps = [
+    dep for dep in local_deps
+    if openproject_bindings.dependency_expected_in_openproject(dep)
+]
+cancelled_local_deps = [
+    dep for dep in local_deps
+    if not openproject_bindings.dependency_expected_in_openproject(dep)
 ]
 
 bindings_loaded = os.path.exists(bindings_path)
@@ -181,7 +189,7 @@ for candidate in task_candidates:
 
 if require_dependency_check:
     local_dep_tuples = {}
-    for dep in local_deps:
+    for dep in expected_local_deps:
         local_dep_tuples[dependency_key(dep)] = dep.get("id", "")
 
     live_dep_tuples = {}
@@ -193,7 +201,54 @@ if require_dependency_check:
         )
         live_dep_tuples[key] = dep
 
-    for dep in local_deps:
+    live_dep_by_relation = {
+        as_text(dep.get("source_id")): dep
+        for dep in dep_candidates
+        if dep.get("source_id") is not None
+    }
+    cancelled_live_keys = set()
+    for dep in cancelled_local_deps:
+        dep_id = as_text(dep.get("id"))
+        key = dependency_key(dep)
+        bound_relation_id = dep_relation_by_id.get(dep_id, "")
+        candidate = live_dep_tuples.get(key) or live_dep_by_relation.get(bound_relation_id)
+        if candidate:
+            candidate_key = import_candidates.dependency_key(
+                as_text(candidate.get("dependency_type")),
+                as_text(candidate.get("predecessor_task_id")),
+                as_text(candidate.get("successor_task_id")),
+            )
+            cancelled_live_keys.add(candidate_key)
+            relation_id = as_text(candidate.get("source_id")) or bound_relation_id
+            warning = openproject_bindings.cancelled_dependency_warning(
+                dep, relation_id, live=True,
+                predecessor_work_package_id=task_wp_by_id.get(key[1], ""),
+                successor_work_package_id=task_wp_by_id.get(key[2], ""),
+                from_work_package_id=candidate.get("from_work_package_id", ""),
+                to_work_package_id=candidate.get("to_work_package_id", ""),
+            )
+            warnings.append(warning)
+            review.append({
+                **warning,
+                "action": "review_cancelled_dependency_relation",
+                "reason": warning["code"],
+                "blocks_date_push": False,
+            })
+        elif bound_relation_id:
+            warning = openproject_bindings.cancelled_dependency_warning(
+                dep, bound_relation_id,
+                predecessor_work_package_id=task_wp_by_id.get(key[1], ""),
+                successor_work_package_id=task_wp_by_id.get(key[2], ""),
+            )
+            warnings.append(warning)
+            review.append({
+                **warning,
+                "action": "review_cancelled_dependency_binding",
+                "reason": warning["code"],
+                "blocks_date_push": False,
+            })
+
+    for dep in expected_local_deps:
         dep_id = as_text(dep.get("id"))
         key = dependency_key(dep)
         if not dep_relation_by_id.get(dep_id):
@@ -229,7 +284,7 @@ if require_dependency_check:
             })
 
     for key, candidate in live_dep_tuples.items():
-        if key not in local_dep_tuples:
+        if key not in local_dep_tuples and key not in cancelled_live_keys:
             blocked.append({
                 "relation_id": as_text(candidate.get("source_id")),
                 "dependency_type": key[0],
@@ -263,16 +318,22 @@ rescheduled = []
 stored_differences = []
 rescheduling_unread = []
 apply_blocked_reason = ""
+blocking_review = [item for item in review if item.get("blocks_date_push", True)]
 if mode == "apply":
     if fixture_mode:
         apply_blocked_reason = "apply_not_allowed_with_import_json_fixture"
     elif blocked:
         apply_blocked_reason = "blocked_actions_present"
-    elif review:
+    elif blocking_review:
         apply_blocked_reason = "review_actions_present"
     elif planned:
         binding_relations = []
+        expected_dependency_ids = {
+            as_text(dep.get("id")) for dep in expected_local_deps
+        }
         for binding in openproject_bindings.root(bindings_doc).get("dependencies") or []:
+            if as_text(binding.get("replan_dependency_id")) not in expected_dependency_ids:
+                continue
             binding_relations.append({
                 "type": binding.get("relation_type", ""),
                 "from_work_package_id": as_text(binding.get("from_work_package_id")),
@@ -352,7 +413,7 @@ if mode == "apply":
 date_push_status = "blocked" if blocked else ("needs_review" if review else ("planned" if planned else "aligned"))
 ok = data.get("ok") is True and not blocked
 if mode == "apply":
-    ok = ok and not review and not apply_blocked_reason and len(applied) == len(planned)
+    ok = ok and not blocking_review and not apply_blocked_reason and len(applied) == len(planned)
 
 out = {
     "ok": ok,
@@ -383,6 +444,7 @@ out = {
     "counts": {
         "planned_actions": len(planned),
         "review_actions": len(review),
+        "blocking_review_actions": len(blocking_review),
         "blocked_actions": len(blocked),
         "applied_actions": len(applied),
         "warning_codes": len({w.get("code", "") for w in warnings if w.get("code")}),
@@ -393,7 +455,8 @@ out = {
     "blocked_actions": blocked,
     "applied_actions": applied,
     "apply_blocked_reason": apply_blocked_reason,
-    "no_op": mode == "apply" and not planned and not review and not blocked and not apply_blocked_reason,
+    "no_op": mode == "apply" and not planned and not blocking_review and not blocked and not apply_blocked_reason,
+    "warnings": warnings,
     "warning_codes": sorted({w.get("code", "") for w in warnings if w.get("code")}),
     "error_codes": sorted({e.get("code", "") for e in errors if e.get("code")}),
     "operator_next_steps": [

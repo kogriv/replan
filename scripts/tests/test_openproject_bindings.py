@@ -11,6 +11,16 @@ import openproject_bindings
 
 
 class OpenProjectBindingsTest(unittest.TestCase):
+    def test_only_cancelled_dependency_is_not_expected_in_openproject(self):
+        for status in ("open", "blocked", "resolved", "unknown", ""):
+            with self.subTest(status=status):
+                self.assertTrue(openproject_bindings.dependency_expected_in_openproject({
+                    "status": status,
+                }))
+        self.assertFalse(openproject_bindings.dependency_expected_in_openproject({
+            "status": "cancelled",
+        }))
+
     def write_yaml(self, path, document):
         with open(path, "w", encoding="utf-8") as handle:
             yaml.safe_dump(document, handle, sort_keys=False)

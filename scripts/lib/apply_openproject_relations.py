@@ -233,10 +233,12 @@ def main():
     existing_relations = list_relations()
     existing_by_tuple = {}
     existing_by_pair = {}
+    existing_by_id = {}
     for relation in existing_relations:
         relation_type, from_id, to_id = relation_tuple(relation)
         existing_by_tuple[relation_key(relation_type, from_id, to_id)] = relation
         existing_by_pair.setdefault(relation_pair_key(from_id, to_id), relation)
+        existing_by_id[str(relation.get("id", ""))] = relation
 
     existing_private_deps = openproject_bindings.dependency_bindings_by_id(bindings_doc)
     actions = []
@@ -249,6 +251,31 @@ def main():
     planned_by_pair = {}
     for dep in dependencies:
         dep_id = dep.get("id", "")
+        if not openproject_bindings.dependency_expected_in_openproject(dep):
+            rel, _ = relation_tuple_for_dependency(dep, task_wp_by_id)
+            existing = None
+            existing_matches_cancelled_tuple = False
+            if rel:
+                key = relation_key(
+                    rel["type"], rel["from_work_package_id"],
+                    rel["to_work_package_id"],
+                )
+                existing = existing_by_tuple.get(key)
+                existing_matches_cancelled_tuple = existing is not None
+            bound_relation_id = str(
+                ((existing_private_deps.get(dep_id, {}).get("source_ref") or {}).get("object_id"))
+                or ""
+            )
+            existing = existing or existing_by_id.get(bound_relation_id)
+            relation_plans.append({
+                "dependency": dep,
+                "relation": rel,
+                "action": "skip_cancelled_dependency",
+                "existing": existing,
+                "existing_matches_cancelled_tuple": existing_matches_cancelled_tuple,
+                "bound_relation_id": bound_relation_id,
+            })
+            continue
         rel, err = relation_tuple_for_dependency(dep, task_wp_by_id)
         if err:
             relation_plans.append({"dependency": dep, "relation": None, "error": err})
@@ -277,7 +304,11 @@ def main():
     pending_follows = []
     for plan in relation_plans:
         rel = plan.get("relation")
-        if not rel or plan.get("action") == "skip_relation" or rel["type"] != "follows":
+        if (
+            not rel
+            or plan.get("action") not in {"create_relation", "match_existing_relation"}
+            or rel["type"] != "follows"
+        ):
             continue
         dep = plan["dependency"]
         managed_follows.append({**rel, "replan_dependency_id": dep.get("id", "")})
@@ -294,9 +325,18 @@ def main():
         rel["from_work_package_id"] for rel in managed_follows
     }
     if managed_follows:
+        cancelled_relation_ids = {
+            str((plan.get("existing") or {}).get("id", ""))
+            for plan in relation_plans
+            if (
+                plan.get("action") == "skip_cancelled_dependency"
+                and plan.get("existing_matches_cancelled_tuple")
+            )
+        }
         graph_relations = [
             {"type": kind, "from_work_package_id": from_id, "to_work_package_id": to_id}
-            for kind, from_id, to_id in existing_by_tuple
+            for (kind, from_id, to_id), relation in existing_by_tuple.items()
+            if str(relation.get("id", "")) not in cancelled_relation_ids
         ] + pending_follows
         successors = openproject_rescheduling.follows_successors(graph_relations)
         rescheduling_targets = (
@@ -328,6 +368,43 @@ def main():
         dep_id = dep.get("id", "")
         rel = plan.get("relation")
         err = plan.get("error")
+        if plan.get("action") == "skip_cancelled_dependency":
+            predecessor_id, successor_id = openproject_bindings.dependency_endpoints(dep)
+            rel = plan.get("relation") or {}
+            existing = plan.get("existing")
+            relation_id = (
+                str((existing or {}).get("id", ""))
+                or plan.get("bound_relation_id", "")
+            )
+            action_item = {
+                "action": "skip_cancelled_dependency",
+                "replan_dependency_id": dep_id,
+                "replan_dependency_status": dep.get("status", ""),
+                "relation_type": rel.get("type", ""),
+                "from_work_package_id": rel.get("from_work_package_id", ""),
+                "to_work_package_id": rel.get("to_work_package_id", ""),
+                "predecessor_task_id": predecessor_id,
+                "successor_task_id": successor_id,
+                "openproject_relation_id": relation_id if existing else "",
+            }
+            actions.append(action_item)
+            if existing:
+                relation_type, from_id, to_id = relation_tuple(existing)
+                warning = openproject_bindings.cancelled_dependency_warning(
+                    dep, relation_id, live=True,
+                    predecessor_work_package_id=task_wp_by_id.get(predecessor_id, ""),
+                    successor_work_package_id=task_wp_by_id.get(successor_id, ""),
+                    from_work_package_id=from_id,
+                    to_work_package_id=to_id,
+                )
+                warnings.append(warning)
+            elif relation_id:
+                warnings.append(openproject_bindings.cancelled_dependency_warning(
+                    dep, relation_id,
+                    predecessor_work_package_id=task_wp_by_id.get(predecessor_id, ""),
+                    successor_work_package_id=task_wp_by_id.get(successor_id, ""),
+                ))
+            continue
         if err:
             errors.append(err)
             continue
@@ -506,6 +583,10 @@ def main():
         "created_relation": sum(1 for action in actions if action["action"] == "created_relation"),
         "matched_existing_relation": sum(1 for action in actions if action["action"] == "match_existing_relation"),
         "skipped_relation": sum(1 for action in actions if action["action"] == "skip_relation"),
+        "skip_cancelled_dependency": sum(
+            1 for action in actions
+            if action["action"] == "skip_cancelled_dependency"
+        ),
         "errors": len(errors),
     }
     out = {

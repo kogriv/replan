@@ -646,6 +646,26 @@ project. Without relation bindings, relation rows are diagnostic and
 `scripts/apply-openproject-relations.sh` still has to run its own dry-run before
 any apply.
 
+The relation skeleton includes every canonical dependency except one whose
+status is exactly `cancelled`. `open`, `blocked`, `unknown` and `resolved`
+dependencies remain expected; in particular, a resolved relation remains as
+history. A cancelled dependency is never unbound or missing-live relation
+drift. Bootstrap emits no edge for it, and relation apply reports the counted
+action `skip_cancelled_dependency`, does not create or delete a relation, does
+not bind it, and excludes it from `follows` scheduling and date-restoration
+graphs.
+
+Cancellation does not silently hide OpenProject cleanup. A matching live
+relation, or a live relation named by the cancelled dependency's private
+binding, produces the warning `cancelled_dependency_still_live`. A binding
+whose relation is gone produces `cancelled_dependency_binding_left`. Both
+carry the dependency id, relation id, task and work-package endpoints, and a
+ready `scripts/openproject-work-package-toolkit.sh relation delete --relation
+<id> --remove-private-binding` command. The latter command also removes the
+binding when OpenProject returns 404. These warnings are soft drift/review
+items: they do not fail the drift done rule or block a date push. Relation
+deletion remains an explicit toolkit operation.
+
 The intended guarded sequence is:
 
 ```text
@@ -683,6 +703,12 @@ It provides:
 - `relation create` and `relation delete`;
 - `comment add`;
 - `comment list`.
+
+Plan-backed `relation list` includes `replan_dependency_status` and
+`expected_openproject_relation`. A cancelled dependency is shown with
+`binding_status: cancelled`, whether or not an old private binding is still
+present; direct `relation create` and `relation delete` by OpenProject id keep
+their existing behavior.
 
 `comment add` uses `POST /api/v3/work_packages/{id}/activities` and treats the
 write as applied only when the `201 Created` response is an

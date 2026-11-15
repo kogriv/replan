@@ -5,6 +5,7 @@ import sys
 
 import yaml
 import helper_envelope
+import openproject_bindings
 import openproject_description
 from openproject_http import Settings
 import openproject_source_profile
@@ -94,7 +95,11 @@ for index, task_id in enumerate(ordered_ids, start=1):
     })
 
 dependency_edges = []
+skipped_cancelled_dependencies = 0
 for dependency in dependencies:
+    if not openproject_bindings.dependency_expected_in_openproject(dependency):
+        skipped_cancelled_dependencies += 1
+        continue
     predecessor = ((dependency.get("predecessor_ref") or {}).get("id") or "")
     successor = ((dependency.get("successor_ref") or {}).get("id") or "")
     if predecessor and successor:
@@ -121,6 +126,7 @@ out = {
         "included_current_plan_tasks": len(included),
         "planned_work_packages": len(work_packages),
         "planned_dependency_relations": len(dependency_edges),
+        "skipped_cancelled_dependencies": skipped_cancelled_dependencies,
     },
     "status_mapping": status_map,
     "warnings": warnings,

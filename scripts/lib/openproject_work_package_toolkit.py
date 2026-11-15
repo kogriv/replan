@@ -1947,6 +1947,8 @@ def command_relation_list(args):
         pred = ((dep.get("predecessor_ref") or {}).get("id") or "")
         succ = ((dep.get("successor_ref") or {}).get("id") or "")
         dep_id = dep.get("id", "")
+        dependency_status = dep.get("status", "")
+        expected = openproject_bindings.dependency_expected_in_openproject(dep)
         items.append({
             "dependency_id": dep_id,
             "dependency_type": dep.get("type", ""),
@@ -1955,9 +1957,18 @@ def command_relation_list(args):
             "predecessor_work_package_id": task_wp_by_id.get(pred, ""),
             "successor_work_package_id": task_wp_by_id.get(succ, ""),
             "relation_id": dep_relation_by_id.get(dep_id, ""),
-            "binding_status": "bound" if dep_relation_by_id.get(dep_id, "") else "unbound",
+            "binding_status": (
+                "cancelled" if not expected
+                else ("bound" if dep_relation_by_id.get(dep_id, "") else "unbound")
+            ),
+            "replan_dependency_status": dependency_status,
+            "expected_openproject_relation": expected,
         })
-    print_json(envelope("openproject relation list", "read_only", items=items, counts={"relations": len(items), "bound": len([i for i in items if i["binding_status"] == "bound"])}))
+    print_json(envelope("openproject relation list", "read_only", items=items, counts={
+        "relations": len(items),
+        "bound": len([i for i in items if i["binding_status"] == "bound"]),
+        "cancelled": len([i for i in items if i["replan_dependency_status"] == "cancelled"]),
+    }))
 
 
 def command_relation_create(args):

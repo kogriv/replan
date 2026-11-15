@@ -11,6 +11,71 @@ ROOT_KEY = "openproject_private_bindings"
 LIST_KEYS = ("tasks", "dependencies", "resources")
 
 
+def dependency_expected_in_openproject(dependency):
+    """Return whether a canonical dependency should have a live relation.
+
+    Resolved dependencies remain expected as relation history.  Only a
+    cancelled dependency is removed from the OpenProject relation skeleton.
+    """
+    return str(dependency.get("status") or "") != "cancelled"
+
+
+def dependency_endpoints(dependency):
+    return (
+        str((dependency.get("predecessor_ref") or {}).get("id") or ""),
+        str((dependency.get("successor_ref") or {}).get("id") or ""),
+    )
+
+
+def cancelled_dependency_warning(
+    dependency, relation_id, *, live=False, predecessor_work_package_id="",
+    successor_work_package_id="", from_work_package_id="",
+    to_work_package_id="",
+):
+    """Build the common advisory for cancelled relation cleanup."""
+    dependency_id = str(dependency.get("id") or "")
+    predecessor, successor = dependency_endpoints(dependency)
+    relation_id = str(relation_id or "")
+    delete_command = (
+        "scripts/openproject-work-package-toolkit.sh relation delete "
+        f"--relation {relation_id} --remove-private-binding"
+    )
+    if live:
+        code = "cancelled_dependency_still_live"
+        message = (
+            f"Cancelled dependency {dependency_id} still has live OpenProject "
+            f"relation {relation_id}; review and delete it explicitly."
+        )
+        hint = "Run the delete command after reviewing the relation endpoints."
+    else:
+        code = "cancelled_dependency_binding_left"
+        message = (
+            f"Cancelled dependency {dependency_id} still has private relation "
+            f"binding {relation_id}, but that relation is no longer live."
+        )
+        hint = (
+            "Run the delete command even though the relation is already gone; "
+            "the toolkit accepts OpenProject's 404 and removes the private binding."
+        )
+    return {
+        "code": code,
+        "message": message,
+        "severity": "warning",
+        "target": {"kind": "dependency", "id": dependency_id},
+        "dependency_id": dependency_id,
+        "relation_id": relation_id,
+        "dependency_type": str(dependency.get("type") or ""),
+        "predecessor_task_id": predecessor,
+        "successor_task_id": successor,
+        "predecessor_work_package_id": str(predecessor_work_package_id or ""),
+        "successor_work_package_id": str(successor_work_package_id or ""),
+        "from_work_package_id": str(from_work_package_id or ""),
+        "to_work_package_id": str(to_work_package_id or ""),
+        "delete_command": delete_command,
+        "operator_hint": hint,
+    }
+
+
 class BindingsValidationError(ValueError):
     def __init__(self, reason, key=""):
         super().__init__(reason)
