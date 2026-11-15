@@ -10,6 +10,18 @@ The [agent kit surface map](../agent-kit/README.md#surface-map) says which
 command serves each step of the operator loop; this page shows how to call
 them.
 
+The acceptance chain can measure its GitHub Actions actual before writing
+RePlan or OpenProject:
+
+```sh
+scripts/github-actions-run-minutes.sh --repo example/replan --run 123 --run 456
+REPLAN_ACCEPT_CI_RUNS="123,456" REPLAN_ACCEPT_REVIEW_MINUTES=25 scripts/accept-task.sh
+```
+
+The minutes helper is read-only and uses the shared JSON envelope. Acceptance
+records measured CI as step 2 and stated reviewer time as step 2.5, leaving
+the established step 3–10 identifiers unchanged.
+
 ## Import from a file
 
 Exercise the OpenProject mapper and sidecar convention from public fixtures

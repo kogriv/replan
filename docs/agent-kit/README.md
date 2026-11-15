@@ -560,6 +560,7 @@ to its root. A write to OpenProject or the bindings file is a dry run unless
 | Status to OpenProject | `scripts/push-openproject-status-drift.sh` | Pushes reviewed RePlan tracking status. Direct transitions are the default; export `REPLAN_OPENPROJECT_STATUS_PATH=forward` to check and apply allowed forward intermediate statuses one at a time. |
 | Status from OpenProject | `bin/replan import accept <snapshot-id> --accept-tracking-status --dry-run` | Review a stored import snapshot; apply with `--apply --actor <id>`. The soft-drift helper does not accept status. |
 | Import GitHub Issues | `bin/replan import github --project "$REPLAN_PROJECT" --profile <id> --dry-run` | A profile names `repository` and `token_env`; explicit `--repository` is also available. File replay uses `--from-file`. Review candidates, omit `--dry-run` to stage the snapshot, then use the shared `import accept` modes. No GitHub write-back is implemented. |
+| Measure GitHub Actions CI | `scripts/github-actions-run-minutes.sh --run <id> [--run <id> ...]` | Read-only. Reports elapsed job seconds and GitHub-style billable minutes rounded up per job; `--repo owner/name` overrides `REPLAN_GITHUB_REPOSITORY` and origin-remote discovery. |
 | Planned dates to OpenProject | `scripts/push-openproject-date-drift.sh` | Toolkit `work-package update-dates` is the single-work-package surface. |
 | Dates from OpenProject | `bin/replan task set-dates ... --dry-run` | Reviewed one-task acceptance. For a stored snapshot use `bin/replan import accept <snapshot-id> --accept-dates --dry-run`. The live batch helper keeps private-binding matching, then writes audited `task set-dates` changes and requires `REPLAN_ACTOR` with `REPLAN_APPLY=1`. |
 | Change and push a task description | `bin/replan task set-description ... --dry-run`, then `scripts/push-openproject-description-drift.sh` | The CLI changes the audited canonical description. The helper previews bound work-package differences, preserves an existing bootstrap trailer and all OpenProject text from it byte-for-byte (also flagging text joined to its line), and pushes only with `REPLAN_APPLY=1`; without a trailer it replaces the whole description and does not append one; `REPLAN_TASKS` optionally limits the task ids. |
@@ -575,8 +576,9 @@ to its root. A write to OpenProject or the bindings file is a dry run unless
 
 `scripts/accept-task.sh` is the composite acceptance surface for one task. It
 prints the ordered plan by default. With `REPLAN_APPLY=1`, it records the
-operator's decision evidence, optional CI minutes, zeros and consumes every
-unfinished demand, marks the task accepted, records its actual window, writes
+operator's decision evidence, optional measured or stated CI minutes and
+stated reviewer time, zeros and consumes every unfinished demand, marks the
+task accepted, records its actual window, writes
 the changed dates and status to only the bound OpenProject work package,
 writes dependency proposal candidates for separate review, and refreshes the
 overlay when those scripts and a
@@ -596,8 +598,25 @@ Optional acceptance settings are:
 - `REPLAN_ACCEPT_AT`, default the current RFC3339 time with an offset. UTC is
   fine: RePlan derives acceptance and consumption dates in the project's time
   zone;
-- `REPLAN_ACCEPT_CI_MINUTES`, default `0`;
+- `REPLAN_ACCEPT_CI_MINUTES`, default `0`, for a stated CI amount;
+- `REPLAN_ACCEPT_CI_RUNS`, default empty, as comma-separated GitHub Actions
+  run ids. The helper calls the read-only
+  `scripts/github-actions-run-minutes.sh` even in a dry run and books its
+  per-job-rounded `billable_minutes`; it conflicts with a nonzero stated CI
+  amount;
+- `REPLAN_ACCEPT_REVIEW_MINUTES`, default `0`, for the accepting person's
+  stated time. A positive amount is converted to hours, rounded to two
+  decimals, and booked on that actor's linked human-resource demand;
+- `REPLAN_ACCEPT_REVIEW_DEMAND`, default empty, to select the task demand
+  explicitly when the automatic review-demand choice is not unique;
 - `REPLAN_BIN`, default the kit's or repository's locally built binary.
+
+For reviewer demand selection, the helper first follows
+`REPLAN_ACCEPTED_BY` through the actor's `resource_ref` or the resource's
+`actor_ref`. If the actor has no resource link, exactly one active concrete
+human demand in `hours` or `review_hours` must exist. Zero or multiple
+qualifying demands are refused and named; pooled demands cannot receive a
+direct actual.
 
 The OpenProject base URL, token selection, private bindings, proxy headers and
 request retry settings are the same as for
@@ -614,6 +633,8 @@ overlay script instead reports `accept_overlay_scripts_unavailable`.
 export REPLAN_TASK=task.example.finish-report
 export REPLAN_ACCEPTED_BY=actor.human.owner
 export REPLAN_ACCEPT_SUMMARY="Owner reviewed and accepted the report."
+export REPLAN_ACCEPT_CI_RUNS="123456,123457"
+export REPLAN_ACCEPT_REVIEW_MINUTES=25
 
 scripts/accept-task.sh
 REPLAN_ACTOR=actor.human.recorder REPLAN_APPLY=1 scripts/accept-task.sh
@@ -621,8 +642,9 @@ REPLAN_ACTOR=actor.human.recorder REPLAN_APPLY=1 scripts/accept-task.sh
 
 Every plan action has a step number, state, reason and secret-free argv list.
 Pending RePlan mutations in steps 1–6 also include the real CLI dry-run
-answer. Steps are: 1 acceptance evidence, 2 optional CI minutes, 3 zero
-remaining, 4 close demands, 5 accept tracking status, 6 record actual window,
+answer. Steps are: 1 acceptance evidence, 2 optional CI minutes, 2.5 optional
+reviewer minutes, 3 zero remaining, 4 close demands, 5 accept tracking status,
+6 record actual window,
 7 update OpenProject dates, 8 suggest dependencies, 9 update OpenProject
 status, and 10 refresh the overlay. An unknown actual window skips steps 6
 and 7 with a warning and does not fail acceptance. If an apply stops after a

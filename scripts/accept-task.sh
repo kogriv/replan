@@ -12,6 +12,10 @@
 #   REPLAN_ACCEPT_EVIDENCE_ID               default evidence.<namespace>.accept-<task-slug>
 #   REPLAN_ACCEPT_AT                        default now as RFC3339 with offset
 #   REPLAN_ACCEPT_CI_MINUTES                default 0
+#   REPLAN_ACCEPT_CI_RUNS                   default empty; comma-separated GitHub Actions run ids
+#   REPLAN_ACCEPT_REVIEW_MINUTES            default 0
+#   REPLAN_ACCEPT_REVIEW_DEMAND             default empty; explicit resource demand id
+#   REPLAN_GITHUB_REPOSITORY                default derived from git origin
 #   REPLAN_BIN                              default build locally
 #   REPLAN_OPENPROJECT_PROJECT_ID           required
 #   REPLAN_OPENPROJECT_TARGET_PROJECT_ID    deprecated alias of REPLAN_OPENPROJECT_PROJECT_ID
@@ -41,7 +45,8 @@
 # and the REPLAN_ACCEPT_* settings describe one acceptance, so they are read
 # from the process environment only, never from .env.local. The helper
 # prints the shared JSON helper envelope and accepts no arguments.
-# Steps 1-5 keep their original evidence/actual/status order; step 6 records
+# Steps 1-5 keep their original evidence/actual/status order; step 2.5 records
+# stated reviewer time without renumbering existing consumers. Step 6 records
 # the actual window, 7 updates OpenProject dates, 8 suggests dependencies, 9
 # updates OpenProject status, and 10 refreshes the overlay.
 # Uses helper-envelope exits: 0 success, 1 general failure, 2 invalid plan, 4

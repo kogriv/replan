@@ -417,6 +417,19 @@ snapshot, then use the shared accept commands below. The manual disposable-
 repository check is `scripts/check-github-import-live.sh`; it requires
 `REPLAN_GITHUB_REPOSITORY` and is not part of the smoke suite.
 
+Measure one or more completed GitHub Actions runs before accepting a task:
+
+```bash
+./scripts/github-actions-run-minutes.sh --repo example-org/planning-demo --run 123456 --run 123457
+```
+
+This read-only helper lists every job, counts skipped or timestamp-less jobs
+as zero, rounds each measured job up to a whole billable minute, and returns
+wall, job and billable totals in the shared JSON envelope. It derives the
+repository from `REPLAN_GITHUB_REPOSITORY` or the GitHub origin remote when
+`--repo` is omitted. `accept-task.sh` uses it when
+`REPLAN_ACCEPT_CI_RUNS` contains comma-separated run ids.
+
 ### Accept an import
 
 Review a stored snapshot before applying it:

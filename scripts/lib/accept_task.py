@@ -105,13 +105,13 @@ def parse_rfc3339(value):
     return parsed
 
 
-def parse_amount(value):
+def parse_amount(value, *, setting="REPLAN_ACCEPT_CI_MINUTES", code="invalid_accept_ci_minutes"):
     try:
         amount = float(value)
     except ValueError:
         amount = math.nan
     if not math.isfinite(amount) or amount < 0:
-        refuse("invalid_accept_ci_minutes", "REPLAN_ACCEPT_CI_MINUTES must be a finite number zero or greater", 8, kind="env", target_id="REPLAN_ACCEPT_CI_MINUTES")
+        refuse(code, f"{setting} must be a finite number zero or greater", 8, kind="env", target_id=setting)
     return amount
 
 
@@ -187,7 +187,23 @@ summary = os.environ["REPLAN_ACCEPT_SUMMARY"].strip()
 accept_at = os.environ.get("REPLAN_ACCEPT_AT", "").strip() or datetime.now().astimezone().isoformat(timespec="seconds")
 parse_rfc3339(accept_at)
 ci_minutes = parse_amount(os.environ.get("REPLAN_ACCEPT_CI_MINUTES", "0").strip() or "0")
+ci_runs_text = os.environ.get("REPLAN_ACCEPT_CI_RUNS", "").strip()
+ci_run_ids = [value.strip() for value in ci_runs_text.split(",") if value.strip()]
+review_minutes = parse_amount(
+    os.environ.get("REPLAN_ACCEPT_REVIEW_MINUTES", "0").strip() or "0",
+    setting="REPLAN_ACCEPT_REVIEW_MINUTES", code="invalid_accept_review_minutes",
+)
+review_demand_override = os.environ.get("REPLAN_ACCEPT_REVIEW_DEMAND", "").strip()
 evidence_id = os.environ.get("REPLAN_ACCEPT_EVIDENCE_ID", "").strip() or default_evidence_id(task_id)
+
+if ci_runs_text and not ci_run_ids:
+    refuse("invalid_accept_ci_runs", "REPLAN_ACCEPT_CI_RUNS must contain one or more comma-separated run ids", 8, kind="env", target_id="REPLAN_ACCEPT_CI_RUNS")
+if ci_run_ids and ci_minutes != 0:
+    refuse(
+        "conflicting_ci_settings",
+        "REPLAN_ACCEPT_CI_RUNS and a nonzero REPLAN_ACCEPT_CI_MINUTES cannot be used together",
+        8, kind="env", target_id="REPLAN_ACCEPT_CI_RUNS",
+    )
 
 if not summary:
     refuse("missing_setting", "required setting not set: REPLAN_ACCEPT_SUMMARY", 8, kind="env", target_id="REPLAN_ACCEPT_SUMMARY", extra={"missing_settings": ["REPLAN_ACCEPT_SUMMARY"]})
@@ -198,6 +214,7 @@ try:
     tasks = load_yaml(os.path.join(project, "canonical", "tasks.yaml")).get("tasks") or []
     demands = load_yaml(os.path.join(project, "canonical", "resource_demands.yaml")).get("resource_demands") or []
     actors = load_yaml(os.path.join(project, "canonical", "actors.yaml")).get("actors") or []
+    resources = load_yaml(os.path.join(project, "canonical", "resources.yaml")).get("resources") or []
 except FileNotFoundError as exc:
     refuse("project_file_not_found", str(exc), 4, kind="project", target_id=project)
 
@@ -208,6 +225,9 @@ actor_ids = {item.get("id") for item in actors}
 for actor_id, setting in ((accepted_by, "REPLAN_ACCEPTED_BY"), (recorder, "REPLAN_ACTOR")):
     if actor_id and actor_id not in actor_ids:
         refuse("actor_not_found", f"actor {actor_id} from {setting} was not found", 2, kind="actor", target_id=actor_id)
+
+actor = next(item for item in actors if item.get("id") == accepted_by)
+resource_by_id = {item.get("id"): item for item in resources if item.get("id")}
 
 tracking_status = task.get("tracking_status", "")
 if tracking_status not in {"review_ready", "accepted"}:
@@ -224,12 +244,108 @@ evidence_items = documents(os.path.join(project, "evidence"), "evidence")
 evidence_exists = any(item.get("id") == evidence_id for item in evidence_items)
 actual_items = documents(os.path.join(project, "actuals"), "actuals")
 task_demands = [item for item in demands if (item.get("task_ref") or {}).get("id") == task_id]
+active_task_demands = [item for item in task_demands if item.get("status", "active") not in TERMINAL_DEMAND_STATUSES]
+
+github_minutes_result = None
+if ci_run_ids:
+    minutes_helper = shell_script_command(os.path.join(args.root_dir, "scripts", "github-actions-run-minutes.sh"))
+    minutes_command = list(minutes_helper)
+    repository = os.environ.get("REPLAN_GITHUB_REPOSITORY", "").strip()
+    if repository:
+        minutes_command.extend(["--repo", repository])
+    for run_id in ci_run_ids:
+        minutes_command.extend(["--run", run_id])
+    github_minutes_result = preflight_json(minutes_command)
+    ci_minutes = float((github_minutes_result.get("totals") or {}).get("billable_minutes", 0))
+
 ci_demands = [item for item in task_demands if item.get("unit") == "ci_minutes"]
 if ci_minutes and len(ci_demands) != 1:
     code = "ci_minutes_demand_not_found" if not ci_demands else "ambiguous_ci_minutes_demand"
     refuse(code, f"task {task_id} must have exactly one ci_minutes demand when REPLAN_ACCEPT_CI_MINUTES is nonzero; found {len(ci_demands)}", 2, kind="task", target_id=task_id)
 if ci_minutes and not (ci_demands[0].get("resource_ref") or {}).get("id"):
     refuse("ci_minutes_resource_not_found", f"ci_minutes demand {ci_demands[0].get('id', '')} has no concrete resource_ref", 2, kind="resource_demand", target_id=ci_demands[0].get("id", ""))
+
+review_demand = None
+review_resource_id = ""
+review_amount = 0
+if review_minutes > 0:
+    if review_demand_override:
+        review_demand = next((item for item in task_demands if item.get("id") == review_demand_override), None)
+        if review_demand is None:
+            refuse(
+                "review_demand_ambiguous",
+                f"REPLAN_ACCEPT_REVIEW_DEMAND {review_demand_override!r} is not a demand of task {task_id}",
+                2, kind="resource_demand", target_id=review_demand_override,
+                extra={"review_demand_candidates": [item.get("id", "") for item in active_task_demands]},
+            )
+    else:
+        review_choice_demands = active_task_demands
+        if tracking_status == "accepted" and evidence_exists:
+            # A successful first run closes every demand. Reuse the same
+            # deterministic choice on a rerun so its actual can be found.
+            review_choice_demands = task_demands
+        linked_ids = set()
+        actor_resource_id = (actor.get("resource_ref") or {}).get("id", "")
+        if actor_resource_id:
+            linked_ids.add(actor_resource_id)
+        linked_ids.update(
+            item.get("id", "") for item in resources
+            if (item.get("actor_ref") or {}).get("id") == accepted_by and item.get("id")
+        )
+        if linked_ids:
+            candidates = [
+                item for item in review_choice_demands
+                if (item.get("resource_ref") or {}).get("id") in linked_ids
+            ]
+        else:
+            candidates = [
+                item for item in review_choice_demands
+                if item.get("resource_class") == "human"
+                and item.get("unit") in {"hours", "review_hours"}
+                and (item.get("resource_ref") or {}).get("id")
+            ]
+        if len(candidates) != 1:
+            names = [item.get("id", "") for item in candidates]
+            refuse(
+                "review_demand_ambiguous",
+                f"task {task_id} has {len(candidates)} qualifying review demands for {accepted_by}: {', '.join(names) if names else '(none)'}",
+                2, kind="task", target_id=task_id,
+                extra={"review_demand_candidates": names},
+            )
+        review_demand = candidates[0]
+    review_resource_id = (review_demand.get("resource_ref") or {}).get("id", "")
+    review_resource = resource_by_id.get(review_resource_id)
+    if not review_resource_id or not review_resource or review_resource.get("class") != "human":
+        refuse(
+            "review_demand_ambiguous",
+            f"review demand {review_demand.get('id', '')} must target one concrete human resource",
+            2, kind="resource_demand", target_id=review_demand.get("id", ""),
+            extra={"review_demand_candidates": [review_demand.get("id", "")]},
+        )
+    review_unit = review_demand.get("unit", "")
+    if review_unit not in {"hours", "review_hours"}:
+        refuse(
+            "review_unit_unsupported",
+            f"review demand {review_demand.get('id', '')} uses unsupported unit {review_unit!r}; expected hours or review_hours",
+            2, kind="resource_demand", target_id=review_demand.get("id", ""),
+        )
+    review_amount = round(review_minutes / 60, 2)
+    if review_amount == 0:
+        refuse(
+            "invalid_accept_review_minutes",
+            "REPLAN_ACCEPT_REVIEW_MINUTES is too small to represent after conversion to hours rounded to 2 decimals",
+            8, kind="env", target_id="REPLAN_ACCEPT_REVIEW_MINUTES",
+        )
+
+evidence_sentences = []
+if ci_run_ids:
+    evidence_sentences.append(
+        f"CI measured from GitHub Actions runs {', '.join(ci_run_ids)}: {display_amount(ci_minutes)} billable minutes."
+    )
+if review_minutes > 0:
+    evidence_sentences.append(f"Review time stated by {accepted_by}: {display_amount(review_minutes)} minutes.")
+if evidence_sentences:
+    summary = " ".join([summary, *evidence_sentences])
 
 settings = Settings.from_env(root_dir=args.root_dir)
 token_missing = not settings.token
@@ -265,7 +381,8 @@ else:
 
 ci_actual_id = ""
 if ci_minutes == 0:
-    planned.append(step(2, "record_ci_minutes", "skipped", "REPLAN_ACCEPT_CI_MINUTES is 0"))
+    reason = "measured GitHub Actions runs used 0 billable minutes" if ci_run_ids else "REPLAN_ACCEPT_CI_MINUTES is 0"
+    planned.append(step(2, "record_ci_minutes", "skipped", reason, source="measured" if ci_run_ids else "stated", ci_minutes=ci_minutes, run_ids=ci_run_ids))
 else:
     ci_demand = ci_demands[0]
     resource_id = ci_demand["resource_ref"]["id"]
@@ -276,13 +393,36 @@ else:
         "--amount", display_amount(ci_minutes), "--unit", "ci_minutes", *common_actual, "--apply",
     ]
     if any(item.get("id") == ci_actual_id for item in actual_items):
-        planned.append(step(2, "record_ci_minutes", "already_done", f"actual {ci_actual_id} already exists", ci_command, actual_id=ci_actual_id))
+        planned.append(step(2, "record_ci_minutes", "already_done", f"actual {ci_actual_id} already exists", ci_command, actual_id=ci_actual_id, source="measured" if ci_run_ids else "stated", ci_minutes=ci_minutes, run_ids=ci_run_ids))
     else:
-        item = action_for(ci_command, 2, "record_ci_minutes", "nonzero CI consumption has not been recorded", demand_id=ci_demand["id"], actual_id=ci_actual_id)
+        item = action_for(ci_command, 2, "record_ci_minutes", "nonzero CI consumption has not been recorded", demand_id=ci_demand["id"], actual_id=ci_actual_id, source="measured" if ci_run_ids else "stated", ci_minutes=ci_minutes, run_ids=ci_run_ids)
         planned.append(item)
         pending.append(item)
 
-active_demands = [item for item in task_demands if item.get("status", "active") not in TERMINAL_DEMAND_STATUSES]
+review_actual_id = ""
+if review_minutes == 0:
+    planned.append(step(2.5, "record_review_minutes", "skipped", "REPLAN_ACCEPT_REVIEW_MINUTES is 0", review_minutes=0))
+else:
+    review_actual_id = actual_id(task_id, review_resource_id, accept_at)
+    review_command = base + [
+        "actual", "add-consumption", "--project", project, "--task", task_id,
+        "--demand", review_demand["id"], "--resource", review_resource_id,
+        "--amount", display_amount(review_amount), "--unit", review_demand["unit"],
+        *common_actual, "--apply",
+    ]
+    review_extra = {
+        "demand_id": review_demand["id"], "actual_id": review_actual_id,
+        "review_minutes": review_minutes, "amount": review_amount,
+        "unit": review_demand["unit"], "resource_id": review_resource_id,
+    }
+    if any(item.get("id") == review_actual_id for item in actual_items):
+        planned.append(step(2.5, "record_review_minutes", "already_done", f"actual {review_actual_id} already exists", review_command, **review_extra))
+    else:
+        item = action_for(review_command, 2.5, "record_review_minutes", "stated review time has not been recorded", **review_extra)
+        planned.append(item)
+        pending.append(item)
+
+active_demands = active_task_demands
 for demand in active_demands:
     remaining = demand.get("remaining_amount", demand.get("planned_amount"))
     if remaining is not None and float(remaining) > 0:
@@ -487,6 +627,11 @@ if mode == "dry_run":
         "accepted_by": accepted_by,
         "recorder": recorder,
         "ci_minutes": ci_minutes,
+        "ci_minutes_source": "measured" if ci_run_ids else "stated",
+        "ci_run_ids": ci_run_ids,
+        "github_actions_minutes": github_minutes_result,
+        "review_minutes": review_minutes,
+        "review_demand_id": review_demand.get("id", "") if review_demand else "",
         "actions": planned,
         "new_proposal_ids": proposal_ids,
         "counts": {"planned": len([item for item in planned if item["state"] == "would_run"]), "already_done": len([item for item in planned if item["state"] == "already_done"]), "skipped": len([item for item in planned if item["state"] == "skipped"]), "applied": 0},
@@ -589,6 +734,11 @@ helper_envelope.emit({
     "accepted_by": accepted_by,
     "recorder": recorder,
     "ci_minutes": ci_minutes,
+    "ci_minutes_source": "measured" if ci_run_ids else "stated",
+    "ci_run_ids": ci_run_ids,
+    "github_actions_minutes": github_minutes_result,
+    "review_minutes": review_minutes,
+    "review_demand_id": review_demand.get("id", "") if review_demand else "",
     "no_op": no_op,
     "actions": planned,
     "new_proposal_ids": new_proposal_ids,

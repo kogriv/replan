@@ -51,6 +51,7 @@ check-openproject-drift.sh
 check-openproject-live-alignment.sh
 check-resource-schedule-drift.sh
 explain-resource-overload.sh
+github-actions-run-minutes.sh
 openproject-operator-report.sh
 openproject-wiki.sh
 openproject-work-package-toolkit.sh
@@ -74,6 +75,7 @@ check_resource_schedule_drift.py
 envelope.sh
 envelope_check.py
 explain_resource_overload.py
+github_actions_run_minutes.py
 helper_envelope.py
 import_candidates.py
 load-dotenv.sh

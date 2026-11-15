@@ -131,6 +131,9 @@ class AcceptTaskTest(unittest.TestCase):
         next(task for task in tasks["tasks"] if task["id"] == "task.op.1234")["tracking_status"] = "review_ready"
         dump_yaml(tasks_path, tasks)
         self.bindings = os.path.join(self.temp.name, "bindings.yaml")
+        self.empty_env = os.path.join(self.temp.name, "empty.env")
+        with open(self.empty_env, "w", encoding="utf-8"):
+            pass
         dump_yaml(self.bindings, {"openproject_private_bindings": {
             "project": {"source": "openproject", "project_id": "demo"},
             "tasks": [
@@ -148,11 +151,17 @@ class AcceptTaskTest(unittest.TestCase):
         env = dict(os.environ)
         env.update({
             "REPLAN_PROJECT": self.project,
+            "REPLAN_ENV_FILE": self.empty_env,
             "REPLAN_TASK": "task.op.1234",
             "REPLAN_ACCEPTED_BY": "actor.human.operator",
             "REPLAN_ACTOR": "actor.human.operator",
             "REPLAN_ACCEPT_SUMMARY": "Operator accepted the completed task.",
             "REPLAN_ACCEPT_AT": "2026-10-26T12:00:00+07:00",
+            "REPLAN_ACCEPT_CI_MINUTES": "",
+            "REPLAN_ACCEPT_CI_RUNS": "",
+            "REPLAN_ACCEPT_REVIEW_MINUTES": "",
+            "REPLAN_ACCEPT_REVIEW_DEMAND": "",
+            "REPLAN_GITHUB_REPOSITORY": "",
             "REPLAN_OPENPROJECT_PROJECT_ID": "demo",
             "REPLAN_OPENPROJECT_BASE_URL": f"http://127.0.0.1:{self.server.server_port}",
             "REPLAN_OPENPROJECT_BINDINGS_PATH": self.bindings,
@@ -170,6 +179,38 @@ class AcceptTaskTest(unittest.TestCase):
         env.update(overrides)
         return env
 
+    def prepare_ci_demand(self):
+        demands_path = os.path.join(self.project, "canonical", "resource_demands.yaml")
+        demands = load_yaml(demands_path)
+        ci_demand = next(item for item in demands["resource_demands"] if item["id"] == "resource_demand.task-op-1234.openai-quota")
+        ci_demand["unit"] = "ci_minutes"
+        dump_yaml(demands_path, demands)
+        capacities_path = os.path.join(self.project, "canonical", "capacities.yaml")
+        capacities = load_yaml(capacities_path)
+        next(item for item in capacities["capacities"] if item["resource_ref"]["id"] == "resource.service.openai.tokens")["unit"] = "ci_minutes"
+        dump_yaml(capacities_path, capacities)
+        return ci_demand
+
+    def install_fake_gh(self):
+        fake_bin = os.path.join(self.temp.name, "fake-gh")
+        os.mkdir(fake_bin)
+        path = os.path.join(fake_bin, "gh")
+        with open(path, "w", encoding="utf-8") as stream:
+            stream.write("""#!/usr/bin/env python3
+import json, sys
+endpoint = sys.argv[2]
+run_id = int(endpoint.split('/')[5])
+if endpoint.endswith('/jobs'):
+    print(json.dumps({'jobs': [
+        {'id': run_id * 10 + 1, 'name': 'test', 'status': 'completed', 'conclusion': 'success', 'started_at': '2026-10-26T00:00:00Z', 'completed_at': '2026-10-26T00:01:01Z'},
+        {'id': run_id * 10 + 2, 'name': 'skip', 'status': 'completed', 'conclusion': 'skipped', 'started_at': None, 'completed_at': None},
+    ]}))
+else:
+    print(json.dumps({'id': run_id, 'status': 'completed', 'conclusion': 'success', 'head_sha': 'abc', 'run_attempt': 1}))
+""")
+        os.chmod(path, os.stat(path).st_mode | stat.S_IXUSR)
+        return fake_bin
+
     def run_helper(self, *, apply=False, env=None):
         actual_env = self.environment() if env is None else env
         if apply:
@@ -185,7 +226,7 @@ class AcceptTaskTest(unittest.TestCase):
         proc, out = self.run_helper()
         self.assertEqual(proc.returncode, 0, out)
         self.assertEqual(out["mode"], "dry_run")
-        self.assertEqual(sorted(set(item["step"] for item in out["actions"])), list(range(1, 11)))
+        self.assertEqual(sorted(set(item["step"] for item in out["actions"])), [1, 2, 2.5, *range(3, 11)])
         validated = [item for item in out["actions"] if item["step"] <= 5 and item["state"] == "would_run"]
         self.assertTrue(validated)
         self.assertTrue(all(item.get("cli_dry_run", {}).get("ok") for item in validated))
@@ -310,24 +351,113 @@ os.execv(os.environ['REAL_REPLAN'], [os.environ['REAL_REPLAN'], *args])
         self.assertEqual(task["tracking_status"], "accepted")
 
     def test_nonzero_ci_minutes_uses_the_tasks_single_ci_demand(self):
-        demands_path = os.path.join(self.project, "canonical", "resource_demands.yaml")
-        demands = load_yaml(demands_path)
-        ci_demand = next(item for item in demands["resource_demands"] if item["id"] == "resource_demand.task-op-1234.openai-quota")
-        ci_demand["unit"] = "ci_minutes"
-        dump_yaml(demands_path, demands)
-        capacities_path = os.path.join(self.project, "canonical", "capacities.yaml")
-        capacities = load_yaml(capacities_path)
-        next(item for item in capacities["capacities"] if item["resource_ref"]["id"] == "resource.service.openai.tokens")["unit"] = "ci_minutes"
-        dump_yaml(capacities_path, capacities)
+        ci_demand = self.prepare_ci_demand()
 
         env = self.environment(REPLAN_ACCEPT_CI_MINUTES="12")
         proc, out = self.run_helper(apply=True, env=env)
         self.assertEqual(proc.returncode, 0, out)
         ci_step = next(item for item in out["actions"] if item["step"] == 2)
         self.assertEqual(ci_step["state"], "applied")
+        self.assertEqual(ci_step["source"], "stated")
         actuals = sum((load_yaml(os.path.join(self.project, "actuals", name)).get("actuals") or [] for name in os.listdir(os.path.join(self.project, "actuals")) if name.endswith(".yaml")), [])
         recorded = [item for item in actuals if item.get("demand_ref", {}).get("id") == ci_demand["id"]]
         self.assertEqual([(item["amount"], item["unit"]) for item in recorded], [(12, "ci_minutes")])
+
+    def test_ci_runs_are_measured_and_booked_in_dry_run_and_apply(self):
+        ci_demand = self.prepare_ci_demand()
+        fake_bin = self.install_fake_gh()
+        env = self.environment(
+            REPLAN_ACCEPT_CI_RUNS="123, 456",
+            REPLAN_GITHUB_REPOSITORY="acme/widget",
+            PATH=f"{fake_bin}:{os.environ['PATH']}",
+        )
+        actuals_before = sorted(os.listdir(os.path.join(self.project, "actuals")))
+        proc, preview = self.run_helper(env=env)
+        self.assertEqual(proc.returncode, 0, preview)
+        ci_step = next(item for item in preview["actions"] if item["name"] == "record_ci_minutes")
+        self.assertEqual((ci_step["source"], ci_step["ci_minutes"], ci_step["run_ids"]), ("measured", 4.0, ["123", "456"]))
+        self.assertEqual(preview["github_actions_minutes"]["totals"]["billable_minutes"], 4)
+        self.assertEqual(sorted(os.listdir(os.path.join(self.project, "actuals"))), actuals_before)
+
+        proc, out = self.run_helper(apply=True, env=env)
+        self.assertEqual(proc.returncode, 0, out)
+        actuals = sum((load_yaml(os.path.join(self.project, "actuals", name)).get("actuals") or [] for name in os.listdir(os.path.join(self.project, "actuals")) if name.endswith(".yaml")), [])
+        recorded = [item for item in actuals if item.get("demand_ref", {}).get("id") == ci_demand["id"]]
+        self.assertEqual([(item["amount"], item["unit"]) for item in recorded], [(4, "ci_minutes")])
+        evidence = sum((load_yaml(os.path.join(self.project, "evidence", name)).get("evidence") or [] for name in os.listdir(os.path.join(self.project, "evidence")) if name.endswith(".yaml")), [])
+        accepted = next(item for item in evidence if item["id"] == "evidence.op.accept-1234")
+        self.assertIn("CI measured from GitHub Actions runs 123, 456: 4 billable minutes.", accepted["summary"])
+
+    def test_conflicting_ci_settings_are_refused_before_github(self):
+        env = self.environment(REPLAN_ACCEPT_CI_RUNS="123", REPLAN_ACCEPT_CI_MINUTES="4")
+        proc, out = self.run_helper(apply=True, env=env)
+        self.assertEqual(proc.returncode, 8, out)
+        self.assertEqual(out["error_codes"], ["conflicting_ci_settings"])
+
+    def test_review_minutes_use_linked_human_demand_and_rerun_idempotently(self):
+        demands_path = os.path.join(self.project, "canonical", "resource_demands.yaml")
+        demands = load_yaml(demands_path)
+        demand = next(item for item in demands["resource_demands"] if item["id"] == "resource_demand.task-op-1234.implementer")
+        demand["resource_ref"]["id"] = "resource.human.operator"
+        dump_yaml(demands_path, demands)
+        env = self.environment(REPLAN_ACCEPT_REVIEW_MINUTES="45")
+
+        proc, out = self.run_helper(apply=True, env=env)
+        self.assertEqual(proc.returncode, 0, out)
+        review = next(item for item in out["actions"] if item["name"] == "record_review_minutes")
+        self.assertEqual((review["step"], review["state"], review["amount"], review["unit"]), (2.5, "applied", 0.75, "hours"))
+        actuals = sum((load_yaml(os.path.join(self.project, "actuals", name)).get("actuals") or [] for name in os.listdir(os.path.join(self.project, "actuals")) if name.endswith(".yaml")), [])
+        recorded = [item for item in actuals if item.get("demand_ref", {}).get("id") == demand["id"]]
+        self.assertEqual([(item["amount"], item["resource_ref"]["id"]) for item in recorded], [(0.75, "resource.human.operator")])
+        evidence = sum((load_yaml(os.path.join(self.project, "evidence", name)).get("evidence") or [] for name in os.listdir(os.path.join(self.project, "evidence")) if name.endswith(".yaml")), [])
+        self.assertIn("Review time stated by actor.human.operator: 45 minutes.", next(item for item in evidence if item["id"] == "evidence.op.accept-1234")["summary"])
+
+        proc, second = self.run_helper(apply=True, env=env)
+        self.assertEqual(proc.returncode, 0, second)
+        review = next(item for item in second["actions"] if item["name"] == "record_review_minutes")
+        self.assertEqual(review["state"], "already_done")
+
+    def test_review_minutes_fall_back_to_only_human_demand(self):
+        actors_path = os.path.join(self.project, "canonical", "actors.yaml")
+        actors = load_yaml(actors_path)
+        next(item for item in actors["actors"] if item["id"] == "actor.human.operator").pop("resource_ref", None)
+        dump_yaml(actors_path, actors)
+        resources_path = os.path.join(self.project, "canonical", "resources.yaml")
+        resources = load_yaml(resources_path)
+        next(item for item in resources["resources"] if item["id"] == "resource.human.operator").pop("actor_ref", None)
+        dump_yaml(resources_path, resources)
+        proc, out = self.run_helper(env=self.environment(REPLAN_ACCEPT_REVIEW_MINUTES="30"))
+        self.assertEqual(proc.returncode, 0, out)
+        review = next(item for item in out["actions"] if item["name"] == "record_review_minutes")
+        self.assertEqual(review["demand_id"], "resource_demand.task-op-1234.implementer")
+        self.assertEqual(review["resource_id"], "resource.human.ivan")
+
+    def test_review_demand_ambiguity_names_candidates(self):
+        actors_path = os.path.join(self.project, "canonical", "actors.yaml")
+        actors = load_yaml(actors_path)
+        next(item for item in actors["actors"] if item["id"] == "actor.human.operator").pop("resource_ref", None)
+        dump_yaml(actors_path, actors)
+        resources_path = os.path.join(self.project, "canonical", "resources.yaml")
+        resources = load_yaml(resources_path)
+        next(item for item in resources["resources"] if item["id"] == "resource.human.operator").pop("actor_ref", None)
+        dump_yaml(resources_path, resources)
+        demands_path = os.path.join(self.project, "canonical", "resource_demands.yaml")
+        demands = load_yaml(demands_path)
+        demands["resource_demands"].append({
+            "id": "resource_demand.task-op-1234.second-human",
+            "task_ref": {"kind": "task", "id": "task.op.1234"},
+            "resource_ref": {"kind": "resource", "id": "resource.human.petr"},
+            "resource_class": "human", "role": "reviewer", "unit": "hours",
+            "planned_amount": 1, "remaining_amount": 1, "criticality": "required", "status": "active",
+        })
+        dump_yaml(demands_path, demands)
+        proc, out = self.run_helper(env=self.environment(REPLAN_ACCEPT_REVIEW_MINUTES="30"))
+        self.assertEqual(proc.returncode, 2, out)
+        self.assertEqual(out["error_codes"], ["review_demand_ambiguous"])
+        self.assertEqual(out["review_demand_candidates"], [
+            "resource_demand.task-op-1234.implementer",
+            "resource_demand.task-op-1234.second-human",
+        ])
 
     def test_utc_accept_at_after_project_midnight_uses_local_date(self):
         env = self.environment(

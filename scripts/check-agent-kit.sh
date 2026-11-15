@@ -184,6 +184,13 @@ find "$KIT" -name '__pycache__' -prune -exec rm -rf {} +
 mkdir "$WORK_DIR/nogo"
 printf '#!/bin/sh\necho "go must not be needed by the agent kit" >&2\nexit 97\n' > "$WORK_DIR/nogo/go"
 chmod +x "$WORK_DIR/nogo/go"
+# shellcheck disable=SC2016 # The generated fake must inspect its own $2.
+printf '%s\n' '#!/bin/sh' \
+  'case "$2" in' \
+  '  */jobs) printf '\''%s\n'\'' '\''{"jobs":[{"id":1,"name":"test","status":"completed","conclusion":"success","started_at":"2026-11-15T00:00:00Z","completed_at":"2026-11-15T00:00:01Z"}]}'\'' ;;' \
+  '  *) printf '\''%s\n'\'' '\''{"id":123,"status":"completed","conclusion":"success","head_sha":"abc","run_attempt":1}'\'' ;;' \
+  'esac' > "$WORK_DIR/nogo/gh"
+chmod +x "$WORK_DIR/nogo/gh"
 kit() {
   (cd "$KIT" && env -i PATH="$WORK_DIR/nogo:/usr/bin:/bin" HOME="$WORK_DIR" TMPDIR="${TMPDIR:-/tmp}" "$@")
 }
@@ -302,6 +309,7 @@ for script_path in "$KIT"/scripts/*.sh; do
       # The resource and unit are the question this explanation answers.
       set -- env REPLAN_RESOURCE_ID=resource.human.ivan REPLAN_UNIT=hours "scripts/$script"
       ;;
+    github-actions-run-minutes.sh) expected=0; set -- "scripts/$script" --run 123 ;;
     openproject-operator-report.sh) expected=6; set -- "scripts/$script" ;;
     openproject-wiki.sh) expected=6; set -- "scripts/$script" page list ;;
     openproject-work-package-toolkit.sh) expected=6; set -- "scripts/$script" work-package list ;;
