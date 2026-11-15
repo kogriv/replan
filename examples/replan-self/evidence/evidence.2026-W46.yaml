@@ -1563,3 +1563,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.estimate-report-no-actuals-and-default-unit
+  - id: evidence.self.estimate-report-no-actuals-and-default-unit
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-15T18:33:59+07:00"
+    summary: 'Fix commit 36ec680: report estimates computes actual/baseline ratios only over demands with recorded actuals, shows ''no actuals'' instead of 0.00 in Markdown and on the dashboard, and adds baseline_amount_without_actuals plus tasks_with_actuals / tasks_without_actuals to resource and split-group aggregates; demands expose actuals_recorded. actual set-remaining and add-consumption with a demand default the unit to the demand''s unit; a different unit stays unit_mismatch, missing_unit remains only without a demand. Review: clean, one intended semantic change (ratios over measured demands only). Gate: vet, lint 0, shellcheck, Go and Python suites, smoke, isolated smoke, 55 kit checks, live kit check 108 checks. Codex 17:39:40-18:06:17 (0.44 h, prompt and last-file mtimes). Executor 0.22 h from transcript activity intervals (brief, review, gate start, booking), excluding waits for Codex and the gate.'
+    targets:
+      - kind: task
+        id: task.self.estimate-report-no-actuals-and-default-unit
+  - id: evidence.self.start-calibration-since-window
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-15T18:07:13+07:00"
+    summary: 'Started a day before the planned day: the Codex round began at 18:07:13 while the gate of the estimate report fix ran; recorded after that gate because plan data does not change while a gate reads it.'
+    targets:
+      - kind: task
+        id: task.self.calibration-since-window

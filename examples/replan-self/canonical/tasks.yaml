@@ -8085,9 +8085,9 @@ tasks:
     title: Show missing actuals in the estimate report and default the set-remaining unit
     description: 'Reported on 2026-11-15 by the second consumer project: replan report estimates shows an actual/baseline ratio of 0.00 for finished tasks that have no actuals at all, which reads as work that took no time; it should say that no actuals are recorded and leave such tasks out of ratios and totals visibly. replan actual set-remaining fails with missing_unit when --unit is omitted although the demand has exactly one unit; default to the demand''s own unit and refuse only a conflicting one.'
     type: implementation
-    tracking_status: in_progress
-    planned_start: "2026-11-16"
-    planned_finish: "2026-11-16"
+    tracking_status: review_ready
+    planned_start: "2026-11-15"
+    planned_finish: "2026-11-15"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer
@@ -8114,7 +8114,7 @@ tasks:
     title: Calibrate estimates over a recent window
     description: 'On 2026-11-15 the self project''s clean agent sample showed that estimating changed once calibration existed: tasks started in October used a median 0.23 of the estimate, tasks started after 2026-11-02 a median 0.37. A calibration over all baselines mixes both habits and gives 0.28, which over-corrects current estimates. Add estimate calibrate --since <date> that samples only tasks whose actual start is on or after that date, record the window in the sealed calibration, show it in estimate list/show and report estimates, and make replan next suggest a recalibration when at least eight clean tasks started after the newest calibration''s window or approval in the same scope.'
     type: implementation
-    tracking_status: not_started
+    tracking_status: in_progress
     planned_start: "2026-11-16"
     planned_finish: "2026-11-16"
     assignee_hint:
