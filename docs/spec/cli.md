@@ -1202,9 +1202,17 @@ Implemented estimate-accuracy report slice:
   complete summaries of its split-out resources, separately per unit and for
   finished and all tasks;
 - a resource row has `actuals_recorded: false` when no counted demand actual in
-  the baseline tasks uses its unit. Its ratios remain null and Markdown says
-  `no actuals`, rather than presenting an observed zero. Such a resource is
-  omitted when resource rows are combined into a split group.
+  the baseline tasks uses its unit. Demand JSON also exposes
+  `actuals_recorded`; an unmeasured demand keeps `actual_amount: 0` but its
+  `actual_baseline_ratio` is null. Task-unit totals, resource summaries and
+  split groups calculate the ratio from actuals divided by the baseline amount
+  of only those demands with recorded actuals. They retain the complete
+  baseline and expose `baseline_amount_without_actuals`; resource and split
+  summary scopes also expose `tasks_with_actuals` and
+  `tasks_without_actuals`. With no measured demand the ratio remains null.
+  Markdown says `no actuals` for a null ratio and shows the unmeasured baseline
+  and task coverage beside aggregate ratios, rather than presenting an
+  observed zero. Split groups retain unmeasured resources in their coverage;
 
 Scenario reports carry `scenario_id` and every Markdown, text and HTML view
 labels them: `What-if: scenario <id> applied in memory; this is not the plan.`
@@ -2427,6 +2435,11 @@ Rules:
 - `actual add-consumption` refuses an identical same-second retry with
   `actual_already_exists`; a different consumption in the same id family gets
   the next numeric id suffix;
+- `actual add-consumption --demand <id>` and single or batch
+  `actual set-remaining` rows default an omitted unit to that demand's unit and
+  report the resolved unit in their JSON result. An explicitly different unit
+  is `unit_mismatch` (exit 2) and names both units. `missing_unit` remains for
+  add-consumption input that supplies neither a resolvable demand nor a unit;
 - `actual correct` refuses an identical same-second correction or void retry
   with `actual_already_exists`; a different correction in the same id family
   gets the next numeric id suffix;

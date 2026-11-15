@@ -265,15 +265,15 @@ func (s ReportService) dashboardEstimatesPage(ctx context.Context, ws domain.Wor
 		report, _ := s.Estimates(ctx, EstimateReportRequest{BaselineID: baseline.ID})
 		item := reports.DashboardEstimateBaseline{ID: baseline.ID, Name: baseline.Name, StatusDate: baseline.StatusDate, SealStatus: report.BaselineSealStatus, Resources: []reports.DashboardEstimateResource{}, SplitGroups: []reports.DashboardEstimateSplitGroup{}, Tasks: []reports.DashboardEstimateTask{}, Calibrations: []reports.DashboardEstimateCalibration{}, Warnings: diagnosticsToReportIssues(report.Warnings), Errors: diagnosticsToReportIssues(report.Errors)}
 		for _, resource := range report.Resources {
-			item.Resources = append(item.Resources, reports.DashboardEstimateResource{ResourceID: resource.ResourceID, ResourceName: resource.ResourceName, Unit: resource.Unit, ActualsRecorded: resource.ActualsRecorded, BaselineAmount: resource.All.BaselineAmount, ActualAmount: resource.All.ActualAmount, Ratio: resource.All.ActualBaselineRatio, AddedAfterBaseline: resource.All.BaselineAmount == 0 && resource.ActualsRecorded})
+			item.Resources = append(item.Resources, reports.DashboardEstimateResource{ResourceID: resource.ResourceID, ResourceName: resource.ResourceName, Unit: resource.Unit, ActualsRecorded: resource.ActualsRecorded, BaselineAmount: resource.All.BaselineAmount, BaselineAmountWithoutActuals: resource.All.BaselineAmountWithoutActuals, TasksWithActuals: resource.All.TasksWithActuals, TasksWithoutActuals: resource.All.TasksWithoutActuals, ActualAmount: resource.All.ActualAmount, Ratio: resource.All.ActualBaselineRatio, AddedAfterBaseline: resource.All.BaselineAmount == 0 && resource.ActualsRecorded})
 		}
 		for _, group := range report.SplitGroups {
-			item.SplitGroups = append(item.SplitGroups, reports.DashboardEstimateSplitGroup{OriginalResourceID: group.OriginalResourceID, OriginalResourceName: group.OriginalResourceName, SplitResourceIDs: group.SplitResourceIDs, Unit: group.Unit, ActualsRecorded: group.ActualsRecorded, BaselineAmount: group.All.BaselineAmount, CurrentPlannedAmount: group.All.CurrentPlannedAmount, ActualAmount: group.All.ActualAmount, Ratio: group.All.ActualBaselineRatio})
+			item.SplitGroups = append(item.SplitGroups, reports.DashboardEstimateSplitGroup{OriginalResourceID: group.OriginalResourceID, OriginalResourceName: group.OriginalResourceName, SplitResourceIDs: group.SplitResourceIDs, Unit: group.Unit, ActualsRecorded: group.ActualsRecorded, BaselineAmount: group.All.BaselineAmount, BaselineAmountWithoutActuals: group.All.BaselineAmountWithoutActuals, TasksWithActuals: group.All.TasksWithActuals, TasksWithoutActuals: group.All.TasksWithoutActuals, CurrentPlannedAmount: group.All.CurrentPlannedAmount, ActualAmount: group.All.ActualAmount, Ratio: group.All.ActualBaselineRatio})
 		}
 		for _, task := range report.Tasks {
 			row := reports.DashboardEstimateTask{TaskID: task.TaskID, Title: task.Title, TrackingStatus: task.TrackingStatus, Open: task.Open, Totals: []reports.DashboardEstimateTotal{}}
 			for _, total := range task.Totals {
-				row.Totals = append(row.Totals, reports.DashboardEstimateTotal{Unit: total.Unit, BaselineAmount: total.BaselineAmount, ActualAmount: total.ActualAmount, VarianceAmount: total.VarianceAmount, Ratio: total.ActualBaselineRatio})
+				row.Totals = append(row.Totals, reports.DashboardEstimateTotal{Unit: total.Unit, BaselineAmount: total.BaselineAmount, BaselineAmountWithoutActuals: total.BaselineAmountWithoutActuals, ActualAmount: total.ActualAmount, VarianceAmount: total.VarianceAmount, Ratio: total.ActualBaselineRatio})
 			}
 			item.Tasks = append(item.Tasks, row)
 		}

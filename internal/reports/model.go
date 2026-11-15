@@ -279,26 +279,32 @@ type DashboardEstimateBaseline struct {
 }
 
 type DashboardEstimateResource struct {
-	ResourceID         string   `json:"resource_id"`
-	ResourceName       string   `json:"resource_name,omitempty"`
-	Unit               string   `json:"unit"`
-	ActualsRecorded    bool     `json:"actuals_recorded"`
-	BaselineAmount     float64  `json:"baseline_amount"`
-	ActualAmount       float64  `json:"actual_amount"`
-	Ratio              *float64 `json:"actual_baseline_ratio"`
-	AddedAfterBaseline bool     `json:"added_after_baseline,omitempty"`
+	ResourceID                   string   `json:"resource_id"`
+	ResourceName                 string   `json:"resource_name,omitempty"`
+	Unit                         string   `json:"unit"`
+	ActualsRecorded              bool     `json:"actuals_recorded"`
+	BaselineAmount               float64  `json:"baseline_amount"`
+	BaselineAmountWithoutActuals float64  `json:"baseline_amount_without_actuals"`
+	TasksWithActuals             int      `json:"tasks_with_actuals"`
+	TasksWithoutActuals          int      `json:"tasks_without_actuals"`
+	ActualAmount                 float64  `json:"actual_amount"`
+	Ratio                        *float64 `json:"actual_baseline_ratio"`
+	AddedAfterBaseline           bool     `json:"added_after_baseline,omitempty"`
 }
 
 type DashboardEstimateSplitGroup struct {
-	OriginalResourceID   string   `json:"original_resource_id"`
-	OriginalResourceName string   `json:"original_resource_name,omitempty"`
-	SplitResourceIDs     []string `json:"split_resource_ids"`
-	Unit                 string   `json:"unit"`
-	ActualsRecorded      bool     `json:"actuals_recorded"`
-	BaselineAmount       float64  `json:"baseline_amount"`
-	CurrentPlannedAmount float64  `json:"current_planned_amount"`
-	ActualAmount         float64  `json:"actual_amount"`
-	Ratio                *float64 `json:"actual_baseline_ratio"`
+	OriginalResourceID           string   `json:"original_resource_id"`
+	OriginalResourceName         string   `json:"original_resource_name,omitempty"`
+	SplitResourceIDs             []string `json:"split_resource_ids"`
+	Unit                         string   `json:"unit"`
+	ActualsRecorded              bool     `json:"actuals_recorded"`
+	BaselineAmount               float64  `json:"baseline_amount"`
+	BaselineAmountWithoutActuals float64  `json:"baseline_amount_without_actuals"`
+	TasksWithActuals             int      `json:"tasks_with_actuals"`
+	TasksWithoutActuals          int      `json:"tasks_without_actuals"`
+	CurrentPlannedAmount         float64  `json:"current_planned_amount"`
+	ActualAmount                 float64  `json:"actual_amount"`
+	Ratio                        *float64 `json:"actual_baseline_ratio"`
 }
 
 type DashboardEstimateTask struct {
@@ -310,11 +316,12 @@ type DashboardEstimateTask struct {
 }
 
 type DashboardEstimateTotal struct {
-	Unit           string   `json:"unit"`
-	BaselineAmount float64  `json:"baseline_amount"`
-	ActualAmount   float64  `json:"actual_amount"`
-	VarianceAmount float64  `json:"variance_amount"`
-	Ratio          *float64 `json:"actual_baseline_ratio"`
+	Unit                         string   `json:"unit"`
+	BaselineAmount               float64  `json:"baseline_amount"`
+	BaselineAmountWithoutActuals float64  `json:"baseline_amount_without_actuals"`
+	ActualAmount                 float64  `json:"actual_amount"`
+	VarianceAmount               float64  `json:"variance_amount"`
+	Ratio                        *float64 `json:"actual_baseline_ratio"`
 }
 
 type DashboardEstimateCalibration struct {

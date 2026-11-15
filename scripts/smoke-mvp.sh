@@ -692,7 +692,7 @@ assert_contains "$self_dashboard_project/reports/latest/proposals.html" "$dashbo
 assert_contains "$self_dashboard_project/reports/latest/proposals.html" '--project &lt;project&gt;'
 assert_contains "$self_dashboard_project/reports/latest/raw/proposals.json" "\"id\": \"$dashboard_proposal_id\""
 assert_contains "$self_dashboard_project/reports/latest/estimates.html" 'baseline.2026-10-15.tooling-consolidation'
-assert_contains "$self_dashboard_project/reports/latest/estimates.html" 'added after baseline'
+assert_contains "$self_dashboard_project/reports/latest/estimates.html" 'baseline / 0 tasks without actuals'
 assert_contains "$self_dashboard_project/reports/latest/estimates.html" 'Recognized resource splits'
 assert_contains "$self_dashboard_project/reports/latest/raw/estimates.json" '"id": "baseline.2026-10-15.tooling-consolidation"'
 assert_contains "$self_dashboard_project/reports/latest/raw/estimates.json" '"split_groups"'

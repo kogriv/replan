@@ -501,6 +501,32 @@ func TestActualSetRemainingDryRunSmallTeamFixture(t *testing.T) {
 	}
 }
 
+func TestActualDemandUnitDefaultsAndMismatchRefusals(t *testing.T) {
+	ws := domain.Workspace{
+		Project: domain.Project{ID: "project.test"},
+		Actors:  []domain.Actor{{ID: "actor.test"}}, Resources: []domain.Resource{{ID: "resource.test"}},
+		Tasks:           []domain.Task{{ID: "task.test"}},
+		ResourceDemands: []domain.ResourceDemand{{ID: "demand.test", TaskRef: domain.Ref{ID: "task.test"}, ResourceRef: domain.Ref{ID: "resource.test"}, Unit: "hours", PlannedAmount: 3}},
+	}
+	service := app.NewActualService(stubLoader{ws: ws})
+	remaining, err := service.SetRemaining(context.Background(), app.ActualSetRemainingRequest{DemandID: "demand.test", Amount: 2, ActorID: "actor.test", DryRun: true})
+	if err != nil || remaining.Unit != "hours" || len(remaining.Changes) != 0 {
+		t.Fatalf("set-remaining default unit: err=%v result=%#v", err, remaining)
+	}
+	consumption, err := service.AddConsumption(context.Background(), app.ActualAddConsumptionRequest{TaskID: "task.test", DemandID: "demand.test", ResourceID: "resource.test", Amount: 1, ActorID: "actor.test", DryRun: true})
+	if err != nil || consumption.Actual.Unit != "hours" {
+		t.Fatalf("add-consumption default unit: err=%v result=%#v", err, consumption)
+	}
+	conflict, err := service.SetRemaining(context.Background(), app.ActualSetRemainingRequest{DemandID: "demand.test", Amount: 2, Unit: "days", ActorID: "actor.test", DryRun: true})
+	if err == nil || !hasAppDiagnosticCode(conflict.Errors, "unit_mismatch") || !strings.Contains(conflict.Errors[0].Message, "hours") || !strings.Contains(conflict.Errors[0].Message, "days") {
+		t.Fatalf("set-remaining conflicting unit: err=%v errors=%#v", err, conflict.Errors)
+	}
+	missing, err := service.AddConsumption(context.Background(), app.ActualAddConsumptionRequest{TaskID: "task.test", ResourceID: "resource.test", Amount: 1, ActorID: "actor.test", DryRun: true})
+	if err == nil || !hasAppDiagnosticCode(missing.Errors, "missing_unit") {
+		t.Fatalf("add-consumption without demand and unit: err=%v errors=%#v", err, missing.Errors)
+	}
+}
+
 func TestActualSetRemainingWriteSmallTeamFixture(t *testing.T) {
 	projectPath := copyAppProjectFixture(t)
 	store := filestore.New(projectPath)

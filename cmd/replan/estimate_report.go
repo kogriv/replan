@@ -24,21 +24,23 @@ func writeEstimateReportMarkdown(out io.Writer, result app.EstimateReportResult)
 	if _, err := fmt.Fprintf(out, "- Baseline: `%s` (`%s`)\n- Counted actual types: `%s`\n\n", result.BaselineID, result.BaselineSealStatus, strings.Join(result.ActualTypes, "`, `")); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintln(out, "| Resource | Unit | Finished baseline | Finished planned | Finished actual | Finished A/B | All baseline | All planned | All actual |"); err != nil {
+	if _, err := fmt.Fprintln(out, "| Resource | Unit | Finished baseline | Finished planned | Finished actual | Finished A/B (coverage) | All baseline | All planned | All actual | All A/B (coverage) |"); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintln(out, "|---|---|---:|---:|---:|---:|---:|---:|---:|"); err != nil {
+	if _, err := fmt.Fprintln(out, "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|"); err != nil {
 		return err
 	}
 	for _, row := range result.Resources {
-		finishedActual, finishedRatio := estimateNumber(row.Finished.ActualAmount), estimateRatio(row.Finished.ActualBaselineRatio)
+		finishedActual := estimateNumber(row.Finished.ActualAmount)
+		finishedRatio := estimateAggregateRatio(row.Finished.ActualBaselineRatio, row.Finished.BaselineAmountWithoutActuals, row.Finished.TasksWithoutActuals)
 		allActual := estimateNumber(row.All.ActualAmount)
 		if !row.ActualsRecorded {
-			finishedActual, finishedRatio, allActual = "no actuals", "no actuals", "no actuals"
+			finishedActual, allActual = "no actuals", "no actuals"
 		}
-		if _, err := fmt.Fprintf(out, "| `%s` | %s | %s | %s | %s | %s | %s | %s | %s |\n",
+		if _, err := fmt.Fprintf(out, "| `%s` | %s | %s | %s | %s | %s | %s | %s | %s | %s |\n",
 			row.ResourceID, row.Unit, estimateNumber(row.Finished.BaselineAmount), estimateNumber(row.Finished.CurrentPlannedAmount),
-			finishedActual, finishedRatio, estimateNumber(row.All.BaselineAmount), estimateNumber(row.All.CurrentPlannedAmount), allActual); err != nil {
+			finishedActual, finishedRatio, estimateNumber(row.All.BaselineAmount), estimateNumber(row.All.CurrentPlannedAmount), allActual,
+			estimateAggregateRatio(row.All.ActualBaselineRatio, row.All.BaselineAmountWithoutActuals, row.All.TasksWithoutActuals)); err != nil {
 			return err
 		}
 	}
@@ -108,22 +110,24 @@ func writeEstimateSplitGroupsMarkdown(out io.Writer, groups []app.EstimateSplitG
 		_, err := fmt.Fprintln(out, "No recognized resource splits.")
 		return err
 	}
-	if _, err := fmt.Fprintln(out, "| Original resource | Split-out resources | Unit | Finished baseline | Finished planned | Finished actual | Finished A/B | All baseline | All planned | All actual |"); err != nil {
+	if _, err := fmt.Fprintln(out, "| Original resource | Split-out resources | Unit | Finished baseline | Finished planned | Finished actual | Finished A/B (coverage) | All baseline | All planned | All actual | All A/B (coverage) |"); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintln(out, "|---|---|---|---:|---:|---:|---:|---:|---:|---:|"); err != nil {
+	if _, err := fmt.Fprintln(out, "|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|"); err != nil {
 		return err
 	}
 	for _, group := range groups {
-		finishedActual, finishedRatio := estimateNumber(group.Finished.ActualAmount), estimateRatio(group.Finished.ActualBaselineRatio)
+		finishedActual := estimateNumber(group.Finished.ActualAmount)
+		finishedRatio := estimateAggregateRatio(group.Finished.ActualBaselineRatio, group.Finished.BaselineAmountWithoutActuals, group.Finished.TasksWithoutActuals)
 		allActual := estimateNumber(group.All.ActualAmount)
 		if !group.ActualsRecorded {
-			finishedActual, finishedRatio, allActual = "no actuals", "no actuals", "no actuals"
+			finishedActual, allActual = "no actuals", "no actuals"
 		}
-		if _, err := fmt.Fprintf(out, "| `%s` | `%s` | %s | %s | %s | %s | %s | %s | %s | %s |\n",
+		if _, err := fmt.Fprintf(out, "| `%s` | `%s` | %s | %s | %s | %s | %s | %s | %s | %s | %s |\n",
 			group.OriginalResourceID, strings.Join(group.SplitResourceIDs, "`, `"), group.Unit,
 			estimateNumber(group.Finished.BaselineAmount), estimateNumber(group.Finished.CurrentPlannedAmount), finishedActual,
-			finishedRatio, estimateNumber(group.All.BaselineAmount), estimateNumber(group.All.CurrentPlannedAmount), allActual); err != nil {
+			finishedRatio, estimateNumber(group.All.BaselineAmount), estimateNumber(group.All.CurrentPlannedAmount), allActual,
+			estimateAggregateRatio(group.All.ActualBaselineRatio, group.All.BaselineAmountWithoutActuals, group.All.TasksWithoutActuals)); err != nil {
 			return err
 		}
 	}
@@ -161,7 +165,7 @@ func writeEstimateTaskMarkdown(out io.Writer, task app.EstimateTask) error {
 	for _, total := range task.Totals {
 		if _, err := fmt.Fprintf(out, "| **Total** |  |  | **%s** | **%s** | **%s** | **%s** | **%s** | **%s** | **%s** |  |\n",
 			total.Unit, estimateNumber(total.BaselineAmount), estimateNumber(total.CurrentPlannedAmount), estimateNumber(total.CurrentRemainingAmount),
-			estimateNumber(total.ActualAmount), estimateNumber(total.VarianceAmount), estimateRatio(total.ActualBaselineRatio)); err != nil {
+			estimateNumber(total.ActualAmount), estimateNumber(total.VarianceAmount), estimateAggregateRatio(total.ActualBaselineRatio, total.BaselineAmountWithoutActuals, -1)); err != nil {
 			return err
 		}
 	}
@@ -186,9 +190,17 @@ func estimateNumber(value float64) string {
 
 func estimateRatio(value *float64) string {
 	if value == nil {
-		return "—"
+		return "no actuals"
 	}
 	return strconv.FormatFloat(*value, 'f', 2, 64)
+}
+
+func estimateAggregateRatio(value *float64, withoutActuals float64, tasksWithoutActuals int) string {
+	coverage := fmt.Sprintf("%s baseline without actuals", estimateNumber(withoutActuals))
+	if tasksWithoutActuals >= 0 {
+		coverage += fmt.Sprintf(", %d tasks without actuals", tasksWithoutActuals)
+	}
+	return fmt.Sprintf("%s; %s", estimateRatio(value), coverage)
 }
 
 func estimateInt(value *int) string {

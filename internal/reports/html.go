@@ -987,7 +987,7 @@ func WriteDashboardEstimatesHTML(w io.Writer, page DashboardEstimatesPage) error
 			return err
 		}
 		for _, resource := range baseline.Resources {
-			ratio := estimateResourceRatioLabel(resource)
+			ratio := estimateResourceRatioLabel(resource) + estimateCoverageLabel(resource.BaselineAmountWithoutActuals, resource.TasksWithoutActuals)
 			if _, err := fmt.Fprintf(w, "<tr><td><span class=\"code\">%s</span><br>%s</td><td>%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td></tr>", html.EscapeString(resource.ResourceID), html.EscapeString(resource.ResourceName), html.EscapeString(resource.Unit), formatAmount(resource.BaselineAmount), formatAmount(resource.ActualAmount), html.EscapeString(ratio)); err != nil {
 				return err
 			}
@@ -1078,13 +1078,11 @@ func estimateResourceRatioLabel(resource DashboardEstimateResource) string {
 	if resource.Ratio != nil {
 		return formatPageNumber(*resource.Ratio)
 	}
-	if resource.AddedAfterBaseline {
-		return "added after baseline"
-	}
-	if !resource.ActualsRecorded {
-		return "no actuals"
-	}
-	return "not comparable"
+	return "no actuals"
+}
+
+func estimateCoverageLabel(withoutActuals float64, tasksWithoutActuals int) string {
+	return fmt.Sprintf(" · %s baseline / %d tasks without actuals", formatAmount(withoutActuals), tasksWithoutActuals)
 }
 
 func writeDashboardEstimateSplitGroups(w io.Writer, groups []DashboardEstimateSplitGroup) error {
@@ -1102,9 +1100,8 @@ func writeDashboardEstimateSplitGroups(w io.Writer, groups []DashboardEstimateSp
 		ratio := "no actuals"
 		if group.Ratio != nil {
 			ratio = formatPageNumber(*group.Ratio)
-		} else if group.ActualsRecorded {
-			ratio = "not comparable"
 		}
+		ratio += estimateCoverageLabel(group.BaselineAmountWithoutActuals, group.TasksWithoutActuals)
 		if _, err := fmt.Fprintf(w, "<tr><td><span class=\"code\">%s</span><br>%s</td><td class=\"code\">%s</td><td>%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td></tr>", html.EscapeString(group.OriginalResourceID), html.EscapeString(group.OriginalResourceName), html.EscapeString(strings.Join(group.SplitResourceIDs, ", ")), html.EscapeString(group.Unit), formatAmount(group.BaselineAmount), formatAmount(group.CurrentPlannedAmount), formatAmount(group.ActualAmount), html.EscapeString(ratio)); err != nil {
 			return err
 		}

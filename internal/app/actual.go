@@ -480,9 +480,12 @@ func (s ActualService) AddConsumption(ctx context.Context, req ActualAddConsumpt
 		Errors:        []Diagnostic{},
 	}
 	appendLoadDiagnostics(&result.Warnings, &result.Errors, loadDiags)
-	validateAddConsumptionRequest(&result.Errors, ws, req)
+	demand, _ := validateAddConsumptionRequest(&result.Errors, ws, req)
 	if len(result.Errors) > 0 {
 		return result, ErrValidationFailed
+	}
+	if req.Unit == "" {
+		req.Unit = demand.Unit
 	}
 
 	occurredAt := req.OccurredAt
@@ -751,7 +754,11 @@ func validateSetRemainingItems(errors *[]Diagnostic, ws domain.Workspace, req Ac
 		}
 		demand, ok := validateSetRemainingRequest(errors, ws, itemReq)
 		if ok && len(*errors) == start {
-			changes = append(changes, ActualSetRemainingChange{Row: i + 1, DemandID: item.DemandID, TaskID: demand.TaskRef.ID, ResourceID: demand.ResourceRef.ID, PreviousAmount: demand.Remaining(), NewAmount: item.Amount, Unit: item.Unit, Reason: itemReq.Reason})
+			unit := item.Unit
+			if unit == "" {
+				unit = demand.Unit
+			}
+			changes = append(changes, ActualSetRemainingChange{Row: i + 1, DemandID: item.DemandID, TaskID: demand.TaskRef.ID, ResourceID: demand.ResourceRef.ID, PreviousAmount: demand.Remaining(), NewAmount: item.Amount, Unit: unit, Reason: itemReq.Reason})
 		}
 		for j := start; j < len(*errors); j++ {
 			(*errors)[j].Message = fmt.Sprintf("row %d demand %q: %s", i+1, item.DemandID, (*errors)[j].Message)
@@ -1225,9 +1232,6 @@ func validateSetRemainingRequest(errors *[]Diagnostic, ws domain.Workspace, req 
 	if !validAmount(req.Amount) {
 		addActualRequestError(errors, "invalid_amount", "remaining amount must be a finite number, zero or greater", "resource_demand", req.DemandID)
 	}
-	if req.Unit == "" {
-		addActualRequestError(errors, "missing_unit", "unit is required", "resource_demand", req.DemandID)
-	}
 	if req.ActorID == "" {
 		addActualRequestError(errors, "missing_actor", "actor is required", "actor", "")
 	}
@@ -1276,7 +1280,7 @@ func validateCloseDemandRequest(errors *[]Diagnostic, ws domain.Workspace, req A
 	return demand, demandOK
 }
 
-func validateAddConsumptionRequest(errors *[]Diagnostic, ws domain.Workspace, req ActualAddConsumptionRequest) {
+func validateAddConsumptionRequest(errors *[]Diagnostic, ws domain.Workspace, req ActualAddConsumptionRequest) (domain.ResourceDemand, bool) {
 	if req.TaskID == "" {
 		addActualRequestError(errors, "missing_task", "task is required", "task", "")
 	}
@@ -1289,15 +1293,15 @@ func validateAddConsumptionRequest(errors *[]Diagnostic, ws domain.Workspace, re
 	if !validAmount(req.Amount) || req.Amount == 0 {
 		addActualRequestError(errors, "invalid_amount", "amount must be a finite number greater than zero", "actual", "")
 	}
-	if req.Unit == "" {
-		addActualRequestError(errors, "missing_unit", "unit is required", "actual", "")
-	}
 	if req.ActorID == "" {
 		addActualRequestError(errors, "missing_actor", "actor is required", "actor", "")
 	}
 
 	task, taskOK := findTask(ws.Tasks, req.TaskID)
 	demand, demandOK := findDemand(ws.ResourceDemands, req.DemandID)
+	if req.Unit == "" && !demandOK {
+		addActualRequestError(errors, "missing_unit", "unit is required when no demand supplies it", "actual", "")
+	}
 	if req.TaskID != "" && !taskOK {
 		addActualRequestError(errors, "task_not_found", fmt.Sprintf("task %s not found", req.TaskID), "task", req.TaskID)
 	}
@@ -1327,6 +1331,7 @@ func validateAddConsumptionRequest(errors *[]Diagnostic, ws domain.Workspace, re
 			addActualRequestError(errors, "unit_mismatch", fmt.Sprintf("resource demand %s uses unit %s, not %s", demand.ID, demand.Unit, req.Unit), "resource_demand", demand.ID)
 		}
 	}
+	return demand, demandOK
 }
 
 func addActualRequestError(errors *[]Diagnostic, code, message, kind, id string) {

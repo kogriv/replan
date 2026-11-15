@@ -70,20 +70,21 @@ type EstimateDemand struct {
 	CurrentPlannedAmount   float64  `json:"current_planned_amount"`
 	CurrentRemainingAmount float64  `json:"current_remaining_amount"`
 	ActualAmount           float64  `json:"actual_amount"`
-	ActualsRecorded        bool     `json:"-"`
+	ActualsRecorded        bool     `json:"actuals_recorded"`
 	VarianceAmount         float64  `json:"variance_amount"`
 	ActualBaselineRatio    *float64 `json:"actual_baseline_ratio"`
 	Reestimated            bool     `json:"reestimated"`
 }
 
 type EstimateUnitTotals struct {
-	Unit                   string   `json:"unit"`
-	BaselineAmount         float64  `json:"baseline_amount"`
-	CurrentPlannedAmount   float64  `json:"current_planned_amount"`
-	CurrentRemainingAmount float64  `json:"current_remaining_amount"`
-	ActualAmount           float64  `json:"actual_amount"`
-	VarianceAmount         float64  `json:"variance_amount"`
-	ActualBaselineRatio    *float64 `json:"actual_baseline_ratio"`
+	Unit                         string   `json:"unit"`
+	BaselineAmount               float64  `json:"baseline_amount"`
+	CurrentPlannedAmount         float64  `json:"current_planned_amount"`
+	CurrentRemainingAmount       float64  `json:"current_remaining_amount"`
+	ActualAmount                 float64  `json:"actual_amount"`
+	BaselineAmountWithoutActuals float64  `json:"baseline_amount_without_actuals"`
+	VarianceAmount               float64  `json:"variance_amount"`
+	ActualBaselineRatio          *float64 `json:"actual_baseline_ratio"`
 }
 
 type EstimateSplitComparison struct {
@@ -98,10 +99,13 @@ type EstimateSplitComparison struct {
 }
 
 type EstimateResourceAmounts struct {
-	BaselineAmount       float64  `json:"baseline_amount"`
-	CurrentPlannedAmount float64  `json:"current_planned_amount"`
-	ActualAmount         float64  `json:"actual_amount"`
-	ActualBaselineRatio  *float64 `json:"actual_baseline_ratio"`
+	BaselineAmount               float64  `json:"baseline_amount"`
+	CurrentPlannedAmount         float64  `json:"current_planned_amount"`
+	ActualAmount                 float64  `json:"actual_amount"`
+	BaselineAmountWithoutActuals float64  `json:"baseline_amount_without_actuals"`
+	TasksWithActuals             int      `json:"tasks_with_actuals"`
+	TasksWithoutActuals          int      `json:"tasks_without_actuals"`
+	ActualBaselineRatio          *float64 `json:"actual_baseline_ratio"`
 }
 
 type EstimateResourceSummary struct {
@@ -198,10 +202,8 @@ func buildEstimateReport(result *EstimateReportResult, ws domain.Workspace, base
 		addEstimateResourceRows(resourceRows, row, index)
 	}
 	for _, row := range resourceRows {
-		if row.ActualsRecorded {
-			row.Finished.ActualBaselineRatio = amountRatio(row.Finished.ActualAmount, row.Finished.BaselineAmount)
-			row.All.ActualBaselineRatio = amountRatio(row.All.ActualAmount, row.All.BaselineAmount)
-		}
+		setEstimateResourceRatio(&row.Finished)
+		setEstimateResourceRatio(&row.All)
 		result.Resources = append(result.Resources, *row)
 	}
 	sort.Slice(result.Resources, func(i, j int) bool {
@@ -210,7 +212,7 @@ func buildEstimateReport(result *EstimateReportResult, ws domain.Workspace, base
 		}
 		return result.Resources[i].Unit < result.Resources[j].Unit
 	})
-	result.SplitGroups = estimateSplitGroups(result.Tasks, result.Resources, index)
+	result.SplitGroups = estimateSplitGroups(result.Tasks, index)
 	roundEstimateResult(result)
 }
 
@@ -275,7 +277,9 @@ func estimateTaskRow(ws domain.Workspace, baselineTask domain.BaselineTaskEntry,
 			demand.ResourceID = baselineDemand.Resource
 		}
 		demand.VarianceAmount = demand.ActualAmount - demand.BaselineAmount
-		demand.ActualBaselineRatio = amountRatio(demand.ActualAmount, demand.BaselineAmount)
+		if demand.ActualsRecorded {
+			demand.ActualBaselineRatio = amountRatio(demand.ActualAmount, demand.BaselineAmount)
+		}
 		demand.Reestimated = currentOK && current.PlannedAmount != amount
 		row.Demands = append(row.Demands, demand)
 	}
@@ -372,11 +376,14 @@ func estimateTaskTotals(demands []EstimateDemand) []EstimateUnitTotals {
 		row.CurrentPlannedAmount += demand.CurrentPlannedAmount
 		row.CurrentRemainingAmount += demand.CurrentRemainingAmount
 		row.ActualAmount += demand.ActualAmount
+		if !demand.ActualsRecorded {
+			row.BaselineAmountWithoutActuals += demand.BaselineAmount
+		}
 	}
 	var rows []EstimateUnitTotals
 	for _, row := range byUnit {
 		row.VarianceAmount = row.ActualAmount - row.BaselineAmount
-		row.ActualBaselineRatio = amountRatio(row.ActualAmount, row.BaselineAmount)
+		row.ActualBaselineRatio = amountRatio(row.ActualAmount, row.BaselineAmount-row.BaselineAmountWithoutActuals)
 		rows = append(rows, *row)
 	}
 	sort.Slice(rows, func(i, j int) bool { return rows[i].Unit < rows[j].Unit })
@@ -384,27 +391,60 @@ func estimateTaskTotals(demands []EstimateDemand) []EstimateUnitTotals {
 }
 
 func addEstimateResourceRows(rows map[string]*EstimateResourceSummary, task EstimateTask, index estimateIndex) {
+	type taskAmounts struct {
+		baseline, planned, actual, withoutActuals float64
+		actualsRecorded                           bool
+	}
+	byResource := map[string]*taskAmounts{}
 	for _, demand := range task.Demands {
 		resourceID := demand.ResourceID
 		if resourceID == "" {
 			resourceID = demand.BaselineResourceID
 		}
 		key := resourceID + "\x00" + demand.Unit
-		row := rows[key]
-		if row == nil {
-			row = &EstimateResourceSummary{ResourceID: resourceID, ResourceName: index.resourceNames[resourceID], Unit: demand.Unit}
-			rows[key] = row
+		amounts := byResource[key]
+		if amounts == nil {
+			amounts = &taskAmounts{}
+			byResource[key] = amounts
 		}
-		row.All.BaselineAmount += demand.BaselineAmount
-		row.All.CurrentPlannedAmount += demand.CurrentPlannedAmount
-		row.All.ActualAmount += demand.ActualAmount
-		row.ActualsRecorded = row.ActualsRecorded || demand.ActualsRecorded
-		if !task.Open {
-			row.Finished.BaselineAmount += demand.BaselineAmount
-			row.Finished.CurrentPlannedAmount += demand.CurrentPlannedAmount
-			row.Finished.ActualAmount += demand.ActualAmount
+		amounts.baseline += demand.BaselineAmount
+		amounts.planned += demand.CurrentPlannedAmount
+		amounts.actual += demand.ActualAmount
+		amounts.actualsRecorded = amounts.actualsRecorded || demand.ActualsRecorded
+		if !demand.ActualsRecorded {
+			amounts.withoutActuals += demand.BaselineAmount
 		}
 	}
+	for key, amounts := range byResource {
+		parts := strings.SplitN(key, "\x00", 2)
+		resourceID, unit := parts[0], parts[1]
+		row := rows[key]
+		if row == nil {
+			row = &EstimateResourceSummary{ResourceID: resourceID, ResourceName: index.resourceNames[resourceID], Unit: unit}
+			rows[key] = row
+		}
+		addEstimateTaskAmounts(&row.All, amounts.baseline, amounts.planned, amounts.actual, amounts.withoutActuals, amounts.actualsRecorded)
+		row.ActualsRecorded = row.ActualsRecorded || amounts.actualsRecorded
+		if !task.Open {
+			addEstimateTaskAmounts(&row.Finished, amounts.baseline, amounts.planned, amounts.actual, amounts.withoutActuals, amounts.actualsRecorded)
+		}
+	}
+}
+
+func addEstimateTaskAmounts(target *EstimateResourceAmounts, baseline, planned, actual, withoutActuals float64, actualsRecorded bool) {
+	target.BaselineAmount += baseline
+	target.CurrentPlannedAmount += planned
+	target.ActualAmount += actual
+	target.BaselineAmountWithoutActuals += withoutActuals
+	if actualsRecorded {
+		target.TasksWithActuals++
+	} else {
+		target.TasksWithoutActuals++
+	}
+}
+
+func setEstimateResourceRatio(amounts *EstimateResourceAmounts) {
+	amounts.ActualBaselineRatio = amountRatio(amounts.ActualAmount, amounts.BaselineAmount-amounts.BaselineAmountWithoutActuals)
 }
 
 func estimateBaselineAmount(demand domain.BaselineDemandEntry) float64 {
@@ -434,7 +474,7 @@ func amountRatio(actual, baseline float64) *float64 {
 	return &ratio
 }
 
-func estimateSplitGroups(tasks []EstimateTask, resources []EstimateResourceSummary, index estimateIndex) []EstimateSplitGroupSummary {
+func estimateSplitGroups(tasks []EstimateTask, index estimateIndex) []EstimateSplitGroupSummary {
 	type splitGroupState struct {
 		row            EstimateSplitGroupSummary
 		groupResources map[string]bool
@@ -465,18 +505,38 @@ func estimateSplitGroups(tasks []EstimateTask, resources []EstimateResourceSumma
 			}
 		}
 		sort.Strings(state.row.SplitResourceIDs)
-		for _, resource := range resources {
-			if resource.Unit != state.row.Unit || !state.groupResources[resource.ResourceID] || !resource.ActualsRecorded {
+		for _, task := range tasks {
+			var baseline, planned, actual, withoutActuals float64
+			actualsRecorded := false
+			matched := false
+			for _, demand := range task.Demands {
+				resourceID := demand.ResourceID
+				if resourceID == "" {
+					resourceID = demand.BaselineResourceID
+				}
+				if demand.Unit != state.row.Unit || !state.groupResources[resourceID] {
+					continue
+				}
+				matched = true
+				baseline += demand.BaselineAmount
+				planned += demand.CurrentPlannedAmount
+				actual += demand.ActualAmount
+				actualsRecorded = actualsRecorded || demand.ActualsRecorded
+				if !demand.ActualsRecorded {
+					withoutActuals += demand.BaselineAmount
+				}
+			}
+			if !matched {
 				continue
 			}
-			state.row.ActualsRecorded = true
-			addEstimateResourceAmounts(&state.row.Finished, resource.Finished)
-			addEstimateResourceAmounts(&state.row.All, resource.All)
+			addEstimateTaskAmounts(&state.row.All, baseline, planned, actual, withoutActuals, actualsRecorded)
+			if !task.Open {
+				addEstimateTaskAmounts(&state.row.Finished, baseline, planned, actual, withoutActuals, actualsRecorded)
+			}
+			state.row.ActualsRecorded = state.row.ActualsRecorded || actualsRecorded
 		}
-		if state.row.ActualsRecorded {
-			state.row.Finished.ActualBaselineRatio = amountRatio(state.row.Finished.ActualAmount, state.row.Finished.BaselineAmount)
-			state.row.All.ActualBaselineRatio = amountRatio(state.row.All.ActualAmount, state.row.All.BaselineAmount)
-		}
+		setEstimateResourceRatio(&state.row.Finished)
+		setEstimateResourceRatio(&state.row.All)
 		rows = append(rows, state.row)
 	}
 	sort.Slice(rows, func(i, j int) bool {
@@ -486,12 +546,6 @@ func estimateSplitGroups(tasks []EstimateTask, resources []EstimateResourceSumma
 		return rows[i].Unit < rows[j].Unit
 	})
 	return rows
-}
-
-func addEstimateResourceAmounts(target *EstimateResourceAmounts, source EstimateResourceAmounts) {
-	target.BaselineAmount += source.BaselineAmount
-	target.CurrentPlannedAmount += source.CurrentPlannedAmount
-	target.ActualAmount += source.ActualAmount
 }
 
 func roundEstimateResult(result *EstimateReportResult) {
@@ -516,6 +570,7 @@ func roundEstimateResult(result *EstimateReportResult) {
 		for j := range result.Tasks[i].Totals {
 			total := &result.Tasks[i].Totals[j]
 			total.BaselineAmount = roundEstimate(total.BaselineAmount)
+			total.BaselineAmountWithoutActuals = roundEstimate(total.BaselineAmountWithoutActuals)
 			total.CurrentPlannedAmount = roundEstimate(total.CurrentPlannedAmount)
 			total.CurrentRemainingAmount = roundEstimate(total.CurrentRemainingAmount)
 			total.ActualAmount = roundEstimate(total.ActualAmount)
@@ -532,6 +587,7 @@ func roundEstimateResult(result *EstimateReportResult) {
 
 func roundEstimateResourceAmounts(amounts *EstimateResourceAmounts) {
 	amounts.BaselineAmount = roundEstimate(amounts.BaselineAmount)
+	amounts.BaselineAmountWithoutActuals = roundEstimate(amounts.BaselineAmountWithoutActuals)
 	amounts.CurrentPlannedAmount = roundEstimate(amounts.CurrentPlannedAmount)
 	amounts.ActualAmount = roundEstimate(amounts.ActualAmount)
 	amounts.ActualBaselineRatio = roundEstimatePointer(amounts.ActualBaselineRatio)

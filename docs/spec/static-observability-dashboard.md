@@ -461,13 +461,17 @@ Required sections:
 - every sealed baseline that carries an estimate snapshot;
 - per-resource baseline amount, actual amount and actual-to-baseline ratio;
 - explicit `no actuals` state;
+- baseline amount and task coverage without actuals beside each resource and
+  split-group ratio;
 - calibrations whose source baselines include the baseline;
 - empty state when no sealed estimate baseline exists.
 
 Implemented: values come from the same estimate report service as `replan
 report estimates`; the page does not recalculate accuracy. Recognized resource
 splits use that report's `split_groups`, while zero-baseline resources with
-actuals are labeled as added after the baseline. The raw contract is
+actuals remain identifiable in the raw data. Ratios use only measured demand
+baselines; null ratios render as `no actuals`, and the page shows the omitted
+baseline amount and task count beside the ratio. The raw contract is
 `raw/estimates.json`.
 
 ## Raw JSON contracts

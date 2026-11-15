@@ -111,6 +111,57 @@ func TestEstimateReportUsesCorrectedActualAmount(t *testing.T) {
 	}
 }
 
+func TestEstimateReportMissingAndMixedActualCoverage(t *testing.T) {
+	baseline := domain.Baseline{
+		ID: "baseline.coverage", CreatedAt: "2026-11-01T00:00:00Z", ApprovedBy: domain.Ref{Kind: "actor", ID: "actor.test"},
+		IncludedTasks: []domain.BaselineTaskEntry{{Ref: domain.Ref{Kind: "task", ID: "task.measured"}}, {Ref: domain.Ref{Kind: "task", ID: "task.unmeasured"}}},
+		IncludedDemands: []domain.BaselineDemandEntry{
+			{Ref: domain.Ref{Kind: "resource_demand", ID: "demand.measured"}, Task: "task.measured", Resource: "resource.agent", Unit: "hours", PlannedAmount: domain.Amount(4)},
+			{Ref: domain.Ref{Kind: "resource_demand", ID: "demand.unmeasured"}, Task: "task.unmeasured", Resource: "resource.agent", Unit: "hours", PlannedAmount: domain.Amount(6)},
+		},
+	}
+	if err := domain.SealBaseline(&baseline); err != nil {
+		t.Fatal(err)
+	}
+	ws := domain.Workspace{
+		Project: domain.Project{ID: "project.coverage"}, Baselines: []domain.Baseline{baseline}, Resources: []domain.Resource{{ID: "resource.agent"}, {ID: "resource.codex"}},
+		Tasks: []domain.Task{{ID: "task.measured", TrackingStatus: "accepted"}, {ID: "task.unmeasured", TrackingStatus: "accepted"}},
+		ResourceDemands: []domain.ResourceDemand{
+			{ID: "demand.measured", TaskRef: domain.Ref{ID: "task.measured"}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "hours", PlannedAmount: 2},
+			{ID: "demand.measured.codex", TaskRef: domain.Ref{ID: "task.measured"}, ResourceRef: domain.Ref{ID: "resource.codex"}, Unit: "hours", PlannedAmount: 2},
+			{ID: "demand.unmeasured", TaskRef: domain.Ref{ID: "task.unmeasured"}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "hours", PlannedAmount: 6},
+		},
+		Actuals: []domain.Actual{
+			{ID: "actual.measured", Type: "work_consumed", DemandRef: domain.Ref{ID: "demand.measured"}, Amount: 2, Unit: "hours"},
+			{ID: "actual.measured.codex", Type: "work_consumed", DemandRef: domain.Ref{ID: "demand.measured.codex"}, Amount: 1, Unit: "hours"},
+		},
+	}
+	result, err := app.NewReportService(stubLoader{ws: ws}).Estimates(context.Background(), app.EstimateReportRequest{BaselineID: baseline.ID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	unmeasured := estimateDemandByID(t, estimateTaskByID(t, result.Tasks, "task.unmeasured").Demands, "demand.unmeasured")
+	if unmeasured.ActualAmount != 0 || unmeasured.ActualsRecorded || unmeasured.ActualBaselineRatio != nil {
+		t.Fatalf("unmeasured demand looks measured: %#v", unmeasured)
+	}
+	total := estimateTaskByID(t, result.Tasks, "task.unmeasured").Totals[0]
+	if total.ActualBaselineRatio != nil || total.BaselineAmountWithoutActuals != 6 {
+		t.Fatalf("unmeasured task total = %#v", total)
+	}
+	summary := estimateResourceByID(t, result.Resources, "resource.agent", "hours")
+	if summary.Finished.BaselineAmountWithoutActuals != 6 || summary.Finished.TasksWithActuals != 1 || summary.Finished.TasksWithoutActuals != 1 ||
+		summary.Finished.ActualBaselineRatio == nil || *summary.Finished.ActualBaselineRatio != 0.5 {
+		t.Fatalf("mixed summary did not use measured baseline only: %#v", summary)
+	}
+	if len(result.SplitGroups) != 1 {
+		t.Fatalf("split groups = %#v, want one", result.SplitGroups)
+	}
+	group := result.SplitGroups[0].Finished
+	if group.BaselineAmountWithoutActuals != 6 || group.TasksWithActuals != 1 || group.TasksWithoutActuals != 1 || group.ActualBaselineRatio == nil || *group.ActualBaselineRatio != 0.75 {
+		t.Fatalf("mixed split group did not use measured baseline only: %#v", group)
+	}
+}
+
 func TestEstimateReportRefusals(t *testing.T) {
 	refOnly := domain.Baseline{ID: "baseline.ref", CreatedAt: "2026-10-01T00:00:00Z", ApprovedBy: domain.Ref{Kind: "actor", ID: "actor.test"},
 		IncludedTasks: []domain.BaselineTaskEntry{{Ref: domain.Ref{Kind: "task", ID: "task.finished"}}}}

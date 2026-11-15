@@ -970,6 +970,52 @@ func TestReportEstimatesJSONMarkdownAndRefusalExits(t *testing.T) {
 	}
 }
 
+func TestEstimateMarkdownRendersNullRatioAsNoActualsWithCoverage(t *testing.T) {
+	var out strings.Builder
+	result := app.EstimateReportResult{
+		ProjectID: "project.test", BaselineID: "baseline.test", BaselineSealStatus: "verified",
+		Resources: []app.EstimateResourceSummary{{ResourceID: "resource.test", Unit: "hours", Finished: app.EstimateResourceAmounts{BaselineAmount: 5, BaselineAmountWithoutActuals: 5, TasksWithoutActuals: 1}, All: app.EstimateResourceAmounts{BaselineAmount: 5, BaselineAmountWithoutActuals: 5, TasksWithoutActuals: 1}}},
+		Tasks:     []app.EstimateTask{{TaskID: "task.test", TrackingStatus: "accepted", Demands: []app.EstimateDemand{{DemandID: "demand.test", ResourceID: "resource.test", Unit: "hours", BaselineAmount: 5}}, Totals: []app.EstimateUnitTotals{{Unit: "hours", BaselineAmount: 5, BaselineAmountWithoutActuals: 5}}}},
+	}
+	if err := writeEstimateReportMarkdown(&out, result); err != nil {
+		t.Fatal(err)
+	}
+	markdown := out.String()
+	if !strings.Contains(markdown, "no actuals; 5 baseline without actuals, 1 tasks without actuals") || !strings.Contains(markdown, "| `demand.test`") || !strings.Contains(markdown, "| no actuals | false |") {
+		t.Fatalf("missing no-actuals coverage in markdown:\n%s", markdown)
+	}
+}
+
+func TestActualCommandsDefaultDemandUnitAndRejectConflict(t *testing.T) {
+	project := "../../examples/small-team"
+	tests := []struct {
+		name string
+		args []string
+		want int
+		unit string
+		code string
+	}{
+		{name: "set remaining default", args: []string{"actual", "set-remaining", "--project", project, "--demand", "resource_demand.task-op-1234.implementer", "--amount", "5", "--actor", "actor.human.operator", "--dry-run", "--format", "json"}, want: exitSuccess, unit: `"unit": "hours"`},
+		{name: "add consumption default", args: []string{"actual", "add-consumption", "--project", project, "--task", "task.op.1234", "--demand", "resource_demand.task-op-1234.implementer", "--resource", "resource.human.ivan", "--amount", "1", "--actor", "actor.human.operator", "--dry-run", "--format", "json"}, want: exitSuccess, unit: `"unit": "hours"`},
+		{name: "set remaining conflict", args: []string{"actual", "set-remaining", "--project", project, "--demand", "resource_demand.task-op-1234.implementer", "--amount", "5", "--unit", "days", "--actor", "actor.human.operator", "--dry-run", "--format", "json"}, want: exitValidationFailed, code: `"code": "unit_mismatch"`},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			stdout, stderr := tempOutputFiles(t)
+			if got := run(tc.args, stdout, stderr); got != tc.want {
+				t.Fatalf("exit=%d want=%d stdout=%s stderr=%s", got, tc.want, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+			}
+			output := readFileString(t, stdout.Name())
+			if tc.unit != "" && !strings.Contains(output, tc.unit) {
+				t.Fatalf("resolved unit missing from output: %s", output)
+			}
+			if tc.code != "" && !strings.Contains(output, tc.code) {
+				t.Fatalf("diagnostic missing from output: %s", output)
+			}
+		})
+	}
+}
+
 // documentedImplementedFlags deliberately reads only the simple inventory
 // blocks introduced by "Implemented command flags:". It does not interpret
 // design examples or the wider, explicitly not-implemented contract.
