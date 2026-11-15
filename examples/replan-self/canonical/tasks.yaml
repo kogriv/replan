@@ -8029,7 +8029,7 @@ tasks:
     title: Skip cancelled dependencies in the OpenProject helpers
     description: 'Reported on 2026-11-15 by the second consumer project on v0.5.4: after cancelling two dependencies in the plan (dependency set --status cancelled) and deleting their OpenProject relations with relation delete --remove-private-binding, push-openproject-date-drift still blocked with missing_live_dependency. The OpenProject helpers (push-openproject-date-drift, check-openproject-drift, apply-openproject-relations, plan-openproject-bootstrap, the operator report and the toolkit''s plan-backed relation commands) read every dependency without looking at its status, while the RePlan core already ignores cancelled ones; apply-openproject-relations would even recreate the deleted relations. Make the helpers skip cancelled dependencies as expected relations, report a cancelled dependency whose relation still exists in OpenProject for review with the relation delete command instead of blocking, document the order for taking a dependency off the plan and out of OpenProject, and cover it with unit tests and the throwaway OpenProject live check.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-15"
     planned_finish: "2026-11-15"
     assignee_hint:
@@ -8058,7 +8058,7 @@ tasks:
     title: Publish release v0.5.5 with the cancelled-dependency fix
     description: 'Agreed with the operator on 2026-11-15 together with the cancelled-dependency fix: publish release v0.5.5 with that fix and --scenario-id in the scenario commands (release notes, tag after green CI, archives compared with the CI build and its attestation, GitHub release, go install check), build the linux and windows kits, refresh the three consumer projects'' kits as before and tell the second consumer project that the fix is out.'
     type: release
-    tracking_status: not_started
+    tracking_status: in_progress
     planned_start: "2026-11-16"
     planned_finish: "2026-11-16"
     assignee_hint:
