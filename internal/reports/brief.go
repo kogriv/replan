@@ -23,14 +23,17 @@ type NextBrief struct {
 }
 
 type NextBriefItem struct {
-	Code     string                    `json:"code"`
-	What     string                    `json:"what"`
-	Subject  string                    `json:"subject,omitempty"`
-	Target   string                    `json:"target,omitempty"`
-	Date     string                    `json:"date,omitempty"`
-	Priority int                       `json:"priority,omitempty"`
-	Command  string                    `json:"command,omitempty"`
-	Details  []CalibrationDemandDetail `json:"details,omitempty"`
+	Code                  string                    `json:"code"`
+	What                  string                    `json:"what"`
+	Subject               string                    `json:"subject,omitempty"`
+	Target                string                    `json:"target,omitempty"`
+	Date                  string                    `json:"date,omitempty"`
+	Priority              int                       `json:"priority,omitempty"`
+	Command               string                    `json:"command,omitempty"`
+	Details               []CalibrationDemandDetail `json:"details,omitempty"`
+	Count                 int                       `json:"count,omitempty"`
+	Since                 string                    `json:"since,omitempty"`
+	ReplacesCalibrationID string                    `json:"replaces_calibration_id,omitempty"`
 }
 
 type NextBriefHealth struct {
@@ -79,7 +82,7 @@ func BuildNextBrief(overview DashboardOverview) NextBrief {
 	}
 	for _, action := range overview.NextActions {
 		what, known := nextBriefWhat[action.Code]
-		if action.Code == "apply_calibration" {
+		if action.Code == "apply_calibration" || (action.Code == "suggest_calibration" && action.Since != "") {
 			what, known = action.Label, true
 		}
 		if !known {
@@ -87,14 +90,17 @@ func BuildNextBrief(overview DashboardOverview) NextBrief {
 			continue
 		}
 		item := NextBriefItem{
-			Code:     action.Code,
-			What:     what,
-			Subject:  titles[action.Target],
-			Target:   action.Target,
-			Date:     action.Date,
-			Priority: action.Priority,
-			Command:  action.Command,
-			Details:  action.Details,
+			Code:                  action.Code,
+			What:                  what,
+			Subject:               titles[action.Target],
+			Target:                action.Target,
+			Date:                  action.Date,
+			Priority:              action.Priority,
+			Command:               action.Command,
+			Details:               action.Details,
+			Count:                 action.Count,
+			Since:                 action.Since,
+			ReplacesCalibrationID: action.ReplacesCalibrationID,
 		}
 		switch action.Actor {
 		case NextActionActorPerson:

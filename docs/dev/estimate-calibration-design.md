@@ -96,6 +96,23 @@ A task enters the sample only when all of these hold:
 The minimum sample is 8 tasks. Below it, `calibrate` refuses with
 `calibration_sample_too_small`, naming the count and the excluded tasks.
 
+#### Calibration window
+
+Estimating habits can change after a team sees its first calibration, so a
+single all-history sample can mix estimates made under different habits.
+`estimate calibrate --since YYYY-MM-DD` uses only tasks whose derived actual
+start is on or after the inclusive date. Tasks that started earlier are kept
+in `sample.excluded` as `started_before_window`, and the sealed record stores
+the date as `scope.since`.
+
+When `replan next` finds a verified measured calibration for the same unit and
+tag over an equal or wider resource set, it uses that calibration's approval
+date as the next window. It suggests recalibration only after eight clean,
+not-yet-sampled tasks have started in the window, includes `--since` in the
+command, and includes `--by-size` when the calibration being replaced used
+size bands. A project without such a measured calibration keeps the original
+all-history suggestion behavior.
+
 ### 4. A calibration is a sealed, approved record
 
 `calibrations/calibration.<date>.<slug>.yaml`, sealed with sha256 like a
@@ -211,7 +228,7 @@ has eight clean project tasks.
 ```text
 replan estimate calibrate --project <path> (--baseline <id> [--baseline <id> ...]|--all-baselines)
     --resource <id> [--resource <id> ...] --unit <unit> [--tag <tag>]
-    [--by-size] [--exclude <task-id>=<reason> ...] --id <id> --name <name>
+    [--since <YYYY-MM-DD>] [--by-size] [--exclude <task-id>=<reason> ...] --id <id> --name <name>
     --approved-by <actor-id> (--dry-run|--apply) [--format json|markdown]
 replan estimate list|show --project <path> [<id>] [--format json|markdown|text]
 replan estimate apply --project <path> --calibration <id> --scenario-id <id>
@@ -221,6 +238,8 @@ replan estimate apply --project <path> --calibration <id> --scenario-id <id>
 Refusals: `baseline_not_found` (4), `baseline_has_no_estimates` and
 `baseline_modified` (2) as in `report estimates`;
 `calibration_baseline_flags_conflict` (2);
+`invalid_since` (2); `calibration_prior_flags_conflict` (2) when `--since` is
+combined with `--prior`;
 `calibration_sample_too_small` (2); `calibration_modified` (2) when the seal
 does not verify; `approver_not_human` (3, policy denied).
 

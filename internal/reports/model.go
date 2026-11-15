@@ -334,6 +334,7 @@ type DashboardEstimateCalibration struct {
 	Count       int                            `json:"count"`
 	Method      string                         `json:"method,omitempty"`
 	PriorSource string                         `json:"prior_source,omitempty"`
+	Since       string                         `json:"since,omitempty"`
 	SizeBands   []DashboardCalibrationSizeBand `json:"size_bands,omitempty"`
 }
 
@@ -825,7 +826,10 @@ type DashboardNextAction struct {
 	Date     string `json:"date,omitempty"`
 	Priority int    `json:"priority,omitempty"`
 	// Details carries machine-readable values for an aggregate action.
-	Details []CalibrationDemandDetail `json:"details,omitempty"`
+	Details               []CalibrationDemandDetail `json:"details,omitempty"`
+	Count                 int                       `json:"count,omitempty"`
+	Since                 string                    `json:"since,omitempty"`
+	ReplacesCalibrationID string                    `json:"replaces_calibration_id,omitempty"`
 }
 
 // NextPlannedTask is human work from the plan that overlaps the selected

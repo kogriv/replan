@@ -520,7 +520,7 @@ func TestBaselineCreateListAndShowTextOutput(t *testing.T) {
 
 func TestEstimateCalibrationCLIWorkflow(t *testing.T) {
 	projectPath := copyCmdProjectFixtureFrom(t, "../../examples/estimate-calibration", "estimate-calibration")
-	base := []string{"estimate", "calibrate", "--project", projectPath, "--baseline", "baseline.fixture.original", "--resource", "resource.ai.executor", "--resource", "resource.ai.codex", "--unit", "agent_hours", "--tag", "calibration", "--by-size", "--exclude", "task.cal.09=actuals_judged", "--id", "calibration.cli.agents", "--name", "CLI calibration", "--approved-by", "actor.human.operator", "--occurred-at", "2026-10-12T09:00:00Z", "--format", "json"}
+	base := []string{"estimate", "calibrate", "--project", projectPath, "--baseline", "baseline.fixture.original", "--resource", "resource.ai.executor", "--resource", "resource.ai.codex", "--unit", "agent_hours", "--tag", "calibration", "--since", "2026-10-01", "--by-size", "--exclude", "task.cal.09=actuals_judged", "--id", "calibration.cli.agents", "--name", "CLI calibration", "--approved-by", "actor.human.operator", "--occurred-at", "2026-10-12T09:00:00Z", "--format", "json"}
 	stdout, stderr := tempOutputFiles(t)
 	if code := run(append(append([]string{}, base...), "--dry-run"), stdout, stderr); code != exitSuccess {
 		t.Fatalf("calibrate dry-run exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
@@ -533,6 +533,13 @@ func TestEstimateCalibrationCLIWorkflow(t *testing.T) {
 		t.Fatalf("calibrate apply exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
 	}
 	assertFileContains(t, filepath.Join(projectPath, "calibrations", "calibration.cli.agents.yaml"), "seal_sha256:")
+	stdout, stderr = tempOutputFiles(t)
+	if code := run([]string{"report", "estimates", "--project", projectPath, "--baseline", "baseline.fixture.original", "--format", "markdown"}, stdout, stderr); code != exitSuccess {
+		t.Fatalf("estimate report exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	if output := readFileString(t, stdout.Name()); !strings.Contains(output, "Since: 2026-10-01") {
+		t.Fatalf("estimate report omitted since: %s", output)
+	}
 	if err := os.WriteFile(filepath.Join(projectPath, "evidence", "cli.yaml"), []byte("evidence:\n  - id: evidence.fixture\n    type: planning_decision\n    observed_at: 2026-10-12T09:00:00Z\n    summary: CLI fixture.\n    actor_ref: {kind: actor, id: actor.human.operator}\n    target_refs: [{kind: project, id: project.estimate-calibration}]\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -561,11 +568,18 @@ func TestEstimateCalibrationCLIWorkflow(t *testing.T) {
 	for _, args := range [][]string{
 		{"estimate", "list", "--project", projectPath, "--format", "json"},
 		{"estimate", "show", "--project", projectPath, "calibration.cli.agents", "--format", "json"},
+		{"estimate", "list", "--project", projectPath, "--format", "text"},
+		{"estimate", "show", "--project", projectPath, "calibration.cli.agents", "--format", "markdown"},
 		{"estimate", "apply", "--project", projectPath, "--calibration", "calibration.cli.agents", "--scenario-id", "scenario.cli.calibrated", "--actor", "actor.human.operator", "--occurred-at", "2026-10-12T10:00:00Z", "--dry-run", "--format", "json"},
 	} {
 		stdout, stderr = tempOutputFiles(t)
 		if code := run(args, stdout, stderr); code != exitSuccess {
 			t.Fatalf("run(%v) exit=%d stdout=%s stderr=%s", args, code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+		}
+		if args[1] == "list" || args[1] == "show" {
+			if output := readFileString(t, stdout.Name()); !strings.Contains(output, "2026-10-01") {
+				t.Fatalf("run(%v) omitted since: %s", args, output)
+			}
 		}
 	}
 	stdout, stderr = tempOutputFiles(t)

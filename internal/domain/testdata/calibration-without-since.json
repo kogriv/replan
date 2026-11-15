@@ -1,0 +1,11 @@
+{
+  "id": "calibration.legacy",
+  "name": "Legacy",
+  "approved_by": {"kind": "actor", "id": "actor.operator"},
+  "approved_at": "2026-11-02T12:00:00Z",
+  "source_baselines": [],
+  "scope": {"resources": ["resource.agent"], "unit": "agent_hours"},
+  "sample": {"tasks": [], "excluded": []},
+  "result": {"factor": 0.23, "total_ratio": 0, "p25": 0, "p75": 0, "count": 0, "size_bands": []},
+  "seal_sha256": "7f29a098a007485a8bbd968f968aa26d007a237b79b913f73bd13b53e7c1183f"
+}

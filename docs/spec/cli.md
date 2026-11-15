@@ -1871,7 +1871,7 @@ samples.
 Implemented command flags:
 
 ```text
-replan estimate calibrate --project -p --bindings --format --baseline --all-baselines --prior --source --resource --unit --tag --by-size --exclude --id --name --approved-by --occurred-at --dry-run --apply
+replan estimate calibrate --project -p --bindings --format --baseline --all-baselines --prior --source --resource --unit --tag --since --by-size --exclude --id --name --approved-by --occurred-at --dry-run --apply
 replan estimate list --project -p --bindings --format
 replan estimate show --project -p --bindings --format
 replan estimate apply --project -p --bindings --format --calibration --scenario-id --actor --occurred-at --dry-run --apply
@@ -1892,12 +1892,20 @@ approving actor.
 silently skips baselines without estimates. It cannot be combined with
 `--baseline`. The calibration records only the baselines it used.
 
+`--since <YYYY-MM-DD>` limits the sample to tasks whose derived actual start
+is on or after that date. Earlier tasks remain visible in `sample.excluded`
+with reason `started_before_window`, and the inclusive boundary is stored as
+`scope.since`. The flag works with `--baseline` and `--all-baselines`; it is
+invalid with `--prior`. A malformed date or a date after the project status
+date is refused with `invalid_since` (exit 2). The prior combination uses
+`calibration_prior_flags_conflict` (exit 2).
+
 `--prior <factor> --source <text>` creates a sealed starting calibration when
 the project has no clean sample yet. The factor must be in `(0, 10]`. The
 record uses `result.method: prior`, stores the citation in
 `result.prior_source`, and has count zero, an empty sample and no source
 baselines. `--prior` cannot be combined with `--baseline`, `--all-baselines`,
-`--by-size` or `--exclude`. A prior without a source is invalid.
+`--since`, `--by-size` or `--exclude`. A prior without a source is invalid.
 
 `estimate apply` creates one ordinary scenario linked by `calibration_ref`.
 It does not yet skip demands whose amount was set by a person after the calibration date because the current audit and demand history do not reliably identify that edit.
@@ -1911,8 +1919,13 @@ demand without changing the stored amount. `next` emits one actionable
 `estimate apply` item per calibration with per-demand values in JSON, hides it
 after a scenario references the calibration, and suggests `estimate calibrate`
 only for maximal scopes with at least eight clean finished tasks not used by a
-same-unit calibration over a resource superset. When the latest calibration
-for that scope is a prior, the suggestion names the prior to replace.
+same-unit calibration over a resource superset. When a verified measured
+calibration exists for the same tag and an equal or wider resource scope, the
+suggestion counts only clean tasks started on or after its approval date and
+not already in its sample, names that calibration, and includes `--since`.
+It also preserves `--by-size` when replacing a size-band calibration. When the
+latest calibration for that scope is a prior, the suggestion names the prior
+to replace without adding a window.
 
 ## `replan baseline`
 

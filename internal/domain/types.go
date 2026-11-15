@@ -338,6 +338,7 @@ type CalibrationScope struct {
 	Resources []string `json:"resources" yaml:"resources"`
 	Unit      string   `json:"unit" yaml:"unit"`
 	Tag       string   `json:"tag,omitempty" yaml:"tag,omitempty"`
+	Since     string   `json:"since,omitempty" yaml:"since,omitempty"`
 }
 
 type CalibrationSample struct {

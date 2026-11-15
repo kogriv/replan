@@ -94,6 +94,48 @@ func TestCalibrationObservationUsesSameDayActualTimestamp(t *testing.T) {
 	}
 }
 
+func TestCalibrationSinceFiltersActualStartAndIncludesBoundary(t *testing.T) {
+	amount := 2.0
+	baseline := domain.Baseline{ID: "baseline.window", ApprovedAt: "2026-01-01T00:00:00Z"}
+	ws := domain.Workspace{
+		Project:   domain.Project{DefaultStatusDate: "2026-01-10"},
+		Actors:    []domain.Actor{{ID: "actor.operator", Kind: "human"}},
+		Resources: []domain.Resource{{ID: "resource.agent"}},
+	}
+	for i := 0; i < 9; i++ {
+		taskID, demandID := fmt.Sprintf("task.window.%d", i), fmt.Sprintf("demand.window.%d", i)
+		start := "2026-01-03"
+		if i == 0 {
+			start = "2026-01-02"
+		}
+		ws.Tasks = append(ws.Tasks, domain.Task{ID: taskID, TrackingStatus: "accepted"})
+		ws.ResourceDemands = append(ws.ResourceDemands, domain.ResourceDemand{ID: demandID, TaskRef: domain.Ref{ID: taskID}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "hours"})
+		ws.Actuals = append(ws.Actuals, domain.Actual{ID: "actual." + taskID, Type: "work_consumed", TaskRef: domain.Ref{ID: taskID}, DemandRef: domain.Ref{ID: demandID}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "hours", Amount: 1, StatusDate: start})
+		baseline.IncludedTasks = append(baseline.IncludedTasks, domain.BaselineTaskEntry{Ref: domain.Ref{ID: taskID}})
+		baseline.IncludedDemands = append(baseline.IncludedDemands, domain.BaselineDemandEntry{Ref: domain.Ref{ID: demandID}, Task: taskID, Resource: "resource.agent", Unit: "hours", PlannedAmount: &amount})
+	}
+	if err := domain.SealBaseline(&baseline); err != nil {
+		t.Fatal(err)
+	}
+	ws.Baselines = []domain.Baseline{baseline}
+	result, err := NewCalibrationService(calibrationTestLoader{ws: ws}).Calibrate(context.Background(), CalibrationCalibrateRequest{
+		BaselineIDs: []string{baseline.ID}, ResourceIDs: []string{"resource.agent"}, Unit: "hours", Since: "2026-01-03",
+		ID: "calibration.window", Name: "Window", ApprovedBy: "actor.operator", DryRun: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Calibration.Scope.Since != "2026-01-03" || result.Calibration.Result.Count != 8 {
+		t.Fatalf("calibration=%#v", result.Calibration)
+	}
+	if containsString(result.Calibration.Sample.Tasks, "task.window.0") || !containsString(result.Calibration.Sample.Tasks, "task.window.1") {
+		t.Fatalf("boundary sample=%v", result.Calibration.Sample.Tasks)
+	}
+	if len(result.Calibration.Sample.Excluded) != 1 || result.Calibration.Sample.Excluded[0].Reason != "started_before_window" {
+		t.Fatalf("excluded=%#v", result.Calibration.Sample.Excluded)
+	}
+}
+
 func TestCalibrationUsesCorrectedActualAmount(t *testing.T) {
 	baselineAmount, corrected := 2.0, 0.1
 	baseline := domain.Baseline{ID: "baseline.corrected", ApprovedAt: "2026-01-01T09:00:00Z", IncludedTasks: []domain.BaselineTaskEntry{{Ref: domain.Ref{ID: "task.corrected"}}}, IncludedDemands: []domain.BaselineDemandEntry{{Ref: domain.Ref{ID: "demand.corrected"}, Task: "task.corrected", Resource: "resource.agent", Unit: "hours", PlannedAmount: &baselineAmount}}}
@@ -231,6 +273,7 @@ func TestPriorCalibrationRefusals(t *testing.T) {
 		{name: "all baselines conflict", change: func(req *CalibrationCalibrateRequest) { req.AllBaselines = true }, code: "calibration_prior_flags_conflict"},
 		{name: "by size conflict", change: func(req *CalibrationCalibrateRequest) { req.BySize = true }, code: "calibration_prior_flags_conflict"},
 		{name: "exclude conflict", change: func(req *CalibrationCalibrateRequest) { req.Exclusions = map[string]string{"task.test": "judged"} }, code: "calibration_prior_flags_conflict"},
+		{name: "since conflict", change: func(req *CalibrationCalibrateRequest) { req.Since = "2026-01-01" }, code: "calibration_prior_flags_conflict"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -241,6 +284,20 @@ func TestPriorCalibrationRefusals(t *testing.T) {
 				t.Fatalf("err=%v errors=%#v, want %s", err, result.Errors, test.code)
 			}
 		})
+	}
+}
+
+func TestCalibrationSinceRefusals(t *testing.T) {
+	ws := limitedCalibrationWorkspace(t)
+	ws.Project.DefaultStatusDate = "2026-01-10"
+	for _, since := range []string{"not-a-date", "2026-01-11"} {
+		result, err := NewCalibrationService(calibrationTestLoader{ws: ws}).Calibrate(context.Background(), CalibrationCalibrateRequest{
+			AllBaselines: true, ResourceIDs: []string{"resource.executor"}, Unit: "hours", Since: since,
+			ID: "calibration.bad-since", Name: "Bad since", ApprovedBy: "actor.operator", DryRun: true,
+		})
+		if err == nil || !hasDiagnosticCode(result.Errors, "invalid_since") {
+			t.Fatalf("since=%q err=%v errors=%#v", since, err, result.Errors)
+		}
 	}
 }
 
@@ -338,6 +395,73 @@ func TestCalibrationSuggestionsUseMaximalScopeAndUnusedTasks(t *testing.T) {
 	}
 	if len(candidates) != 1 {
 		t.Fatalf("candidates=%#v", candidates)
+	}
+}
+
+func TestNextSuggestsWindowedSizeBandRecalibrationAtMinimum(t *testing.T) {
+	amount := 2.0
+	baseline := domain.Baseline{ID: "baseline.recalibrate", ApprovedAt: "2025-12-31T00:00:00Z"}
+	ws := domain.Workspace{Project: domain.Project{DefaultStatusDate: "2026-01-10"}}
+	calibration := domain.Calibration{
+		ID: "calibration.previous", ApprovedAt: "2026-01-03T09:00:00Z",
+		Scope:  domain.CalibrationScope{Resources: []string{"resource.executor"}, Unit: "hours"},
+		Result: domain.CalibrationResult{Method: "size_bands"},
+	}
+	for i := 0; i < 16; i++ {
+		taskID, demandID := fmt.Sprintf("task.recalibrate.%02d", i), fmt.Sprintf("demand.recalibrate.%02d", i)
+		start := "2026-01-02"
+		if i >= 8 {
+			start = "2026-01-03"
+		} else {
+			calibration.Sample.Tasks = append(calibration.Sample.Tasks, taskID)
+		}
+		ws.Tasks = append(ws.Tasks, domain.Task{ID: taskID, TrackingStatus: "accepted"})
+		ws.ResourceDemands = append(ws.ResourceDemands, domain.ResourceDemand{ID: demandID, TaskRef: domain.Ref{ID: taskID}, ResourceRef: domain.Ref{ID: "resource.executor"}, Unit: "hours"})
+		ws.Actuals = append(ws.Actuals, domain.Actual{ID: "actual." + taskID, Type: "work_consumed", TaskRef: domain.Ref{ID: taskID}, DemandRef: domain.Ref{ID: demandID}, ResourceRef: domain.Ref{ID: "resource.executor"}, Unit: "hours", Amount: 1, StatusDate: start})
+		baseline.IncludedTasks = append(baseline.IncludedTasks, domain.BaselineTaskEntry{Ref: domain.Ref{ID: taskID}})
+		baseline.IncludedDemands = append(baseline.IncludedDemands, domain.BaselineDemandEntry{Ref: domain.Ref{ID: demandID}, Task: taskID, Resource: "resource.executor", Unit: "hours", PlannedAmount: &amount})
+	}
+	calibration.Result.Count = len(calibration.Sample.Tasks)
+	if err := domain.SealCalibration(&calibration); err != nil {
+		t.Fatal(err)
+	}
+	if err := domain.SealBaseline(&baseline); err != nil {
+		t.Fatal(err)
+	}
+	ws.Calibrations, ws.Baselines = []domain.Calibration{calibration}, []domain.Baseline{baseline}
+	actions := dashboardNextActions(ws, reports.DashboardOverview{ProjectPath: "fixture"})
+	var suggestion *reports.DashboardNextAction
+	for i := range actions {
+		if actions[i].Code == "suggest_calibration" {
+			suggestion = &actions[i]
+		}
+	}
+	if suggestion == nil {
+		t.Fatalf("actions=%#v", actions)
+	}
+	if suggestion.Count != 8 || suggestion.Since != "2026-01-03" || suggestion.ReplacesCalibrationID != calibration.ID {
+		t.Fatalf("suggestion=%#v", suggestion)
+	}
+	if !strings.Contains(suggestion.Command, "--since 2026-01-03") || !strings.Contains(suggestion.Command, "--by-size") {
+		t.Fatalf("command=%q", suggestion.Command)
+	}
+	if !strings.Contains(suggestion.Label, "8 clean tasks started since 2026-01-03, not in calibration.previous") {
+		t.Fatalf("label=%q", suggestion.Label)
+	}
+	brief := reports.BuildNextBrief(reports.DashboardOverview{NextActions: actions})
+	var briefSuggestion *reports.NextBriefItem
+	for i := range brief.AgentCanPrepare {
+		if brief.AgentCanPrepare[i].Code == "suggest_calibration" {
+			briefSuggestion = &brief.AgentCanPrepare[i]
+		}
+	}
+	if briefSuggestion == nil || briefSuggestion.What != suggestion.Label || briefSuggestion.Since != suggestion.Since {
+		t.Fatalf("brief=%#v", brief)
+	}
+
+	ws.Actuals = ws.Actuals[:len(ws.Actuals)-1]
+	if actions := dashboardNextActions(ws, reports.DashboardOverview{ProjectPath: "fixture"}); countNextActions(actions, "suggest_calibration") != 0 {
+		t.Fatalf("suggested below minimum: %#v", actions)
 	}
 }
 

@@ -49,6 +49,7 @@ func runEstimateCalibrate(args []string, stdout, stderr *os.File) int {
 	fs.Var(&exclusions, "exclude", "optional repeatable task-id=reason exclusion")
 	unit := fs.String("unit", "", "required calibration unit")
 	tag := fs.String("tag", "", "optional task tag scope")
+	since := fs.String("since", "", "optional earliest actual start date (YYYY-MM-DD)")
 	bySize := fs.Bool("by-size", false, "apply a factor per estimate-size band")
 	id := fs.String("id", "", "required calibration id")
 	name := fs.String("name", "", "required calibration name")
@@ -78,7 +79,7 @@ func runEstimateCalibrate(args []string, stdout, stderr *os.File) int {
 		return code
 	}
 	result, err := app.NewCalibrationService(newStore(*projectPath)).Calibrate(context.Background(), app.CalibrationCalibrateRequest{
-		BaselineIDs: baselines, AllBaselines: *allBaselines, Prior: priorValue, PriorSource: *priorSource, ResourceIDs: resources, Unit: *unit, Tag: *tag, Exclusions: excluded,
+		BaselineIDs: baselines, AllBaselines: *allBaselines, Prior: priorValue, PriorSource: *priorSource, ResourceIDs: resources, Unit: *unit, Tag: *tag, Since: *since, Exclusions: excluded,
 		ID: *id, Name: *name, ApprovedBy: *approvedBy, OccurredAt: *occurredAt, DryRun: dryRun, BySize: *bySize,
 	})
 	env := envelope{OK: err == nil && len(result.Errors) == 0, Command: "estimate calibrate", ProjectPath: *projectPath, Result: result, Warnings: result.Warnings, Errors: result.Errors}
@@ -106,6 +107,9 @@ func runEstimateList(args []string, stdout, stderr *os.File) int {
 			fmt.Fprintf(stdout, "- `%s`: factor %.6g, %d tasks, %s%s (%s)\n", row.ID, row.Factor, row.Count, row.Unit, method, row.SealStatus)
 			if row.PriorSource != "" {
 				fmt.Fprintf(stdout, "  - Source: %s\n", row.PriorSource)
+			}
+			if row.Since != "" {
+				fmt.Fprintf(stdout, "  - Since: %s\n", row.Since)
 			}
 			if row.Method == "size_bands" {
 				for _, band := range row.SizeBands {
@@ -201,6 +205,9 @@ func writeCalibrationMarkdown(out *os.File, calibration domain.Calibration) {
 	}
 	if calibration.Result.PriorSource != "" {
 		fmt.Fprintf(out, "- Source: %s\n", calibration.Result.PriorSource)
+	}
+	if calibration.Scope.Since != "" {
+		fmt.Fprintf(out, "- Since: `%s`\n", calibration.Scope.Since)
 	}
 	fmt.Fprintln(out)
 	if len(calibration.Result.SizeBands) > 0 {

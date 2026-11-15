@@ -251,7 +251,7 @@ func (s ReportService) dashboardEstimatesPage(ctx context.Context, ws domain.Wor
 		}
 		page.Data.StartingFactors = append(page.Data.StartingFactors, reports.DashboardEstimateCalibration{
 			ID: calibration.ID, Name: calibration.Name, Resources: calibration.Scope.Resources, Unit: calibration.Scope.Unit,
-			Factor: calibration.Result.Factor, Count: calibration.Result.Count, Method: calibration.Result.Method, PriorSource: calibration.Result.PriorSource,
+			Factor: calibration.Result.Factor, Count: calibration.Result.Count, Method: calibration.Result.Method, PriorSource: calibration.Result.PriorSource, Since: calibration.Scope.Since,
 		})
 	}
 	for _, baseline := range ws.Baselines {
@@ -278,7 +278,7 @@ func (s ReportService) dashboardEstimatesPage(ctx context.Context, ws domain.Wor
 			item.Tasks = append(item.Tasks, row)
 		}
 		for _, calibration := range report.Calibrations {
-			row := reports.DashboardEstimateCalibration{ID: calibration.ID, Name: calibration.Name, Resources: calibration.Resources, Unit: calibration.Unit, Factor: calibration.Factor, TotalRatio: calibration.TotalRatio, Count: calibration.Count, Method: calibration.Method, PriorSource: calibration.PriorSource, SizeBands: []reports.DashboardCalibrationSizeBand{}}
+			row := reports.DashboardEstimateCalibration{ID: calibration.ID, Name: calibration.Name, Resources: calibration.Resources, Unit: calibration.Unit, Factor: calibration.Factor, TotalRatio: calibration.TotalRatio, Count: calibration.Count, Method: calibration.Method, PriorSource: calibration.PriorSource, Since: calibration.Since, SizeBands: []reports.DashboardCalibrationSizeBand{}}
 			for _, band := range calibration.SizeBands {
 				label := "above 4"
 				if band.UpTo != nil {

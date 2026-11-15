@@ -1100,6 +1100,15 @@
       }
     },
     {
+      "code": "invalid_since",
+      "message": "calibration since \"yesterday\" must be YYYY-MM-DD",
+      "severity": "error",
+      "target": {
+        "kind": "calibration",
+        "id": "calibration.unsealed"
+      }
+    },
+    {
       "code": "invalid_calibration_count",
       "message": "calibration count 1 does not match 0 sample tasks",
       "severity": "error",

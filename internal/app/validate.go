@@ -603,6 +603,11 @@ func (v *workspaceValidator) calibrations(calibrations []domain.Calibration, bas
 	}
 	for _, calibration := range calibrations {
 		v.register("calibration", calibration.ID)
+		if calibration.Scope.Since != "" {
+			if _, err := time.Parse(calendarDateLayout, calibration.Scope.Since); err != nil {
+				v.errorf("invalid_since", "calibration", calibration.ID, "calibration since %q must be YYYY-MM-DD", calibration.Scope.Since)
+			}
+		}
 		if calibration.Result.Method != "" && calibration.Result.Method != "size_bands" && calibration.Result.Method != "prior" {
 			v.errorf("calibration_method_unknown", "calibration", calibration.ID, "calibration method %q is unknown", calibration.Result.Method)
 		}

@@ -1019,6 +1019,9 @@ func WriteDashboardEstimatesHTML(w io.Writer, page DashboardEstimatesPage) error
 				if calibration.PriorSource != "" {
 					method += " · source " + html.EscapeString(calibration.PriorSource)
 				}
+				if calibration.Since != "" {
+					method += " · since " + html.EscapeString(calibration.Since)
+				}
 				bands := ""
 				for _, band := range calibration.SizeBands {
 					factor := ""
