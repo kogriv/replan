@@ -1383,3 +1383,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.skip-cancelled-dependencies
+  - id: evidence.self.skip-cancelled-dependencies
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-15T12:27:42+07:00"
+    summary: 'Fix commit e4b5afb: a dependency with status cancelled is no longer an expected OpenProject relation in push-openproject-date-drift, check-openproject-drift, the operator report, apply-openproject-relations, plan-openproject-bootstrap and the toolkit''s plan-backed relation list (one rule in openproject_bindings). A relation still live for a cancelled dependency is a non-blocking review item and warning cancelled_dependency_still_live, a leftover binding gives cancelled_dependency_binding_left, both with the relation delete command; relation apply counts skip_cancelled_dependency, never creates, binds or deletes, and leaves cancelled follows edges out of scheduling. Agent kit docs gained ''Take a dependency off the plan''. 304 Python tests including a new cancelled-dependency suite. Review: the new live-check block read applied at the envelope top level and the relation id from the private bindings file, which the sample plan never writes (its resource dependency is refused, so relation apply skips the file, documented behaviour); fixed by the executor to read result.applied and the relation id from the apply output, found with a temporary dump in three throwaway reruns. Gate: vet, lint 0, shellcheck, unit suites, smoke, isolated smoke, 55 kit checks pass; live kit check 108 checks (7 new) after the fix. Codex 11:13:44-11:40:44 (0.45 h, prompt and last-file mtimes). Executor 0.23 h by tool-call times, excluding waits for Codex and the live-check runs.'
+    targets:
+      - kind: task
+        id: task.self.skip-cancelled-dependencies
