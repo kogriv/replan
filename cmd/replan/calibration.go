@@ -50,6 +50,7 @@ func runEstimateCalibrate(args []string, stdout, stderr *os.File) int {
 	unit := fs.String("unit", "", "required calibration unit")
 	tag := fs.String("tag", "", "optional task tag scope")
 	since := fs.String("since", "", "optional earliest actual start date (YYYY-MM-DD)")
+	includeReviewReady := fs.Bool("include-review-ready", false, "include review-ready tasks in the clean sample")
 	bySize := fs.Bool("by-size", false, "apply a factor per estimate-size band")
 	id := fs.String("id", "", "required calibration id")
 	name := fs.String("name", "", "required calibration name")
@@ -79,7 +80,7 @@ func runEstimateCalibrate(args []string, stdout, stderr *os.File) int {
 		return code
 	}
 	result, err := app.NewCalibrationService(newStore(*projectPath)).Calibrate(context.Background(), app.CalibrationCalibrateRequest{
-		BaselineIDs: baselines, AllBaselines: *allBaselines, Prior: priorValue, PriorSource: *priorSource, ResourceIDs: resources, Unit: *unit, Tag: *tag, Since: *since, Exclusions: excluded,
+		BaselineIDs: baselines, AllBaselines: *allBaselines, Prior: priorValue, PriorSource: *priorSource, ResourceIDs: resources, Unit: *unit, Tag: *tag, Since: *since, IncludeReviewReady: *includeReviewReady, Exclusions: excluded,
 		ID: *id, Name: *name, ApprovedBy: *approvedBy, OccurredAt: *occurredAt, DryRun: dryRun, BySize: *bySize,
 	})
 	env := envelope{OK: err == nil && len(result.Errors) == 0, Command: "estimate calibrate", ProjectPath: *projectPath, Result: result, Warnings: result.Warnings, Errors: result.Errors}
@@ -110,6 +111,9 @@ func runEstimateList(args []string, stdout, stderr *os.File) int {
 			}
 			if row.Since != "" {
 				fmt.Fprintf(stdout, "  - Since: %s\n", row.Since)
+			}
+			if row.ReviewReadyCount > 0 {
+				fmt.Fprintf(stdout, "  - Includes %d review-ready tasks\n", row.ReviewReadyCount)
 			}
 			if row.Method == "size_bands" {
 				for _, band := range row.SizeBands {
@@ -208,6 +212,9 @@ func writeCalibrationMarkdown(out *os.File, calibration domain.Calibration) {
 	}
 	if calibration.Scope.Since != "" {
 		fmt.Fprintf(out, "- Since: `%s`\n", calibration.Scope.Since)
+	}
+	if calibration.Result.ReviewReadyCount > 0 {
+		fmt.Fprintf(out, "- Includes %d review-ready tasks\n", calibration.Result.ReviewReadyCount)
 	}
 	fmt.Fprintln(out)
 	if len(calibration.Result.SizeBands) > 0 {

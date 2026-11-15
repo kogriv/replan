@@ -1022,6 +1022,9 @@ func WriteDashboardEstimatesHTML(w io.Writer, page DashboardEstimatesPage) error
 				if calibration.Since != "" {
 					method += " · since " + html.EscapeString(calibration.Since)
 				}
+				if calibration.ReviewReadyCount > 0 {
+					method += fmt.Sprintf(" · includes %d review-ready tasks", calibration.ReviewReadyCount)
+				}
 				bands := ""
 				for _, band := range calibration.SizeBands {
 					factor := ""

@@ -1498,11 +1498,15 @@ func dashboardNextActions(ws domain.Workspace, overview reports.DashboardOvervie
 		}
 		sinceFlag := ""
 		bySizeFlag := ""
+		includeReviewReadyFlag := ""
 		if suggestion.Since != "" {
 			sinceFlag = " --since " + suggestion.Since
 		}
 		if suggestion.BySize {
 			bySizeFlag = " --by-size"
+		}
+		if suggestion.IncludeReviewReady {
+			includeReviewReadyFlag = " --include-review-ready"
 		}
 		baselineFlag := " --all-baselines"
 		targetBaseline := "all-baselines"
@@ -1517,11 +1521,14 @@ func dashboardNextActions(ws domain.Workspace, overview reports.DashboardOvervie
 		if suggestion.Since != "" {
 			label = fmt.Sprintf("Recalibrate %s for %s: %d clean tasks started since %s, not in %s.", suggestion.Unit, strings.Join(suggestion.Resources, ", "), suggestion.Count, suggestion.Since, suggestion.ReplacesID)
 		}
+		if suggestion.IncludeReviewReady {
+			label = strings.TrimSuffix(label, ".") + ", including review-ready tasks."
+		}
 		actions = append(actions, reports.DashboardNextAction{
 			Code: "suggest_calibration", Label: label,
 			Target:  targetBaseline + ":" + strings.Join(suggestion.Resources, ",") + ":" + suggestion.Unit + ":" + suggestion.Tag,
-			Command: fmt.Sprintf("replan estimate calibrate --project %s%s%s --unit %s%s%s%s --id <id> --name <name> --approved-by <human-actor-id> --dry-run --format markdown", overview.ProjectPath, baselineFlag, resourceFlags, suggestion.Unit, tagFlag, sinceFlag, bySizeFlag),
-			Actor:   reports.NextActionActorAgent, Count: suggestion.Count, Since: suggestion.Since, ReplacesCalibrationID: suggestion.ReplacesID,
+			Command: fmt.Sprintf("replan estimate calibrate --project %s%s%s --unit %s%s%s%s%s --id <id> --name <name> --approved-by <human-actor-id> --dry-run --format markdown", overview.ProjectPath, baselineFlag, resourceFlags, suggestion.Unit, tagFlag, sinceFlag, includeReviewReadyFlag, bySizeFlag),
+			Actor:   reports.NextActionActorAgent, Count: suggestion.Count, Since: suggestion.Since, ReplacesCalibrationID: suggestion.ReplacesID, IncludeReviewReady: suggestion.IncludeReviewReady,
 		})
 	}
 	for _, row := range overview.Workload {

@@ -278,7 +278,7 @@ func (s ReportService) dashboardEstimatesPage(ctx context.Context, ws domain.Wor
 			item.Tasks = append(item.Tasks, row)
 		}
 		for _, calibration := range report.Calibrations {
-			row := reports.DashboardEstimateCalibration{ID: calibration.ID, Name: calibration.Name, Resources: calibration.Resources, Unit: calibration.Unit, Factor: calibration.Factor, TotalRatio: calibration.TotalRatio, Count: calibration.Count, Method: calibration.Method, PriorSource: calibration.PriorSource, Since: calibration.Since, SizeBands: []reports.DashboardCalibrationSizeBand{}}
+			row := reports.DashboardEstimateCalibration{ID: calibration.ID, Name: calibration.Name, Resources: calibration.Resources, Unit: calibration.Unit, Factor: calibration.Factor, TotalRatio: calibration.TotalRatio, Count: calibration.Count, ReviewReadyCount: calibration.ReviewReadyCount, Method: calibration.Method, PriorSource: calibration.PriorSource, Since: calibration.Since, SizeBands: []reports.DashboardCalibrationSizeBand{}}
 			for _, band := range calibration.SizeBands {
 				label := "above 4"
 				if band.UpTo != nil {

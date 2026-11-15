@@ -1871,7 +1871,7 @@ samples.
 Implemented command flags:
 
 ```text
-replan estimate calibrate --project -p --bindings --format --baseline --all-baselines --prior --source --resource --unit --tag --since --by-size --exclude --id --name --approved-by --occurred-at --dry-run --apply
+replan estimate calibrate --project -p --bindings --format --baseline --all-baselines --prior --source --resource --unit --tag --since --include-review-ready --by-size --exclude --id --name --approved-by --occurred-at --dry-run --apply
 replan estimate list --project -p --bindings --format
 replan estimate show --project -p --bindings --format
 replan estimate apply --project -p --bindings --format --calibration --scenario-id --actor --occurred-at --dry-run --apply
@@ -1887,6 +1887,15 @@ up to 4 and above 4. Apply creates a sealed, immutable
 `calibrations/<id>.yaml` and an audit record. Under `proposal_only`, the
 approver must be human; `direct` explicitly allows an existing non-human
 approving actor.
+
+`--include-review-ready` also treats tasks whose tracking status is
+`review_ready` as finished for this calibration only. They must still satisfy
+every other clean-sample rule, including counted actuals; a review-ready task
+without actuals remains excluded as `no_actuals`. The sealed record stores the
+opt-in as `scope.include_review_ready: true` and reports the included subset as
+`result.review_ready_count`. Both fields are omitted when zero or false so
+historical record digests remain stable. The flag is invalid with `--prior`
+and uses `calibration_prior_flags_conflict` (exit 2).
 
 `--all-baselines` uses every verified baseline that carries estimates and
 silently skips baselines without estimates. It cannot be combined with
@@ -1905,7 +1914,8 @@ the project has no clean sample yet. The factor must be in `(0, 10]`. The
 record uses `result.method: prior`, stores the citation in
 `result.prior_source`, and has count zero, an empty sample and no source
 baselines. `--prior` cannot be combined with `--baseline`, `--all-baselines`,
-`--since`, `--by-size` or `--exclude`. A prior without a source is invalid.
+`--since`, `--include-review-ready`, `--by-size` or `--exclude`. A prior
+without a source is invalid.
 
 `estimate apply` creates one ordinary scenario linked by `calibration_ref`.
 It does not yet skip demands whose amount was set by a person after the calibration date because the current audit and demand history do not reliably identify that edit.
@@ -1925,7 +1935,11 @@ suggestion counts only clean tasks started on or after its approval date and
 not already in its sample, names that calibration, and includes `--since`.
 It also preserves `--by-size` when replacing a size-band calibration. When the
 latest calibration for that scope is a prior, the suggestion names the prior
-to replace without adding a window.
+to replace without adding a window. The default suggestion still counts only
+accepted, done or closed tasks. If that count is below eight but reaches eight
+when clean review-ready tasks with actuals are included, the single suggestion
+adds `--include-review-ready` and exposes `include_review_ready: true` in its
+structured action.
 
 ## `replan baseline`
 

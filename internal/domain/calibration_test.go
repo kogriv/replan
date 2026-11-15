@@ -27,7 +27,7 @@ func TestCalibrationSealVerifiesAndDetectsChanges(t *testing.T) {
 	}
 }
 
-func TestCalibrationDigestUnchangedForRecordWithoutSince(t *testing.T) {
+func TestExistingCalibrationDigestUnchangedForOmittedAdditiveFields(t *testing.T) {
 	data, err := os.ReadFile("testdata/calibration-without-since.json")
 	if err != nil {
 		t.Fatal(err)

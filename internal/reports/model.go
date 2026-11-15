@@ -325,17 +325,18 @@ type DashboardEstimateTotal struct {
 }
 
 type DashboardEstimateCalibration struct {
-	ID          string                         `json:"id"`
-	Name        string                         `json:"name"`
-	Resources   []string                       `json:"resources"`
-	Unit        string                         `json:"unit"`
-	Factor      float64                        `json:"factor"`
-	TotalRatio  float64                        `json:"total_ratio"`
-	Count       int                            `json:"count"`
-	Method      string                         `json:"method,omitempty"`
-	PriorSource string                         `json:"prior_source,omitempty"`
-	Since       string                         `json:"since,omitempty"`
-	SizeBands   []DashboardCalibrationSizeBand `json:"size_bands,omitempty"`
+	ID               string                         `json:"id"`
+	Name             string                         `json:"name"`
+	Resources        []string                       `json:"resources"`
+	Unit             string                         `json:"unit"`
+	Factor           float64                        `json:"factor"`
+	TotalRatio       float64                        `json:"total_ratio"`
+	Count            int                            `json:"count"`
+	ReviewReadyCount int                            `json:"review_ready_count,omitempty"`
+	Method           string                         `json:"method,omitempty"`
+	PriorSource      string                         `json:"prior_source,omitempty"`
+	Since            string                         `json:"since,omitempty"`
+	SizeBands        []DashboardCalibrationSizeBand `json:"size_bands,omitempty"`
 }
 
 type DashboardCalibrationSizeBand struct {
@@ -830,6 +831,7 @@ type DashboardNextAction struct {
 	Count                 int                       `json:"count,omitempty"`
 	Since                 string                    `json:"since,omitempty"`
 	ReplacesCalibrationID string                    `json:"replaces_calibration_id,omitempty"`
+	IncludeReviewReady    bool                      `json:"include_review_ready,omitempty"`
 }
 
 // NextPlannedTask is human work from the plan that overlaps the selected

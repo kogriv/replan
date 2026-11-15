@@ -335,10 +335,11 @@ type CalibrationSourceBaseline struct {
 }
 
 type CalibrationScope struct {
-	Resources []string `json:"resources" yaml:"resources"`
-	Unit      string   `json:"unit" yaml:"unit"`
-	Tag       string   `json:"tag,omitempty" yaml:"tag,omitempty"`
-	Since     string   `json:"since,omitempty" yaml:"since,omitempty"`
+	Resources          []string `json:"resources" yaml:"resources"`
+	Unit               string   `json:"unit" yaml:"unit"`
+	Tag                string   `json:"tag,omitempty" yaml:"tag,omitempty"`
+	Since              string   `json:"since,omitempty" yaml:"since,omitempty"`
+	IncludeReviewReady bool     `json:"include_review_ready,omitempty" yaml:"include_review_ready,omitempty"`
 }
 
 type CalibrationSample struct {
@@ -352,14 +353,15 @@ type CalibrationExclusion struct {
 }
 
 type CalibrationResult struct {
-	Method      string                `json:"method,omitempty" yaml:"method,omitempty"`
-	PriorSource string                `json:"prior_source,omitempty" yaml:"prior_source,omitempty"`
-	Factor      float64               `json:"factor" yaml:"factor"`
-	TotalRatio  float64               `json:"total_ratio" yaml:"total_ratio"`
-	P25         float64               `json:"p25" yaml:"p25"`
-	P75         float64               `json:"p75" yaml:"p75"`
-	Count       int                   `json:"count" yaml:"count"`
-	SizeBands   []CalibrationSizeBand `json:"size_bands" yaml:"size_bands"`
+	Method           string                `json:"method,omitempty" yaml:"method,omitempty"`
+	PriorSource      string                `json:"prior_source,omitempty" yaml:"prior_source,omitempty"`
+	Factor           float64               `json:"factor" yaml:"factor"`
+	TotalRatio       float64               `json:"total_ratio" yaml:"total_ratio"`
+	P25              float64               `json:"p25" yaml:"p25"`
+	P75              float64               `json:"p75" yaml:"p75"`
+	Count            int                   `json:"count" yaml:"count"`
+	ReviewReadyCount int                   `json:"review_ready_count,omitempty" yaml:"review_ready_count,omitempty"`
+	SizeBands        []CalibrationSizeBand `json:"size_bands" yaml:"size_bands"`
 }
 
 type CalibrationSizeBand struct {

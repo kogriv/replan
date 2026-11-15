@@ -87,6 +87,11 @@ func writeEstimateCalibrationsMarkdown(out io.Writer, calibrations []app.Calibra
 				return err
 			}
 		}
+		if calibration.ReviewReadyCount > 0 {
+			if _, err := fmt.Fprintf(out, "  - Includes %d review-ready tasks\n", calibration.ReviewReadyCount); err != nil {
+				return err
+			}
+		}
 		for _, band := range calibration.SizeBands {
 			label := "above 4"
 			if band.UpTo != nil {

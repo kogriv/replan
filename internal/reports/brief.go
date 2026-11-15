@@ -34,6 +34,7 @@ type NextBriefItem struct {
 	Count                 int                       `json:"count,omitempty"`
 	Since                 string                    `json:"since,omitempty"`
 	ReplacesCalibrationID string                    `json:"replaces_calibration_id,omitempty"`
+	IncludeReviewReady    bool                      `json:"include_review_ready,omitempty"`
 }
 
 type NextBriefHealth struct {
@@ -101,6 +102,7 @@ func BuildNextBrief(overview DashboardOverview) NextBrief {
 			Count:                 action.Count,
 			Since:                 action.Since,
 			ReplacesCalibrationID: action.ReplacesCalibrationID,
+			IncludeReviewReady:    action.IncludeReviewReady,
 		}
 		switch action.Actor {
 		case NextActionActorPerson:

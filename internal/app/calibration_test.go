@@ -64,6 +64,34 @@ func TestCalibrationObservationExclusionReasons(t *testing.T) {
 	}
 }
 
+func TestCalibrationReviewReadyOptInStillRequiresActuals(t *testing.T) {
+	amount := 2.0
+	baseline := domain.Baseline{ID: "baseline.review-ready", ApprovedAt: "2026-01-01T00:00:00Z"}
+	ws := domain.Workspace{}
+	for _, id := range []string{"with-actuals", "without-actuals"} {
+		taskID, demandID := "task."+id, "demand."+id
+		ws.Tasks = append(ws.Tasks, domain.Task{ID: taskID, TrackingStatus: "review_ready"})
+		ws.ResourceDemands = append(ws.ResourceDemands, domain.ResourceDemand{ID: demandID, TaskRef: domain.Ref{ID: taskID}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "hours"})
+		baseline.IncludedTasks = append(baseline.IncludedTasks, domain.BaselineTaskEntry{Ref: domain.Ref{ID: taskID}})
+		baseline.IncludedDemands = append(baseline.IncludedDemands, domain.BaselineDemandEntry{Ref: domain.Ref{ID: demandID}, Task: taskID, Resource: "resource.agent", Unit: "hours", PlannedAmount: &amount})
+	}
+	ws.Actuals = append(ws.Actuals, domain.Actual{ID: "actual.with-actuals", Type: "work_consumed", TaskRef: domain.Ref{ID: "task.with-actuals"}, DemandRef: domain.Ref{ID: "demand.with-actuals"}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "hours", Amount: 1, StatusDate: "2026-01-02"})
+	ws.AuditRecords = append(ws.AuditRecords, domain.AuditRecord{Operation: "actual_add_status", TargetRef: domain.Ref{ID: "task.without-actuals"}, NewStatus: "in_progress", StatusDate: "2026-01-02"})
+
+	observations, excluded := calibrationObservations(ws, []domain.Baseline{baseline}, domain.CalibrationScope{Resources: []string{"resource.agent"}, Unit: "hours"}, nil)
+	if len(observations) != 0 || len(excluded) != 2 || excluded[0].Reason != "not_finished" || excluded[1].Reason != "not_finished" {
+		t.Fatalf("default observations=%#v excluded=%#v", observations, excluded)
+	}
+
+	observations, excluded = calibrationObservations(ws, []domain.Baseline{baseline}, domain.CalibrationScope{Resources: []string{"resource.agent"}, Unit: "hours", IncludeReviewReady: true}, nil)
+	if len(observations) != 1 || observations[0].taskID != "task.with-actuals" || !observations[0].reviewReady {
+		t.Fatalf("opt-in observations=%#v", observations)
+	}
+	if len(excluded) != 1 || excluded[0].Task != "task.without-actuals" || excluded[0].Reason != "no_actuals" {
+		t.Fatalf("opt-in excluded=%#v", excluded)
+	}
+}
+
 func TestCalibrationObservationUsesSameDayActualTimestamp(t *testing.T) {
 	amount := 2.0
 	baseline := domain.Baseline{
@@ -108,7 +136,11 @@ func TestCalibrationSinceFiltersActualStartAndIncludesBoundary(t *testing.T) {
 		if i == 0 {
 			start = "2026-01-02"
 		}
-		ws.Tasks = append(ws.Tasks, domain.Task{ID: taskID, TrackingStatus: "accepted"})
+		status := "accepted"
+		if i == 1 {
+			status = "review_ready"
+		}
+		ws.Tasks = append(ws.Tasks, domain.Task{ID: taskID, TrackingStatus: status})
 		ws.ResourceDemands = append(ws.ResourceDemands, domain.ResourceDemand{ID: demandID, TaskRef: domain.Ref{ID: taskID}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "hours"})
 		ws.Actuals = append(ws.Actuals, domain.Actual{ID: "actual." + taskID, Type: "work_consumed", TaskRef: domain.Ref{ID: taskID}, DemandRef: domain.Ref{ID: demandID}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "hours", Amount: 1, StatusDate: start})
 		baseline.IncludedTasks = append(baseline.IncludedTasks, domain.BaselineTaskEntry{Ref: domain.Ref{ID: taskID}})
@@ -119,13 +151,13 @@ func TestCalibrationSinceFiltersActualStartAndIncludesBoundary(t *testing.T) {
 	}
 	ws.Baselines = []domain.Baseline{baseline}
 	result, err := NewCalibrationService(calibrationTestLoader{ws: ws}).Calibrate(context.Background(), CalibrationCalibrateRequest{
-		BaselineIDs: []string{baseline.ID}, ResourceIDs: []string{"resource.agent"}, Unit: "hours", Since: "2026-01-03",
+		BaselineIDs: []string{baseline.ID}, ResourceIDs: []string{"resource.agent"}, Unit: "hours", Since: "2026-01-03", IncludeReviewReady: true,
 		ID: "calibration.window", Name: "Window", ApprovedBy: "actor.operator", DryRun: true,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if result.Calibration.Scope.Since != "2026-01-03" || result.Calibration.Result.Count != 8 {
+	if result.Calibration.Scope.Since != "2026-01-03" || !result.Calibration.Scope.IncludeReviewReady || result.Calibration.Result.Count != 8 || result.Calibration.Result.ReviewReadyCount != 1 {
 		t.Fatalf("calibration=%#v", result.Calibration)
 	}
 	if containsString(result.Calibration.Sample.Tasks, "task.window.0") || !containsString(result.Calibration.Sample.Tasks, "task.window.1") {
@@ -274,6 +306,7 @@ func TestPriorCalibrationRefusals(t *testing.T) {
 		{name: "by size conflict", change: func(req *CalibrationCalibrateRequest) { req.BySize = true }, code: "calibration_prior_flags_conflict"},
 		{name: "exclude conflict", change: func(req *CalibrationCalibrateRequest) { req.Exclusions = map[string]string{"task.test": "judged"} }, code: "calibration_prior_flags_conflict"},
 		{name: "since conflict", change: func(req *CalibrationCalibrateRequest) { req.Since = "2026-01-01" }, code: "calibration_prior_flags_conflict"},
+		{name: "review-ready conflict", change: func(req *CalibrationCalibrateRequest) { req.IncludeReviewReady = true }, code: "calibration_prior_flags_conflict"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -517,6 +550,39 @@ func TestCalibrationSuggestionsCombineLimitedBaselines(t *testing.T) {
 	suggestions := CalibrationSuggestions(ws)
 	if len(suggestions) != 1 || !suggestions[0].AllBaselines || suggestions[0].Count != 8 {
 		t.Fatalf("suggestions=%#v", suggestions)
+	}
+}
+
+func TestCalibrationSuggestionsOptIntoReviewReadyOnlyWhenNeeded(t *testing.T) {
+	ws := limitedCalibrationWorkspace(t)
+	for i := 4; i < len(ws.Tasks); i++ {
+		ws.Tasks[i].TrackingStatus = "review_ready"
+	}
+	suggestions := CalibrationSuggestions(ws)
+	if len(suggestions) != 1 || suggestions[0].Count != 8 || !suggestions[0].IncludeReviewReady {
+		t.Fatalf("review-ready suggestions=%#v", suggestions)
+	}
+	actions := dashboardNextActions(ws, reports.DashboardOverview{ProjectPath: "fixture"})
+	var calibrationAction *reports.DashboardNextAction
+	for i := range actions {
+		if actions[i].Code == "suggest_calibration" {
+			calibrationAction = &actions[i]
+		}
+	}
+	if calibrationAction == nil || !calibrationAction.IncludeReviewReady || !strings.Contains(calibrationAction.Command, "--include-review-ready") || !strings.Contains(calibrationAction.Label, "including review-ready tasks") {
+		t.Fatalf("review-ready actions=%#v", actions)
+	}
+	brief := reports.BuildNextBrief(reports.DashboardOverview{NextActions: actions})
+	if len(brief.AgentCanPrepare) != 1 || !brief.AgentCanPrepare[0].IncludeReviewReady {
+		t.Fatalf("review-ready brief=%#v", brief)
+	}
+
+	for i := range ws.Tasks {
+		ws.Tasks[i].TrackingStatus = "accepted"
+	}
+	suggestions = CalibrationSuggestions(ws)
+	if len(suggestions) != 1 || suggestions[0].IncludeReviewReady {
+		t.Fatalf("accepted suggestions=%#v", suggestions)
 	}
 }
 
