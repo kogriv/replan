@@ -2077,3 +2077,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.measured-ci-and-review-actuals
+  - id: actual.self-calibration-review-ready-sample.ai-codex-local.20261115T2144380700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.calibration-review-ready-sample
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.calibration-review-ready-sample.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.33
+    unit: agent_hours
+    occurred_at: "2026-11-15T21:44:38+07:00"
+    status_date: "2026-11-15"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.calibration-review-ready-sample
+  - id: actual.self-calibration-review-ready-sample.ai-agent-executor.20261115T2144380700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.calibration-review-ready-sample
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.calibration-review-ready-sample.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.11
+    unit: agent_hours
+    occurred_at: "2026-11-15T21:44:38+07:00"
+    status_date: "2026-11-15"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.calibration-review-ready-sample

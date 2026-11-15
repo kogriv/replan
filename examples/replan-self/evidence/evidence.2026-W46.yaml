@@ -1699,3 +1699,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.calibration-review-ready-sample
+  - id: evidence.self.calibration-review-ready-sample
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-15T21:44:38+07:00"
+    summary: 'Feature commit 69e329c: estimate calibrate --include-review-ready counts review_ready tasks as finished when they meet every other clean-sample rule; scope.include_review_ready and result.review_ready_count are sealed with omitempty so existing seals verify unchanged (digest test); list/show, report estimates and the dashboard show the count; replan next suggests the flag when a scope reaches eight clean tasks only with review-ready ones; refused with --prior. On the self project the codex sample since 2026-11-02 grows from 6 to 7 tasks with the flag (one review-ready task). Review: clean. Gate: vet, lint 0, shellcheck, Go and Python suites, smoke, isolated smoke, 56 kit checks, live kit check 108 checks. Codex 19:42:18-20:01:52 (0.33 h, prompt and last-file mtimes). Executor 0.11 h: 0.05 brief before the start, review, probe and booking from transcript activity, excluding waits.'
+    targets:
+      - kind: task
+        id: task.self.calibration-review-ready-sample
+  - id: evidence.self.start-agent-session-consumption-helper
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-15T21:14:01+07:00"
+    summary: 'Started two days before the planned day: the Codex round began at 21:14:01 while the review-ready sample gate ran; recorded after that gate.'
+    targets:
+      - kind: task
+        id: task.self.agent-session-consumption-helper
