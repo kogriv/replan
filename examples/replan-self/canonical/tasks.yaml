@@ -8058,9 +8058,9 @@ tasks:
     title: Publish release v0.5.5 with the cancelled-dependency fix
     description: 'Agreed with the operator on 2026-11-15 together with the cancelled-dependency fix: publish release v0.5.5 with that fix and --scenario-id in the scenario commands (release notes, tag after green CI, archives compared with the CI build and its attestation, GitHub release, go install check), build the linux and windows kits, refresh the three consumer projects'' kits as before and tell the second consumer project that the fix is out.'
     type: release
-    tracking_status: in_progress
-    planned_start: "2026-11-16"
-    planned_finish: "2026-11-16"
+    tracking_status: review_ready
+    planned_start: "2026-11-15"
+    planned_finish: "2026-11-15"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer

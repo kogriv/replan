@@ -1418,3 +1418,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-5
+  - id: evidence.self.publish-release-v0-5-5
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-15T13:35:13+07:00"
+    summary: 'Release v0.5.5 published from 5ff693f after its CI run passed; format_version stays 1. Six archives built locally (v0.5.5, 5ff693f, go1.24.1); the tag''s Release build workflow (run 43685381249) matches the local SHA256SUMS byte for byte; downloaded release archives match; gh attestation verify passes for the windows archive and SHA256SUMS; go install of v0.5.5 reports v0.5.5. Kits built from a worktree of the tag: three linux kits and one windows kit, leak scans clean; the Windows VM was removed after v0.5.4, so the windows kit was not run on Windows this time (no Windows-specific code changed). First project: vps kit switched to v0.5.5 (v0.5.4 kept), work-package list ok. Second project: kit uploaded to its tools wiki page after dry runs, the download matches, the new binary validates a copy of its plan (0 errors, 33 warnings), page text updated with the expected lock version; told the fix is out. Third project: linux and windows kits put in a durable ignored folder and announced; its session was offline, delivery queued. Agent time by tool-call times without CI waits: 0.2 h.'
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-5
