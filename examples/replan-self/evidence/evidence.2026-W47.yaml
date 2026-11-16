@@ -329,3 +329,16 @@ evidence:
     targets:
       - kind: task
         id: task.self.delete-stale-openproject-relation
+  - id: evidence.self.accept-delete-stale-openproject-relation
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-16T05:14:36Z"
+    confidence: observed
+    summary: 'Accepted by the maintainer on review in chat (answer 2026-11-16T05:14:36Z). CI measured from GitHub Actions runs 43807980291: 12 billable minutes. Review time stated by actor.human.maintainer: 5 minutes.'
+    targets:
+      - kind: task
+        id: task.self.delete-stale-openproject-relation

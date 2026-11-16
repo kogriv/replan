@@ -440,3 +440,66 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.delete-stale-openproject-relation
+  - id: actual.self-delete-stale-openproject-relation.ci-github-actions.20261116T051436Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.delete-stale-openproject-relation
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.delete-stale-openproject-relation.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 12
+    unit: ci_minutes
+    occurred_at: "2026-11-16T05:14:36Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-delete-stale-openproject-relation
+  - id: actual.self-delete-stale-openproject-relation.human-maintainer.20261116T051436Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.delete-stale-openproject-relation
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.delete-stale-openproject-relation.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.08
+    unit: hours
+    occurred_at: "2026-11-16T05:14:36Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-delete-stale-openproject-relation
+  - id: actual.self-recalibrate-self-agent-estimates.human-maintainer.20261116T045510Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.recalibrate-self-agent-estimates
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.recalibrate-self-agent-estimates.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.25
+    unit: hours
+    occurred_at: "2026-11-16T04:55:10Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-recalibrate-self-agent-estimates
