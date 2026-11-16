@@ -47,3 +47,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.calibration-review-ready-sample
+  - id: evidence.self.agent-session-consumption-helper
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T08:28:40+07:00"
+    summary: 'Feature commit e256284: read-only scripts/agent-session-consumption.sh measures agent time from Claude Code transcripts and Codex rollouts: idle gaps removed, Claude gaps classified by the event that ends them, parallel sessions of one resource merged into wall time, cross-resource overlap reported, task window from the first in_progress to the review_ready status record (narrowed by --from/--to), overlapping_task_windows warning, dry-run add-consumption commands. Review on real logs found five defects in round 1 (whole-day task window, summed parallel sessions giving 17 h of Codex for one day, session-less lines as a separate group, non-activity line types counted, closed demands reported missing); Codex fixed them in round 2; the reviewer added the overlap warning and --from narrowing with a test. Real-log checks: a hand-measured 0.087 h window gives 0.09 h; the Codex round of the review-ready sample narrowed to its own time gives 0.32 h against 0.33 h from file mtimes. Gate: vet, lint 0, shellcheck, Go and Python suites, smoke, isolated smoke, 57 kit checks, live kit check 108 checks. Codex rounds 21:14:01-21:39:31 and 07:42:12-08:00:23 (0.73 h, prompt and last-file mtimes). Executor 0.25 h: 0.08 brief before the start, review, round-2 brief, the overlap change and booking; the review part measured with the new helper (0.13 h).'
+    targets:
+      - kind: task
+        id: task.self.agent-session-consumption-helper
+  - id: evidence.self.start-backfill-actual-windows-from-openproject
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T08:03:12+07:00"
+    summary: 'Started a day before the planned day: the Codex round began at 08:03:12 while the session helper gate ran; recorded after that gate.'
+    targets:
+      - kind: task
+        id: task.self.backfill-actual-windows-from-openproject

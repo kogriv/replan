@@ -8080,8 +8080,8 @@
         },
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
-        "startDate": "2026-11-17",
-        "dueDate": "2026-11-17",
+        "startDate": "2026-11-15",
+        "dueDate": "2026-11-16",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2379"
