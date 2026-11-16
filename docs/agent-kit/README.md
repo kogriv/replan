@@ -557,7 +557,7 @@ to its root. A write to OpenProject or the bindings file is a dry run unless
 | Actuals and acceptance | `scripts/accept-task.sh` | Accepts one review-ready task through evidence, actuals, dependency candidates and its one OpenProject work package. It is dry-run by default and resumable. Use individual `bin/replan actual ... --dry-run` commands for facts that are not task acceptance. |
 | Correct a mis-booked actual | `bin/replan actual correct --project "$REPLAN_PROJECT" --actual <actual-id> (--amount <n>\|--void) --reason <text> --actor <id> --evidence <id> --dry-run` | Appends an audited correction; the original remains unchanged. Review the effective amount, then repeat with `--apply`. Later corrections supersede earlier corrections of the same original. |
 | Replace stale planned dates with actuals | `bin/replan task record-actual-window ... --dry-run` | Derives one finished task's actual window from status audit facts and current-demand consumption actuals, then writes both dates with one audit record. Review before `--apply`. |
-| Backfill historic OpenProject status history | `scripts/backfill-openproject-status-history.sh [--task <id> ...]` | Reads bound work-package activities and proposes missing RePlan evidence plus `actual add-status` records. Older backfilled records are history only and never change a task's current status. It never writes OpenProject, is dry-run by default and reports unmapped statuses or ordering conflicts instead of guessing. Apply requires `REPLAN_ACTOR` and `REPLAN_APPLY=1`; actual windows remain preview-only. |
+| Backfill historic OpenProject status history | `scripts/backfill-openproject-status-history.sh [--task <id> ...]` | Reads bound work-package activities and proposes missing RePlan evidence plus `actual add-status` records. Older backfilled records are history only and never change a task's current status. It never writes OpenProject, is dry-run by default and reports unmapped statuses or ordering conflicts instead of guessing. Apply requires `REPLAN_ACTOR` and `REPLAN_APPLY=1` (a human actor for accepted or cancelled records; every status record is checked before the first write); actual windows remain preview-only. |
 | Status to OpenProject | `scripts/push-openproject-status-drift.sh` | Pushes reviewed RePlan tracking status. Direct transitions are the default; export `REPLAN_OPENPROJECT_STATUS_PATH=forward` to check and apply allowed forward intermediate statuses one at a time. |
 | Status from OpenProject | `bin/replan import accept <snapshot-id> --accept-tracking-status --dry-run` | Review a stored import snapshot; apply with `--apply --actor <id>`. The soft-drift helper does not accept status. |
 | Import GitHub Issues | `bin/replan import github --project "$REPLAN_PROJECT" --profile <id> --dry-run` | A profile names `repository` and `token_env`; explicit `--repository` is also available. File replay uses `--from-file`. Review candidates, omit `--dry-run` to stage the snapshot, then use the shared `import accept` modes. No GitHub write-back is implemented. |
@@ -880,7 +880,16 @@ and statuses in a temporary project copy to produce the window preview without
 changing the selected plan. A record older than the task's latest RePlan
 status audit is appended as history without changing the current canonical
 tracking status. The operating order remains: backfill status history, review
-and apply `record-actual-window`, then calibrate. OpenProject 17 exposes journal `details` only as
+and apply `record-actual-window`, then calibrate.
+
+Accepted and cancelled records need a human actor under the default AI policy
+(`approver_not_human`). With `REPLAN_ACTOR` set, the helper checks every
+proposed `actual add-status` with that actor first: a dry run lists the
+records that would be refused in `status_refusals` (`status_record_refused`),
+and an apply refuses with `human_actor_required` or `status_record_refused`
+before writing anything. An agent running the backfill asks the person who
+closed the work packages to run the apply, or to agree that it is recorded in
+their name. OpenProject 17 exposes journal `details` only as
 formattable `raw` and `html` text, not as a structured diff. The helper reads
 only `details[].raw`, matches names from `GET /api/v3/statuses`, and never
 parses localized HTML; it prefers structured values or status links if a

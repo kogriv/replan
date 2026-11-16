@@ -221,6 +221,55 @@ def run_replan(command):
     return answer
 
 
+# Statuses whose add-status needs an approving (human) actor under the
+# project's AI mutation policy; see validateAddStatusRequest in the Go CLI.
+APPROVAL_STATUSES = ("accepted", "cancelled")
+
+
+def status_command_refusals(proposals, check_actor):
+    """Dry-run every proposed add-status with the actor that would write it.
+
+    Returns the refusals so an apply stops before its first write instead of
+    failing half way (for example approver_not_human on an accepted record).
+    """
+    refusals = []
+    for proposal in proposals:
+        argv = command_for_project(proposal["_status_argv"], proposal["_status_argv"][proposal["_status_argv"].index("--project") + 1], check_actor)
+        argv = [part if part != "--apply" else "--dry-run" for part in argv]
+        # The evidence record does not exist yet; check the status rules without it.
+        index = argv.index("--evidence")
+        argv = argv[:index] + argv[index + 2:]
+        proc = subprocess.run(argv, capture_output=True, text=True)
+        try:
+            answer = json.loads(proc.stdout)
+        except (TypeError, ValueError):
+            answer = {}
+        codes = sorted({str(item.get("code", "")) for item in answer.get("errors") or [] if item.get("code")})
+        codes = [code for code in codes if code not in ("evidence_not_found", "evidence_required")]
+        if codes:
+            refusals.append({
+                "task_id": proposal["task_id"], "journal_id": proposal["journal_id"],
+                "tracking_status": proposal["tracking_status"], "actor": check_actor, "codes": codes,
+            })
+    return refusals
+
+
+def existing_evidence_ids(project_path):
+    import yaml
+
+    ids = set()
+    for path in glob.glob(os.path.join(project_path, "evidence", "*.yaml")):
+        try:
+            with open(path, encoding="utf-8") as stream:
+                document = yaml.safe_load(stream) or {}
+        except (OSError, yaml.YAMLError):
+            continue
+        for item in document.get("evidence") or []:
+            if isinstance(item, dict) and item.get("id"):
+                ids.add(str(item["id"]))
+    return ids
+
+
 def display_command(parts):
     shown = ["replan", *parts[1:]]
     return shlex.join(shown)
@@ -385,14 +434,29 @@ def main():
         errors.append(helper_envelope.diagnostic(
             "missing_setting", "REPLAN_ACTOR is required when REPLAN_APPLY=1", kind="env", target_id="REPLAN_ACTOR"
         ))
+    refusals = []
+    if actor and proposals:
+        refusals = status_command_refusals(proposals, actor)
+        if mode == "apply" and refusals:
+            needs_human = any("approver_not_human" in item["codes"] for item in refusals)
+            errors.append(helper_envelope.diagnostic(
+                "human_actor_required" if needs_human else "status_record_refused",
+                f"{len(refusals)} proposed status records would be refused for actor {actor}; nothing was written."
+                + (" Accepted and cancelled records need a human REPLAN_ACTOR under the project's AI policy." if needs_human else ""),
+                kind="env", target_id="REPLAN_ACTOR",
+            ))
     if mode == "apply" and not errors:
         for proposal in proposals:
             public = {key: value for key, value in proposal.items() if not key.startswith("_")}
-            evidence_action = {"action": "evidence_add", **public}
-            partial_apply.attempting(evidence_action)
-            partial_apply.writing()
-            run_replan(proposal["_evidence_argv"])
-            partial_apply.applied(evidence_action)
+            if proposal["evidence_id"] in existing_evidence_ids(project_path):
+                # Left by an earlier partial apply: reuse it so a rerun completes.
+                partial_apply.applied({"action": "evidence_present", **public})
+            else:
+                evidence_action = {"action": "evidence_add", **public}
+                partial_apply.attempting(evidence_action)
+                partial_apply.writing()
+                run_replan(proposal["_evidence_argv"])
+                partial_apply.applied(evidence_action)
             status_action = {"action": "actual_add_status", **public}
             partial_apply.attempting(status_action)
             partial_apply.writing()
@@ -462,6 +526,19 @@ def main():
             f"{len(unmapped)} OpenProject status changes are not mapped and were not guessed.",
             "warning",
         ))
+    approval_proposals = [item for item in proposals if item["tracking_status"] in APPROVAL_STATUSES]
+    if mode == "dry_run" and refusals:
+        warnings.append(helper_envelope.diagnostic(
+            "status_record_refused",
+            f"{len(refusals)} proposed status records would be refused for REPLAN_ACTOR {actor}; see status_refusals.",
+            "warning",
+        ))
+    elif mode == "dry_run" and approval_proposals and not actor:
+        warnings.append(helper_envelope.diagnostic(
+            "human_actor_required",
+            f"{len(approval_proposals)} proposed records are accepted or cancelled; applying them needs a human REPLAN_ACTOR under the default AI policy.",
+            "warning",
+        ))
     if conflicts:
         warnings.append(helper_envelope.diagnostic(
             "status_history_conflict",
@@ -480,6 +557,7 @@ def main():
         "already_present": already_present,
         "unmapped": unmapped,
         "conflicts": conflicts,
+        "status_refusals": refusals,
         "actual_window_previews": window_previews,
         "warnings": warnings,
         "errors": errors,

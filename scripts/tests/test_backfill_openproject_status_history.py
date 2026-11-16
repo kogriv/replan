@@ -232,6 +232,53 @@ class StatusHistoryBackfillTest(unittest.TestCase):
         self.assertEqual((result["new_planned_start"], result["new_planned_finish"]), ("2026-01-02", "2026-01-03"))
 
     @unittest.skipUnless(os.environ.get("REPLAN_BIN"), "needs the built RePlan binary")
+    def test_accepted_record_with_ai_actor_is_refused_before_any_write(self):
+        self.activities["7"] = [
+            self.activity(10, "2026-01-02T09:00:00Z", "New", "In progress"),
+            self.activity(11, "2026-01-03T10:00:00Z", "In progress", "Closed"),
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            project, bindings = self.project(tmp)
+            before = self.tree(project)
+            env = self.env(tmp, project, bindings, binary=os.environ["REPLAN_BIN"])
+            env["REPLAN_ACTOR"] = "actor.ai.codex.local"
+            dry_proc, dry = self.run_helper(env)
+            env["REPLAN_APPLY"] = "1"
+            proc, out = self.run_helper(env)
+            after = self.tree(project)
+        self.assertEqual(dry_proc.returncode, 0, dry)
+        self.assertIn("status_record_refused", dry["warning_codes"])
+        self.assertEqual([(item["tracking_status"], item["codes"]) for item in dry["status_refusals"]], [("accepted", ["approver_not_human"])])
+        self.assertEqual(proc.returncode, 8, out)
+        self.assertEqual(out["error_codes"], ["human_actor_required"])
+        self.assertEqual(out["counts"]["applied"], 0)
+        self.assertEqual(before, after)
+
+    @unittest.skipUnless(os.environ.get("REPLAN_BIN"), "needs the built RePlan binary")
+    def test_rerun_after_partial_apply_reuses_written_evidence(self):
+        self.activities["7"] = [self.activity(10, "2026-01-02T09:00:00Z", "New", "In progress")]
+        with tempfile.TemporaryDirectory() as tmp:
+            project, bindings = self.project(tmp)
+            # The evidence record an earlier run wrote before it stopped.
+            subprocess.run([
+                os.environ["REPLAN_BIN"], "evidence", "add", "--project", project,
+                "--id", "evidence.openproject.wp-7.journal-10", "--type", "import", "--source", "openproject",
+                "--actor", "actor.human.operator", "--observed-at", "2026-01-02T09:00:00Z",
+                "--summary", "Imported earlier.", "--target", "task:task.op.1234", "--apply", "--format", "json",
+            ], check=True, capture_output=True)
+            proc, out = self.run_helper(self.env(tmp, project, bindings, apply="1", binary=os.environ["REPLAN_BIN"]))
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertEqual(out["counts"]["applied"], 1)
+
+    def tree(self, root):
+        result = {}
+        for path in sorted(glob.glob(os.path.join(root, "**", "*"), recursive=True)):
+            if os.path.isfile(path):
+                with open(path, "rb") as stream:
+                    result[os.path.relpath(path, root)] = stream.read()
+        return result
+
+    @unittest.skipUnless(os.environ.get("REPLAN_BIN"), "needs the built RePlan binary")
     def test_dry_preview_backfills_earlier_start_without_reopening_accepted_task(self):
         self.activities["7"] = [
             self.activity(10, "2026-01-02T09:00:00Z", "New", "In progress"),
@@ -272,7 +319,7 @@ class StatusHistoryBackfillTest(unittest.TestCase):
             binary = os.path.join(tmp, "replan")
             with open(binary, "w", encoding="utf-8") as stream:
                 stream.write("#!/usr/bin/env python3\nimport json,sys\n"
-                             "if sys.argv[1:3] == ['actual','add-status']:\n"
+                             "if sys.argv[1:3] == ['actual','add-status'] and '--apply' in sys.argv:\n"
                              " print(json.dumps({'ok':False,'errors':[{'code':'forced'}]})); sys.exit(2)\n"
                              "print(json.dumps({'ok':True,'result':{}}))\n")
             os.chmod(binary, os.stat(binary).st_mode | stat.S_IEXEC)
