@@ -574,6 +574,103 @@ to its root. A write to OpenProject or the bindings file is a dry run unless
 | Wiki | `scripts/openproject-wiki.sh page list` | Use its page and attachment subcommands; writes are gated. |
 | Reports | `scripts/openproject-operator-report.sh` | Combined live report. Use `bin/replan report ...` for local state, weekly, estimate-accuracy and dashboard reports. |
 
+## Plan, measure and calibrate estimates
+
+Agents and people both misjudge how long agent work takes, usually by a
+stable factor. RePlan does not ask anyone to type smaller numbers. Keep
+typing natural estimates; freeze them before work starts, measure what the
+work really took, and let a calibration correct load and dates. Typed
+estimates and actuals are never rewritten.
+
+The loop, in order:
+
+1. **Freeze the estimate before the task starts.** A sealed baseline is the
+   estimate a calibration compares with. A task started before its baseline
+   is excluded as `estimated_after_start`, so seal new work as you plan it:
+
+   ```sh
+   bin/replan baseline create --project "$REPLAN_PROJECT" \
+     --task task.example --id baseline.2026-11-16.example \
+     --name "Example as agreed" --approved-by actor.human.operator \
+     --dry-run --format markdown
+   # Review, then repeat with --apply.
+   ```
+
+2. **Record the real start and end.** Record `in_progress` with the time
+   work started and `review_ready` with the time it ended
+   (`actual add-status --occurred-at <RFC3339>`). The actual window, the
+   calibration sample and the session-time window all come from these
+   records. Take the time from the moment, a commit or a file timestamp, never
+   from memory. A record older than the task's latest one is kept as history
+   and does not change the current status.
+
+3. **Measure actuals instead of judging them.**
+   - Agent time: measure it from the session logs with
+     [`scripts/agent-session-consumption.sh`](#measure-agent-time-from-session-logs)
+     and book the commands it prints.
+   - CI time: let acceptance read it from the runs with
+     `REPLAN_ACCEPT_CI_RUNS` (billable minutes, each job rounded up to a
+     minute, as GitHub bills it). `REPLAN_ACCEPT_CI_MINUTES` books a stated
+     amount and marks it `source: stated`.
+   - Review time: the accepting person states it, and acceptance books it with
+     `REPLAN_ACCEPT_REVIEW_MINUTES` on that person's demand. Without it, human
+     estimates can never be calibrated.
+
+   See [Accept a completed task](#accept-a-completed-task) for both settings.
+   A measured amount above the plan shows up as `review_forecast_over_plan`
+   in `tracking suggest`; when the overrun is real, a person acknowledges it
+   with `actual acknowledge-overrun --demand <id> --reason <text>`.
+
+4. **Repair history for older tasks.** Tasks whose status history lives only
+   in OpenProject are excluded as `actual_start_unknown`. Backfill it from
+   the work package journals with
+   `scripts/backfill-openproject-status-history.sh`, then review and apply
+   `task record-actual-window`, as described under
+   [Backfill historic OpenProject status history](#surface-map).
+
+5. **Calibrate over a recent window.** A calibration needs at least eight
+   clean tasks: finished, frozen before their start, with counted actuals in
+   the unit. Estimating habits change once people see a calibration, so prefer
+   a window that starts after the last change, and split by size when small
+   and large tasks miss differently:
+
+   ```sh
+   bin/replan estimate calibrate --project "$REPLAN_PROJECT" --all-baselines \
+     --resource resource.ai.agent --unit agent_hours \
+     --since 2026-11-02 --by-size \
+     --id calibration.agent-2026-11 --name "Agent hours since November" \
+     --approved-by actor.human.operator --dry-run --format markdown
+   ```
+
+   Read the sample and every exclusion reason (`estimated_after_start`,
+   `actual_start_unknown`, `started_before_window`, `no_actuals`,
+   `not_finished`) before applying. Add `--include-review-ready` only when
+   finished work with actuals waits long for acceptance; the dry run says how
+   many review-ready tasks it counted. A person approves the calibration; the
+   approver must be human. `replan next` suggests a recalibration once eight
+   new clean tasks exist, with the window and the calibration it would
+   replace.
+
+6. **Start a new project from a cited factor.** Without eight clean tasks,
+   approve a prior factor from another project and name its source
+   (`--prior <factor> --source "<project>, <n> tasks, <date>"`, see
+   [Daily commands](#daily-commands)). Replace it with a measured calibration
+   as soon as `next` suggests one.
+
+7. **Read calibrated load and dates.** `workload`, `report weekly`,
+   `report state`, `report dashboard`, the schedule and the TaskJuggler export
+   use the latest matching approved calibration; add `--raw` to compare with
+   the typed estimates. `report estimates --baseline <id>` compares one
+   baseline with its actuals task by task, and states which demands have no
+   actuals yet instead of counting them as zero.
+
+8. **Measure waits, not only work.** Calendar time is often dominated by
+   waiting for a person: review, a price check, an answer. `replan report
+   waits` measures how long tasks sat in each status (review wait, blocked
+   wait, start wait) from the same status records, and compares them with any
+   planned `lead_time`. Use its medians to plan lead times for the waits your
+   project really has.
+
 ## Measure agent time from session logs
 
 Measure local Claude Code transcripts and Codex rollout logs before booking a
