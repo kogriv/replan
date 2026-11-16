@@ -16,3 +16,6 @@ project:
   policy_ref:
     kind: policy
     id: policy.local-trusted
+  calibration:
+    require_measurement:
+      - resource.ci.github-actions

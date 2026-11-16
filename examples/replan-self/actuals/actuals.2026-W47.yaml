@@ -545,3 +545,91 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.next-suggests-only-latest-calibration
+  - id: actual.self-next-suggests-only-latest-calibration.ci-github-actions.20261116T062722Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.next-suggests-only-latest-calibration
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.next-suggests-only-latest-calibration.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 13
+    unit: ci_minutes
+    measurement: measured
+    occurred_at: "2026-11-16T06:27:22Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-next-suggests-only-latest-calibration
+  - id: actual.self-next-suggests-only-latest-calibration.human-maintainer.20261116T062722Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.next-suggests-only-latest-calibration
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.next-suggests-only-latest-calibration.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.17
+    unit: hours
+    measurement: stated
+    occurred_at: "2026-11-16T06:27:22Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-next-suggests-only-latest-calibration
+  - id: actual.self-calibrate-measured-actuals-only.ai-codex-local.20261116T1331290700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.calibrate-measured-actuals-only
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.calibrate-measured-actuals-only.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.6
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-16T13:31:29+07:00"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.calibrate-measured-actuals-only
+  - id: actual.self-calibrate-measured-actuals-only.ai-agent-executor.20261116T1331290700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.calibrate-measured-actuals-only
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.calibrate-measured-actuals-only.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.16
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-16T13:31:29+07:00"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.calibrate-measured-actuals-only

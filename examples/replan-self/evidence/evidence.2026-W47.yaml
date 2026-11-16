@@ -375,3 +375,49 @@ evidence:
     targets:
       - kind: task
         id: task.self.calibrate-measured-actuals-only
+  - id: evidence.self.accept-next-suggests-only-latest-calibration
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-16T06:27:22Z"
+    confidence: observed
+    summary: 'Accepted by the maintainer on review in chat (answer 2026-11-16 13:27). CI measured from GitHub Actions runs 43813077953: 13 billable minutes. Review time stated by actor.human.maintainer: 10 minutes.'
+    targets:
+      - kind: task
+        id: task.self.next-suggests-only-latest-calibration
+  - id: evidence.self.ack-ci-overrun-next-suggests-only-latest-calibration
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T13:30:25+07:00"
+    summary: 'Acknowledged under the maintainer''s standing approval extended to the follow-up tasks (chat, 2026-11-16 12:24): 13 billable minutes measured from GitHub Actions run 43813077953 exceed the 10 planned.'
+    targets:
+      - kind: task
+        id: task.self.next-suggests-only-latest-calibration
+  - id: evidence.self.require-measured-ci
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T13:30:36+07:00"
+    summary: 'Set project.calibration.require_measurement to resource.ci.github-actions in .replan/project.yaml (edited by hand: no CLI command sets project calibration settings yet), as agreed with the maintainer on 2026-11-16 for the measured-actuals task: CI-minutes actuals booked before accept-task measured GitHub Actions runs were judged, so a CI calibration counts only actuals with measurement measured or stated. Agent-hours calibrations are unaffected.'
+    targets:
+      - kind: task
+        id: task.self.calibrate-measured-actuals-only
+  - id: evidence.self.calibrate-measured-actuals-only
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T13:31:29+07:00"
+    summary: 'Feature commit d4487c6: consumption actuals record measurement (measured, stated, judged; add-consumption --measurement; accept-task books CI runs as measured and stated CI and review minutes as stated; the overlay shows it); project.calibration.require_measurement makes listed resources count only measured or stated actuals (actuals_unmeasured), a judged actual excludes its task from the scopes that count it (actuals_judged), next uses the same rule, and sealed calibrations record scope.require_measurement while old seals verify. Review found that a judged actual of one resource excluded the task from every scope (a judged CI amount would have dropped the task''s agent hours); the reviewer limited it to the scopes that count the actual, with a test and doc fixes. On the self project with CI required to be measured: the CI calibration suggestion is gone (76 tasks actuals_unmeasured), the three calibrations still verify, the first measured CI actual is recorded, and next now suggests a maintainer-hours calibration over 11 tasks with stated review minutes. Gate: vet, lint 0, shellcheck, Go and Python suites, smoke, isolated smoke, 58 kit checks, plugin throwaway runtime, live kit check 108 checks. Codex 12:23:07-12:59:22 (0.60 h, prompt and last-file mtimes). Executor 0.16 h measured with scripts/agent-session-consumption.sh (brief, review, fix, booking).'
+    targets:
+      - kind: task
+        id: task.self.calibrate-measured-actuals-only
