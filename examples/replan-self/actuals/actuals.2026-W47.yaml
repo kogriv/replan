@@ -721,3 +721,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.project-calibration-settings-command
+  - id: actual.self-project-calibration-settings-command.ci-github-actions.20261116T084623Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.project-calibration-settings-command
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.project-calibration-settings-command.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 12
+    unit: ci_minutes
+    measurement: measured
+    occurred_at: "2026-11-16T08:46:23Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-project-calibration-settings-command
+  - id: actual.self-project-calibration-settings-command.human-maintainer.20261116T084623Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.project-calibration-settings-command
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.project-calibration-settings-command.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.25
+    unit: hours
+    measurement: stated
+    occurred_at: "2026-11-16T08:46:23Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-project-calibration-settings-command

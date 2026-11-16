@@ -489,3 +489,38 @@ evidence:
     targets:
       - kind: task
         id: task.self.project-calibration-settings-command
+  - id: evidence.self.accept-project-calibration-settings-command
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-16T08:46:23Z"
+    confidence: observed
+    summary: 'Accepted by the maintainer on review in chat (answer 2026-11-16T08:46:23Z). CI measured from GitHub Actions runs 43827445630: 12 billable minutes. Review time stated by actor.human.maintainer: 15 minutes.'
+    targets:
+      - kind: task
+        id: task.self.project-calibration-settings-command
+  - id: evidence.self.deploy-plugin-d4487c6
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T14:13:00+07:00"
+    summary: 'Deployed the OpenProject plugin image 17.6.0-wikiapi-d4487c6 (the measurement column of the RePlan work package tab) on the maintainer''s instruction in chat (2026-11-16 14:08, ''кати сейчас''): plugin tree in the image byte-identical to the commit, 256 KB of new layers sent, full database dump before the switch (203 tables, dump complete), guarded switch of web, worker and cron in about a minute with no load errors, overlay republished with 4 measured and 2 stated actuals for the project. The page itself was not opened: the API key does not open plugin HTML pages; the throwaway runtime gate rendered them with this image.'
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-6
+  - id: evidence.self.start-publish-release-v0-5-6
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T15:48:03+07:00"
+    summary: Started two days before the planned day, after the calibration batch and its follow-ups were accepted (the maintainer chose to include the follow-ups in v0.5.6).
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-6
