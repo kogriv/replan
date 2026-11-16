@@ -82,6 +82,7 @@ go run ./cmd/replan report weekly --project examples/small-team --week 2026-W28 
 go run ./cmd/replan report weekly --project examples/small-team --week 2026-W28 --format csv
 go run ./cmd/replan report dashboard --project examples/small-team --week 2026-W28 --scenario scenario.task-op-1234-reassign-petr --format json
 go run ./cmd/replan report estimates --project examples/replan-self --baseline baseline.2026-10-15.tooling-consolidation --format markdown
+go run ./cmd/replan report waits --project /path/to/project --since 2026-10-01 --format markdown
 go run ./cmd/replan estimate calibrate --project examples/estimate-calibration --baseline baseline.fixture.original --resource resource.ai.executor --resource resource.ai.codex --unit agent_hours --tag calibration --by-size --exclude task.cal.09=actuals_judged --id calibration.fixture.agents --name "Fixture agent calibration" --approved-by actor.human.operator --dry-run --format markdown
 go run ./cmd/replan estimate calibrate --project examples/estimate-calibration --all-baselines --resource resource.ai.executor --resource resource.ai.codex --unit agent_hours --tag calibration --exclude task.cal.09=actuals_judged --id calibration.fixture.all --name "All baseline calibration" --approved-by actor.human.operator --dry-run --format markdown
 go run ./cmd/replan estimate calibrate --project /path/to/new-project --prior 0.21 --source "replan-self, 39 tasks, 2026-11-02" --resource resource.ai.agent --unit agent_hours --id calibration.start --name "Starting agent factor" --approved-by actor.human.operator --dry-run --format markdown
@@ -189,8 +190,9 @@ Implemented command families as of 2026-10-30:
 - `workload`, with `--week`, `--resource`, `--resource-class`, `--unit`,
   `--scenario` and `--demands`;
 - `report weekly`, `report state`, `report dashboard`, each with an optional
-  in-memory `--scenario` overlay, and `report estimates` against a named sealed
-  estimate baseline;
+  in-memory `--scenario` overlay; `report estimates` against a named sealed
+  estimate baseline; and read-only `report waits` over tracking-status audit
+  history;
 - `tracking suggest`, optionally writing proposal candidates;
 - `scenario list`, `show`, `diff`, `apply`;
 - `proposal list`, `show`, `suggest-dependencies`, `accept`, `reject`;

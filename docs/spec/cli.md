@@ -1101,6 +1101,7 @@ Subcommands:
 ```text
 replan report weekly
 replan report estimates
+replan report waits
 replan report state
 replan report dashboard
 replan report workload
@@ -1117,6 +1118,7 @@ replan report weekly --week 2026-W28 --format markdown
 replan report weekly --week 2026-W28 --format json
 replan report weekly --week 2026-W28 --format html --write
 replan report estimates --project examples/replan-self --baseline baseline.2026-10-15.tooling-consolidation --format markdown
+replan report waits --project /path/to/project --since 2026-10-01 --until 2026-11-01 --format markdown
 replan report state --project examples/replan-self --week 2026-W31 --format markdown
 replan report state --project examples/replan-self --week 2026-W31 --format json
 replan report dashboard --project examples/replan-self --week 2026-W31 --output reports/latest --format html
@@ -1130,6 +1132,7 @@ Implemented command flags:
 ```text
 replan report weekly --project -p --bindings --format --week --scenario --raw --write
 replan report estimates --project -p --bindings --baseline --format
+replan report waits --project -p --bindings --since --until --tag --format
 replan report state --project -p --bindings --format --week --scenario --raw
 replan report dashboard --project -p --bindings --format --output --week --scenario --raw
 replan next --project -p --bindings --format --week
@@ -1213,6 +1216,86 @@ Implemented estimate-accuracy report slice:
   Markdown says `no actuals` for a null ratio and shows the unmeasured baseline
   and task coverage beside aggregate ratios, rather than presenting an
   observed zero. Split groups retain unmeasured resources in their coverage;
+
+### `replan report waits`
+
+`report waits` is read-only, defaults to Markdown, and supports JSON or
+Markdown. It reads effective `actual_add_status` audit records: the latest
+`actual_correct_status` record changes the original event's status date, and
+the correction is not another event. Effective status events are ordered by
+their `occurred_at` instant, then audit id, not by append or file order; this
+allows an older historical fact to be appended after the task's latest fact.
+It never infers status history from the current task field.
+
+Each task row contains `task_id`, `title`, `tags`,
+`assignee_hint_resource`, completed `spans`, and separately listed
+`open_spans`. A span contains `status`, date boundaries `from` and `to`,
+RFC3339 boundaries `from_at` and `to_at`, elapsed calendar `hours` rounded to
+two decimals, `time_precision`, `working_days`, `calendar_days`, `open`, and
+`wait_kind`. RFC3339 status audit times give `time_precision: timestamp`.
+Legacy date-only events use midnight in `project.timezone` and give
+`time_precision: date`; a span is date-precision when either boundary is
+date-only. The named kinds are:
+
+- `review_wait`: `review_ready` until the next status (normally `accepted`);
+- `blocked_wait`: `blocked` until the next status;
+- `start_wait`: the first `planned` or `not_started` record directly followed by
+  `in_progress`. When a `task_add` audit supplies creation and the first
+  status record is `in_progress`, creation is the implicit `not_started`
+  boundary;
+- `in_progress`: work time, aggregated beside the named waits but labelled as
+  work rather than a wait;
+- `status_span`: every other status interval.
+
+Durations use date boundaries: a Friday status changed on Monday is three
+calendar days and one working day. Project working weekdays are the union of
+configured resource availability weekdays, like the estimate report; with no
+configured weekdays every day is working. The current span ends at
+`project.default_status_date`, has `open: true`, is placed in `open_spans`, and
+does not enter aggregates or lead-time hints. Its `to_at` is the report run
+time, capped at the end of the status date. A current terminal status
+(`accepted`, `done`, `closed`, or `cancelled`) produces no span. When a later
+status event reopens the task, its terminal interval is retained as a normal
+closed generic span. Without a valid status date the report warns with
+`missing_status_date` and omits open spans.
+
+`--since` and `--until` are optional `YYYY-MM-DD` measurement boundaries.
+They include spans by the span's `from` date: `--since` is inclusive on or
+after that date and `--until` is inclusive on or before it. Durations are not
+clipped. Markdown names each applied bound and states this start-date
+attribution rule. `--tag` includes only tasks with that exact tag. With no
+`--tag`, `tag_aggregates` includes tags having at least five completed named
+waits; `in_progress` does not count toward that threshold, but its aggregate
+is shown for a qualifying tag. A tag-filtered report omits the per-tag table.
+`assignee_aggregates` groups completed named waits by the task's assignee-hint
+resource and also includes its completed `in_progress` spans. `aggregates`,
+tag groups and assignee groups contain one row per aggregated `wait_kind`; its
+`statistics` object contains `count` plus hours, working-day and calendar-day
+`median`, `p75` and `max` fields. Median averages the middle pair; p75 uses
+nearest rank. Markdown renders all tag rows in one table and all assignee rows
+in one table.
+
+`lead_time_comparisons` compares each completed modeled span with the task's
+lead time in its own unit and includes planned amount, measured amount and
+`difference` (measured minus planned). A reason containing `block` models
+`blocked_wait`; one containing `start` or `queue` models `start_wait`; a
+reason containing `review`, or an unclassified reason, models `review_wait`.
+`missing_review_lead_time` lists tasks having a completed measured review wait
+but no lead time, with their median review wait. These are hints only: the
+command creates no proposal and writes no state.
+
+Top-level JSON also contains project identity, status date, filters,
+`no_status_history_count`, the task ids in `no_status_history_tasks`, task ids
+in `out_of_order_tasks`, `warnings`, and `errors`. Markdown gives only the
+no-history count, while JSON lists the ids. Warnings are
+`no_status_history` and one `status_history_out_of_order` per affected task.
+The latter means effective status dates move backwards while events are read
+in chronological `occurred_at`/id order; append order alone never triggers it.
+
+Invalid date text is refused with `invalid_since` or `invalid_until`; a lower
+bound after the upper bound is `invalid_date_range`. Unsupported output is
+`unsupported_format`. These are usage or validation failures and perform no
+writes.
 
 Scenario reports carry `scenario_id` and every Markdown, text and HTML view
 labels them: `What-if: scenario <id> applied in memory; this is not the plan.`

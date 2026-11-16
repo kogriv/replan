@@ -32,3 +32,30 @@ func TestEffectiveStatusAuditsSortsByOccurrenceInstant(t *testing.T) {
 		t.Fatalf("effective status order=%#v", effective)
 	}
 }
+
+func TestEffectiveStatusAuditsOrdersHistoricalAppendByInstantThenID(t *testing.T) {
+	records := []domain.AuditRecord{
+		{ID: "audit.new", Operation: "actual_add_status", OccurredAt: "2026-11-06T12:00:00+07:00", NewStatus: "accepted"},
+		{ID: "audit.old", Operation: "actual_add_status", OccurredAt: "2026-11-05T12:00:00+07:00", NewStatus: "review_ready"},
+		{ID: "audit.same-b", Operation: "actual_add_status", OccurredAt: "2026-11-07T05:00:00Z", NewStatus: "blocked"},
+		{ID: "audit.same-a", Operation: "actual_add_status", OccurredAt: "2026-11-07T12:00:00+07:00", NewStatus: "in_progress"},
+	}
+	effective := EffectiveStatusAudits(records)
+	want := []string{"audit.old", "audit.new", "audit.same-a", "audit.same-b"}
+	for index, id := range want {
+		if effective[index].ID != id {
+			t.Fatalf("effective ids = %#v, want %#v", []string{effective[0].ID, effective[1].ID, effective[2].ID, effective[3].ID}, want)
+		}
+	}
+}
+
+func TestWaitTerminalStatus(t *testing.T) {
+	for _, status := range []string{"accepted", "done", "closed", "cancelled"} {
+		if !waitTerminalStatus(status) {
+			t.Errorf("%s is not terminal", status)
+		}
+	}
+	if waitTerminalStatus("review_ready") {
+		t.Error("review_ready is terminal")
+	}
+}

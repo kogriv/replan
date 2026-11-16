@@ -54,10 +54,14 @@ func EffectiveStatusAudits(records []domain.AuditRecord) []domain.AuditRecord {
 	sort.SliceStable(result, func(i, j int) bool {
 		left, leftErr := time.Parse(time.RFC3339, result[i].OccurredAt)
 		right, rightErr := time.Parse(time.RFC3339, result[j].OccurredAt)
-		if leftErr == nil && rightErr == nil && !left.Equal(right) {
-			return left.Before(right)
+		if leftErr == nil && rightErr == nil {
+			if !left.Equal(right) {
+				return left.Before(right)
+			}
+			// The same instant written in two offsets: order by id.
+			return result[i].ID < result[j].ID
 		}
-		if leftErr != rightErr {
+		if (leftErr == nil) != (rightErr == nil) {
 			return leftErr == nil
 		}
 		if result[i].OccurredAt != result[j].OccurredAt {

@@ -122,6 +122,16 @@ Rules:
 - **tracking:** actuals on a non-levelled demand work as today, so
   estimate calibration still sees the owner's hours.
 
+## Measured waits
+
+`replan report waits` reads tracking-status audit history and measures completed
+and still-open status spans in elapsed hours, project working days and calendar
+days. It names review, blocked and start waits, shows `in_progress` work time,
+compares the matching measured wait with a task's `lead_time`, and points out
+measured review waits that have no planned lead time. The report is read-only:
+it produces hints, not proposals or model changes. See the
+[CLI contract](cli.md#replan-report-waits).
+
 ## Queue order within a resource
 
 ### Options

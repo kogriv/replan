@@ -40,6 +40,8 @@ func runReport(args []string, stdout, stderr *os.File) int {
 		return runReportWeekly(args[1:], stdout, stderr)
 	case "estimates":
 		return runReportEstimates(args[1:], stdout, stderr)
+	case "waits":
+		return runReportWaits(args[1:], stdout, stderr)
 	case "state":
 		return runReportState(args[1:], stdout, stderr)
 	case "dashboard":
@@ -52,6 +54,50 @@ func runReport(args []string, stdout, stderr *os.File) int {
 		printUsage(stderr)
 		return exitInvalidUsage
 	}
+}
+
+func runReportWaits(args []string, stdout, stderr *os.File) int {
+	fs := newCLIFlagSet("report waits")
+	var projectPath, since, until, tag, format string
+	fs.StringVar(&projectPath, "project", "", "path to RePlan project")
+	fs.StringVar(&projectPath, "p", "", "path to RePlan project")
+	fs.StringVar(&since, "since", "", "measurement lower bound, YYYY-MM-DD")
+	fs.StringVar(&until, "until", "", "measurement upper bound, YYYY-MM-DD")
+	fs.StringVar(&tag, "tag", "", "include tasks with this tag")
+	fs.StringVar(&format, "format", "markdown", "output format: json or markdown")
+	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+		return code
+	}
+	if projectPath == "" {
+		projectPath = "."
+	}
+	format = strings.ToLower(format)
+	if format != "json" && format != "markdown" {
+		_ = printEnvelope(stdout, "json", envelope{OK: false, Command: "report waits", ProjectPath: projectPath, Result: nil, Warnings: []app.Diagnostic{}, Errors: []app.Diagnostic{{Code: "unsupported_format", Message: "supported formats are json and markdown", Severity: "error"}}})
+		return exitInvalidUsage
+	}
+	result, err := app.NewReportService(newStore(projectPath)).Waits(context.Background(), app.WaitReportRequest{Since: since, Until: until, Tag: tag})
+	env := envelope{OK: err == nil && len(result.Errors) == 0, Command: "report waits", ProjectPath: projectPath, Result: result, Warnings: result.Warnings, Errors: result.Errors}
+	if code, done := printProjectNotFound(stdout, stderr, format, env, err); done {
+		return code
+	}
+	var printErr error
+	if format == "json" {
+		printErr = printEnvelope(stdout, "json", env)
+	} else {
+		printErr = writeWaitReportMarkdown(stdout, result)
+	}
+	if printErr != nil {
+		fmt.Fprintf(stderr, "failed to write output: %v\n", printErr)
+		return exitGeneralError
+	}
+	if err != nil {
+		if errors.Is(err, app.ErrValidationFailed) {
+			return validationFailureExit(result.Errors)
+		}
+		return exitGeneralError
+	}
+	return exitSuccess
 }
 
 func runReportEstimates(args []string, stdout, stderr *os.File) int {
