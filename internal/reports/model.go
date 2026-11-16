@@ -827,11 +827,12 @@ type DashboardNextAction struct {
 	Date     string `json:"date,omitempty"`
 	Priority int    `json:"priority,omitempty"`
 	// Details carries machine-readable values for an aggregate action.
-	Details               []CalibrationDemandDetail `json:"details,omitempty"`
-	Count                 int                       `json:"count,omitempty"`
-	Since                 string                    `json:"since,omitempty"`
-	ReplacesCalibrationID string                    `json:"replaces_calibration_id,omitempty"`
-	IncludeReviewReady    bool                      `json:"include_review_ready,omitempty"`
+	Details                 []CalibrationDemandDetail `json:"details,omitempty"`
+	Count                   int                       `json:"count,omitempty"`
+	Since                   string                    `json:"since,omitempty"`
+	ReplacesCalibrationID   string                    `json:"replaces_calibration_id,omitempty"`
+	SupersedesCalibrationID string                    `json:"supersedes_calibration_id,omitempty"`
+	IncludeReviewReady      bool                      `json:"include_review_ready,omitempty"`
 }
 
 // NextPlannedTask is human work from the plan that overlaps the selected

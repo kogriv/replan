@@ -23,18 +23,19 @@ type NextBrief struct {
 }
 
 type NextBriefItem struct {
-	Code                  string                    `json:"code"`
-	What                  string                    `json:"what"`
-	Subject               string                    `json:"subject,omitempty"`
-	Target                string                    `json:"target,omitempty"`
-	Date                  string                    `json:"date,omitempty"`
-	Priority              int                       `json:"priority,omitempty"`
-	Command               string                    `json:"command,omitempty"`
-	Details               []CalibrationDemandDetail `json:"details,omitempty"`
-	Count                 int                       `json:"count,omitempty"`
-	Since                 string                    `json:"since,omitempty"`
-	ReplacesCalibrationID string                    `json:"replaces_calibration_id,omitempty"`
-	IncludeReviewReady    bool                      `json:"include_review_ready,omitempty"`
+	Code                    string                    `json:"code"`
+	What                    string                    `json:"what"`
+	Subject                 string                    `json:"subject,omitempty"`
+	Target                  string                    `json:"target,omitempty"`
+	Date                    string                    `json:"date,omitempty"`
+	Priority                int                       `json:"priority,omitempty"`
+	Command                 string                    `json:"command,omitempty"`
+	Details                 []CalibrationDemandDetail `json:"details,omitempty"`
+	Count                   int                       `json:"count,omitempty"`
+	Since                   string                    `json:"since,omitempty"`
+	ReplacesCalibrationID   string                    `json:"replaces_calibration_id,omitempty"`
+	SupersedesCalibrationID string                    `json:"supersedes_calibration_id,omitempty"`
+	IncludeReviewReady      bool                      `json:"include_review_ready,omitempty"`
 }
 
 type NextBriefHealth struct {
@@ -91,18 +92,19 @@ func BuildNextBrief(overview DashboardOverview) NextBrief {
 			continue
 		}
 		item := NextBriefItem{
-			Code:                  action.Code,
-			What:                  what,
-			Subject:               titles[action.Target],
-			Target:                action.Target,
-			Date:                  action.Date,
-			Priority:              action.Priority,
-			Command:               action.Command,
-			Details:               action.Details,
-			Count:                 action.Count,
-			Since:                 action.Since,
-			ReplacesCalibrationID: action.ReplacesCalibrationID,
-			IncludeReviewReady:    action.IncludeReviewReady,
+			Code:                    action.Code,
+			What:                    what,
+			Subject:                 titles[action.Target],
+			Target:                  action.Target,
+			Date:                    action.Date,
+			Priority:                action.Priority,
+			Command:                 action.Command,
+			Details:                 action.Details,
+			Count:                   action.Count,
+			Since:                   action.Since,
+			ReplacesCalibrationID:   action.ReplacesCalibrationID,
+			SupersedesCalibrationID: action.SupersedesCalibrationID,
+			IncludeReviewReady:      action.IncludeReviewReady,
 		}
 		switch action.Actor {
 		case NextActionActorPerson:

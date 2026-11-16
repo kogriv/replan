@@ -134,8 +134,9 @@ type CalibratedDemandValue struct {
 }
 
 type CalibrationOpenDemands struct {
-	CalibrationID string
-	Demands       []CalibratedDemandValue
+	CalibrationID           string
+	SupersedesCalibrationID string
+	Demands                 []CalibratedDemandValue
 }
 
 // DemandCalibration is the approved calibration selected for one open demand.
@@ -969,8 +970,9 @@ func calibratedLoadAmount(value, factor float64) float64 {
 	return RoundCalibrationAmount(value * factor)
 }
 
-// CalibrationOpenDemandGroups returns one application candidate per sealed
-// calibration. A calibration disappears after any scenario records its ref.
+// CalibrationOpenDemandGroups returns one application candidate per calibration
+// selected by the load path. A calibration disappears after any scenario records
+// its ref.
 func CalibrationOpenDemandGroups(ws domain.Workspace) []CalibrationOpenDemands {
 	used := map[string]bool{}
 	for _, scenario := range ws.Scenarios {
@@ -978,34 +980,50 @@ func CalibrationOpenDemandGroups(ws domain.Workspace) []CalibrationOpenDemands {
 			used[scenario.CalibrationRef.ID] = true
 		}
 	}
-	tasks := map[string]domain.Task{}
-	for _, task := range ws.Tasks {
-		tasks[task.ID] = task
-	}
-	groups := []CalibrationOpenDemands{}
-	for _, calibration := range ws.Calibrations {
-		if used[calibration.ID] || calibrationSealStatus(calibration) != "verified" {
+	selected := ApplicableDemandCalibrations(ws)
+	groupsByCalibration := map[string]*CalibrationOpenDemands{}
+	for _, demand := range ws.ResourceDemands {
+		match, ok := selected[demand.ID]
+		if !ok || used[match.Calibration.ID] {
 			continue
 		}
-		group := CalibrationOpenDemands{CalibrationID: calibration.ID, Demands: []CalibratedDemandValue{}}
-		amounts := calibrationTaskScopeAmounts(ws.ResourceDemands, calibration)
-		for _, demand := range ws.ResourceDemands {
-			if calibrationDemandClosed(demand.Status) || demand.Unit != calibration.Scope.Unit || !containsString(calibration.Scope.Resources, demandResourceID(demand)) {
-				continue
+		group := groupsByCalibration[match.Calibration.ID]
+		if group == nil {
+			group = &CalibrationOpenDemands{
+				CalibrationID:           match.Calibration.ID,
+				SupersedesCalibrationID: supersededCalibrationID(ws.Calibrations, match.Calibration),
+				Demands:                 []CalibratedDemandValue{},
 			}
-			if calibration.Scope.Tag != "" && !containsString(tasks[demand.TaskRef.ID].Tags, calibration.Scope.Tag) {
-				continue
-			}
-			factor, band := CalibrationFactor(calibration, amounts[demand.TaskRef.ID])
-			group.Demands = append(group.Demands, CalibratedDemandValue{DemandID: demand.ID, TypedAmount: demand.PlannedAmount, Calibrated: RoundCalibrationAmount(demand.PlannedAmount * factor), Unit: demand.Unit, CalibrationID: calibration.ID, Factor: factor, Band: band})
+			groupsByCalibration[match.Calibration.ID] = group
 		}
-		if len(group.Demands) > 0 {
-			sort.Slice(group.Demands, func(i, j int) bool { return group.Demands[i].DemandID < group.Demands[j].DemandID })
-			groups = append(groups, group)
-		}
+		group.Demands = append(group.Demands, CalibratedDemandValue{DemandID: demand.ID, TypedAmount: demand.PlannedAmount, Calibrated: calibratedLoadAmount(demand.PlannedAmount, match.Factor), Unit: demand.Unit, CalibrationID: match.Calibration.ID, Factor: match.Factor, Band: match.Band})
+	}
+	groups := make([]CalibrationOpenDemands, 0, len(groupsByCalibration))
+	for _, group := range groupsByCalibration {
+		sort.Slice(group.Demands, func(i, j int) bool { return group.Demands[i].DemandID < group.Demands[j].DemandID })
+		groups = append(groups, *group)
 	}
 	sort.Slice(groups, func(i, j int) bool { return groups[i].CalibrationID < groups[j].CalibrationID })
 	return groups
+}
+
+func supersededCalibrationID(calibrations []domain.Calibration, selected domain.Calibration) string {
+	var superseded domain.Calibration
+	found := false
+	selectedResources := strings.Join(uniqueSorted(selected.Scope.Resources), "\x00")
+	for _, calibration := range calibrations {
+		sameScope := calibration.Scope.Unit == selected.Scope.Unit && calibration.Scope.Tag == selected.Scope.Tag && strings.Join(uniqueSorted(calibration.Scope.Resources), "\x00") == selectedResources
+		if calibration.ID == selected.ID || !sameScope || calibrationSealStatus(calibration) != "verified" || !calibrationApprovedAfter(selected, calibration) {
+			continue
+		}
+		if !found || calibrationApprovedAfter(calibration, superseded) {
+			superseded, found = calibration, true
+		}
+	}
+	if !found {
+		return ""
+	}
+	return superseded.ID
 }
 
 // CalibrationSuggestions finds uncalibrated baseline scopes with enough

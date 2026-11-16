@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
@@ -664,4 +665,110 @@ func TestCalibrationOpenDemandGroupsAggregateAndHideUsedCalibration(t *testing.T
 	if groups := CalibrationOpenDemandGroups(ws); len(groups) != 0 {
 		t.Fatalf("groups after scenario=%#v", groups)
 	}
+}
+
+func TestCalibrationOpenDemandGroupsOfferLatestScopeAndReportSuperseded(t *testing.T) {
+	older := sealedTestCalibration(t, "calibration.older", "2026-11-02T09:00:00Z", []string{"resource.agent"}, "hours", "", .5)
+	newer := sealedTestCalibration(t, "calibration.newer", "2026-11-16T09:00:00Z", []string{"resource.agent"}, "hours", "", .25)
+	ws := domain.Workspace{
+		Calibrations: []domain.Calibration{older, newer},
+		Tasks:        []domain.Task{{ID: "task.open"}},
+		ResourceDemands: []domain.ResourceDemand{{
+			ID: "demand.open", TaskRef: domain.Ref{ID: "task.open"}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "hours", PlannedAmount: 4, Status: "active",
+		}},
+	}
+
+	groups := CalibrationOpenDemandGroups(ws)
+	if len(groups) != 1 || groups[0].CalibrationID != newer.ID || groups[0].SupersedesCalibrationID != older.ID || len(groups[0].Demands) != 1 || groups[0].Demands[0].Calibrated != 1 {
+		t.Fatalf("groups=%#v", groups)
+	}
+	actions := dashboardNextActions(ws, reports.DashboardOverview{ProjectPath: "fixture"})
+	if len(actions) != 1 || actions[0].Code != "apply_calibration" || actions[0].SupersedesCalibrationID != older.ID || actions[0].Label != "Apply calibration calibration.newer to 1 open demands, replacing calibration.older" {
+		t.Fatalf("actions=%#v", actions)
+	}
+	actionJSON, err := json.Marshal(actions[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(actionJSON), `"supersedes_calibration_id":"calibration.older"`) {
+		t.Fatalf("action json=%s", actionJSON)
+	}
+	brief := reports.BuildNextBrief(reports.DashboardOverview{NextActions: actions})
+	if len(brief.AgentCanPrepare) != 1 || brief.AgentCanPrepare[0].SupersedesCalibrationID != older.ID || brief.AgentCanPrepare[0].What != actions[0].Label {
+		t.Fatalf("brief=%#v", brief)
+	}
+	var rendered strings.Builder
+	if err := reports.WriteNextBriefText(&rendered, brief); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(rendered.String(), "Apply calibration calibration.newer to 1 open demands, replacing calibration.older") || strings.Contains(rendered.String(), "Apply calibration calibration.older") {
+		t.Fatalf("brief text=%q", rendered.String())
+	}
+}
+
+func TestCalibrationOpenDemandGroupsKeepLatestForEachScope(t *testing.T) {
+	agentOlder := sealedTestCalibration(t, "calibration.agent.older", "2026-11-02T09:00:00Z", []string{"resource.agent"}, "agent_hours", "", .5)
+	agentNewer := sealedTestCalibration(t, "calibration.agent.newer", "2026-11-16T09:00:00Z", []string{"resource.agent"}, "agent_hours", "", .25)
+	ci := sealedTestCalibration(t, "calibration.ci", "2026-11-03T09:00:00Z", []string{"resource.ci"}, "minutes", "", .75)
+	ws := domain.Workspace{
+		Calibrations: []domain.Calibration{agentOlder, ci, agentNewer},
+		Tasks:        []domain.Task{{ID: "task.agent"}, {ID: "task.ci"}},
+		ResourceDemands: []domain.ResourceDemand{
+			{ID: "demand.agent", TaskRef: domain.Ref{ID: "task.agent"}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "agent_hours", PlannedAmount: 4},
+			{ID: "demand.ci", TaskRef: domain.Ref{ID: "task.ci"}, ResourceRef: domain.Ref{ID: "resource.ci"}, Unit: "minutes", PlannedAmount: 10},
+		},
+	}
+
+	groups := CalibrationOpenDemandGroups(ws)
+	if len(groups) != 2 || groups[0].CalibrationID != agentNewer.ID || groups[0].SupersedesCalibrationID != agentOlder.ID || groups[1].CalibrationID != ci.ID || groups[1].SupersedesCalibrationID != "" {
+		t.Fatalf("groups=%#v", groups)
+	}
+}
+
+func TestCalibrationOpenDemandGroupsFollowLoadSelectionForTaggedScope(t *testing.T) {
+	for _, test := range []struct {
+		name             string
+		untaggedApproved string
+		taggedApproved   string
+		wantGroups       []string
+	}{
+		{name: "newer tagged applies only to tagged demand", untaggedApproved: "2026-11-02T09:00:00Z", taggedApproved: "2026-11-16T09:00:00Z", wantGroups: []string{"calibration.tagged", "calibration.untagged"}},
+		{name: "newer untagged applies to both demands", untaggedApproved: "2026-11-16T09:00:00Z", taggedApproved: "2026-11-02T09:00:00Z", wantGroups: []string{"calibration.untagged"}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			untagged := sealedTestCalibration(t, "calibration.untagged", test.untaggedApproved, []string{"resource.agent"}, "hours", "", .5)
+			tagged := sealedTestCalibration(t, "calibration.tagged", test.taggedApproved, []string{"resource.agent"}, "hours", "special", .25)
+			ws := domain.Workspace{
+				Calibrations: []domain.Calibration{tagged, untagged},
+				Tasks:        []domain.Task{{ID: "task.plain"}, {ID: "task.tagged", Tags: []string{"special"}}},
+				ResourceDemands: []domain.ResourceDemand{
+					{ID: "demand.plain", TaskRef: domain.Ref{ID: "task.plain"}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "hours", PlannedAmount: 4},
+					{ID: "demand.tagged", TaskRef: domain.Ref{ID: "task.tagged"}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "hours", PlannedAmount: 4},
+				},
+			}
+			selected := ApplicableDemandCalibrations(ws)
+			groups := CalibrationOpenDemandGroups(ws)
+			gotGroups := make([]string, 0, len(groups))
+			for _, group := range groups {
+				gotGroups = append(gotGroups, group.CalibrationID)
+				for _, demand := range group.Demands {
+					if selected[demand.DemandID].Calibration.ID != group.CalibrationID {
+						t.Fatalf("group %s disagrees with load selection %#v", group.CalibrationID, selected[demand.DemandID])
+					}
+				}
+			}
+			if strings.Join(gotGroups, ",") != strings.Join(test.wantGroups, ",") {
+				t.Fatalf("groups=%#v", groups)
+			}
+		})
+	}
+}
+
+func sealedTestCalibration(t *testing.T, id, approvedAt string, resources []string, unit, tag string, factor float64) domain.Calibration {
+	t.Helper()
+	calibration := domain.Calibration{ID: id, ApprovedAt: approvedAt, Scope: domain.CalibrationScope{Resources: resources, Unit: unit, Tag: tag}, Result: domain.CalibrationResult{Factor: factor}}
+	if err := domain.SealCalibration(&calibration); err != nil {
+		t.Fatal(err)
+	}
+	return calibration
 }

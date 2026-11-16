@@ -1481,10 +1481,14 @@ func dashboardNextActions(ws domain.Workspace, overview reports.DashboardOvervie
 		for _, value := range group.Demands {
 			details = append(details, reports.CalibrationDemandDetail{DemandID: value.DemandID, TypedAmount: value.TypedAmount, CalibratedValue: value.Calibrated, Unit: value.Unit, Factor: value.Factor, Band: value.Band})
 		}
+		label := fmt.Sprintf("Apply calibration %s to %d open demands", group.CalibrationID, len(group.Demands))
+		if group.SupersedesCalibrationID != "" {
+			label += ", replacing " + group.SupersedesCalibrationID
+		}
 		actions = append(actions, reports.DashboardNextAction{
-			Code: "apply_calibration", Label: fmt.Sprintf("Apply calibration %s to %d open demands", group.CalibrationID, len(group.Demands)),
+			Code: "apply_calibration", Label: label,
 			Target: group.CalibrationID, Command: fmt.Sprintf("replan estimate apply --project %s --calibration %s --scenario-id <scenario-id> --actor <actor-id> --dry-run --format json", overview.ProjectPath, group.CalibrationID),
-			Actor: reports.NextActionActorAgent, Details: details,
+			Actor: reports.NextActionActorAgent, Details: details, SupersedesCalibrationID: group.SupersedesCalibrationID,
 		})
 	}
 	for _, suggestion := range CalibrationSuggestions(ws) {
