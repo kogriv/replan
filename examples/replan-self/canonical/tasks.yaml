@@ -8315,7 +8315,7 @@ tasks:
     title: Recalibrate the self project's agent estimates over the recent window
     description: 'After the window option exists, write a new sealed agent calibration for the self project over tasks started since 2026-11-02, by size band, approved by the maintainer, and check the calibrated load, the scenario route for open demands and replan next. CI stays uncalibrated until measured CI actuals accumulate.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-16"
     planned_finish: "2026-11-16"
     assignee_hint:
@@ -8364,3 +8364,90 @@ tasks:
         object_type: work_package
         object_id: "2384"
         url: https://op.example.internal/work_packages/2384
+  - id: task.self.next-suggests-only-latest-calibration
+    title: Suggest applying only the latest calibration of a scope
+    description: 'Found on 2026-11-16 while recalibrating the self project: after calibration.2026-11-16.agents-since-november replaced calibration.2026-11-02.agents-by-size for the same resources and unit, replan next lists apply_calibration for both, so an agent could apply the superseded factor. Load commands already use the latest matching approved calibration. Make next (and the dashboard next actions) offer apply_calibration only for the latest approved calibration of each resource-unit-tag scope, name the calibration it supersedes where useful, and keep older calibrations readable through estimate list and show; tests with two calibrations of one scope and with two different scopes.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-16"
+    planned_finish: "2026-11-16"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.next-suggests-only-latest-calibration.codex
+      - kind: resource_demand
+        id: resource_demand.next-suggests-only-latest-calibration.agent
+      - kind: resource_demand
+        id: resource_demand.next-suggests-only-latest-calibration.maintainer
+      - kind: resource_demand
+        id: resource_demand.next-suggests-only-latest-calibration.local-dev
+      - kind: resource_demand
+        id: resource_demand.next-suggests-only-latest-calibration.ci
+    tags:
+      - calibration
+      - estimates
+      - gap
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2385"
+        url: https://op.example.internal/work_packages/2385
+  - id: task.self.calibrate-measured-actuals-only
+    title: Calibrate only measured actuals, not judged ones
+    description: 'Found on 2026-11-16 while recalibrating the self project: replan next suggests a CI-minutes calibration over 67 clean tasks, but their CI actuals were judged (4 minutes per task) before accept-task measured them from GitHub Actions runs. accept-task now marks a CI amount source measured or stated only in its step output. Record the source of an actual (measured from a run or logs, stated by a person, judged) on the consumption actual where the booking path knows it (accept-task CI and review minutes, add-consumption with an optional --source), let estimate calibrate exclude tasks whose actuals in scope are judged with reason actuals_judged (keeping explicit --exclude), and make next suggest a scope only when it has eight clean tasks with measured or stated actuals; keep existing calibrations and their digests valid; tests and docs.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-16"
+    planned_finish: "2026-11-16"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.calibrate-measured-actuals-only.codex
+      - kind: resource_demand
+        id: resource_demand.calibrate-measured-actuals-only.agent
+      - kind: resource_demand
+        id: resource_demand.calibrate-measured-actuals-only.maintainer
+      - kind: resource_demand
+        id: resource_demand.calibrate-measured-actuals-only.local-dev
+      - kind: resource_demand
+        id: resource_demand.calibrate-measured-actuals-only.ci
+    tags:
+      - calibration
+      - estimates
+      - gap
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2386"
+        url: https://op.example.internal/work_packages/2386
+  - id: task.self.delete-stale-openproject-relation
+    title: Delete the live OpenProject relation of a cancelled dependency
+    description: 'Found on 2026-11-16 by the date push while backfilling status history: the cancelled RePlan dependency dependency.milestone-2-before-work-package-link still has a live OpenProject relation between the plugin milestone 2 deployment and the work package link task (cancelled_dependency_still_live). Review the relation endpoints and delete it with the reviewed toolkit command relation delete --remove-private-binding, dry run first, with the maintainer''s agreement of 2026-11-16; check that the warning is gone.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-16"
+    planned_finish: "2026-11-16"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.delete-stale-openproject-relation.agent
+      - kind: resource_demand
+        id: resource_demand.delete-stale-openproject-relation.maintainer
+      - kind: resource_demand
+        id: resource_demand.delete-stale-openproject-relation.local-dev
+      - kind: resource_demand
+        id: resource_demand.delete-stale-openproject-relation.ci
+    tags:
+      - openproject
+      - cleanup
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2387"
+        url: https://op.example.internal/work_packages/2387

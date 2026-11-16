@@ -558,6 +558,12 @@ current_plan:
     - kind: task
       id: task.self.publish-release-v0-5-6
     - kind: task
+      id: task.self.next-suggests-only-latest-calibration
+    - kind: task
+      id: task.self.calibrate-measured-actuals-only
+    - kind: task
+      id: task.self.delete-stale-openproject-relation
+    - kind: task
       id: task.self.date-push-nothing-to-apply-is-ok
     - kind: task
       id: task.self.toolkit-comment-add-saves-comment

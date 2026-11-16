@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 284,
-  "count": 284,
+  "total": 287,
+  "count": 287,
   "_embedded": {
     "elements": [
       {
@@ -8230,6 +8230,93 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2384"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2385,
+        "subject": "Suggest applying only the latest calibration of a scope",
+        "description": {
+          "raw": "Found on 2026-11-16 while recalibrating the self project: after calibration.2026-11-16.agents-since-november replaced calibration.2026-11-02.agents-by-size for the same resources and unit, replan next lists apply_calibration for both, so an agent could apply the superseded factor. Load commands already use the latest matching approved calibration. Make next (and the dashboard next actions) offer apply_calibration only for the latest approved calibration of each resource-unit-tag scope, name the calibration it supersedes where useful, and keep older calibrations readable through estimate list and show; tests with two calibrations of one scope and with two different scopes."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-16",
+        "dueDate": "2026-11-16",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2385"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2386,
+        "subject": "Calibrate only measured actuals, not judged ones",
+        "description": {
+          "raw": "Found on 2026-11-16 while recalibrating the self project: replan next suggests a CI-minutes calibration over 67 clean tasks, but their CI actuals were judged (4 minutes per task) before accept-task measured them from GitHub Actions runs. accept-task now marks a CI amount source measured or stated only in its step output. Record the source of an actual (measured from a run or logs, stated by a person, judged) on the consumption actual where the booking path knows it (accept-task CI and review minutes, add-consumption with an optional --source), let estimate calibrate exclude tasks whose actuals in scope are judged with reason actuals_judged (keeping explicit --exclude), and make next suggest a scope only when it has eight clean tasks with measured or stated actuals; keep existing calibrations and their digests valid; tests and docs."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-16",
+        "dueDate": "2026-11-16",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2386"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2387,
+        "subject": "Delete the live OpenProject relation of a cancelled dependency",
+        "description": {
+          "raw": "Found on 2026-11-16 by the date push while backfilling status history: the cancelled RePlan dependency dependency.milestone-2-before-work-package-link still has a live OpenProject relation between the plugin milestone 2 deployment and the work package link task (cancelled_dependency_still_live). Review the relation endpoints and delete it with the reviewed toolkit command relation delete --remove-private-binding, dry run first, with the maintainer's agreement of 2026-11-16; check that the warning is gone."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.1H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-16",
+        "dueDate": "2026-11-16",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2387"
           },
           "status": {
             "title": "New"

@@ -356,3 +356,66 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.recalibrate-self-agent-estimates
+  - id: actual.self-measured-wait-report.human-maintainer.20261116T041322Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.measured-wait-report
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.measured-wait-report.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.08
+    unit: hours
+    occurred_at: "2026-11-16T04:13:22Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-measured-wait-report
+  - id: actual.self-agent-kit-estimating-guide.human-maintainer.20261116T041322Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.agent-kit-estimating-guide
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.agent-kit-estimating-guide.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.08
+    unit: hours
+    occurred_at: "2026-11-16T04:13:22Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-agent-kit-estimating-guide
+  - id: actual.self-recalibrate-self-agent-estimates.ci-github-actions.20261116T045510Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.recalibrate-self-agent-estimates
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.recalibrate-self-agent-estimates.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 12
+    unit: ci_minutes
+    occurred_at: "2026-11-16T04:55:10Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-recalibrate-self-agent-estimates

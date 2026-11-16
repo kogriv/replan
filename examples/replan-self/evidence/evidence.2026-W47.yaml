@@ -257,3 +257,42 @@ evidence:
     targets:
       - kind: task
         id: task.self.recalibrate-self-agent-estimates
+  - id: evidence.self.accept-recalibrate-self-agent-estimates
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-16T04:55:10Z"
+    confidence: observed
+    summary: 'Accepted by the maintainer on review in chat (answer 2026-11-16 11:55). CI measured from GitHub Actions runs 43803336374: 12 billable minutes.'
+    targets:
+      - kind: task
+        id: task.self.recalibrate-self-agent-estimates
+  - id: evidence.self.ack-ci-overrun-recalibrate-self-agent-estimates
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T11:57:33+07:00"
+    summary: 'Acknowledged under the maintainer''s standing approval (chat, 2026-11-15 21:09) for measured CI overruns in the calibration batch: 12 billable minutes measured from GitHub Actions run 43803336374 exceed the 10 planned.'
+    targets:
+      - kind: task
+        id: task.self.recalibrate-self-agent-estimates
+  - id: evidence.self.plan-calibration-findings-2026-11-16
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-16T11:55:10+07:00"
+    summary: 'The maintainer agreed in chat (2026-11-16 11:55) to three findings from the recalibration as tasks with their estimates and to include the first two in release v0.5.6: next suggests only the latest calibration of a scope (Codex 1 h, executor 0.3 h), calibrate only measured actuals (Codex 1.5 h, executor 0.5 h), delete the stale OpenProject relation of a cancelled dependency (executor 0.1 h, with the maintainer''s agreement to the delete).'
+    targets:
+      - kind: task
+        id: task.self.next-suggests-only-latest-calibration
+      - kind: task
+        id: task.self.calibrate-measured-actuals-only
+      - kind: task
+        id: task.self.delete-stale-openproject-relation

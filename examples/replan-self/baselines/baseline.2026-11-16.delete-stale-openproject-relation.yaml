@@ -1,0 +1,42 @@
+baseline:
+  id: baseline.2026-11-16.delete-stale-openproject-relation
+  name: delete-stale-openproject-relation as agreed on 2026-11-16
+  scope: tasks
+  created_at: "2026-11-16T11:55:10+07:00"
+  approved_at: "2026-11-16T11:55:10+07:00"
+  approved_by:
+    kind: actor
+    id: actor.human.maintainer
+  included_tasks:
+    - kind: task
+      id: task.self.delete-stale-openproject-relation
+      planned_start: "2026-11-16"
+      planned_finish: "2026-11-16"
+  included_demands:
+    - kind: resource_demand
+      id: resource_demand.delete-stale-openproject-relation.agent
+      task: task.self.delete-stale-openproject-relation
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 0.1
+    - kind: resource_demand
+      id: resource_demand.delete-stale-openproject-relation.maintainer
+      task: task.self.delete-stale-openproject-relation
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.1
+    - kind: resource_demand
+      id: resource_demand.delete-stale-openproject-relation.local-dev
+      task: task.self.delete-stale-openproject-relation
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.delete-stale-openproject-relation.ci
+      task: task.self.delete-stale-openproject-relation
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  seal:
+    algorithm: sha256
+    digest: ccde3ac3331ef40a75b904a63e852e3b52d2bae64f7b070f70831c7bddbf4f6c

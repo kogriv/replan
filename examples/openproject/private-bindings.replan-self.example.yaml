@@ -929,6 +929,24 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2384"
         url: https://op.example.internal/work_packages/2384
+    - replan_task_id: task.self.next-suggests-only-latest-calibration
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2385"
+        url: https://op.example.internal/work_packages/2385
+    - replan_task_id: task.self.calibrate-measured-actuals-only
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2386"
+        url: https://op.example.internal/work_packages/2386
+    - replan_task_id: task.self.delete-stale-openproject-relation
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2387"
+        url: https://op.example.internal/work_packages/2387
     - replan_task_id: task.self.date-push-nothing-to-apply-is-ok
       source_ref:
         source: openproject
