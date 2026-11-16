@@ -130,3 +130,27 @@ evidence:
     targets:
       - kind: task
         id: task.self.measured-wait-report
+  - id: evidence.self.accept-backfill-actual-windows-from-openproject
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-16T03:03:09Z"
+    confidence: observed
+    summary: 'Accepted by the maintainer on review in chat (answer 2026-11-16 10:03). CI measured from GitHub Actions runs 43795565711: 12 billable minutes. Review time stated by actor.human.maintainer: 7 minutes.'
+    targets:
+      - kind: task
+        id: task.self.backfill-actual-windows-from-openproject
+  - id: evidence.self.ack-ci-overrun-backfill-actual-windows-from-openproject
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T10:08:06+07:00"
+    summary: 'Acknowledged under the maintainer''s standing approval (chat, 2026-11-15 21:09) for measured CI overruns in the calibration batch: 12 billable minutes measured from GitHub Actions run 43795565711 exceed the 10 planned.'
+    targets:
+      - kind: task
+        id: task.self.backfill-actual-windows-from-openproject

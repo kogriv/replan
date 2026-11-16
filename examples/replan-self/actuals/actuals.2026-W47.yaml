@@ -209,3 +209,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.backfill-actual-windows-from-openproject
+  - id: actual.self-backfill-actual-windows-from-openproject.ci-github-actions.20261116T030309Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.backfill-actual-windows-from-openproject
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.backfill-actual-windows-from-openproject.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 12
+    unit: ci_minutes
+    occurred_at: "2026-11-16T03:03:09Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-backfill-actual-windows-from-openproject
+  - id: actual.self-backfill-actual-windows-from-openproject.human-maintainer.20261116T030309Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.backfill-actual-windows-from-openproject
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.backfill-actual-windows-from-openproject.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.12
+    unit: hours
+    occurred_at: "2026-11-16T03:03:09Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-backfill-actual-windows-from-openproject
