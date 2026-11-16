@@ -1,0 +1,85 @@
+actuals:
+  - id: actual.self-measured-ci-and-review-actuals.ci-github-actions.20261116T003501Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.measured-ci-and-review-actuals
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.measured-ci-and-review-actuals.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 12
+    unit: ci_minutes
+    occurred_at: "2026-11-16T00:35:01Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-measured-ci-and-review-actuals
+  - id: actual.self-measured-ci-and-review-actuals.human-maintainer.20261116T003501Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.measured-ci-and-review-actuals
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.measured-ci-and-review-actuals.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.08
+    unit: hours
+    occurred_at: "2026-11-16T00:35:01Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-measured-ci-and-review-actuals
+  - id: actual.self-calibration-review-ready-sample.ci-github-actions.20261116T003501Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.calibration-review-ready-sample
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.calibration-review-ready-sample.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 12
+    unit: ci_minutes
+    occurred_at: "2026-11-16T00:35:01Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-calibration-review-ready-sample
+  - id: actual.self-calibration-review-ready-sample.human-maintainer.20261116T003501Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.calibration-review-ready-sample
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.calibration-review-ready-sample.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.08
+    unit: hours
+    occurred_at: "2026-11-16T00:35:01Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-calibration-review-ready-sample

@@ -1,0 +1,49 @@
+evidence:
+  - id: evidence.self.accept-measured-ci-and-review-actuals
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-16T00:35:01Z"
+    confidence: observed
+    summary: 'Accepted by the maintainer on review in chat (answer 2026-11-16 07:35). CI measured from GitHub Actions runs 43723154802: 12 billable minutes. Review time stated by actor.human.maintainer: 5 minutes.'
+    targets:
+      - kind: task
+        id: task.self.measured-ci-and-review-actuals
+  - id: evidence.self.accept-calibration-review-ready-sample
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-16T00:35:01Z"
+    confidence: observed
+    summary: 'Accepted by the maintainer on review in chat (answer 2026-11-16 07:35). CI measured from GitHub Actions runs 43726149450: 12 billable minutes. Review time stated by actor.human.maintainer: 5 minutes.'
+    targets:
+      - kind: task
+        id: task.self.calibration-review-ready-sample
+  - id: evidence.self.ack-ci-overrun-measured-ci-and-review-actuals
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T07:38:11+07:00"
+    summary: 'Acknowledged under the maintainer''s standing approval (chat, 2026-11-15 21:09) for measured CI overruns in the calibration batch: 12 billable minutes measured from GitHub Actions run 43723154802 exceed the 10 planned.'
+    targets:
+      - kind: task
+        id: task.self.measured-ci-and-review-actuals
+  - id: evidence.self.ack-ci-overrun-calibration-review-ready-sample
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T07:38:11+07:00"
+    summary: 'Acknowledged under the maintainer''s standing approval (chat, 2026-11-15 21:09) for measured CI overruns in the calibration batch: 12 billable minutes measured from GitHub Actions run 43726149450 exceed the 10 planned.'
+    targets:
+      - kind: task
+        id: task.self.calibration-review-ready-sample
