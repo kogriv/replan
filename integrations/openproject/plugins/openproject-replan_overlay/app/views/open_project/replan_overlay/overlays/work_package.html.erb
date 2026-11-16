@@ -241,15 +241,17 @@
 
         <h3>Time booked</h3>
         <% if task.actuals.any? %>
+          <% show_actual_measurement = task.actuals.any? { |actual| actual["measurement"].present? } %>
           <div class="replan-panel__table-box">
             <table class="replan-panel__table">
-              <thead><tr><th>Date</th><th>Resource</th><th>Amount</th></tr></thead>
+              <thead><tr><th>Date</th><th>Resource</th><th>Amount</th><% if show_actual_measurement %><th>Measurement</th><% end %></tr></thead>
               <tbody>
                 <% task.actuals.each do |actual| %>
                   <tr title="<%= h actual["demand_id"] %>">
                     <td class="-num"><%= h actual["date"] %></td>
                     <td><%= h actual["resource"] %></td>
                     <td class="-num"><%= h actual["amount"] %></td>
+                    <% if show_actual_measurement %><td><%= h actual["measurement"] %></td><% end %>
                   </tr>
                 <% end %>
               </tbody>

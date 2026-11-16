@@ -44,17 +44,18 @@ type ActualListResult struct {
 }
 
 type ActualAddConsumptionRequest struct {
-	TaskID     string
-	DemandID   string
-	ResourceID string
-	Amount     float64
-	Unit       string
-	EvidenceID string
-	ActorID    string
-	OccurredAt string
-	StatusDate string
-	DryRun     bool
-	Now        time.Time
+	TaskID      string
+	DemandID    string
+	ResourceID  string
+	Amount      float64
+	Unit        string
+	Measurement string
+	EvidenceID  string
+	ActorID     string
+	OccurredAt  string
+	StatusDate  string
+	DryRun      bool
+	Now         time.Time
 }
 
 type ActualAddConsumptionResult struct {
@@ -257,6 +258,7 @@ type ActualSummary struct {
 	CorrectedTo         *float64 `json:"corrected_to,omitempty"`
 	CorrectedStatusDate string   `json:"corrected_status_date,omitempty"`
 	Unit                string   `json:"unit,omitempty"`
+	Measurement         string   `json:"measurement,omitempty"`
 	OccurredAt          string   `json:"occurred_at,omitempty"`
 	StatusDate          string   `json:"status_date,omitempty"`
 	AcceptedBy          string   `json:"accepted_by,omitempty"`
@@ -509,6 +511,7 @@ func (s ActualService) AddConsumption(ctx context.Context, req ActualAddConsumpt
 		ResourceRef: domain.Ref{Kind: "resource", ID: req.ResourceID},
 		Amount:      req.Amount,
 		Unit:        req.Unit,
+		Measurement: req.Measurement,
 		OccurredAt:  occurredAt,
 		StatusDate:  statusDate,
 		AcceptedBy:  domain.Ref{Kind: "actor", ID: req.ActorID},
@@ -1138,6 +1141,7 @@ func actualSummary(actual domain.Actual) ActualSummary {
 		CorrectedTo:         actual.CorrectedAmount,
 		CorrectedStatusDate: actual.CorrectedStatusDate,
 		Unit:                actual.Unit,
+		Measurement:         actual.Measurement,
 		OccurredAt:          actual.OccurredAt,
 		StatusDate:          actual.StatusDate,
 		AcceptedBy:          actual.AcceptedBy.ID,
@@ -1337,6 +1341,9 @@ func validateAddConsumptionRequest(errors *[]Diagnostic, ws domain.Workspace, re
 	if req.ActorID == "" {
 		addActualRequestError(errors, "missing_actor", "actor is required", "actor", "")
 	}
+	if !validActualMeasurement(req.Measurement) {
+		addActualRequestError(errors, "invalid_measurement", "measurement must be measured, stated, or judged", "actual", "")
+	}
 
 	task, taskOK := findTask(ws.Tasks, req.TaskID)
 	demand, demandOK := findDemand(ws.ResourceDemands, req.DemandID)
@@ -1373,6 +1380,15 @@ func validateAddConsumptionRequest(errors *[]Diagnostic, ws domain.Workspace, re
 		}
 	}
 	return demand, demandOK
+}
+
+func validActualMeasurement(measurement string) bool {
+	switch measurement {
+	case "", "measured", "stated", "judged":
+		return true
+	default:
+		return false
+	}
 }
 
 func addActualRequestError(errors *[]Diagnostic, code, message, kind, id string) {
@@ -1463,6 +1479,7 @@ func sameActualContent(left, right domain.Actual) bool {
 	return left.Type == right.Type &&
 		left.TaskRef == right.TaskRef &&
 		left.DemandRef == right.DemandRef &&
+		left.Measurement == right.Measurement &&
 		left.ResourceRef == right.ResourceRef &&
 		left.Amount == right.Amount &&
 		left.Unit == right.Unit &&

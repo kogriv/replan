@@ -121,6 +121,7 @@ func validateWorkspace(result *ValidateResult, ws domain.Workspace) {
 	v.policy(ws.Policy)
 	v.actors(ws.Actors)
 	v.resources(ws.Resources)
+	v.projectCalibration(ws.Project)
 	v.resourcePools(ws.ResourcePools)
 	v.tasks(ws.Tasks)
 	v.resourceDemands(ws.ResourceDemands)
@@ -208,6 +209,23 @@ func (v *workspaceValidator) project(project domain.Project) {
 		v.errorf("invalid_openproject_ids_policy", "project", project.ID, "project openproject_ids must be %q or %q, got %q", domain.OpenProjectIDsCanonical, domain.OpenProjectIDsPrivateBindings, project.OpenProjectIDs)
 	}
 	validateSourceProfiles(v.result, project.SourceProfiles)
+}
+
+func (v *workspaceValidator) projectCalibration(project domain.Project) {
+	if project.Calibration == nil {
+		return
+	}
+	seen := map[string]bool{}
+	for _, resourceID := range project.Calibration.RequireMeasurement {
+		if seen[resourceID] {
+			v.errorf("duplicate_calibration_measurement_resource", "project", project.ID, "project calibration.require_measurement repeats resource %q", resourceID)
+			continue
+		}
+		seen[resourceID] = true
+		if !exists(v.ids, domain.Ref{Kind: "resource", ID: resourceID}) {
+			v.errorf("unresolved_reference", "project", project.ID, "project calibration.require_measurement resource %q does not exist", resourceID)
+		}
+	}
 }
 
 func (v *workspaceValidator) actors(actors []domain.Actor) {
@@ -603,6 +621,18 @@ func (v *workspaceValidator) calibrations(calibrations []domain.Calibration, bas
 	}
 	for _, calibration := range calibrations {
 		v.register("calibration", calibration.ID)
+		scopeResources := stringSet(calibration.Scope.Resources)
+		seenRequired := map[string]bool{}
+		for _, resourceID := range calibration.Scope.RequireMeasurement {
+			if seenRequired[resourceID] {
+				v.errorf("duplicate_calibration_measurement_resource", "calibration", calibration.ID, "calibration scope require_measurement repeats resource %q", resourceID)
+				continue
+			}
+			seenRequired[resourceID] = true
+			if !scopeResources[resourceID] {
+				v.errorf("calibration_measurement_resource_out_of_scope", "calibration", calibration.ID, "calibration scope require_measurement resource %q is not in scope.resources", resourceID)
+			}
+		}
 		if calibration.Scope.Since != "" {
 			if _, err := time.Parse(calendarDateLayout, calibration.Scope.Since); err != nil {
 				v.errorf("invalid_since", "calibration", calibration.ID, "calibration since %q must be YYYY-MM-DD", calibration.Scope.Since)
@@ -655,6 +685,11 @@ func (v *workspaceValidator) actuals(actuals []domain.Actual) {
 		}
 		if actual.Unit == "" && actual.Amount != 0 {
 			v.errorf("missing_unit", "actual", actual.ID, "actual unit is required when amount is present")
+		}
+		if actual.Measurement != "" && actual.Measurement != "measured" && actual.Measurement != "stated" && actual.Measurement != "judged" {
+			v.errorf("invalid_measurement", "actual", actual.ID, "actual measurement must be measured, stated, or judged, got %q", actual.Measurement)
+		} else if actual.Measurement != "" && !estimateConsumptionTypes[actual.Type] {
+			v.errorf("invalid_measurement", "actual", actual.ID, "actual measurement is only valid on consumption actuals")
 		}
 		if actual.Type != "correction" {
 			continue

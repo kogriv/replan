@@ -284,6 +284,7 @@ func runActualAddConsumption(args []string, stdout, stderr *os.File) int {
 	resourceID := fs.String("resource", "", "resource id")
 	amount := fs.Float64("amount", 0, "consumed amount")
 	unit := fs.String("unit", "", "consumed amount unit (defaults to the demand unit)")
+	measurement := fs.String("measurement", "", "how the amount was obtained: measured, stated, or judged")
 	evidenceID := fs.String("evidence", "", "evidence id")
 	actorID := fs.String("actor", "", "actor id accepting the actual")
 	occurredAt := fs.String("occurred-at", "", "RFC3339 occurrence timestamp")
@@ -297,16 +298,17 @@ func runActualAddConsumption(args []string, stdout, stderr *os.File) int {
 		return code
 	}
 	result, err := app.NewActualService(newStore(*projectPath)).AddConsumption(context.Background(), app.ActualAddConsumptionRequest{
-		TaskID:     *taskID,
-		DemandID:   *demandID,
-		ResourceID: *resourceID,
-		Amount:     *amount,
-		Unit:       *unit,
-		EvidenceID: *evidenceID,
-		ActorID:    *actorID,
-		OccurredAt: *occurredAt,
-		StatusDate: *statusDate,
-		DryRun:     dryRun,
+		TaskID:      *taskID,
+		DemandID:    *demandID,
+		ResourceID:  *resourceID,
+		Amount:      *amount,
+		Unit:        *unit,
+		Measurement: *measurement,
+		EvidenceID:  *evidenceID,
+		ActorID:     *actorID,
+		OccurredAt:  *occurredAt,
+		StatusDate:  *statusDate,
+		DryRun:      dryRun,
 	})
 	env := envelope{
 		OK:          err == nil && len(result.Errors) == 0,
@@ -569,10 +571,10 @@ func writeActualListMarkdown(stdout *os.File, result app.ActualListResult) error
 		_, err := fmt.Fprintln(stdout, "No actuals.")
 		return err
 	}
-	if _, err := fmt.Fprintln(stdout, "| Actual | Type | Task | Resource | Amount | Corrected To | Corrects | Unit | Occurred | Accepted By |"); err != nil {
+	if _, err := fmt.Fprintln(stdout, "| Actual | Type | Task | Resource | Amount | Corrected To | Corrects | Unit | Measurement | Occurred | Accepted By |"); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintln(stdout, "|---|---|---|---|---:|---:|---|---|---|---|"); err != nil {
+	if _, err := fmt.Fprintln(stdout, "|---|---|---|---|---:|---:|---|---|---|---|---|"); err != nil {
 		return err
 	}
 	for _, actual := range result.Actuals {
@@ -580,7 +582,7 @@ func writeActualListMarkdown(stdout *os.File, result app.ActualListResult) error
 		if actual.CorrectedTo != nil {
 			correctedTo = formatFloat(*actual.CorrectedTo)
 		}
-		if _, err := fmt.Fprintf(stdout, "| `%s` | `%s` | `%s` | `%s` | %g | %s | `%s` | %s | %s | `%s` |\n",
+		if _, err := fmt.Fprintf(stdout, "| `%s` | `%s` | `%s` | `%s` | %g | %s | `%s` | %s | %s | %s | `%s` |\n",
 			actual.ID,
 			actual.Type,
 			actual.TaskID,
@@ -589,6 +591,7 @@ func writeActualListMarkdown(stdout *os.File, result app.ActualListResult) error
 			correctedTo,
 			actual.CorrectsID,
 			actual.Unit,
+			actual.Measurement,
 			actual.OccurredAt,
 			actual.AcceptedBy); err != nil {
 			return err
@@ -632,7 +635,7 @@ func writeActualAddConsumptionDryRunMarkdown(stdout *os.File, result app.ActualA
 	if _, err := fmt.Fprintf(stdout, "- Resource: `%s`\n", actual.ResourceID); err != nil {
 		return err
 	}
-	if _, err := fmt.Fprintf(stdout, "- Amount: `%g %s`\n", actual.Amount, actual.Unit); err != nil {
+	if err := writeActualAmountMarkdown(stdout, actual); err != nil {
 		return err
 	}
 	if _, err := fmt.Fprintf(stdout, "- Accepted by: `%s`\n", actual.AcceptedBy); err != nil {
@@ -684,6 +687,17 @@ func writeActualAddConsumptionDryRunMarkdown(stdout *os.File, result app.ActualA
 		}
 	}
 	return nil
+}
+
+func writeActualAmountMarkdown(stdout *os.File, actual app.ActualSummary) error {
+	if _, err := fmt.Fprintf(stdout, "- Amount: `%g %s`\n", actual.Amount, actual.Unit); err != nil {
+		return err
+	}
+	if actual.Measurement == "" {
+		return nil
+	}
+	_, err := fmt.Fprintf(stdout, "- Measurement: `%s`\n", actual.Measurement)
+	return err
 }
 
 //nolint:gocyclo,gocognit // This flat renderer keeps every conditional output line in contract order; helper boundaries would make byte-level review harder.

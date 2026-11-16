@@ -3,6 +3,7 @@ package app_test
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"os"
@@ -193,6 +194,51 @@ func TestActualAddConsumptionDryRunSmallTeamFixture(t *testing.T) {
 	}
 	if result.AuditRecordPreview.ActorRef.ID != "actor.human.operator" {
 		t.Fatalf("unexpected audit actor: %s", result.AuditRecordPreview.ActorRef.ID)
+	}
+}
+
+func TestActualAddConsumptionMeasurementValuesAndLegacyOmission(t *testing.T) {
+	service := app.NewActualService(filestore.New("../../examples/small-team"))
+	base := app.ActualAddConsumptionRequest{
+		TaskID: "task.op.1234", DemandID: "resource_demand.task-op-1234.implementer",
+		ResourceID: "resource.human.ivan", Amount: 1, Unit: "hours",
+		ActorID: "actor.human.operator", OccurredAt: "2026-07-06T16:00:00+07:00",
+		StatusDate: "2026-07-06", DryRun: true,
+	}
+	for _, measurement := range []string{"measured", "stated", "judged"} {
+		t.Run(measurement, func(t *testing.T) {
+			req := base
+			req.Measurement = measurement
+			result, err := service.AddConsumption(context.Background(), req)
+			if err != nil || result.Actual.Measurement != measurement || result.ActualSummary.Measurement != measurement {
+				t.Fatalf("measurement=%q result=%#v err=%v", measurement, result, err)
+			}
+			if !strings.Contains(result.PlannedWrites[0].Content, "measurement: "+measurement) {
+				t.Fatalf("planned yaml missing measurement: %s", result.PlannedWrites[0].Content)
+			}
+		})
+	}
+
+	legacy, err := service.AddConsumption(context.Background(), base)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(legacy.PlannedWrites[0].Content, "measurement:") {
+		t.Fatalf("legacy yaml changed: %s", legacy.PlannedWrites[0].Content)
+	}
+	legacyJSON, err := json.Marshal(legacy.Actual)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(legacyJSON), "measurement") {
+		t.Fatalf("legacy json changed: %s", legacyJSON)
+	}
+
+	invalid := base
+	invalid.Measurement = "estimated"
+	result, err := service.AddConsumption(context.Background(), invalid)
+	if err == nil || len(result.Errors) == 0 || result.Errors[0].Code != "invalid_measurement" {
+		t.Fatalf("invalid measurement result=%#v err=%v", result, err)
 	}
 }
 

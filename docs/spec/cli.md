@@ -1971,6 +1971,27 @@ up to 4 and above 4. Apply creates a sealed, immutable
 approver must be human; `direct` explicitly allows an existing non-human
 approving actor.
 
+The project manifest can require trustworthy amount provenance for selected
+resources:
+
+```yaml
+project:
+  calibration:
+    require_measurement: [resource.ci.github-actions]
+```
+
+Each id must name a project resource. For a listed resource in the calibration
+scope, every counted actual must have `measurement: measured` or
+`measurement: stated`; otherwise the task is excluded as
+`actuals_unmeasured`. A `measurement: judged` consumption actual excludes its
+task as `actuals_judged` from every calibration scope that counts its resource
+and unit; the task's other scopes are not affected. Resources not listed
+retain the legacy behavior, so existing actuals without `measurement` still
+count. A new sealed calibration records the applicable intersection in
+`scope.require_measurement`; the field is omitted when empty so historical
+calibration seals remain valid. Explicit `--exclude
+task-id=actuals_judged` remains supported.
+
 `--include-review-ready` also treats tasks whose tracking status is
 `review_ready` as finished for this calibration only. They must still satisfy
 every other clean-sample rule, including counted actuals; a review-ready task
@@ -2471,7 +2492,7 @@ replan actual add-status
 Examples:
 
 ```bash
-replan actual add-consumption --task task.op.1234 --demand demand.task-op-1234.implementer --resource resource.human.ivan --amount 3 --unit hours --evidence evidence.manual.time-entry.20260706.1 --actor actor.human.operator --apply
+replan actual add-consumption --task task.op.1234 --demand demand.task-op-1234.implementer --resource resource.human.ivan --amount 3 --unit hours --measurement stated --evidence evidence.manual.time-entry.20260706.1 --actor actor.human.operator --apply
 replan actual correct --actual actual.op-1234.human-ivan.20260706T1600000700.work-consumed --amount 0.1 --reason "Correct guessed start duration" --actor actor.human.operator --evidence evidence.manual.time-entry.20260706.2 --dry-run
 replan actual correct --actual actual.op-1234.human-ivan.20260706T1600000700.work-consumed --void --reason "Duplicate booking" --actor actor.human.operator --evidence evidence.manual.time-entry.20260706.2 --dry-run
 replan actual correct --actual actual.op-1234.human-ivan.20260706T1600000700.work-consumed --status-date 2026-07-07 --reason "Recorded in UTC instead of the project zone" --actor actor.human.operator --evidence evidence.manual.time-entry.20260707.1 --dry-run
@@ -2488,7 +2509,7 @@ Implemented command flags:
 
 ```text
 replan actual list --project -p --bindings --format --demand --resource --task --type
-replan actual add-consumption --project -p --bindings --format --actor --amount --apply --demand --dry-run --evidence --occurred-at --resource --status-date --task --unit
+replan actual add-consumption --project -p --bindings --format --actor --amount --apply --demand --dry-run --evidence --measurement --occurred-at --resource --status-date --task --unit
 replan actual correct --project -p --bindings --format --actual --amount --void --status-date --reason --actor --evidence --occurred-at --dry-run --apply
 replan actual correct-status --project -p --bindings --format --audit --status-date --reason --actor --evidence --occurred-at --dry-run --apply
 replan actual set-remaining --project -p --bindings --format --actor --amount --apply --demand --dry-run --evidence --from-file --occurred-at --reason --status-date --unit
@@ -2505,6 +2526,11 @@ Rules:
 - actual commands should support dry-run;
 - actual commands should reference evidence where available;
 - actual commands must not rewrite baseline;
+- consumption actuals may record how the amount was obtained with
+  `--measurement measured|stated|judged`. The optional `measurement` field is
+  omitted from YAML and JSON when absent, preserving existing files and
+  digests. `actual list` shows it when present; another value is refused with
+  `invalid_measurement` (exit 2);
 - `actual set-remaining --from-file <yaml-or-json>` accepts the same top-level
   `demands` list key as `demand set --from-file`. Each item has `demand`,
   `amount`, `unit` and optional `reason` fields:

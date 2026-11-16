@@ -210,6 +210,7 @@ func (index overlayIndex) indexFacts(ws domain.Workspace) {
 			ResourceName: index.resourceName(resourceID),
 			Amount:       actual.Amount,
 			Unit:         actual.Unit,
+			Measurement:  actual.Measurement,
 		})
 	}
 	for taskID, rows := range index.actuals {

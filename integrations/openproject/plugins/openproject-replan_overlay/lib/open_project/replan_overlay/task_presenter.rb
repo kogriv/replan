@@ -101,7 +101,8 @@ module OpenProject
                              .map do |item, _index|
           { "date" => date_label(item["date"]),
             "resource" => item["resource_name"].to_s.empty? ? resource_name(item["resource_id"]) : item["resource_name"].to_s,
-            "amount" => amount(item["amount"], item["unit"]), "demand_id" => item["demand_id"].to_s }
+            "amount" => amount(item["amount"], item["unit"]), "measurement" => item["measurement"].to_s.tr("_", " "),
+            "demand_id" => item["demand_id"].to_s }
         end
       end
 

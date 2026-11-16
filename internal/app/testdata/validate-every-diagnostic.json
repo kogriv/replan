@@ -461,6 +461,22 @@
       }
     },
     {
+      "code": "unresolved_reference",
+      "message": "project calibration.require_measurement resource \"resource.missing\" does not exist",
+      "severity": "error",
+      "target": {
+        "kind": "project"
+      }
+    },
+    {
+      "code": "duplicate_calibration_measurement_resource",
+      "message": "project calibration.require_measurement repeats resource \"resource.missing\"",
+      "severity": "error",
+      "target": {
+        "kind": "project"
+      }
+    },
+    {
       "code": "missing_resource_pool_class",
       "message": "resource pool resource_class is required",
       "severity": "error",
@@ -920,6 +936,15 @@
       }
     },
     {
+      "code": "invalid_measurement",
+      "message": "actual measurement must be measured, stated, or judged, got \"guessed\"",
+      "severity": "error",
+      "target": {
+        "kind": "actual",
+        "id": "actual.bad"
+      }
+    },
+    {
       "code": "invalid_actual_correction",
       "message": "correction must have an actual corrects_ref",
       "severity": "error",
@@ -1097,6 +1122,15 @@
       "target": {
         "kind": "baseline",
         "id": "baseline.modified"
+      }
+    },
+    {
+      "code": "calibration_measurement_resource_out_of_scope",
+      "message": "calibration scope require_measurement resource \"resource.outside\" is not in scope.resources",
+      "severity": "error",
+      "target": {
+        "kind": "calibration",
+        "id": "calibration.unsealed"
       }
     },
     {

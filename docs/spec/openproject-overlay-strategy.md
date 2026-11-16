@@ -197,7 +197,7 @@ and per work package:
 |---|---|
 | `first_actual_date`, `last_actual_date` | the first and last booked consumption |
 | `evidence` | what was done: `id`, `date`, `kind`, `summary`, oldest first |
-| `actuals` | booked consumption: `date`, `demand_id`, `resource_id`, `resource_name`, `amount`, `unit`, oldest first |
+| `actuals` | booked consumption: `date`, `demand_id`, `resource_id`, `resource_name`, `amount`, `unit`, optional `measurement`, oldest first |
 | `warnings` | `validate` warnings about the task, its demands, or a dependency it waits on: `code`, `message`, `severity`, `target_id` |
 | `open_proposals` | open proposals about the task or its demands: `id`, `type`, `target_id`, `rationale` |
 | `dependencies` | `direction` (`predecessor` or `successor`), the other task's `task_id`, `task_title`, `work_package_id`, `task_status`, and the dependency's `id`, `status`, `criticality` |

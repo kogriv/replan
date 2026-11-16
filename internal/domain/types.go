@@ -28,15 +28,20 @@ type SourceProfile struct {
 }
 
 type Project struct {
-	ID                string          `json:"id" yaml:"id"`
-	Name              string          `json:"name" yaml:"name"`
-	FormatVersion     int             `json:"format_version" yaml:"format_version,omitempty"`
-	Timezone          string          `json:"timezone" yaml:"timezone"`
-	DefaultStatusDate string          `json:"default_status_date,omitempty" yaml:"default_status_date,omitempty"`
-	OpenProjectIDs    string          `json:"openproject_ids,omitempty" yaml:"openproject_ids,omitempty"`
-	SourceRefs        []SourceRef     `json:"source_refs,omitempty" yaml:"source_refs,omitempty"`
-	SourceProfiles    []SourceProfile `json:"source_profiles,omitempty" yaml:"source_profiles,omitempty"`
-	PolicyRef         Ref             `json:"policy_ref,omitempty" yaml:"policy_ref,omitempty"`
+	ID                string                      `json:"id" yaml:"id"`
+	Name              string                      `json:"name" yaml:"name"`
+	FormatVersion     int                         `json:"format_version" yaml:"format_version,omitempty"`
+	Timezone          string                      `json:"timezone" yaml:"timezone"`
+	DefaultStatusDate string                      `json:"default_status_date,omitempty" yaml:"default_status_date,omitempty"`
+	OpenProjectIDs    string                      `json:"openproject_ids,omitempty" yaml:"openproject_ids,omitempty"`
+	SourceRefs        []SourceRef                 `json:"source_refs,omitempty" yaml:"source_refs,omitempty"`
+	SourceProfiles    []SourceProfile             `json:"source_profiles,omitempty" yaml:"source_profiles,omitempty"`
+	Calibration       *ProjectCalibrationSettings `json:"calibration,omitempty" yaml:"calibration,omitempty"`
+	PolicyRef         Ref                         `json:"policy_ref,omitempty" yaml:"policy_ref,omitempty"`
+}
+
+type ProjectCalibrationSettings struct {
+	RequireMeasurement []string `json:"require_measurement,omitempty" yaml:"require_measurement,omitempty"`
 }
 
 const (
@@ -340,6 +345,7 @@ type CalibrationScope struct {
 	Tag                string   `json:"tag,omitempty" yaml:"tag,omitempty"`
 	Since              string   `json:"since,omitempty" yaml:"since,omitempty"`
 	IncludeReviewReady bool     `json:"include_review_ready,omitempty" yaml:"include_review_ready,omitempty"`
+	RequireMeasurement []string `json:"require_measurement,omitempty" yaml:"require_measurement,omitempty"`
 }
 
 type CalibrationSample struct {
@@ -383,6 +389,7 @@ type Actual struct {
 	ResourceRef         Ref      `json:"resource_ref,omitempty" yaml:"resource_ref,omitempty"`
 	Amount              float64  `json:"amount,omitempty" yaml:"amount,omitempty"`
 	Unit                string   `json:"unit,omitempty" yaml:"unit,omitempty"`
+	Measurement         string   `json:"measurement,omitempty" yaml:"measurement,omitempty"`
 	OccurredAt          string   `json:"occurred_at,omitempty" yaml:"occurred_at,omitempty"`
 	StatusDate          string   `json:"status_date,omitempty" yaml:"status_date,omitempty"`
 	AcceptedBy          Ref      `json:"accepted_by" yaml:"accepted_by"`

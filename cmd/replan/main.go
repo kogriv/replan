@@ -200,7 +200,7 @@ func printUsage(out *os.File) {
 	fmt.Fprintln(out, "  replan baseline show <id> --project <path> [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan audit list|verify --project <path> [--format json|markdown]")
 	fmt.Fprintln(out, "  replan actual list|add-consumption|correct|correct-status|set-remaining|close-demand|reopen-demand|acknowledge-overrun|add-status --project <path> [--dry-run|--apply for mutations] [--format json|markdown]")
-	fmt.Fprintln(out, "  replan actual add-consumption --project <path> --task <id> --demand <id> --resource <id> --amount <n> [--unit <unit>] --actor <id> (--dry-run|--apply) [--format json|markdown|text] (--unit defaults to the demand unit)")
+	fmt.Fprintln(out, "  replan actual add-consumption --project <path> --task <id> --demand <id> --resource <id> --amount <n> [--unit <unit>] [--measurement measured|stated|judged] --actor <id> (--dry-run|--apply) [--format json|markdown|text] (--unit defaults to the demand unit)")
 	fmt.Fprintln(out, "  replan actual set-remaining --project <path> --demand <id> --amount <n> [--unit <unit>] --actor <id> (--dry-run|--apply) [--format json|markdown|text] (--unit defaults to the demand unit)")
 	fmt.Fprintln(out, "  replan actual correct --project <path> --actual <id> [--amount <n>|--void] [--status-date <date>] --reason <text> --actor <id> --evidence <id> [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan actual correct-status --project <path> --audit <id> --status-date <date> --reason <text> --actor <id> --evidence <id> [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|markdown|text]")

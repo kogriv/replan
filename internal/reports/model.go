@@ -559,6 +559,7 @@ type DashboardOpenProjectOverlayActual struct {
 	ResourceName string  `json:"resource_name,omitempty"`
 	Amount       float64 `json:"amount"`
 	Unit         string  `json:"unit,omitempty"`
+	Measurement  string  `json:"measurement,omitempty"`
 }
 
 // DashboardOpenProjectOverlayProposal is an open proposal about the task or

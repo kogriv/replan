@@ -97,6 +97,18 @@ A task enters the sample only when all of these hold:
   tasks with a reason, for example the six tasks of 15–16 October booked by
   judgement (`actuals_judged`).
 
+Consumption actuals can identify their provenance as `measurement: measured`,
+`stated` or `judged`. A judged actual excludes its task as `actuals_judged` from the calibration
+scopes it is counted in; a judged CI amount does not exclude the task's agent
+hours. Projects opt selected resources into stricter
+sampling with `.replan/project.yaml`'s
+`project.calibration.require_measurement`: every counted actual for such an
+in-scope resource must be measured or stated, or the task is excluded as
+`actuals_unmeasured`. Unlisted resources keep accepting legacy actuals without
+the field; this lets timestamp-derived historical agent-hours continue to
+calibrate. A sealed calibration stores the required-resource intersection
+that applied to its scope, omitted when empty for old-seal compatibility.
+
 The minimum sample is 8 tasks. Below it, `calibrate` refuses with
 `calibration_sample_too_small`, naming the count and the excluded tasks.
 The sealed scope records the opt-in as `include_review_ready`, and the result

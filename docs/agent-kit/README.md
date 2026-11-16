@@ -611,12 +611,29 @@ The loop, in order:
    - CI time: let acceptance read it from the runs with
      `REPLAN_ACCEPT_CI_RUNS` (billable minutes, each job rounded up to a
      minute, as GitHub bills it). `REPLAN_ACCEPT_CI_MINUTES` books a stated
-     amount and marks it `source: stated`.
+     amount and marks it `measurement: stated`.
    - Review time: the accepting person states it, and acceptance books it with
      `REPLAN_ACCEPT_REVIEW_MINUTES` on that person's demand. Without it, human
      estimates can never be calibrated.
 
    See [Accept a completed task](#accept-a-completed-task) for both settings.
+   `actual add-consumption --measurement measured|stated|judged` records how
+   the amount was obtained. For old judged history, mark its consumption
+   actuals `judged` (or keep an explicit
+   `--exclude task.example=actuals_judged` on a calibration). To prevent
+   unmarked CI history from becoming a clean sample, set this project rule:
+
+   ```yaml
+   project:
+     calibration:
+       require_measurement: [resource.ci.github-actions]
+   ```
+
+   Listed resources accept only measured or stated actuals for calibration;
+   an unmarked amount is `actuals_unmeasured`, while judged actuals are always
+   `actuals_judged`. Do not list the historical agent-hours resource merely
+   because older timestamp-derived records lack the new optional field.
+
    A measured amount above the plan shows up as `review_forecast_over_plan`
    in `tracking suggest`; when the overrun is real, a person acknowledges it
    with `actual acknowledge-overrun --demand <id> --reason <text>`.
@@ -753,6 +770,9 @@ the changed dates and status to only the bound OpenProject work package,
 writes dependency proposal candidates for separate review, and refreshes the
 overlay when those scripts and a
 publish target are available. It never accepts a proposal automatically.
+CI derived from `REPLAN_ACCEPT_CI_RUNS` is booked with `measurement: measured`;
+`REPLAN_ACCEPT_CI_MINUTES` and `REPLAN_ACCEPT_REVIEW_MINUTES` are booked with
+`measurement: stated`.
 
 Required settings are `REPLAN_PROJECT`, `REPLAN_TASK`,
 `REPLAN_ACCEPTED_BY`, `REPLAN_ACCEPT_SUMMARY` and the OpenProject toolkit's

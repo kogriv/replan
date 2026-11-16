@@ -47,7 +47,7 @@ func overlayWorkspace() domain.Workspace {
 	}
 	ws.Actuals = []domain.Actual{
 		{ID: "actual.a.2", Type: "work_consumed", TaskRef: domain.Ref{Kind: "task", ID: "task.a"}, DemandRef: domain.Ref{Kind: "resource_demand", ID: "resource_demand.a"},
-			ResourceRef: domain.Ref{Kind: "resource", ID: "resource.environment.slot"}, Amount: 1, Unit: "concurrent_slots", StatusDate: "2026-09-29"},
+			ResourceRef: domain.Ref{Kind: "resource", ID: "resource.environment.slot"}, Amount: 1, Unit: "concurrent_slots", Measurement: "measured", StatusDate: "2026-09-29"},
 		{ID: "actual.a.1", Type: "work_consumed", DemandRef: domain.Ref{Kind: "resource_demand", ID: "resource_demand.a"},
 			Amount: 1, Unit: "concurrent_slots", OccurredAt: "2026-09-28T09:00:00+07:00"},
 	}
@@ -144,7 +144,7 @@ func TestOverlayVersion2TaskFields(t *testing.T) {
 	if len(a.Evidence) != 2 || a.Evidence[0].ID != "evidence.a.first" || a.Evidence[0].Date != "2026-09-28" || a.Evidence[1].Kind != "operator_acceptance" {
 		t.Errorf("evidence not dated and in order: %+v", a.Evidence)
 	}
-	if len(a.Actuals) != 2 || a.Actuals[0].Date != "2026-09-28" || a.Actuals[0].ResourceName != "Slot" || a.Actuals[1].Date != "2026-09-29" {
+	if len(a.Actuals) != 2 || a.Actuals[0].Date != "2026-09-28" || a.Actuals[0].ResourceName != "Slot" || a.Actuals[1].Date != "2026-09-29" || a.Actuals[1].Measurement != "measured" {
 		t.Errorf("actuals: %+v", a.Actuals)
 	}
 	if a.FirstActualDate != "2026-09-28" || a.LastActualDate != "2026-09-29" {

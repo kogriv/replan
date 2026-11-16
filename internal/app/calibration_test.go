@@ -65,6 +65,52 @@ func TestCalibrationObservationExclusionReasons(t *testing.T) {
 	}
 }
 
+func TestCalibrationMeasurementEligibility(t *testing.T) {
+	amount := 4.0
+	baseline := domain.Baseline{ID: "baseline.measurement", ApprovedAt: "2026-01-01T00:00:00Z"}
+	ws := domain.Workspace{Project: domain.Project{Calibration: &domain.ProjectCalibrationSettings{RequireMeasurement: []string{"resource.ci"}}}}
+	for _, id := range []string{"unmeasured", "measured", "stated", "judged"} {
+		taskID, demandID := "task."+id, "demand."+id
+		ws.Tasks = append(ws.Tasks, domain.Task{ID: taskID, TrackingStatus: "accepted"})
+		ws.ResourceDemands = append(ws.ResourceDemands, domain.ResourceDemand{ID: demandID, TaskRef: domain.Ref{ID: taskID}, ResourceRef: domain.Ref{ID: "resource.ci"}, Unit: "ci_minutes"})
+		baseline.IncludedTasks = append(baseline.IncludedTasks, domain.BaselineTaskEntry{Ref: domain.Ref{ID: taskID}})
+		baseline.IncludedDemands = append(baseline.IncludedDemands, domain.BaselineDemandEntry{Ref: domain.Ref{ID: demandID}, Task: taskID, Resource: "resource.ci", Unit: "ci_minutes", PlannedAmount: &amount})
+		measurement := map[string]string{"measured": "measured", "stated": "stated", "judged": "judged"}[id]
+		ws.Actuals = append(ws.Actuals, domain.Actual{ID: "actual." + id, Type: "work_consumed", TaskRef: domain.Ref{ID: taskID}, DemandRef: domain.Ref{ID: demandID}, ResourceRef: domain.Ref{ID: "resource.ci"}, Unit: "ci_minutes", Amount: 2, Measurement: measurement, StatusDate: "2026-01-02"})
+	}
+	ws.ResourceDemands = append(ws.ResourceDemands, domain.ResourceDemand{ID: "demand.judged.other", TaskRef: domain.Ref{ID: "task.judged"}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "agent_hours"})
+	ws.Actuals = append(ws.Actuals, domain.Actual{ID: "actual.judged.other", Type: "work_consumed", TaskRef: domain.Ref{ID: "task.judged"}, DemandRef: domain.Ref{ID: "demand.judged.other"}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "agent_hours", Amount: 1, Measurement: "measured", StatusDate: "2026-01-02"})
+	baseline.IncludedDemands = append(baseline.IncludedDemands, domain.BaselineDemandEntry{Ref: domain.Ref{ID: "demand.judged.other"}, Task: "task.judged", Resource: "resource.agent", Unit: "agent_hours", PlannedAmount: &amount})
+
+	scope := domain.CalibrationScope{Resources: []string{"resource.ci"}, Unit: "ci_minutes"}
+	observations, excluded := calibrationObservations(ws, []domain.Baseline{baseline}, scope, nil)
+	if len(observations) != 2 || observations[0].taskID != "task.measured" || observations[1].taskID != "task.stated" {
+		t.Fatalf("observations=%#v", observations)
+	}
+	reasons := map[string]string{}
+	for _, item := range excluded {
+		reasons[item.Task] = item.Reason
+	}
+	if reasons["task.unmeasured"] != "actuals_unmeasured" || reasons["task.judged"] != "actuals_judged" {
+		t.Fatalf("excluded=%#v", excluded)
+	}
+	// The judged CI amount does not spoil the same task's measured agent hours.
+	agentObservations, agentExcluded := calibrationObservations(ws, []domain.Baseline{baseline}, domain.CalibrationScope{Resources: []string{"resource.agent"}, Unit: "agent_hours"}, nil)
+	if len(agentObservations) != 1 || agentObservations[0].taskID != "task.judged" {
+		t.Fatalf("agent observations=%#v excluded=%#v", agentObservations, agentExcluded)
+	}
+
+	legacyScope := domain.CalibrationScope{Resources: []string{"resource.agent"}, Unit: "agent_hours"}
+	legacyBaseline := domain.Baseline{ID: "baseline.legacy", ApprovedAt: "2026-01-01T00:00:00Z", IncludedTasks: []domain.BaselineTaskEntry{{Ref: domain.Ref{ID: "task.legacy"}}}, IncludedDemands: []domain.BaselineDemandEntry{{Ref: domain.Ref{ID: "demand.legacy"}, Task: "task.legacy", Resource: "resource.agent", Unit: "agent_hours", PlannedAmount: &amount}}}
+	ws.Tasks = append(ws.Tasks, domain.Task{ID: "task.legacy", TrackingStatus: "accepted"})
+	ws.ResourceDemands = append(ws.ResourceDemands, domain.ResourceDemand{ID: "demand.legacy", TaskRef: domain.Ref{ID: "task.legacy"}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "agent_hours"})
+	ws.Actuals = append(ws.Actuals, domain.Actual{ID: "actual.legacy", Type: "work_consumed", TaskRef: domain.Ref{ID: "task.legacy"}, DemandRef: domain.Ref{ID: "demand.legacy"}, ResourceRef: domain.Ref{ID: "resource.agent"}, Unit: "agent_hours", Amount: 1, StatusDate: "2026-01-02"})
+	legacy, legacyExcluded := calibrationObservations(ws, []domain.Baseline{legacyBaseline}, legacyScope, nil)
+	if len(legacy) != 1 || len(legacyExcluded) != 0 {
+		t.Fatalf("legacy observations=%#v excluded=%#v", legacy, legacyExcluded)
+	}
+}
+
 func TestCalibrationReviewReadyOptInStillRequiresActuals(t *testing.T) {
 	amount := 2.0
 	baseline := domain.Baseline{ID: "baseline.review-ready", ApprovedAt: "2026-01-01T00:00:00Z"}
@@ -536,6 +582,28 @@ func TestCalibrationAllBaselinesCombinesLimitedSamples(t *testing.T) {
 	}
 }
 
+func TestCalibrationSealsAppliedMeasurementRequirement(t *testing.T) {
+	ws := limitedCalibrationWorkspace(t)
+	ws.Resources = append(ws.Resources, domain.Resource{ID: "resource.other"})
+	ws.Project.Calibration = &domain.ProjectCalibrationSettings{RequireMeasurement: []string{"resource.other", "resource.executor"}}
+	for i := range ws.Actuals {
+		ws.Actuals[i].Measurement = "measured"
+	}
+	result, err := NewCalibrationService(calibrationTestLoader{ws: ws}).Calibrate(context.Background(), CalibrationCalibrateRequest{
+		AllBaselines: true, ResourceIDs: []string{"resource.executor"}, Unit: "hours", ID: "calibration.measured", Name: "Measured", ApprovedBy: "actor.operator", DryRun: true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := result.Calibration.Scope.RequireMeasurement; len(got) != 1 || got[0] != "resource.executor" {
+		t.Fatalf("required measurement=%v", got)
+	}
+	digest, err := domain.CalibrationDigest(result.Calibration)
+	if err != nil || digest != result.Calibration.SealSHA256 {
+		t.Fatalf("digest=%q seal=%q err=%v", digest, result.Calibration.SealSHA256, err)
+	}
+}
+
 func TestCalibrationBaselineFlagsConflict(t *testing.T) {
 	ws := limitedCalibrationWorkspace(t)
 	result, err := NewCalibrationService(calibrationTestLoader{ws: ws}).Calibrate(context.Background(), CalibrationCalibrateRequest{
@@ -551,6 +619,21 @@ func TestCalibrationSuggestionsCombineLimitedBaselines(t *testing.T) {
 	suggestions := CalibrationSuggestions(ws)
 	if len(suggestions) != 1 || !suggestions[0].AllBaselines || suggestions[0].Count != 8 {
 		t.Fatalf("suggestions=%#v", suggestions)
+	}
+}
+
+func TestCalibrationSuggestionsRequireMeasuredActuals(t *testing.T) {
+	ws := limitedCalibrationWorkspace(t)
+	ws.Project.Calibration = &domain.ProjectCalibrationSettings{RequireMeasurement: []string{"resource.executor"}}
+	if suggestions := CalibrationSuggestions(ws); len(suggestions) != 0 {
+		t.Fatalf("suggestions with unmeasured actuals=%#v", suggestions)
+	}
+	for i := range ws.Actuals {
+		ws.Actuals[i].Measurement = "measured"
+	}
+	suggestions := CalibrationSuggestions(ws)
+	if len(suggestions) != 1 || suggestions[0].Count != CalibrationMinimumSample {
+		t.Fatalf("suggestions with measured actuals=%#v", suggestions)
 	}
 }
 

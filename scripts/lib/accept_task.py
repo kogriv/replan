@@ -390,7 +390,9 @@ else:
     ci_command = base + [
         "actual", "add-consumption", "--project", project, "--task", task_id,
         "--demand", ci_demand["id"], "--resource", resource_id,
-        "--amount", display_amount(ci_minutes), "--unit", "ci_minutes", *common_actual, "--apply",
+        "--amount", display_amount(ci_minutes), "--unit", "ci_minutes",
+        "--measurement", "measured" if ci_run_ids else "stated",
+        *common_actual, "--apply",
     ]
     if any(item.get("id") == ci_actual_id for item in actual_items):
         planned.append(step(2, "record_ci_minutes", "already_done", f"actual {ci_actual_id} already exists", ci_command, actual_id=ci_actual_id, source="measured" if ci_run_ids else "stated", ci_minutes=ci_minutes, run_ids=ci_run_ids))
@@ -408,6 +410,7 @@ else:
         "actual", "add-consumption", "--project", project, "--task", task_id,
         "--demand", review_demand["id"], "--resource", review_resource_id,
         "--amount", display_amount(review_amount), "--unit", review_demand["unit"],
+        "--measurement", "stated",
         *common_actual, "--apply",
     ]
     review_extra = {

@@ -370,10 +370,11 @@ func calibrationTaskFinished(status string, includeReviewReady bool) bool {
 
 func buildCalibration(ws domain.Workspace, baselines []domain.Baseline, req CalibrationCalibrateRequest, approvedAt string) domain.Calibration {
 	resources := uniqueSorted(req.ResourceIDs)
+	requireMeasurement := calibrationRequiredMeasurement(ws.Project, resources)
 	calibration := domain.Calibration{
 		ID: req.ID, Name: req.Name, ApprovedBy: domain.Ref{Kind: "actor", ID: req.ApprovedBy}, ApprovedAt: approvedAt,
 		SourceBaselines: []domain.CalibrationSourceBaseline{},
-		Scope:           domain.CalibrationScope{Resources: resources, Unit: req.Unit, Tag: req.Tag, Since: req.Since, IncludeReviewReady: req.IncludeReviewReady},
+		Scope:           domain.CalibrationScope{Resources: resources, Unit: req.Unit, Tag: req.Tag, Since: req.Since, IncludeReviewReady: req.IncludeReviewReady, RequireMeasurement: requireMeasurement},
 		Sample:          domain.CalibrationSample{Tasks: []string{}, Excluded: []domain.CalibrationExclusion{}},
 		Result:          domain.CalibrationResult{SizeBands: []domain.CalibrationSizeBand{}},
 	}
@@ -397,6 +398,7 @@ func buildCalibration(ws domain.Workspace, baselines []domain.Baseline, req Cali
 }
 
 func calibrationObservations(ws domain.Workspace, baselines []domain.Baseline, scope domain.CalibrationScope, explicit map[string]string) ([]calibrationObservation, []domain.CalibrationExclusion) {
+	scope.RequireMeasurement = calibrationRequiredMeasurement(ws.Project, scope.Resources)
 	tasks := map[string]domain.Task{}
 	demands := map[string]domain.ResourceDemand{}
 	demandIDsByTask := map[string][]string{}
@@ -472,10 +474,8 @@ func calibrationObservations(ws domain.Workspace, baselines []domain.Baseline, s
 		if reason == "" && selected.amount <= 0 {
 			reason = "baseline_amount_not_positive"
 		}
-		actual, recorded := calibrationTaskActual(ws, taskID, scope, demands)
-		if reason == "" && !recorded {
-			reason = "no_actuals"
-		}
+		actual, recorded, actualReason := calibrationTaskActual(ws, taskID, scope, demands)
+		reason = calibrationActualExclusion(reason, actualReason, recorded)
 		if reason != "" {
 			excluded = append(excluded, domain.CalibrationExclusion{Task: taskID, Reason: reason})
 			continue
@@ -485,6 +485,19 @@ func calibrationObservations(ws domain.Workspace, baselines []domain.Baseline, s
 	sort.Slice(observations, func(i, j int) bool { return observations[i].taskID < observations[j].taskID })
 	sort.Slice(excluded, func(i, j int) bool { return excluded[i].Task < excluded[j].Task })
 	return observations, excluded
+}
+
+func calibrationActualExclusion(existing, actualReason string, recorded bool) string {
+	if existing != "" {
+		return existing
+	}
+	if actualReason != "" {
+		return actualReason
+	}
+	if !recorded {
+		return "no_actuals"
+	}
+	return ""
 }
 
 func baselineApprovedBeforeStart(project domain.Project, baseline domain.Baseline, window taskActualWindow) bool {
@@ -497,11 +510,26 @@ func baselineApprovedBeforeStart(project domain.Project, baseline domain.Baselin
 	return approvedDate != "" && approvedDate < window.Start
 }
 
-func calibrationTaskActual(ws domain.Workspace, taskID string, scope domain.CalibrationScope, demands map[string]domain.ResourceDemand) (float64, bool) {
+func calibrationRequiredMeasurement(project domain.Project, resources []string) []string {
+	scopeResources := stringSet(resources)
+	required := []string{}
+	if project.Calibration == nil {
+		return required
+	}
+	for _, resourceID := range project.Calibration.RequireMeasurement {
+		if scopeResources[resourceID] {
+			required = append(required, resourceID)
+		}
+	}
+	return uniqueSorted(required)
+}
+
+func calibrationTaskActual(ws domain.Workspace, taskID string, scope domain.CalibrationScope, demands map[string]domain.ResourceDemand) (float64, bool, string) {
 	resources := stringSet(scope.Resources)
+	requireMeasurement := stringSet(scope.RequireMeasurement)
 	amount, recorded := 0.0, false
 	for _, actual := range EffectiveActuals(ws.Actuals) {
-		if !estimateConsumptionTypes[actual.Type] || actual.Unit != scope.Unit {
+		if !estimateConsumptionTypes[actual.Type] {
 			continue
 		}
 		demand := demands[actual.DemandRef.ID]
@@ -512,16 +540,27 @@ func calibrationTaskActual(ws domain.Workspace, taskID string, scope domain.Cali
 		if actualTask != taskID {
 			continue
 		}
+		if actual.Unit != scope.Unit {
+			continue
+		}
 		resourceID := actual.ResourceRef.ID
 		if resourceID == "" {
 			resourceID = demandResourceID(demand)
 		}
 		if resources[resourceID] {
+			// A judged amount spoils only the scope it is counted in: a
+			// judged CI amount does not exclude the task's agent hours.
+			if actual.Measurement == "judged" {
+				return 0, false, "actuals_judged"
+			}
+			if requireMeasurement[resourceID] && actual.Measurement != "measured" && actual.Measurement != "stated" {
+				return 0, false, "actuals_unmeasured"
+			}
 			amount += actual.Amount
 			recorded = true
 		}
 	}
-	return amount, recorded
+	return amount, recorded, ""
 }
 
 func summarizeCalibration(observations []calibrationObservation, bySize bool) domain.CalibrationResult {

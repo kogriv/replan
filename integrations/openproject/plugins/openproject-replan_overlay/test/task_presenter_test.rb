@@ -26,7 +26,7 @@ class TaskPresenterTest < Minitest::Test
       ],
       "actuals" => [
         { "date" => "2026-09-15", "resource_id" => "resource.person", "amount" => 3, "unit" => "hours" },
-        { "date" => "2026-09-16", "resource_id" => "resource.person", "resource_name" => "Person", "amount" => 1.5, "unit" => "hours" }
+        { "date" => "2026-09-16", "resource_id" => "resource.person", "resource_name" => "Person", "amount" => 1.5, "unit" => "hours", "measurement" => "stated" }
       ],
       "warnings" => [{ "code" => "x", "message" => "Demand has no capacity." }],
       "open_proposals" => [{ "id" => "proposal.p", "rationale" => "Move it a week." }],
@@ -52,6 +52,7 @@ class TaskPresenterTest < Minitest::Test
     assert_equal ["16 Sep 2026", "operator acceptance", "Accepted."], task.evidence.first.values_at("date", "kind", "summary")
     assert_equal [["16 Sep 2026", "Person", "1.5 h"], ["15 Sep 2026", "Person", "3 h"]],
                  task.actuals.map { |actual| actual.values_at("date", "resource", "amount") }
+    assert_equal ["stated", ""], task.actuals.map { |actual| actual["measurement"] }
   end
 
   def test_demands_show_planned_booked_and_remaining

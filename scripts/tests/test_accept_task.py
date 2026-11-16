@@ -361,7 +361,7 @@ os.execv(os.environ['REAL_REPLAN'], [os.environ['REAL_REPLAN'], *args])
         self.assertEqual(ci_step["source"], "stated")
         actuals = sum((load_yaml(os.path.join(self.project, "actuals", name)).get("actuals") or [] for name in os.listdir(os.path.join(self.project, "actuals")) if name.endswith(".yaml")), [])
         recorded = [item for item in actuals if item.get("demand_ref", {}).get("id") == ci_demand["id"]]
-        self.assertEqual([(item["amount"], item["unit"]) for item in recorded], [(12, "ci_minutes")])
+        self.assertEqual([(item["amount"], item["unit"], item.get("measurement")) for item in recorded], [(12, "ci_minutes", "stated")])
 
     def test_ci_runs_are_measured_and_booked_in_dry_run_and_apply(self):
         ci_demand = self.prepare_ci_demand()
@@ -383,7 +383,7 @@ os.execv(os.environ['REAL_REPLAN'], [os.environ['REAL_REPLAN'], *args])
         self.assertEqual(proc.returncode, 0, out)
         actuals = sum((load_yaml(os.path.join(self.project, "actuals", name)).get("actuals") or [] for name in os.listdir(os.path.join(self.project, "actuals")) if name.endswith(".yaml")), [])
         recorded = [item for item in actuals if item.get("demand_ref", {}).get("id") == ci_demand["id"]]
-        self.assertEqual([(item["amount"], item["unit"]) for item in recorded], [(4, "ci_minutes")])
+        self.assertEqual([(item["amount"], item["unit"], item.get("measurement")) for item in recorded], [(4, "ci_minutes", "measured")])
         evidence = sum((load_yaml(os.path.join(self.project, "evidence", name)).get("evidence") or [] for name in os.listdir(os.path.join(self.project, "evidence")) if name.endswith(".yaml")), [])
         accepted = next(item for item in evidence if item["id"] == "evidence.op.accept-1234")
         self.assertIn("CI measured from GitHub Actions runs 123, 456: 4 billable minutes.", accepted["summary"])
@@ -408,7 +408,7 @@ os.execv(os.environ['REAL_REPLAN'], [os.environ['REAL_REPLAN'], *args])
         self.assertEqual((review["step"], review["state"], review["amount"], review["unit"]), (2.5, "applied", 0.75, "hours"))
         actuals = sum((load_yaml(os.path.join(self.project, "actuals", name)).get("actuals") or [] for name in os.listdir(os.path.join(self.project, "actuals")) if name.endswith(".yaml")), [])
         recorded = [item for item in actuals if item.get("demand_ref", {}).get("id") == demand["id"]]
-        self.assertEqual([(item["amount"], item["resource_ref"]["id"]) for item in recorded], [(0.75, "resource.human.operator")])
+        self.assertEqual([(item["amount"], item["resource_ref"]["id"], item.get("measurement")) for item in recorded], [(0.75, "resource.human.operator", "stated")])
         evidence = sum((load_yaml(os.path.join(self.project, "evidence", name)).get("evidence") or [] for name in os.listdir(os.path.join(self.project, "evidence")) if name.endswith(".yaml")), [])
         self.assertIn("Review time stated by actor.human.operator: 45 minutes.", next(item for item in evidence if item["id"] == "evidence.op.accept-1234")["summary"])
 
