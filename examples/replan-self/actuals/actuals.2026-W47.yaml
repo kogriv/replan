@@ -125,3 +125,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.agent-session-consumption-helper
+  - id: actual.self-agent-session-consumption-helper.ci-github-actions.20261116T020300Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.agent-session-consumption-helper
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.agent-session-consumption-helper.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 11
+    unit: ci_minutes
+    occurred_at: "2026-11-16T02:03:00Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-agent-session-consumption-helper
+  - id: actual.self-agent-session-consumption-helper.human-maintainer.20261116T020300Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.agent-session-consumption-helper
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.agent-session-consumption-helper.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.08
+    unit: hours
+    occurred_at: "2026-11-16T02:03:00Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-agent-session-consumption-helper

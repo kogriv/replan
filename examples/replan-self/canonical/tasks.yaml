@@ -8201,7 +8201,7 @@ tasks:
     title: Turn agent session logs into consumption amounts
     description: 'Both the self project and the second consumer project assemble agent actuals by hand: the orchestrating Claude Code session''s active time from transcript timestamps with long gaps removed, plus Codex run minutes from its session logs. Add a read-only helper that takes a task''s window (from its tracking status or explicit from/to), reads Claude Code transcript jsonl files and Codex session jsonl files, merges activity into intervals with a configurable idle gap, and prints per-resource agent_hours with the intervals as evidence and the actual add-consumption commands to run. It writes nothing; document it in the agent kit.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-15"
     planned_finish: "2026-11-16"
     assignee_hint:

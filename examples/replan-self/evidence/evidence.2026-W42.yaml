@@ -823,3 +823,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.drop-dogfood-defaults-from-kit-scripts
+  - id: evidence.openproject.wp-178.journal-1704
+    type: import
+    source: openproject
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-10-12T08:55:56.946Z"
+    summary: Imported OpenProject work package 178 journal 1704 status at 2026-10-12T08:55:56.946Z.
+    targets:
+      - kind: task
+        id: task.self.deploy-plugin-milestone-2
