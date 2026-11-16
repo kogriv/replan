@@ -467,3 +467,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.project-calibration-settings-command
+  - id: evidence.self.require-measured-ci-through-command
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T14:55:38+07:00"
+    summary: 'Re-applied project.calibration.require_measurement (resource.ci.github-actions) through the new reviewed command project set-calibration, replacing the hand edit recorded in evidence.self.require-measured-ci: cleared and set again so the audit log holds the setting with before and after values; the value is unchanged.'
+    targets:
+      - kind: task
+        id: task.self.project-calibration-settings-command
+  - id: evidence.self.project-calibration-settings-command
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T14:56:06+07:00"
+    summary: 'Feature commit e461c5d: replan project set-calibration --require-measurement <resource-id> ... | --clear-require-measurement changes only project.calibration.require_measurement in .replan/project.yaml through the node-based splicer (other bytes kept), with dry run, actor, reason, evidence and one audit record with before and after values; unknown resources refused, an unchanged value writes nothing; estimate calibrate dry runs show the required resources. Checked on a copy of the self project (same value is a no-op, clear and set, unknown resource refused), then re-applied the self project''s CI setting through it in place of the hand edit. Review: clean; the optional sample-change warning was skipped by Codex as not cheap, which is acceptable. Gate: vet, lint 0, shellcheck, Go and Python suites, smoke, isolated smoke, 58 kit checks, plugin throwaway runtime, live kit check 108 checks. Codex 14:03:45-14:27:28 (0.40 h, prompt and last-file mtimes). Executor 0.08 h measured with scripts/agent-session-consumption.sh (brief, review, copy check, booking).'
+    targets:
+      - kind: task
+        id: task.self.project-calibration-settings-command

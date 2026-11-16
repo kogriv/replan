@@ -8455,7 +8455,7 @@ tasks:
     title: Set project calibration settings through a reviewed command
     description: 'Found on 2026-11-16 while requiring measured CI actuals in the self project: project.calibration.require_measurement can only be set by editing .replan/project.yaml by hand, without dry run, audit record or validation before the write, unlike project set-status-date. Add a reviewed command (for example replan project set-calibration --require-measurement <resource-id> ... | --clear) with dry run, actor, reason, evidence, one audit record and validation of the resource ids, changing only that field; show the setting in project or estimate output where calibration settings are read; tests and docs (cli.md, the agent kit calibration section). Record the setting of the self project through it, replacing the hand edit''s record.'
     type: implementation
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-16"
     planned_finish: "2026-11-16"
     assignee_hint:

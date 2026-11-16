@@ -13,9 +13,9 @@ project:
       token_env: OPENPROJECT_TOKEN
       default_query:
         include_closed: "true"
-  policy_ref:
-    kind: policy
-    id: policy.local-trusted
   calibration:
     require_measurement:
       - resource.ci.github-actions
+  policy_ref:
+    kind: policy
+    id: policy.local-trusted
