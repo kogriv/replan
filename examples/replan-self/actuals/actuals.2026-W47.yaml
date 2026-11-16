@@ -503,3 +503,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-recalibrate-self-agent-estimates
+  - id: actual.self-next-suggests-only-latest-calibration.ai-codex-local.20261116T1251170700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.next-suggests-only-latest-calibration
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.next-suggests-only-latest-calibration.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.32
+    unit: agent_hours
+    occurred_at: "2026-11-16T12:51:17+07:00"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.next-suggests-only-latest-calibration
+  - id: actual.self-next-suggests-only-latest-calibration.ai-agent-executor.20261116T1251170700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.next-suggests-only-latest-calibration
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.next-suggests-only-latest-calibration.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.09
+    unit: agent_hours
+    occurred_at: "2026-11-16T12:51:17+07:00"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.next-suggests-only-latest-calibration

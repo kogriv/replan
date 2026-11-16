@@ -342,3 +342,36 @@ evidence:
     targets:
       - kind: task
         id: task.self.delete-stale-openproject-relation
+  - id: evidence.self.ack-ci-overrun-delete-stale-openproject-relation
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-16T12:24:08+07:00"
+    summary: The maintainer extended in chat (2026-11-16 12:24) the standing approval for measured CI overruns to the follow-up tasks; here 12 billable minutes measured from GitHub Actions run 43807980291 exceed the 10 planned.
+    targets:
+      - kind: task
+        id: task.self.delete-stale-openproject-relation
+  - id: evidence.self.next-suggests-only-latest-calibration
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T12:51:17+07:00"
+    summary: 'Fix commit 2ba9bbb: replan next and the dashboard group open demands by ApplicableDemandCalibrations, the selector calibrated load uses, so only the latest approved calibration of a scope is offered, with supersedes_calibration_id and ''replacing <id>'' in the label. On the self project next now offers only calibration.2026-11-16.agents-since-november for 5 open demands, replacing calibration.2026-11-02.agents-by-size. Review: clean. Gate: vet, lint 0, shellcheck, Go and Python suites, smoke, isolated smoke, 58 kit checks, live kit check 108 checks. Codex 12:03:14-12:22:09 (0.32 h, prompt and last-file mtimes). Executor 0.09 h measured with scripts/agent-session-consumption.sh (brief, review, booking).'
+    targets:
+      - kind: task
+        id: task.self.next-suggests-only-latest-calibration
+  - id: evidence.self.start-calibrate-measured-actuals-only
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T12:23:07+07:00"
+    summary: 'Started on the planned day: the Codex round began at 12:23:07 while the next-suggestion gate ran; recorded after that gate.'
+    targets:
+      - kind: task
+        id: task.self.calibrate-measured-actuals-only
