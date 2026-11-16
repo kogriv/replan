@@ -297,6 +297,7 @@ for script_path in "$KIT"/scripts/*.sh; do
       set -- env REPLAN_TASK=task.op.1234 REPLAN_ACCEPTED_BY=actor.human.operator \
         REPLAN_ACCEPT_SUMMARY="Kit settings-file acceptance check." "scripts/$script"
       ;;
+    agent-session-consumption.sh) expected=8; set -- "scripts/$script" ;;
     accept-openproject-soft-drift.sh) expected=6; set -- "scripts/$script" ;;
     apply-openproject-bootstrap.sh) expected=6; set -- "scripts/$script" ;;
     apply-openproject-relations.sh) expected=4; set -- "scripts/$script" ;;

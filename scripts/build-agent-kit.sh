@@ -44,6 +44,7 @@ NAME="replan-agent-kit-$VERSION-${GOOS}-${GOARCH}"
 SCRIPTS="
 accept-task.sh
 accept-openproject-soft-drift.sh
+agent-session-consumption.sh
 apply-openproject-bootstrap.sh
 apply-openproject-relations.sh
 build-openproject-live-overlay.sh
@@ -67,6 +68,7 @@ validate-openproject-live.sh
 LIBS="
 accept_task.py
 accept_openproject_soft_drift.py
+agent_session_consumption.py
 apply_openproject_bootstrap.py
 apply_openproject_relations.py
 check_openproject_drift.py

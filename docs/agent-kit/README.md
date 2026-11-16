@@ -561,6 +561,7 @@ to its root. A write to OpenProject or the bindings file is a dry run unless
 | Status from OpenProject | `bin/replan import accept <snapshot-id> --accept-tracking-status --dry-run` | Review a stored import snapshot; apply with `--apply --actor <id>`. The soft-drift helper does not accept status. |
 | Import GitHub Issues | `bin/replan import github --project "$REPLAN_PROJECT" --profile <id> --dry-run` | A profile names `repository` and `token_env`; explicit `--repository` is also available. File replay uses `--from-file`. Review candidates, omit `--dry-run` to stage the snapshot, then use the shared `import accept` modes. No GitHub write-back is implemented. |
 | Measure GitHub Actions CI | `scripts/github-actions-run-minutes.sh --run <id> [--run <id> ...]` | Read-only. Reports elapsed job seconds and GitHub-style billable minutes rounded up per job; `--repo owner/name` overrides `REPLAN_GITHUB_REPOSITORY` and origin-remote discovery. |
+| Measure agent sessions | `scripts/agent-session-consumption.sh --project "$REPLAN_PROJECT" --task <id> --claude <path> --codex <path>` | Read-only. Derives a task's timestamped status window, removes idle gaps, merges parallel sessions, reports Claude generation/tool-wait time and cross-resource overlap, and prints dry-run `actual add-consumption` commands for matching demands. Without `--task`, `--from` and `--to` give the window; with `--task` they narrow the task window (`window.source` gets `_narrowed`). |
 | Planned dates to OpenProject | `scripts/push-openproject-date-drift.sh` | Toolkit `work-package update-dates` is the single-work-package surface. |
 | Dates from OpenProject | `bin/replan task set-dates ... --dry-run` | Reviewed one-task acceptance. For a stored snapshot use `bin/replan import accept <snapshot-id> --accept-dates --dry-run`. The live batch helper keeps private-binding matching, then writes audited `task set-dates` changes and requires `REPLAN_ACTOR` with `REPLAN_APPLY=1`. |
 | Change and push a task description | `bin/replan task set-description ... --dry-run`, then `scripts/push-openproject-description-drift.sh` | The CLI changes the audited canonical description. The helper previews bound work-package differences, preserves an existing bootstrap trailer and all OpenProject text from it byte-for-byte (also flagging text joined to its line), and pushes only with `REPLAN_APPLY=1`; without a trailer it replaces the whole description and does not append one; `REPLAN_TASKS` optionally limits the task ids. |
@@ -571,6 +572,77 @@ to its root. A write to OpenProject or the bindings file is a dry run unless
 | Overlay build and publish | `scripts/build-openproject-live-overlay.sh`, then `scripts/publish-openproject-overlay.sh` | Builds locally with private bindings, then publishes only to the selected project's directory. Publish is a dry run unless `REPLAN_APPLY=1`; the private target comes only from the environment or ignored `.env.local`. |
 | Wiki | `scripts/openproject-wiki.sh page list` | Use its page and attachment subcommands; writes are gated. |
 | Reports | `scripts/openproject-operator-report.sh` | Combined live report. Use `bin/replan report ...` for local state, weekly, estimate-accuracy and dashboard reports. |
+
+## Measure agent time from session logs
+
+Measure local Claude Code transcripts and Codex rollout logs before booking a
+task's agent actuals:
+
+```sh
+scripts/agent-session-consumption.sh \
+  --project "$REPLAN_PROJECT" --task task.example \
+  --claude ./session-input/claude.jsonl \
+  --codex ./session-input/codex-rollouts
+```
+
+Every input path is explicit: the helper never scans `~/.claude` or
+`~/.codex`. A Claude directory contributes its immediate `*.jsonl` files; a
+Codex directory is recursive. If Codex ran on another machine, copy only the
+rollout files for the reviewed work into a local, private directory first,
+then pass that directory with `--codex`. A shared machine's Codex directory
+normally contains sessions from other projects, so also pass `--cwd` with
+that machine's absolute repository path. Do not add transcripts or rollout
+content to the project repository.
+
+The default idle gap is five minutes. Events at exactly that gap stay in one
+interval; a longer gap starts another. Ordinary interval time is last event
+minus first event, so an isolated event contributes zero. Claude assistant
+events refine long gaps: the gap ending at an assistant message is counted as
+generation time, capped at 15 minutes by default. A long gap ending in a human
+message is idle. A long gap ending in a tool result is reported as tool-wait
+time and is excluded unless `--count-tool-waits` is supplied. Each interval
+also reports its human-message count. Change the thresholds with
+`--idle-gap-minutes` and `--max-generation-minutes`.
+
+Parallel sessions of the same resource are merged: `hours` is the union of
+their active intervals, while `session_sum_seconds`, `parallel_seconds` and
+`session_totals` show the concurrency that was removed. Claude and Codex
+totals are still booked independently. Their simultaneous active time is not
+subtracted; `overlap_seconds` makes it visible when the orchestrator waited
+while Codex worked. Use repeatable `--cwd` prefixes to limit mixed log
+collections.
+
+With `--project` and `--task`, the window starts at the first timestamped
+`in_progress` status record and ends at the first later `review_ready` record,
+or the first finished status when no review-ready record exists. Record
+`in_progress` when work starts and `review_ready` when it ends. An open task
+ends at the current time and warns `window_open`; older tasks without usable
+timestamped status records fall back to their derived actual dates and warn
+`window_from_dates`. With `--task`, `--from` and `--to` narrow the derived
+window. Use `--from` and `--to` without task mode for a wholly explicit window.
+
+Task windows overlap when the next task starts while the previous one waits
+for its gate or its review. The helper cannot tell whose work an overlapping
+minute was, so it warns `overlapping_task_windows` and lists the other tasks
+and the overlap in `window.overlapping_tasks`. Then narrow the window with
+`--from`/`--to`, or pass only this task's session files (for Codex, the
+rollout files of this task's rounds) instead of a whole directory.
+
+For each measured resource that has a matching demand on the task, the result
+contains an exact dry-run command using `agent_hours`. A closed matching demand
+is retained because `actual add-consumption` accepts it, with a `demand_closed`
+warning for review. Replace the command's actor and evidence placeholders,
+review the preview, then book it through the normal gate:
+
+```sh
+replan actual add-consumption --project "$REPLAN_PROJECT" \
+  --task task.example --demand demand.example.agent \
+  --resource resource.ai.agent.executor --amount 1.25 --unit agent_hours \
+  --occurred-at 2026-11-15T12:00:00Z \
+  --actor actor.human.recorder --evidence evidence.session-review \
+  --dry-run --format json
+# Repeat the reviewed command with --apply.
+```
 
 ## Accept a completed task
 

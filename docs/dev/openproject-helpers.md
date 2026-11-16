@@ -22,6 +22,21 @@ The minutes helper is read-only and uses the shared JSON envelope. Acceptance
 records measured CI as step 2 and stated reviewer time as step 2.5, leaving
 the established step 3–10 identifiers unchanged.
 
+Agent session consumption is also measured by a read-only envelope helper:
+
+```sh
+scripts/agent-session-consumption.sh --project "$REPLAN_PROJECT" \
+  --task task.example --claude ./private-logs/claude.jsonl \
+  --codex ./private-logs/codex
+```
+
+It only reads paths named on the command line, derives a precise task window
+from timestamped `actual_add_status` audit records (with a date fallback for
+older tasks), and suggests reviewed `replan actual add-consumption` dry runs
+without booking them. The complete
+counting rules are in the agent kit's
+[Measure agent time from session logs](../agent-kit/README.md#measure-agent-time-from-session-logs).
+
 ## Import from a file
 
 Exercise the OpenProject mapper and sidecar convention from public fixtures

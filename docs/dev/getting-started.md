@@ -430,6 +430,24 @@ repository from `REPLAN_GITHUB_REPOSITORY` or the GitHub origin remote when
 `--repo` is omitted. `accept-task.sh` uses it when
 `REPLAN_ACCEPT_CI_RUNS` contains comma-separated run ids.
 
+Measure explicitly supplied Claude Code transcripts and Codex rollout logs
+without reading either tool's default session directory:
+
+```bash
+./scripts/agent-session-consumption.sh \
+  --from 2026-11-15T10:00:00Z --to 2026-11-15T12:00:00Z \
+  --claude tmp/session-fixtures/claude.jsonl \
+  --codex tmp/session-fixtures/codex
+```
+
+The read-only helper uses the shared JSON envelope, removes idle gaps, reports
+Claude generation and tool-wait time separately, preserves expected
+Claude/Codex overlap as `overlap_seconds`, and can derive a finished task's
+window with `--project ... --task ...`. In task mode it also prints dry-run
+`actual add-consumption` commands for matching active resource demands. See
+the agent kit's [Measure agent time from session logs](../agent-kit/README.md#measure-agent-time-from-session-logs)
+for the counting and booking workflow.
+
 ### Accept an import
 
 Review a stored snapshot before applying it:
