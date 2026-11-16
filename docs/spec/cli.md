@@ -688,6 +688,7 @@ proposal reject
 project migrate
 project format
 project recover
+project set-calibration
 project set-status-date
 evidence add
 resource set-name
@@ -1413,6 +1414,7 @@ Implemented command flags:
 replan project migrate --project -p --bindings --actor --reason --occurred-at --apply --dry-run --format
 replan project format --project -p --bindings --actor --reason --apply --dry-run --format
 replan project recover --project -p --bindings --apply --dry-run --format
+replan project set-calibration --project -p --bindings --require-measurement --clear-require-measurement --actor --reason --evidence --occurred-at --apply --dry-run --format
 replan project set-status-date --project -p --bindings --date --actor --reason --occurred-at --apply --dry-run --format
 ```
 
@@ -1420,6 +1422,7 @@ replan project set-status-date --project -p --bindings --date --actor --reason -
 replan project migrate --project <path> --actor <id> [--reason <text>] [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|markdown]
 replan project format --project <path> --actor <id> --reason <text> (--dry-run|--apply) [--format json|text]
 replan project recover --project <path> (--dry-run|--apply) [--format json|markdown|text]
+replan project set-calibration --project <path> (--require-measurement <resource-id> [--require-measurement <resource-id> ...] | --clear-require-measurement) --actor <id> [--reason <text>] [--evidence <id>] [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|markdown]
 replan project set-status-date --project <path> --date <YYYY-MM-DD|today> --actor <id> [--reason <text>] [--occurred-at <RFC3339>] (--dry-run|--apply) [--format json|markdown]
 ```
 
@@ -1442,6 +1445,23 @@ validates a complete journal and lists its files without changing the project;
 `--apply` replays it under `.replan/write.lock` and removes the journal. No
 pending journal is a successful no-op with zero recovered files. Corrupt
 journal content is refused before any project file is touched.
+
+`project set-calibration` replaces the complete sorted, de-duplicated
+`project.calibration.require_measurement` resource list. Repeating
+`--require-measurement` supplies the new list; `--clear-require-measurement`
+removes the key and removes `calibration:` too when it becomes empty. The
+style-preserving YAML splice changes no unrelated project-manifest bytes.
+An effective change appends one `project_set_calibration` audit record with
+structured `before` and `after` values and the optional evidence reference.
+An unchanged apply is a successful no-op: `changed` is false and neither the
+manifest nor audit is written.
+
+The JSON result includes `previous_require_measurement`,
+`new_require_measurement`, `changed`, `planned_writes`,
+`audit_record_preview`, `warnings` and `errors`. Refusals include
+`missing_setting` when neither setting flag is present, `conflicting_settings`
+when both forms are present, `resource_not_found`, `missing_actor`,
+`actor_not_found`, `evidence_not_found` and `invalid_occurred_at`.
 
 The project status date (`project.default_status_date` in
 `.replan/project.yaml`) sets the default week of `report state`, `next` and
@@ -1991,6 +2011,10 @@ count. A new sealed calibration records the applicable intersection in
 `scope.require_measurement`; the field is omitted when empty so historical
 calibration seals remain valid. Explicit `--exclude
 task-id=actuals_judged` remains supported.
+
+`estimate calibrate` dry-run output reports the in-scope resources that
+require measurement in both JSON (`require_measurement`) and the Markdown
+header. An empty list is shown as `none` in Markdown.
 
 `--include-review-ready` also treats tasks whose tracking status is
 `review_ready` as finished for this calibration only. They must still satisfy

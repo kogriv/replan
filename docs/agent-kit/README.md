@@ -621,18 +621,23 @@ The loop, in order:
    the amount was obtained. For old judged history, mark its consumption
    actuals `judged` (or keep an explicit
    `--exclude task.example=actuals_judged` on a calibration). To prevent
-   unmarked CI history from becoming a clean sample, set this project rule:
+   unmarked CI history from becoming a clean sample, set this project rule
+   through the audited command:
 
-   ```yaml
-   project:
-     calibration:
-       require_measurement: [resource.ci.github-actions]
+   ```sh
+   bin/replan project set-calibration --project "$REPLAN_PROJECT" \
+     --require-measurement resource.ci.github-actions \
+     --actor actor.human.operator --dry-run --format markdown
+   # Review, then repeat with --apply.
    ```
 
    Listed resources accept only measured or stated actuals for calibration;
    an unmarked amount is `actuals_unmeasured`, while judged actuals are always
    `actuals_judged`. Do not list the historical agent-hours resource merely
-   because older timestamp-derived records lack the new optional field.
+   because older timestamp-derived records lack the new optional field. Each
+   invocation replaces the complete list; repeat `--require-measurement` for
+   every resource to retain. Use `--clear-require-measurement` to remove the
+   rule.
 
    A measured amount above the plan shows up as `review_forecast_over_plan`
    in `tracking suggest`; when the overrun is real, a person acknowledges it

@@ -755,6 +755,28 @@ func (s Store) SetProjectStatusDate(date string) (string, error) {
 	return projectRel, err
 }
 
+// SetProjectCalibrationRequireMeasurement changes only
+// project.calibration.require_measurement through the style-preserving
+// splicer. An empty value removes the key and its now-empty calibration block.
+func (s Store) SetProjectCalibrationRequireMeasurement(resourceIDs []string) (string, error) {
+	err := updateYAML(s, projectRel, false, func(doc *projectDoc) error {
+		if len(resourceIDs) == 0 {
+			if doc.Project.Calibration == nil || len(doc.Project.Calibration.Extra) == 0 {
+				doc.Project.Calibration = nil
+			} else {
+				doc.Project.Calibration.RequireMeasurement = nil
+			}
+			return nil
+		}
+		if doc.Project.Calibration == nil {
+			doc.Project.Calibration = &domain.ProjectCalibrationSettings{}
+		}
+		doc.Project.Calibration.RequireMeasurement = append([]string(nil), resourceIDs...)
+		return nil
+	})
+	return projectRel, err
+}
+
 // mappingValue returns the value node for key in a mapping node, or in the
 // mapping of a document node.
 func mappingValue(node *yaml.Node, key string) *yaml.Node {

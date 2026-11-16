@@ -113,6 +113,43 @@ func TestProjectSetStatusDateTreatsMissingFormatVersionAsOne(t *testing.T) {
 	}
 }
 
+func TestProjectSetCalibrationCLI(t *testing.T) {
+	project := copyCmdProjectFixture(t)
+	stdout, stderr := tempOutputFiles(t)
+	args := []string{"project", "set-calibration", "--project", project,
+		"--require-measurement", "resource.service.openai.tokens",
+		"--require-measurement", "resource.ai.codex.local",
+		"--actor", "actor.human.operator", "--dry-run", "--format", "json"}
+	if code := run(args, stdout, stderr); code != exitSuccess {
+		t.Fatalf("dry-run exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	var env struct {
+		OK     bool `json:"ok"`
+		Result struct {
+			Changed                    bool     `json:"changed"`
+			NewRequireMeasurement      []string `json:"new_require_measurement"`
+			PreviousRequireMeasurement []string `json:"previous_require_measurement"`
+		} `json:"result"`
+	}
+	if err := json.Unmarshal([]byte(readFileString(t, stdout.Name())), &env); err != nil {
+		t.Fatal(err)
+	}
+	if !env.OK || !env.Result.Changed || len(env.Result.PreviousRequireMeasurement) != 0 || len(env.Result.NewRequireMeasurement) != 2 || env.Result.NewRequireMeasurement[0] != "resource.ai.codex.local" {
+		t.Fatalf("unexpected result: %#v", env)
+	}
+
+	stdout, stderr = tempOutputFiles(t)
+	conflict := []string{"project", "set-calibration", "--project", project,
+		"--require-measurement", "resource.ai.codex.local", "--clear-require-measurement",
+		"--actor", "actor.human.operator", "--dry-run", "--format", "json"}
+	if code := run(conflict, stdout, stderr); code != exitValidationFailed {
+		t.Fatalf("conflict exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	if got := readFileString(t, stdout.Name()); !strings.Contains(got, `"code": "conflicting_settings"`) {
+		t.Fatalf("conflict output = %s", got)
+	}
+}
+
 func TestProjectReadersPreserveMissingFormatVersion(t *testing.T) {
 	project := copyCmdProjectFixture(t)
 	manifestPath := filepath.Join(project, ".replan", "project.yaml")
@@ -1201,6 +1238,9 @@ func TestWorkspaceLoadingCommandsReportMissingProject(t *testing.T) {
 		{name: "next", text: true, args: func(path string) []string { return []string{"next", "--project", path} }},
 		{name: "project set-status-date", args: func(path string) []string {
 			return []string{"project", "set-status-date", "--project", path, "--date", "2026-10-27", "--actor", "actor.test", "--apply"}
+		}},
+		{name: "project set-calibration", args: func(path string) []string {
+			return []string{"project", "set-calibration", "--project", path, "--require-measurement", "resource.test", "--actor", "actor.test", "--apply"}
 		}},
 		{name: "project migrate", args: func(path string) []string {
 			return []string{"project", "migrate", "--project", path, "--actor", "actor.test", "--apply"}

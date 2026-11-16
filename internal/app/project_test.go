@@ -2,6 +2,7 @@ package app_test
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,6 +12,127 @@ import (
 	"github.com/kogriv/replan/internal/app"
 	"github.com/kogriv/replan/internal/storage/filestore"
 )
+
+func TestProjectSetCalibrationLifecycle(t *testing.T) {
+	projectPath := copyAppProjectFixture(t)
+	manifestPath := filepath.Join(projectPath, ".replan", "project.yaml")
+	before, err := os.ReadFile(manifestPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	service := app.NewProjectService(filestore.New(projectPath))
+	ctx := context.Background()
+
+	dry, err := service.SetCalibration(ctx, app.ProjectSetCalibrationRequest{
+		RequireMeasurement: []string{"resource.service.openai.tokens", "resource.ai.codex.local", "resource.service.openai.tokens"},
+		ActorID:            "actor.human.operator", EvidenceID: "evidence.github.pr.45", Reason: "Require trustworthy calibration actuals.",
+		OccurredAt: "2026-11-16T10:00:00+07:00", DryRun: true,
+	})
+	if err != nil {
+		t.Fatalf("SetCalibration dry run: %v %#v", err, dry.Errors)
+	}
+	if !dry.Changed || dry.Applied || len(dry.WrittenFiles) != 0 || len(dry.PlannedWrites) != 2 {
+		t.Fatalf("unexpected dry run: %#v", dry)
+	}
+	if got := dry.NewRequireMeasurement; len(got) != 2 || got[0] != "resource.ai.codex.local" || got[1] != "resource.service.openai.tokens" {
+		t.Fatalf("sorted/deduplicated list = %#v", got)
+	}
+	if after, err := os.ReadFile(manifestPath); err != nil || string(after) != string(before) {
+		t.Fatalf("dry run changed project.yaml: %v\n%s", err, after)
+	}
+
+	dry.DryRun = false
+	result, err := service.SetCalibration(ctx, app.ProjectSetCalibrationRequest{
+		RequireMeasurement: []string{"resource.service.openai.tokens", "resource.ai.codex.local", "resource.service.openai.tokens"},
+		ActorID:            "actor.human.operator", EvidenceID: "evidence.github.pr.45", Reason: "Require trustworthy calibration actuals.",
+		OccurredAt: "2026-11-16T10:00:00+07:00",
+	})
+	if err != nil {
+		t.Fatalf("SetCalibration apply: %v %#v", err, result.Errors)
+	}
+	if !result.Applied || !result.Changed || len(result.WrittenFiles) != 2 {
+		t.Fatalf("unexpected apply: %#v", result)
+	}
+	afterSet, err := os.ReadFile(manifestPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantSet := strings.Replace(string(before), "  policy_ref:\n", "  calibration:\n    require_measurement:\n      - resource.ai.codex.local\n      - resource.service.openai.tokens\n  policy_ref:\n", 1)
+	if string(afterSet) != wantSet {
+		t.Fatalf("project.yaml changed beyond inserted calibration field:\n--- want\n%s\n--- got\n%s", wantSet, afterSet)
+	}
+
+	replaced, err := service.SetCalibration(ctx, app.ProjectSetCalibrationRequest{RequireMeasurement: []string{"resource.human.ivan"}, ActorID: "actor.human.operator", OccurredAt: "2026-11-16T11:00:00+07:00"})
+	if err != nil || !replaced.Applied || len(replaced.PreviousRequireMeasurement) != 2 || len(replaced.NewRequireMeasurement) != 1 {
+		t.Fatalf("replace: err=%v result=%#v", err, replaced)
+	}
+
+	unchangedBefore, _ := os.ReadFile(manifestPath)
+	unchanged, err := service.SetCalibration(ctx, app.ProjectSetCalibrationRequest{RequireMeasurement: []string{"resource.human.ivan", "resource.human.ivan"}, ActorID: "actor.human.operator"})
+	if err != nil || unchanged.Changed || unchanged.Applied || len(unchanged.PlannedWrites) != 0 || unchanged.AuditRecordPreview != nil {
+		t.Fatalf("unchanged: err=%v result=%#v", err, unchanged)
+	}
+	unchangedAfter, _ := os.ReadFile(manifestPath)
+	if string(unchangedAfter) != string(unchangedBefore) {
+		t.Fatal("unchanged apply wrote project.yaml")
+	}
+
+	cleared, err := service.SetCalibration(ctx, app.ProjectSetCalibrationRequest{ClearRequireMeasurement: true, ActorID: "actor.human.operator", OccurredAt: "2026-11-16T12:00:00+07:00"})
+	if err != nil || !cleared.Applied || len(cleared.NewRequireMeasurement) != 0 {
+		t.Fatalf("clear: err=%v result=%#v", err, cleared)
+	}
+	afterClear, _ := os.ReadFile(manifestPath)
+	if string(afterClear) != string(before) {
+		t.Fatalf("clear did not restore original project bytes:\n--- original\n%s\n--- got\n%s", before, afterClear)
+	}
+
+	ws, diags := filestore.New(projectPath).Load(ctx)
+	if len(diags) != 0 {
+		t.Fatalf("load diagnostics: %#v", diags)
+	}
+	var matching []json.RawMessage
+	for _, record := range ws.AuditRecords {
+		if record.Operation == "project_set_calibration" {
+			encoded, _ := json.Marshal(record)
+			matching = append(matching, encoded)
+			if record.Before == nil || record.After == nil {
+				t.Fatalf("audit lacks before/after values: %s", encoded)
+			}
+		}
+	}
+	if len(matching) != 3 {
+		t.Fatalf("project_set_calibration audit count = %d, want 3", len(matching))
+	}
+}
+
+func TestProjectSetCalibrationRefusals(t *testing.T) {
+	service := app.NewProjectService(filestore.New(copyAppProjectFixture(t)))
+	for _, tc := range []struct {
+		name string
+		req  app.ProjectSetCalibrationRequest
+		code string
+	}{
+		{"missing setting", app.ProjectSetCalibrationRequest{ActorID: "actor.human.operator"}, "missing_setting"},
+		{"both flags", app.ProjectSetCalibrationRequest{RequireMeasurement: []string{"resource.ai.codex.local"}, ClearRequireMeasurement: true, ActorID: "actor.human.operator"}, "conflicting_settings"},
+		{"unknown resource", app.ProjectSetCalibrationRequest{RequireMeasurement: []string{"resource.missing"}, ActorID: "actor.human.operator"}, "resource_not_found"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := service.SetCalibration(context.Background(), tc.req)
+			if err == nil || !hasProjectDiagnostic(result.Errors, tc.code) {
+				t.Fatalf("want %s, got err=%v errors=%#v", tc.code, err, result.Errors)
+			}
+		})
+	}
+}
+
+func hasProjectDiagnostic(diagnostics []app.Diagnostic, code string) bool {
+	for _, diagnostic := range diagnostics {
+		if diagnostic.Code == code {
+			return true
+		}
+	}
+	return false
+}
 
 func TestProjectSetStatusDateChangesOnlyTheDate(t *testing.T) {
 	projectPath := copyAppProjectFixture(t)

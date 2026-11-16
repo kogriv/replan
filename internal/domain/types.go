@@ -41,7 +41,8 @@ type Project struct {
 }
 
 type ProjectCalibrationSettings struct {
-	RequireMeasurement []string `json:"require_measurement,omitempty" yaml:"require_measurement,omitempty"`
+	RequireMeasurement []string       `json:"require_measurement,omitempty" yaml:"require_measurement,omitempty"`
+	Extra              map[string]any `json:"-" yaml:",inline"`
 }
 
 const (
@@ -464,6 +465,8 @@ type AuditRecord struct {
 	Result             string `json:"result,omitempty" yaml:"result,omitempty"`
 	Reason             string `json:"reason,omitempty" yaml:"reason,omitempty"`
 	EvidenceRefs       []Ref  `json:"evidence_refs,omitempty" yaml:"evidence_refs,omitempty"`
+	Before             any    `json:"before,omitempty" yaml:"before,omitempty"`
+	After              any    `json:"after,omitempty" yaml:"after,omitempty"`
 }
 
 type Workspace struct {

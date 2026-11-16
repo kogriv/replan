@@ -204,6 +204,11 @@ func parseCalibrationExclusions(values []string) (map[string]string, error) {
 func writeCalibrationMarkdown(out *os.File, calibration domain.Calibration) {
 	fmt.Fprintf(out, "# %s\n\n", calibration.Name)
 	fmt.Fprintf(out, "- ID: `%s`\n- Factor: %.6g\n- Total ratio: %.6g\n- P25 / P75: %.6g / %.6g\n- Count: %d\n- Unit: `%s`\n- Resources: `%s`\n", calibration.ID, calibration.Result.Factor, calibration.Result.TotalRatio, calibration.Result.P25, calibration.Result.P75, calibration.Result.Count, calibration.Scope.Unit, strings.Join(calibration.Scope.Resources, "`, `"))
+	if len(calibration.Scope.RequireMeasurement) == 0 {
+		fmt.Fprintln(out, "- Require measurement: none")
+	} else {
+		fmt.Fprintf(out, "- Require measurement: `%s`\n", strings.Join(calibration.Scope.RequireMeasurement, "`, `"))
+	}
 	if calibration.Result.Method != "" {
 		fmt.Fprintf(out, "- Method: `%s`\n", calibration.Result.Method)
 	}

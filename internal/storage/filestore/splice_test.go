@@ -133,6 +133,27 @@ func TestSpliceTaskStatusChangesOneLine(t *testing.T) {
 		"    tracking_status: in_progress\n", "    tracking_status: review_ready\n")
 }
 
+func TestSpliceProjectCalibrationClearKeepsUnknownSettings(t *testing.T) {
+	root := t.TempDir()
+	original := `project:
+  id: project.hand
+  name: Hand project
+  timezone: UTC
+  calibration:
+    future_setting: keep # unknown to this binary
+    require_measurement: [resource.ci]
+  policy_ref:
+    kind: policy
+    id: policy.hand
+`
+	writeHandFile(t, root, projectRel, original)
+	if _, err := New(root).SetProjectCalibrationRequireMeasurement(nil); err != nil {
+		t.Fatal(err)
+	}
+	expectOnly(t, readHandFile(t, root, projectRel), original,
+		"    require_measurement: [resource.ci]\n", "")
+}
+
 func TestSpliceDemandStatusKeepsOtherRecordsAndComments(t *testing.T) {
 	root := t.TempDir()
 	writeHandFile(t, root, demandsRel, handDemands)

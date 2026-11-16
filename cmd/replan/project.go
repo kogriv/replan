@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/kogriv/replan/internal/app"
 	"github.com/kogriv/replan/internal/storage/filestore"
@@ -26,6 +27,8 @@ func runProject(args []string, stdout, stderr *os.File) int {
 		return runProjectRecover(args[1:], stdout, stderr)
 	case "set-status-date":
 		return runProjectSetStatusDate(args[1:], stdout, stderr)
+	case "set-calibration":
+		return runProjectSetCalibration(args[1:], stdout, stderr)
 	case "-h", "--help":
 		printUsage(stdout)
 		return exitSuccess
@@ -34,6 +37,39 @@ func runProject(args []string, stdout, stderr *os.File) int {
 		printUsage(stderr)
 		return exitInvalidUsage
 	}
+}
+
+func runProjectSetCalibration(args []string, stdout, stderr *os.File) int {
+	fs := newCLIFlagSet("project set-calibration")
+	projectPath, format := addProjectFormatFlags(fs, "json")
+	var requireMeasurement repeatedStringFlag
+	fs.Var(&requireMeasurement, "require-measurement", "repeatable resource id; replaces the complete require_measurement list")
+	clearRequireMeasurement := fs.Bool("clear-require-measurement", false, "remove require_measurement and an empty calibration block")
+	reason := fs.String("reason", "", "why the calibration setting changes")
+	evidenceID := fs.String("evidence", "", "optional evidence id")
+	actorID := fs.String("actor", "", "actor id changing the calibration setting")
+	occurredAt := fs.String("occurred-at", "", "RFC3339 occurrence timestamp")
+	writeFlags := addCanonicalWriteFlags(fs)
+	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+		return code
+	}
+	dryRun, code, done := requireCanonicalWriteChoice("project set-calibration", *projectPath, *format, writeFlags, stdout, stderr)
+	if done {
+		return code
+	}
+	result, err := app.NewProjectService(newStore(*projectPath)).SetCalibration(context.Background(), app.ProjectSetCalibrationRequest{
+		RequireMeasurement: requireMeasurement, ClearRequireMeasurement: *clearRequireMeasurement,
+		Reason: *reason, EvidenceID: *evidenceID, ActorID: *actorID, OccurredAt: *occurredAt, DryRun: dryRun,
+	})
+	lines := []string{
+		fmt.Sprintf("- Project: `%s`", result.ProjectID),
+		fmt.Sprintf("- Require measurement: `%s` -> `%s`", strings.Join(result.PreviousRequireMeasurement, "`, `"), strings.Join(result.NewRequireMeasurement, "`, `")),
+		fmt.Sprintf("- Changed: `%t`", result.Changed),
+	}
+	for _, warning := range result.Warnings {
+		lines = append(lines, fmt.Sprintf("- Warning `%s`: %s", warning.Code, warning.Message))
+	}
+	return finishLifecycleCommand(stdout, stderr, *format, "project set-calibration", "Project Set Calibration", *projectPath, result.DryRun, result.Applied, result.WrittenFiles, lines, result, result.Warnings, result.Errors, err)
 }
 
 func runProjectFormat(args []string, stdout, stderr *os.File) int {

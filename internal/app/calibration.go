@@ -41,6 +41,7 @@ type CalibrationCalibrateResult struct {
 	Applied            bool               `json:"applied"`
 	FilePath           string             `json:"file_path"`
 	Calibration        domain.Calibration `json:"calibration"`
+	RequireMeasurement []string           `json:"require_measurement"`
 	PlannedWrites      []PlannedWrite     `json:"planned_writes"`
 	WrittenFiles       []string           `json:"written_files,omitempty"`
 	AuditRecordPreview domain.AuditRecord `json:"audit_record_preview"`
@@ -174,6 +175,7 @@ func (s CalibrationService) Calibrate(ctx context.Context, req CalibrationCalibr
 		approvedAt = time.Now().Format(time.RFC3339)
 	}
 	calibration := buildCalibration(ws, baselines, req, approvedAt)
+	result.RequireMeasurement = append([]string(nil), calibration.Scope.RequireMeasurement...)
 	if req.Prior == nil && calibration.Result.Count < CalibrationMinimumSample {
 		result.Calibration = calibration
 		result.Errors = append(result.Errors, Diagnostic{

@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
+	"sort"
 	"time"
 
 	"github.com/kogriv/replan/internal/domain"
@@ -13,6 +15,7 @@ import (
 // ProjectWriter changes project-level settings in .replan/project.yaml.
 type ProjectWriter interface {
 	SetProjectStatusDate(date string) (string, error)
+	SetProjectCalibrationRequireMeasurement(resourceIDs []string) (string, error)
 	AppendAudit(record *domain.AuditRecord) (string, error)
 }
 
@@ -171,6 +174,33 @@ type ProjectSetStatusDateResult struct {
 	Validation         *ValidateResult    `json:"validation,omitempty"`
 	Warnings           []Diagnostic       `json:"warnings"`
 	Errors             []Diagnostic       `json:"errors"`
+}
+
+type ProjectSetCalibrationRequest struct {
+	RequireMeasurement      []string
+	ClearRequireMeasurement bool
+	Reason                  string
+	EvidenceID              string
+	ActorID                 string
+	OccurredAt              string
+	DryRun                  bool
+	Now                     time.Time
+}
+
+type ProjectSetCalibrationResult struct {
+	DryRun                     bool                `json:"dry_run"`
+	Applied                    bool                `json:"applied"`
+	Changed                    bool                `json:"changed"`
+	ProjectID                  string              `json:"project_id"`
+	PreviousRequireMeasurement []string            `json:"previous_require_measurement"`
+	NewRequireMeasurement      []string            `json:"new_require_measurement"`
+	Reason                     string              `json:"reason,omitempty"`
+	PlannedWrites              []PlannedWrite      `json:"planned_writes"`
+	WrittenFiles               []string            `json:"written_files,omitempty"`
+	AuditRecordPreview         *domain.AuditRecord `json:"audit_record_preview,omitempty"`
+	Validation                 *ValidateResult     `json:"validation,omitempty"`
+	Warnings                   []Diagnostic        `json:"warnings"`
+	Errors                     []Diagnostic        `json:"errors"`
 }
 
 type ProjectMigrateRequest struct {
@@ -461,6 +491,143 @@ func (s ProjectService) SetStatusDate(ctx context.Context, req ProjectSetStatusD
 	}
 	result.Applied = true
 	return result, nil
+}
+
+// SetCalibration changes the project-level list of resources whose
+// calibration actuals must be measured or stated.
+func (s ProjectService) SetCalibration(ctx context.Context, req ProjectSetCalibrationRequest) (ProjectSetCalibrationResult, error) {
+	ws, loadDiags := s.loader.Load(ctx)
+	previous := []string{}
+	if ws.Project.Calibration != nil {
+		previous = append(previous, ws.Project.Calibration.RequireMeasurement...)
+	}
+	sort.Strings(previous)
+	result := ProjectSetCalibrationResult{
+		DryRun: req.DryRun, ProjectID: ws.Project.ID, Reason: req.Reason,
+		PreviousRequireMeasurement: previous, NewRequireMeasurement: []string{},
+		PlannedWrites: []PlannedWrite{}, WrittenFiles: []string{},
+		Warnings: []Diagnostic{}, Errors: []Diagnostic{},
+	}
+	appendLoadDiagnostics(&result.Warnings, &result.Errors, loadDiags)
+	validateProjectSetCalibrationRequest(&result, ws, req)
+
+	now := req.Now
+	if now.IsZero() {
+		now = time.Now()
+	}
+	occurredAt := req.OccurredAt
+	if occurredAt == "" {
+		occurredAt = now.Format(time.RFC3339)
+	} else if _, err := time.Parse(time.RFC3339, occurredAt); err != nil {
+		result.Errors = append(result.Errors, Diagnostic{Code: "invalid_occurred_at", Message: fmt.Sprintf("occurred-at %q is not RFC3339", occurredAt), Severity: "error", Target: Target{Kind: "project", ID: ws.Project.ID}})
+	}
+	if len(result.Errors) > 0 {
+		return result, ErrValidationFailed
+	}
+	result.Changed = !slices.Equal(result.PreviousRequireMeasurement, result.NewRequireMeasurement)
+	if !result.Changed {
+		result.Warnings = append(result.Warnings, Diagnostic{Code: "calibration_setting_unchanged", Message: "project calibration require_measurement is already set to the requested value; nothing will be written", Severity: "warning", Target: Target{Kind: "project", ID: ws.Project.ID}})
+		return result, nil
+	}
+
+	patch := map[string]any{
+		"op": "replace", "path": "project/calibration/require_measurement",
+		"before": result.PreviousRequireMeasurement, "value": result.NewRequireMeasurement,
+	}
+	if len(result.PreviousRequireMeasurement) == 0 {
+		patch["op"] = "add"
+	}
+	if len(result.NewRequireMeasurement) == 0 {
+		patch["op"] = "remove"
+	}
+	if req.Reason != "" {
+		patch["reason"] = req.Reason
+	}
+	patchYAML, err := yaml.Marshal(patch)
+	if err != nil {
+		result.Errors = append(result.Errors, Diagnostic{Code: "yaml_render_error", Message: fmt.Sprintf("failed to render calibration patch yaml: %v", err), Severity: "error"})
+		return result, ErrValidationFailed
+	}
+	audit := domain.AuditRecord{
+		ID: "audit." + compactTimestamp(occurredAt) + ".project-set-calibration." + slugID(ws.Project.ID), OccurredAt: occurredAt,
+		ActorRef: domain.Ref{Kind: "actor", ID: req.ActorID}, Operation: "project_set_calibration",
+		TargetRef: domain.Ref{Kind: "project", ID: ws.Project.ID}, Reason: req.Reason, Result: "success",
+		Before: map[string]any{"require_measurement": result.PreviousRequireMeasurement},
+		After:  map[string]any{"require_measurement": result.NewRequireMeasurement},
+	}
+	if req.EvidenceID != "" {
+		audit.EvidenceRefs = []domain.Ref{{Kind: "evidence", ID: req.EvidenceID}}
+	}
+	if req.DryRun {
+		audit.Result = "dry_run"
+	} else if audit.Reason == "" {
+		audit.Reason = "Changed project calibration measurement requirements."
+	}
+	result.AuditRecordPreview = &audit
+	result.PlannedWrites = append(result.PlannedWrites, PlannedWrite{Path: ".replan/project.yaml", Action: "replace_yaml_field", Format: "yaml-patch-preview", Content: string(patchYAML)}, auditPlannedWrite(audit))
+	if req.DryRun {
+		return result, nil
+	}
+
+	session := beginWrite(s.loader)
+	writer, ok := session.target.(ProjectWriter)
+	if !ok {
+		result.Errors = append(result.Errors, Diagnostic{Code: "storage_write_not_supported", Message: "configured project store does not support project writes", Severity: "error", Target: Target{Kind: "project", ID: s.loader.ProjectPath()}})
+		return result, ErrValidationFailed
+	}
+	projectPath, err := writer.SetProjectCalibrationRequireMeasurement(result.NewRequireMeasurement)
+	if err != nil {
+		result.Errors = append(result.Errors, Diagnostic{Code: "calibration_setting_write_failed", Message: err.Error(), Severity: "error", Target: Target{Kind: "project", ID: ws.Project.ID}})
+		return result, err
+	}
+	result.WrittenFiles = append(result.WrittenFiles, projectPath)
+	auditPath, err := writer.AppendAudit(&audit)
+	if err != nil {
+		result.Errors = append(result.Errors, Diagnostic{Code: "audit_write_failed", Message: err.Error(), Severity: "error", Target: Target{Kind: "audit_record", ID: audit.ID}})
+		return result, err
+	}
+	result.WrittenFiles = append(result.WrittenFiles, auditPath)
+	validation, written, err := session.finish(ctx, result.WrittenFiles)
+	result.Validation, result.WrittenFiles = &validation, written
+	if err != nil {
+		result.Errors = append(result.Errors, validation.Errors...)
+		return result, err
+	}
+	result.Applied = true
+	return result, nil
+}
+
+func validateProjectSetCalibrationRequest(result *ProjectSetCalibrationResult, ws domain.Workspace, req ProjectSetCalibrationRequest) {
+	if len(req.RequireMeasurement) == 0 && !req.ClearRequireMeasurement {
+		result.Errors = append(result.Errors, Diagnostic{Code: "missing_setting", Message: "pass --require-measurement at least once or --clear-require-measurement", Severity: "error", Target: Target{Kind: "project", ID: ws.Project.ID}})
+	}
+	if len(req.RequireMeasurement) > 0 && req.ClearRequireMeasurement {
+		result.Errors = append(result.Errors, Diagnostic{Code: "conflicting_settings", Message: "--require-measurement and --clear-require-measurement cannot be used together", Severity: "error", Target: Target{Kind: "project", ID: ws.Project.ID}})
+	}
+	if req.ActorID == "" {
+		result.Errors = append(result.Errors, Diagnostic{Code: "missing_actor", Message: "actor is required", Severity: "error", Target: Target{Kind: "actor"}})
+	} else if !hasActor(ws.Actors, req.ActorID) {
+		result.Errors = append(result.Errors, Diagnostic{Code: "actor_not_found", Message: fmt.Sprintf("actor %s not found", req.ActorID), Severity: "error", Target: Target{Kind: "actor", ID: req.ActorID}})
+	}
+	if req.EvidenceID != "" && !hasEvidence(ws.Evidence, req.EvidenceID) {
+		result.Errors = append(result.Errors, Diagnostic{Code: "evidence_not_found", Message: fmt.Sprintf("evidence %s not found", req.EvidenceID), Severity: "error", Target: Target{Kind: "evidence", ID: req.EvidenceID}})
+	}
+	seen := map[string]bool{}
+	for _, resourceID := range req.RequireMeasurement {
+		if seen[resourceID] {
+			continue
+		}
+		seen[resourceID] = true
+		if !hasResource(ws.Resources, resourceID) {
+			result.Errors = append(result.Errors, Diagnostic{Code: "resource_not_found", Message: fmt.Sprintf("resource %s not found", resourceID), Severity: "error", Target: Target{Kind: "resource", ID: resourceID}})
+			continue
+		}
+		result.NewRequireMeasurement = append(result.NewRequireMeasurement, resourceID)
+	}
+	sort.Strings(result.NewRequireMeasurement)
+	if req.ClearRequireMeasurement {
+		result.NewRequireMeasurement = []string{}
+	}
 }
 
 // resolveStatusDate accepts YYYY-MM-DD or "today" in the project time zone;

@@ -185,8 +185,9 @@ Implemented command families as of 2026-10-30:
 - `project migrate`, the audited, explicit upgrade path for project file
   formats; `project format`, the audited two-space canonical YAML formatter;
   `project recover`, the dry-run/apply roll-forward path for an
-  interrupted multi-file commit; and `project set-status-date`, the audited
-  way to move the project status date;
+  interrupted multi-file commit; `project set-calibration`, the audited way
+  to set calibration measurement requirements; and `project set-status-date`,
+  the audited way to move the project status date;
 - `workload`, with `--week`, `--resource`, `--resource-class`, `--unit`,
   `--scenario` and `--demands`;
 - `report weekly`, `report state`, `report dashboard`, each with an optional

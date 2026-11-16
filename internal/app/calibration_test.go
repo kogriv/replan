@@ -598,6 +598,9 @@ func TestCalibrationSealsAppliedMeasurementRequirement(t *testing.T) {
 	if got := result.Calibration.Scope.RequireMeasurement; len(got) != 1 || got[0] != "resource.executor" {
 		t.Fatalf("required measurement=%v", got)
 	}
+	if got := result.RequireMeasurement; len(got) != 1 || got[0] != "resource.executor" {
+		t.Fatalf("result required measurement=%v", got)
+	}
 	digest, err := domain.CalibrationDigest(result.Calibration)
 	if err != nil || digest != result.Calibration.SealSHA256 {
 		t.Fatalf("digest=%q seal=%q err=%v", digest, result.Calibration.SealSHA256, err)
