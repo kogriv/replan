@@ -299,3 +299,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.design-openproject-work-package-replan-panel
+  - id: evidence.openproject.wp-83.journal-167
+    type: import
+    source: openproject
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-08-04T09:35:07.540Z"
+    summary: Imported OpenProject work package 83 journal 167 status at 2026-08-04T09:35:07.540Z.
+    targets:
+      - kind: task
+        id: task.self.run-full-openproject-dogfood-cycle

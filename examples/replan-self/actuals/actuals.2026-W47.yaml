@@ -167,3 +167,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-agent-session-consumption-helper
+  - id: actual.self-backfill-actual-windows-from-openproject.ai-codex-local.20261116T0959370700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.backfill-actual-windows-from-openproject
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.backfill-actual-windows-from-openproject.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.7
+    unit: agent_hours
+    occurred_at: "2026-11-16T09:59:37+07:00"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.backfill-actual-windows-from-openproject
+  - id: actual.self-backfill-actual-windows-from-openproject.ai-agent-executor.20261116T0959370700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.backfill-actual-windows-from-openproject
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.backfill-actual-windows-from-openproject.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.36
+    unit: agent_hours
+    occurred_at: "2026-11-16T09:59:37+07:00"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.backfill-actual-windows-from-openproject

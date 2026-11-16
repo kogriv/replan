@@ -93,3 +93,40 @@ evidence:
     targets:
       - kind: task
         id: task.self.agent-session-consumption-helper
+  - id: evidence.self.approve-status-backfill-2026-11-16
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-16T09:51:53+07:00"
+    summary: 'The maintainer agreed in chat (2026-11-16 09:51) that the status history of two historic tasks without RePlan status records is imported from their OpenProject work package journals in the maintainer''s name: one in_progress and two accepted records (the maintainer closed both work packages). Run by the executor agent with scripts/backfill-openproject-status-history.sh.'
+    targets:
+      - kind: task
+        id: task.self.deploy-plugin-milestone-2
+      - kind: task
+        id: task.self.run-full-openproject-dogfood-cycle
+      - kind: task
+        id: task.self.backfill-actual-windows-from-openproject
+  - id: evidence.self.backfill-actual-windows-from-openproject
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T09:59:37+07:00"
+    summary: 'Feature commits dc2294c and 6163c71: scripts/backfill-openproject-status-history.sh reads bound work packages'' activities (OpenProject 17 details[].raw matched against the status catalog), proposes only status records that change the status in effect at their time, checks every proposed add-status with REPLAN_ACTOR before the first write (human_actor_required for accepted or cancelled under the AI policy), reuses import evidence on a rerun, writes import evidence plus status records under REPLAN_APPLY=1 and previews record-actual-window; actual add-status keeps the current status for a record older than the latest one (history only, current_status_changed false, historical_status_record) and status history is projected in occurred_at order. Review found, by running it against live OpenProject: older backfilled records reopened accepted tasks (fixed in the CLI in round 2), duplicate proposals for a status already in effect (round 2), tests writing under a repository tmp/ that a clean checkout lacks (reviewer fix), an apply stopping half way on approver_not_human and a rerun failing on existing evidence (reviewer fixes with tests). Applied on this project with the maintainer''s agreement: three records for two historic tasks, one actual window recorded (2026-08-04 to 2026-09-24) and pushed to OpenProject; the other task never had an In progress journal, so its start stays unknown. Gate: vet, lint 0, shellcheck, Go and Python suites, smoke, isolated smoke, 58 kit checks, live kit check 108 checks. Codex rounds 08:03:12-08:28:30 and 08:31:57-08:48:49 (0.70 h, prompt and last-file mtimes). Executor 0.36 h: 0.05 brief before the start; review, live runs, fixes and booking measured with scripts/agent-session-consumption.sh (0.31 h) less the acceptance of the previous task.'
+    targets:
+      - kind: task
+        id: task.self.backfill-actual-windows-from-openproject
+  - id: evidence.self.start-measured-wait-report
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T08:50:29+07:00"
+    summary: 'Started a day before the planned day: the Codex round began at 08:50:29 while the status backfill gate ran; recorded after that task''s review and gates.'
+    targets:
+      - kind: task
+        id: task.self.measured-wait-report

@@ -619,8 +619,8 @@ tasks:
     description: 'Use OpenProject as the primary task source and RePlan as the resource layer for one complete working cycle: plan tasks, check resources, execute work, record actuals, analyze variance and make the next planning decision from the observed state.'
     type: dogfood
     tracking_status: accepted
-    planned_start: "2026-08-17"
-    planned_finish: "2026-08-28"
+    planned_start: "2026-08-04"
+    planned_finish: "2026-09-24"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer
@@ -8230,9 +8230,9 @@ tasks:
     title: Backfill actual start and finish from OpenProject status history
     description: 'Reported on 2026-11-15 by the second consumer project: 104 historic tasks are excluded from calibration as actual_start_unknown and there is no cheap way to recover when they started and finished. Add a read-only helper that reads each bound work package''s activity journals, finds the first change into an in-progress status and the last change into a closed or review status, and proposes replan task record-actual-window commands (or tracking status records) with the journal ids as evidence; dry-run by default, apply only through the existing reviewed commands.'
     type: implementation
-    tracking_status: in_progress
-    planned_start: "2026-11-17"
-    planned_finish: "2026-11-17"
+    tracking_status: review_ready
+    planned_start: "2026-11-16"
+    planned_finish: "2026-11-16"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer
@@ -8259,7 +8259,7 @@ tasks:
     title: Report measured waits from tracking history
     description: 'Both consumer projects report on 2026-11-15 that human waiting, not agent work, dominates calendar time: tasks sit in review_ready for days or weeks and price checks wait for the owner. RePlan models planned waits with lead_time but never measures them. Add a read-only report of measured waits per task from tracking status history (time from review_ready to accepted, from blocked to unblocked, from planned to started), with medians per status and resource, and compare them with the plan''s lead_time values so a project can set realistic waits.'
     type: implementation
-    tracking_status: not_started
+    tracking_status: in_progress
     planned_start: "2026-11-17"
     planned_finish: "2026-11-17"
     assignee_hint:
