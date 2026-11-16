@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 288,
-  "count": 288,
+  "total": 290,
+  "count": 290,
   "_embedded": {
     "elements": [
       {
@@ -8349,6 +8349,64 @@
           },
           "status": {
             "title": "In progress"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2389,
+        "subject": "Take the session helper resources from the task demands",
+        "description": {
+          "raw": "Reported on 2026-11-16 by the second consumer project after switching to v0.5.6: scripts/agent-session-consumption.sh defaults to resource.ai.agent.executor and resource.ai.codex.local, which do not exist in their plan, so they pass --claude-resource by hand. With --task, take the Claude and Codex resources from the task's demands when the flags are not given (an ai_agent demand whose resource is linked to a Claude or Codex actor or named by a project setting; refuse with a clear code when several qualify), and warn resource_not_in_project when a given or default resource is not a project resource; tests and docs."
+        },
+        "status": {
+          "name": "In progress"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-16",
+        "dueDate": "2026-11-16",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2389"
+          },
+          "status": {
+            "title": "In progress"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2390,
+        "subject": "Classify session log gaps from real Claude Code 2.x logs",
+        "description": {
+          "raw": "Reported on 2026-11-16 by the second consumer project and seen in the self project: scripts/agent-session-consumption.sh reports generation_seconds 0 and tool_wait_seconds almost always 0 on Claude Code 2.x logs. Their line-type counts (no content) show api-request lines before each response, thinking and text as separate assistant lines, system turn_duration records, isMeta user lines, and background-task notifications as user lines with string content, which the helper counts as human messages (idle). Use api-request to mark the start of a generation, count only real human messages as idle (not isMeta, task notifications or system reminders), treat the wait for a background task as a tool wait, cross-check with turn_duration, keep hours unchanged when the new rules do not apply; synthetic fixtures modelled on the reported line types, and a check on the self project's own transcript."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-16",
+        "dueDate": "2026-11-16",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2390"
+          },
+          "status": {
+            "title": "New"
           },
           "assignee": {
             "href": "/api/v3/users/101",

@@ -787,3 +787,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.publish-release-v0-5-6
+  - id: actual.self-publish-release-v0-5-6.ci-github-actions.20261116T092004Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-5-6
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.publish-release-v0-5-6.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 30
+    unit: ci_minutes
+    measurement: measured
+    occurred_at: "2026-11-16T09:20:04Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-publish-release-v0-5-6
+  - id: actual.self-publish-release-v0-5-6.human-maintainer.20261116T092004Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-5-6
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.publish-release-v0-5-6.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.17
+    unit: hours
+    measurement: stated
+    occurred_at: "2026-11-16T09:20:04Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-publish-release-v0-5-6

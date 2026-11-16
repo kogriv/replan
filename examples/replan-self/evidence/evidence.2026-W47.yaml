@@ -535,3 +535,62 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-6
+  - id: evidence.self.ack-ci-overrun-project-calibration-settings-command
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-16T16:20:04+07:00"
+    summary: The maintainer acknowledged in chat (2026-11-16T16:20:04+07:00) that the 12 billable minutes measured from GitHub Actions run 43827445630 exceed the 10 planned for this task.
+    targets:
+      - kind: task
+        id: task.self.project-calibration-settings-command
+  - id: evidence.self.accept-publish-release-v0-5-6
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-16T09:20:04Z"
+    confidence: observed
+    summary: 'Accepted by the maintainer on review in chat (answer 2026-11-16 16:20). CI: the release workflow run, the run of the release evidence push and the run of the push that removed consumer project names from it. CI measured from GitHub Actions runs 43835385218, 43836376010, 43836602866: 30 billable minutes. Review time stated by actor.human.maintainer: 10 minutes.'
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-6
+  - id: evidence.self.ack-ci-overrun-publish-release-v0-5-6
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T16:22:02+07:00"
+    summary: 'Acknowledged under the maintainer''s standing approval (chat, 2026-11-15 21:09) for measured CI overruns in the calibration batch: 30 billable minutes measured from GitHub Actions runs 43835385218 (release workflow), 43836376010 and 43836602866 exceed the 10 planned; the plan did not count the release workflow, and the last run comes from the executor''s fix of consumer project names in the release evidence.'
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-6
+  - id: evidence.self.plan-session-helper-findings
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-16T16:20:04+07:00"
+    summary: 'The maintainer agreed in chat (2026-11-16 16:20) to two tasks from the second consumer project''s report on the session helper: take the resources from the task demands (Codex 0.5 h, executor 0.2 h) and classify session log gaps from real Claude Code 2.x logs (Codex 1 h, executor 0.5 h).'
+    targets:
+      - kind: task
+        id: task.self.session-helper-resource-from-demand
+      - kind: task
+        id: task.self.session-helper-gap-classification
+  - id: evidence.self.start-session-helper-resource-from-demand
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T16:24:07+07:00"
+    summary: 'Started on the planned day: the Codex round began at 16:24:07.'
+    targets:
+      - kind: task
+        id: task.self.session-helper-resource-from-demand
