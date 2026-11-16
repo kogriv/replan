@@ -314,3 +314,45 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.agent-kit-estimating-guide
+  - id: actual.self-measured-wait-report.ci-github-actions.20261116T041322Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.measured-wait-report
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.measured-wait-report.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 13
+    unit: ci_minutes
+    occurred_at: "2026-11-16T04:13:22Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-measured-wait-report
+  - id: actual.self-recalibrate-self-agent-estimates.ai-agent-executor.20261116T1117340700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.recalibrate-self-agent-estimates
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.recalibrate-self-agent-estimates.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.1
+    unit: agent_hours
+    occurred_at: "2026-11-16T11:17:34+07:00"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.recalibrate-self-agent-estimates

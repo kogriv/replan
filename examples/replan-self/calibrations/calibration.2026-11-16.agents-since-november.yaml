@@ -1,0 +1,565 @@
+calibration:
+  id: calibration.2026-11-16.agents-since-november
+  name: Agent hours since 2026-11-02 by size
+  approved_by:
+    kind: actor
+    id: actor.human.maintainer
+  approved_at: "2026-11-16T11:13:22+07:00"
+  source_baselines:
+    - id: baseline.2026-10-15.tooling-consolidation
+      seal_sha256: cc264af2d4cffa7bdbdba4f6fc2722cc189fc122196a171ca03d4b9389e7dc67
+    - id: baseline.2026-10-28.oss-checkpoint
+      seal_sha256: d6e80a8e2691edecd6bd39b49e9fb96d78a0ec88f16ef17f458e634e7733ecdf
+    - id: baseline.2026-10-28.roadmap-plan
+      seal_sha256: 9e5f24078b4eb66f25e6801b32dbc47c466844e68e276fc5678ae811ac775474
+    - id: baseline.2026-11-03.kit-cleanup-and-format-guard
+      seal_sha256: 65be9a20860398f9808dd73e83f98f21470a02b71c29e1e23aa789a5beb06103
+    - id: baseline.2026-11-04.calibrated-agent-load
+      seal_sha256: d65f6e70ed973ff2bed7605733c7ff0167fc3863c8d4ec2af110933283545534
+    - id: baseline.2026-11-04.consumer-feedback
+      seal_sha256: 9fc5a545ea832f0fa679cd5aecbc8e094e719282f390b003e04ccfb2fa759b89
+    - id: baseline.2026-11-04.consumer-feedback-roles
+      seal_sha256: 8054161bad6f74f016dd23f22fec8b26848a1eb3eba8d4c35192c333f2e9b147
+    - id: baseline.2026-11-05.consumer-feedback-sync
+      seal_sha256: 537900371cefc40bafadbd51df76b335db1d9e99ba8f2ce0f558abaf10ed45a9
+    - id: baseline.2026-11-05.unique-audit-ids
+      seal_sha256: 6b68aba784405328744ca76d2d4715103ac5897bee51d702ca2f3effc0d31a0a
+    - id: baseline.2026-11-06.group-taskjuggler-unsupported-unit-warnings
+      seal_sha256: f62e2a99ce7559adb076def2981bddc01c8ca86894884d3414a26447d3d6b069
+    - id: baseline.2026-11-06.taskjuggler-raw-means-uncalibrated
+      seal_sha256: 33501d143430c644e4d7f80a25ff01e61c7670f9cd2f04a1fb9ed8a1d09f59e6
+    - id: baseline.2026-11-08.consumer-contract
+      seal_sha256: 36d9eb174d600215735b264c2bbc6c7a2a095f26281627ab5eacb05569ba6f79
+    - id: baseline.2026-11-08.lead-time-and-priority
+      seal_sha256: b087f2659fb2f7bc53e72ee4f896ca18b0bcef0f103bdced0f8881bdbd37d334
+    - id: baseline.2026-11-08.release-v0-4-0
+      seal_sha256: f680e98a2fe4f44c9a03b18c30977bdf62f9dc5832b3119d86f01553c87a5bc0
+    - id: baseline.2026-11-08.taskjuggler-drafting-gaps
+      seal_sha256: 9a764ada7763df05b605a2057ed08c8750c2d260c5c2eb7f055d4f027398e356
+    - id: baseline.2026-11-08.v0-4-1-fixes
+      seal_sha256: abafd6fec2990d314ef2948369c53dad4cca13de4ec83ebb1f4efd0ecbbd9318
+    - id: baseline.2026-11-09.acknowledge-overrun-style
+      seal_sha256: 53f84589b812cee1fde8ede8a0c599f6ae577b70a5268af9d48e66c370f02ba1
+    - id: baseline.2026-11-09.bootstrap-assignee-refusal-names-setting
+      seal_sha256: e80d4862992fe689f8280243e38ce6a1f7420f37c3c9528042a0eb747190f9d7
+    - id: baseline.2026-11-09.consumer-findings-for-v0-5-1
+      seal_sha256: ff6a005235ba7aab1d410fa42207a8e3cfb54ccdba3216e6d4c2c0a385fc188d
+    - id: baseline.2026-11-09.consumer-helper-findings
+      seal_sha256: 3d67f72429e5369dcc896a04c7e4d66045d884d33131279154b64c7e454fa90a
+    - id: baseline.2026-11-09.consumer-project-own-openproject-identity
+      seal_sha256: 6db57b3e35e155c7897de7d71f7bc994d4ab6d25a3b22b9b1ffca0c9cb0b7610
+    - id: baseline.2026-11-09.time-zone-and-release-v0-5-0
+      seal_sha256: f9bbe5061d36f6b8116a30fa566476365b7f9a6c8e026d6d9bf817a4d2e24ec5
+    - id: baseline.2026-11-10.consumer-agent-role-status-transitions
+      seal_sha256: 3d05db74b4f49dab67d528d4bcd18f8ebf5ff1d16243de144857e7667a38b2fc
+    - id: baseline.2026-11-10.first-consumer-agent-role-status-transitions
+      seal_sha256: b8a90811bfd307a7d1c8c53f3dd7145275f11be032847a8f3dcdae5dbd1854e4
+    - id: baseline.2026-11-10.publish-release-v0-5-1
+      seal_sha256: 949fcc40548292387d31d8bf9f51eb1ccd0fbbbd5218c9ab5a5d0f275bee2857
+    - id: baseline.2026-11-12.consumer-second-user-perimeter-key
+      seal_sha256: 9058665a27a7d5ad2d0ba2237d3dfba7f0073941d5c8b077554a5dfe6471467a
+    - id: baseline.2026-11-12.publish-release-v0-5-2
+      seal_sha256: 2afcbd6d74a1931c300835665a62439ad3afd656601b5840cbcae59ab04e3152
+    - id: baseline.2026-11-12.publish-release-v0-5-3
+      seal_sha256: 969aaf68a485819bd8901d3e3d0a7781a418dbe66d1d01668ce432f5e03db3f9
+    - id: baseline.2026-11-12.status-push-through-allowed-statuses
+      seal_sha256: 64263622f447869678ff5effabd80ceed76a0a96afa503b982e4d09bb5286009
+    - id: baseline.2026-11-12.toolkit-update-no-op
+      seal_sha256: f98d82ff45167ba159f055aad7e53792f387d4f51ee0861e8378e466d8d4c3e3
+    - id: baseline.2026-11-12.toolkit-version-create
+      seal_sha256: 00ffd7005354d14523073db4162549a9b7f992bfba352e5a7af220c7b82c2519
+    - id: baseline.2026-11-12.toolkit-write-answers-name-ids
+      seal_sha256: 2e228ede0cc46ede1f018403f264c0803a54f2c03c2d456bb239f2611b19547b
+    - id: baseline.2026-11-14.publish-release-v0-5-4
+      seal_sha256: 85fed6d114962bc13323577149b6bdd23d64af0bedeb04f80a625299cde2524d
+    - id: baseline.2026-11-14.scenario-id-flag
+      seal_sha256: 374cfabb31c471cdbc2725cfaa235a4ff711ed868a9442953c12fc3c8643695f
+    - id: baseline.2026-11-14.windows-agent-kit
+      seal_sha256: 3ffb3341031f22a9ca7ce7a5d62ecf55a42e0f109136beca11159548f3b2a7e1
+    - id: baseline.2026-11-15.agent-kit-estimating-guide
+      seal_sha256: 196ca8060e24d09090330f448128aefa49ca3ca9a7f0547f812f5c05a804cb45
+    - id: baseline.2026-11-15.agent-session-consumption-helper
+      seal_sha256: d3d48e58f3755461af90cfe3ce4e4031d96d03ace71c493481ada3cf9762603d
+    - id: baseline.2026-11-15.backfill-actual-windows-from-openproject
+      seal_sha256: 3d2a6fc26a18d04bd6347bf43c9e942960196337f89aee1a1e8a38c98e929f62
+    - id: baseline.2026-11-15.calibration-review-ready-sample
+      seal_sha256: e9e3439af7e10fa5cf9a3f69c3b265cb6b65d6396366e9290a43ec1d092ad3d4
+    - id: baseline.2026-11-15.calibration-since-window
+      seal_sha256: 88766dbdab122047082777a92d1eb35b730abc4d596e737e19a8612c19a61937
+    - id: baseline.2026-11-15.estimate-report-no-actuals-and-default-unit
+      seal_sha256: 8fd6cf43067dd6a094b42bb1bbb241648fe10b2d0396db9c95c92697ddb59343
+    - id: baseline.2026-11-15.measured-ci-and-review-actuals
+      seal_sha256: 03fbff08bb035b1ab63660f4e2d98d181a396f03cb9c10299ea35edb2996396e
+    - id: baseline.2026-11-15.measured-wait-report
+      seal_sha256: 61c09ae9f8dda26830b805f3f1ad689b1e695df579bdc10f1a69d6e734369da8
+    - id: baseline.2026-11-15.publish-release-v0-5-5
+      seal_sha256: 4ebbabae2553e88261863d5a44d8b338fdd44edb84a01d76333bd2483d3104a9
+    - id: baseline.2026-11-15.publish-release-v0-5-6
+      seal_sha256: ff0b3814c9d0db1d6610707d099b412fbec479c5c64fdf60514cbfe9a41ab717
+    - id: baseline.2026-11-15.recalibrate-self-agent-estimates
+      seal_sha256: 5f6396bbd52bf913d2ee87eebbb1cb7cd02e7225a941057e9afe1916306d9760
+    - id: baseline.2026-11-15.skip-cancelled-dependencies
+      seal_sha256: 34b0cacd6a99950ea0f80f338356171c204bfacab6d993cac11e8ea86cdbe98f
+  scope:
+    resources:
+      - resource.ai.agent.executor
+      - resource.ai.codex.local
+    unit: agent_hours
+    since: "2026-11-02"
+  sample:
+    tasks:
+      - task.self.agent-effort-units-design
+      - task.self.agent-session-consumption-helper
+      - task.self.align-dependency-types-with-spec
+      - task.self.backfill-actual-windows-from-openproject
+      - task.self.bootstrap-assignee-refusal-names-setting
+      - task.self.bootstrap-matches-by-binding
+      - task.self.calibrated-agent-load
+      - task.self.calibrated-dates-and-agent-hours-tab
+      - task.self.calibration-review-ready-sample
+      - task.self.calibration-since-window
+      - task.self.calibration-starting-factor
+      - task.self.consumer-contract-public-surfaces
+      - task.self.date-push-nothing-to-apply-is-ok
+      - task.self.demand-add-set-move-commands
+      - task.self.dependency-and-deadline-commands
+      - task.self.dependency-set-command
+      - task.self.description-trailer-followed-by-text
+      - task.self.design-lead-time-and-queue-order
+      - task.self.estimate-report-no-actuals-and-default-unit
+      - task.self.explicit-env-file-for-helpers
+      - task.self.format-compatibility-guard
+      - task.self.group-taskjuggler-unsupported-unit-warnings
+      - task.self.helpers-detect-help-only-as-an-argument
+      - task.self.init-owner-id-for-non-ascii-names
+      - task.self.lead-time-and-priority-model
+      - task.self.lead-time-in-taskjuggler
+      - task.self.lead-time-in-workload-and-next
+      - task.self.measured-ci-and-review-actuals
+      - task.self.missing-format-version-reads-as-one
+      - task.self.move-consumer-projects-to-public-surfaces
+      - task.self.next-shows-people-work-this-week
+      - task.self.one-yaml-style-for-canonical-files
+      - task.self.overlay-build-surfaces-cause
+      - task.self.positional-ids-in-command-help
+      - task.self.publish-release-v0-4-0
+      - task.self.publish-release-v0-4-1
+      - task.self.publish-release-v0-5-0
+      - task.self.publish-release-v0-5-2
+      - task.self.publish-release-v0-5-4
+      - task.self.publish-release-v0-5-5
+      - task.self.push-description-to-work-package
+      - task.self.quiet-unresolved-dependency-on-undated-successor
+      - task.self.refresh-agent-kits-v0-4-0
+      - task.self.relations-apply-reports-unsupported-type
+      - task.self.rename-resource-and-actor
+      - task.self.replace-consumer-scheduler-with-replan
+      - task.self.rerun-consumer-scheduler-comparison
+      - task.self.set-remaining-from-file
+      - task.self.source-profile-checked-early
+      - task.self.status-push-through-allowed-statuses
+      - task.self.task-set-description
+      - task.self.taskjuggler-candidate-review-flow
+      - task.self.taskjuggler-export-dependencies
+      - task.self.taskjuggler-export-not-before-dates
+      - task.self.taskjuggler-export-status-date-and-finished-work
+      - task.self.taskjuggler-export-sub-hour-effort
+      - task.self.taskjuggler-export-working-calendar
+      - task.self.taskjuggler-import-skips-unchanged-dates
+      - task.self.taskjuggler-raw-means-uncalibrated
+      - task.self.taskjuggler-successor-starts-next-working-day
+      - task.self.toolkit-comment-add-saves-comment
+      - task.self.toolkit-sets-work-package-version
+      - task.self.toolkit-version-create
+      - task.self.toolkit-write-answers-name-ids
+      - task.self.unique-audit-ids
+      - task.self.warn-about-outdated-binary
+      - task.self.workload-skips-closed-demands
+    excluded:
+      - task: task.self.accept-openproject-dates-through-import-accept
+        reason: started_before_window
+      - task: task.self.acknowledge-overrun-writes-canonical-style
+        reason: estimated_after_start
+      - task: task.self.add-agent-surface-map-and-date-direction-rule
+        reason: started_before_window
+      - task: task.self.add-contributing-and-security-policy
+        reason: started_before_window
+      - task: task.self.add-gantt-resource-allocation-lanes
+        reason: started_before_window
+      - task: task.self.add-go-lint-baseline-and-ci-gate
+        reason: started_before_window
+      - task: task.self.add-help-to-every-script
+        reason: started_before_window
+      - task: task.self.add-openproject-backlog-reconcile-helper
+        reason: started_before_window
+      - task: task.self.add-openproject-tunnel-header-support
+        reason: started_before_window
+      - task: task.self.add-plan-vs-actual-state-tracking
+        reason: started_before_window
+      - task: task.self.add-plugin-gantt-navigation
+        reason: started_before_window
+      - task: task.self.add-plugin-rendered-page-checks
+        reason: started_before_window
+      - task: task.self.add-plugin-resource-load-profile
+        reason: started_before_window
+      - task: task.self.add-project-state-report
+        reason: started_before_window
+      - task: task.self.add-replan-evidence-add
+        reason: started_before_window
+      - task: task.self.add-replan-task-add
+        reason: started_before_window
+      - task: task.self.add-safe-openproject-dotenv-loader
+        reason: started_before_window
+      - task: task.self.add-static-gantt-dashboard
+        reason: started_before_window
+      - task: task.self.add-tracking-loop-observability
+        reason: started_before_window
+      - task: task.self.add-tracking-proposal-candidates
+        reason: started_before_window
+      - task: task.self.add-tracking-suggest-command
+        reason: started_before_window
+      - task: task.self.add-version-command-and-release-build
+        reason: started_before_window
+      - task: task.self.add-wiki-api-page-delete
+        reason: started_before_window
+      - task: task.self.add-wiki-commands-to-agent-kit
+        reason: started_before_window
+      - task: task.self.agent-kit-estimating-guide
+        reason: not_finished
+      - task: task.self.apply-tracking-remaining-proposals
+        reason: started_before_window
+      - task: task.self.audit-and-sync-project-documentation
+        reason: started_before_window
+      - task: task.self.audit-openproject-agent-tools-hands-on
+        reason: started_before_window
+      - task: task.self.backfill-actual-task-windows
+        reason: started_before_window
+      - task: task.self.calibrate-plan-and-resources
+        reason: started_before_window
+      - task: task.self.cancel-dependency-with-audit
+        reason: started_before_window
+      - task: task.self.check-agent-kit-with-env-file-only
+        reason: started_before_window
+      - task: task.self.check-upstream-openproject-wiki-api-roadmap
+        reason: started_before_window
+      - task: task.self.clean-dead-code-and-workload-spec
+        reason: started_before_window
+      - task: task.self.clean-post-pause-audit-hygiene
+        reason: started_before_window
+      - task: task.self.clean-up-openproject-env-vars
+        reason: started_before_window
+      - task: task.self.cleanup-oss-boundary
+        reason: started_before_window
+      - task: task.self.clear-remaining-lint-baseline
+        reason: started_before_window
+      - task: task.self.consumer-agent-role-status-transitions
+        reason: estimated_after_start
+      - task: task.self.consumer-project-own-openproject-identity
+        reason: estimated_after_start
+      - task: task.self.consumer-second-user-perimeter-key
+        reason: estimated_after_start
+      - task: task.self.count-concurrent-slots-in-schedule-drift-like-workload
+        reason: started_before_window
+      - task: task.self.create-replan-self-fixture
+        reason: started_before_window
+      - task: task.self.cut-public-repository-from-sanitized-tree
+        reason: started_before_window
+      - task: task.self.dedupe-import-accept-modes
+        reason: started_before_window
+      - task: task.self.define-openproject-overlay-json-contract
+        reason: started_before_window
+      - task: task.self.deploy-openproject-wiki-api-plugin-live
+        reason: started_before_window
+      - task: task.self.deploy-plugin-milestone-1
+        reason: started_before_window
+      - task: task.self.deploy-plugin-milestone-2
+        reason: actual_start_unknown
+      - task: task.self.deploy-plugin-milestone-3-and-accept-track
+        reason: started_before_window
+      - task: task.self.derive-helper-exit-codes-from-ok
+        reason: started_before_window
+      - task: task.self.derive-self-plan-counts-from-fixture
+        reason: started_before_window
+      - task: task.self.design-estimate-calibration
+        reason: started_before_window
+      - task: task.self.design-local-web-view
+        reason: started_before_window
+      - task: task.self.design-openproject-ai-cli-operating-layer
+        reason: started_before_window
+      - task: task.self.design-openproject-native-surface
+        reason: started_before_window
+      - task: task.self.design-openproject-plugin-deployment-path
+        reason: started_before_window
+      - task: task.self.design-openproject-plugin-gantt-view
+        reason: started_before_window
+      - task: task.self.design-openproject-read-only-plugin-feasibility
+        reason: started_before_window
+      - task: task.self.design-openproject-wiki-api-access
+        reason: started_before_window
+      - task: task.self.design-openproject-work-package-operator-toolkit
+        reason: started_before_window
+      - task: task.self.design-openproject-work-package-replan-panel
+        reason: started_before_window
+      - task: task.self.design-second-tracker-adapter
+        reason: started_before_window
+      - task: task.self.design-static-dashboard
+        reason: started_before_window
+      - task: task.self.drop-dogfood-defaults-from-kit-scripts
+        reason: started_before_window
+      - task: task.self.edit-work-package-subject-and-description-in-toolkit
+        reason: started_before_window
+      - task: task.self.env-only-settings-in-settings-file
+        reason: estimated_after_start
+      - task: task.self.evaluate-code-graph-quality-tooling
+        reason: started_before_window
+      - task: task.self.evaluate-openproject-agent-interfaces
+        reason: started_before_window
+      - task: task.self.execute-live-openproject-plugin-installation
+        reason: started_before_window
+      - task: task.self.expand-openproject-fixtures
+        reason: started_before_window
+      - task: task.self.extend-overlay-contract-for-plugin-views
+        reason: started_before_window
+      - task: task.self.fail-apply-without-openproject-token
+        reason: started_before_window
+      - task: task.self.first-consumer-agent-role-status-transitions
+        reason: estimated_after_start
+      - task: task.self.fix-actual-audit-ids-and-demand-reopen
+        reason: started_before_window
+      - task: task.self.fix-ci-smoke-ripgrep-dependency
+        reason: started_before_window
+      - task: task.self.fix-close-demand-stale-remaining
+        reason: started_before_window
+      - task: task.self.fix-openproject-relations-and-bootstrap-pagination
+        reason: started_before_window
+      - task: task.self.fix-plugin-panel-permission
+        reason: started_before_window
+      - task: task.self.give-replan-menu-item-an-icon
+        reason: started_before_window
+      - task: task.self.give-third-project-agent-own-identity
+        reason: started_before_window
+      - task: task.self.guard-import-accept-against-real-ids
+        reason: started_before_window
+      - task: task.self.honest-weekly-workload-for-multi-week-and-concurrent-demands
+        reason: started_before_window
+      - task: task.self.honour-capacity-effective-dates
+        reason: started_before_window
+      - task: task.self.implement-dashboard-load-profile-rendering
+        reason: started_before_window
+      - task: task.self.implement-estimate-calibration
+        reason: started_before_window
+      - task: task.self.implement-local-web-view
+        reason: started_before_window
+      - task: task.self.implement-openproject-plugin-gantt-view
+        reason: started_before_window
+      - task: task.self.implement-openproject-preflight-operator-helpers
+        reason: started_before_window
+      - task: task.self.implement-openproject-private-binding-helper
+        reason: started_before_window
+      - task: task.self.implement-openproject-wiki-api-plugin
+        reason: started_before_window
+      - task: task.self.implement-openproject-work-package-create-helper
+        reason: started_before_window
+      - task: task.self.implement-openproject-work-package-operator-toolkit
+        reason: started_before_window
+      - task: task.self.implement-openproject-work-package-replan-panel
+        reason: started_before_window
+      - task: task.self.implement-static-dashboard
+        reason: started_before_window
+      - task: task.self.import-second-tracker-from-file
+        reason: started_before_window
+      - task: task.self.import-second-tracker-live
+        reason: started_before_window
+      - task: task.self.improve-live-openproject-plugin-resource-view
+        reason: started_before_window
+      - task: task.self.improve-state-report-next-actions
+        reason: started_before_window
+      - task: task.self.improve-static-gantt-observability
+        reason: started_before_window
+      - task: task.self.index-openproject-design-docs
+        reason: started_before_window
+      - task: task.self.keep-existing-bindings-on-bootstrap
+        reason: started_before_window
+      - task: task.self.keep-non-working-day-dates-in-openproject
+        reason: started_before_window
+      - task: task.self.license-and-audit-repo-for-publication
+        reason: started_before_window
+      - task: task.self.link-openproject-work-package-to-replan-panel
+        reason: started_before_window
+      - task: task.self.load-dotenv-in-every-kit-script
+        reason: started_before_window
+      - task: task.self.measured-wait-report
+        reason: not_finished
+      - task: task.self.move-heredoc-python-into-script-modules
+        reason: started_before_window
+      - task: task.self.move-pilot-narrative-to-private-storage
+        reason: started_before_window
+      - task: task.self.one-apply-gate-rule-for-cli-and-helpers
+        reason: started_before_window
+      - task: task.self.optimize-openproject-plugin-image-build-layering
+        reason: started_before_window
+      - task: task.self.package-openproject-tooling-for-outside-agents
+        reason: started_before_window
+      - task: task.self.pass-named-arguments-to-python-helpers
+        reason: started_before_window
+      - task: task.self.pass-perimeter-key-to-openproject
+        reason: started_before_window
+      - task: task.self.pin-dashboard-html-golden
+        reason: started_before_window
+      - task: task.self.plan-mvp-readiness-audit
+        reason: started_before_window
+      - task: task.self.plan-post-mvp-dogfood
+        reason: started_before_window
+      - task: task.self.prepare-live-openproject-plugin-installation
+        reason: started_before_window
+      - task: task.self.prepare-release-story
+        reason: started_before_window
+      - task: task.self.preview-moved-task-dates-in-scenarios
+        reason: started_before_window
+      - task: task.self.prioritize-tracking-loop
+        reason: started_before_window
+      - task: task.self.prototype-openproject-native-surface-level-0-1
+        reason: started_before_window
+      - task: task.self.publish-first-release
+        reason: started_before_window
+      - task: task.self.publish-public-repository
+        reason: started_before_window
+      - task: task.self.publish-release-v0-5-1
+        reason: estimated_after_start
+      - task: task.self.publish-release-v0-5-3
+        reason: estimated_after_start
+      - task: task.self.publish-release-v0-5-6
+        reason: not_finished
+      - task: task.self.read-private-openproject-bindings-in-go
+        reason: started_before_window
+      - task: task.self.recalibrate-self-agent-estimates
+        reason: not_finished
+      - task: task.self.reconcile-dashboard-load-semantics
+        reason: started_before_window
+      - task: task.self.reconstruct-openproject-functionality-and-pitfalls
+        reason: started_before_window
+      - task: task.self.record-actual-task-window
+        reason: started_before_window
+      - task: task.self.reenter-openproject-dogfood-cycle-after-pause
+        reason: started_before_window
+      - task: task.self.refactor-live-replan-self-openproject-plan
+        reason: started_before_window
+      - task: task.self.refresh-agent-kit-after-tooling-consolidation
+        reason: started_before_window
+      - task: task.self.refresh-agent-kit-for-second-project
+        reason: started_before_window
+      - task: task.self.refresh-second-project-agent-kit
+        reason: started_before_window
+      - task: task.self.remove-old-task-list-from-plugin-overview
+        reason: started_before_window
+      - task: task.self.remove-superseded-pilot-kits
+        reason: not_finished
+      - task: task.self.remove-yaml-rewrite-noise
+        reason: started_before_window
+      - task: task.self.render-tracking-loop-dashboard
+        reason: started_before_window
+      - task: task.self.report-applied-actions-on-helper-failure
+        reason: started_before_window
+      - task: task.self.report-estimate-accuracy
+        reason: started_before_window
+      - task: task.self.report-missing-project-root-as-not-found
+        reason: started_before_window
+      - task: task.self.report-openproject-rescheduling-after-relation-create
+        reason: started_before_window
+      - task: task.self.restructure-plugin-project-page
+        reason: started_before_window
+      - task: task.self.retry-only-idempotent-openproject-requests
+        reason: started_before_window
+      - task: task.self.review-agent-tooling-consistency
+        reason: started_before_window
+      - task: task.self.review-openproject-replan-plugin-views
+        reason: started_before_window
+      - task: task.self.run-first-dogfood-tracking-cleanup
+        reason: started_before_window
+      - task: task.self.run-full-openproject-dogfood-cycle
+        reason: started_before_window
+      - task: task.self.scaffold-openproject-overlay-plugin-consumer
+        reason: started_before_window
+      - task: task.self.scenario-id-flag
+        reason: estimated_after_start
+      - task: task.self.scope-plugin-overlay-to-its-project
+        reason: started_before_window
+      - task: task.self.select-next-product-slice-from-replan-reports
+        reason: started_before_window
+      - task: task.self.serve-plugin-overlays-per-project-live
+        reason: started_before_window
+      - task: task.self.set-project-status-date-command
+        reason: started_before_window
+      - task: task.self.share-openproject-bindings-module
+        reason: started_before_window
+      - task: task.self.share-openproject-http-client-and-settings
+        reason: started_before_window
+      - task: task.self.ship-overlay-publish-in-agent-kit
+        reason: started_before_window
+      - task: task.self.show-evidence-and-actuals-in-plugin-panel
+        reason: started_before_window
+      - task: task.self.single-openproject-status-map
+        reason: started_before_window
+      - task: task.self.skip-cancelled-dependencies
+        reason: estimated_after_start
+      - task: task.self.split-project-state-markdown
+        reason: started_before_window
+      - task: task.self.split-validate-workspace
+        reason: started_before_window
+      - task: task.self.stabilize-openproject-live-helper-timeouts
+        reason: started_before_window
+      - task: task.self.status-dates-use-project-timezone
+        reason: estimated_after_start
+      - task: task.self.store-estimates-in-baselines
+        reason: started_before_window
+      - task: task.self.suggest-dependency-reviews-only-when-due
+        reason: started_before_window
+      - task: task.self.sync-cli-spec-and-getting-started
+        reason: started_before_window
+      - task: task.self.sync-latest-openproject-live-backlog-drift
+        reason: started_before_window
+      - task: task.self.theme-plugin-views-with-openproject-variables
+        reason: started_before_window
+      - task: task.self.toolkit-update-no-op
+        reason: estimated_after_start
+      - task: task.self.track-the-task-acceptance-chain
+        reason: started_before_window
+      - task: task.self.unify-helper-json-envelope
+        reason: started_before_window
+      - task: task.self.verify-openproject-plugin-throwaway-runtime
+        reason: started_before_window
+      - task: task.self.verify-openproject-wiki-api-plugin-throwaway-runtime
+        reason: started_before_window
+      - task: task.self.version-project-file-format
+        reason: started_before_window
+      - task: task.self.warn-accepted-task-future-window
+        reason: started_before_window
+      - task: task.self.warn-dependency-only-when-due
+        reason: started_before_window
+      - task: task.self.windows-agent-kit
+        reason: estimated_after_start
+      - task: task.self.write-oss-readiness-audit
+        reason: started_before_window
+  result:
+    method: size_bands
+    factor: 0.33
+    total_ratio: 0.331726
+    p25: 0.2175
+    p75: 0.468333
+    count: 67
+    size_bands:
+      - up_to: 2
+        count: 58
+        median: 0.365833
+        factor: 0.365833
+        factor_source: band
+      - up_to: 4
+        count: 9
+        median: 0.245
+        factor: 0.245
+        factor_source: band
+      - count: 0
+        median: 0
+        factor: 0.33
+        factor_source: overall
+  seal_sha256: 1a3d1bc869f544f729f6f5b2984a314a16d23fa416dbbd4ee53d34827f508209

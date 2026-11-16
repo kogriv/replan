@@ -187,3 +187,73 @@ evidence:
     targets:
       - kind: task
         id: task.self.agent-kit-estimating-guide
+  - id: evidence.self.start-recalibrate-self-agent-estimates
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T10:55:49+07:00"
+    summary: 'Started two days before the planned day: the measurement tasks are done, so the executor prepares the calibration dry runs for the maintainer''s approval.'
+    targets:
+      - kind: task
+        id: task.self.recalibrate-self-agent-estimates
+  - id: evidence.self.approve-calibration-2026-11-16
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-16T11:13:22+07:00"
+    summary: 'The maintainer approved in chat (2026-11-16 11:13) the agent-hours calibration over tasks started since 2026-11-02 by size band: 67 clean tasks, overall 0.33, up to 2 h 0.366 (58 tasks), 2-4 h 0.245 (9 tasks), over 4 h falls back to the overall factor (no tasks in the window); review-ready tasks not included; CI stays uncalibrated because its actuals were judged.'
+    targets:
+      - kind: task
+        id: task.self.recalibrate-self-agent-estimates
+  - id: evidence.self.accept-measured-wait-report
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-16T04:13:22Z"
+    confidence: observed
+    summary: 'Accepted by the maintainer on review in chat (answer 2026-11-16 11:13). CI measured from the run that also carried the estimating guide commit; booked on this task. CI measured from GitHub Actions runs 43801000475: 13 billable minutes.'
+    targets:
+      - kind: task
+        id: task.self.measured-wait-report
+  - id: evidence.self.accept-agent-kit-estimating-guide
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-16T04:13:22Z"
+    confidence: observed
+    summary: Accepted by the maintainer on review in chat (answer 2026-11-16 11:13). Its docs commit shared GitHub Actions run 43801000475 with the wait report, where the CI minutes are booked.
+    targets:
+      - kind: task
+        id: task.self.agent-kit-estimating-guide
+  - id: evidence.self.ack-ci-overrun-measured-wait-report
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T11:16:27+07:00"
+    summary: 'Acknowledged under the maintainer''s standing approval (chat, 2026-11-15 21:09) for measured CI overruns in the calibration batch: 13 billable minutes measured from GitHub Actions run 43801000475 (wait report and estimating guide commits) exceed the 10 planned.'
+    targets:
+      - kind: task
+        id: task.self.measured-wait-report
+  - id: evidence.self.recalibrate-self-agent-estimates
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T11:17:34+07:00"
+    summary: 'Wrote the sealed calibration calibration.2026-11-16.agents-since-november approved by the maintainer: agent hours of the executor and Codex over 67 clean tasks started since 2026-11-02, overall 0.33, up to 2 h 0.366, 2-4 h 0.245, over 4 h the overall factor (no such tasks in the window); seal verified. Checks: workload for 2026-W47 now uses it (executor 4.25 calibrated against 7 raw, Codex 9 against 11); estimate apply previews 8 changes for open demands (not applied, load already uses the calibration); replan next names it. Findings planned separately: next still offers to apply the superseded 2026-11-02 calibration, and offers a CI calibration over judged CI actuals. Executor 0.10 h measured with scripts/agent-session-consumption.sh.'
+    targets:
+      - kind: task
+        id: task.self.recalibrate-self-agent-estimates
