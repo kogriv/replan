@@ -8259,9 +8259,9 @@ tasks:
     title: Report measured waits from tracking history
     description: 'Both consumer projects report on 2026-11-15 that human waiting, not agent work, dominates calendar time: tasks sit in review_ready for days or weeks and price checks wait for the owner. RePlan models planned waits with lead_time but never measures them. Add a read-only report of measured waits per task from tracking status history (time from review_ready to accepted, from blocked to unblocked, from planned to started), with medians per status and resource, and compare them with the plan''s lead_time values so a project can set realistic waits.'
     type: implementation
-    tracking_status: in_progress
-    planned_start: "2026-11-17"
-    planned_finish: "2026-11-17"
+    tracking_status: review_ready
+    planned_start: "2026-11-16"
+    planned_finish: "2026-11-16"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer
@@ -8288,9 +8288,9 @@ tasks:
     title: Document plan, actuals and calibration in the agent kit
     description: 'The agent kit explains the operator loop but not how a project builds a calibration: freeze an estimate with baseline create --task before a task starts, record actuals from timestamps (with the new session helper), measured CI and review minutes, run estimate calibrate with a window, start from a prior factor cited from another project, read calibrated load and dates, and keep typing natural estimates (agreed by the maintainer on 2026-11-15). Write that section with the commands, and point to the measured wait report.'
     type: implementation
-    tracking_status: not_started
-    planned_start: "2026-11-18"
-    planned_finish: "2026-11-18"
+    tracking_status: review_ready
+    planned_start: "2026-11-16"
+    planned_finish: "2026-11-16"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer

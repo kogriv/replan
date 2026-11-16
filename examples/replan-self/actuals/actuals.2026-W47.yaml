@@ -251,3 +251,66 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-backfill-actual-windows-from-openproject
+  - id: actual.self-measured-wait-report.ai-codex-local.20261116T1054130700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.measured-wait-report
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.measured-wait-report.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.72
+    unit: agent_hours
+    occurred_at: "2026-11-16T10:54:13+07:00"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.measured-wait-report
+  - id: actual.self-measured-wait-report.ai-agent-executor.20261116T1054130700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.measured-wait-report
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.measured-wait-report.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.2
+    unit: agent_hours
+    occurred_at: "2026-11-16T10:54:13+07:00"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.measured-wait-report
+  - id: actual.self-agent-kit-estimating-guide.ai-agent-executor.20261116T1054130700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.agent-kit-estimating-guide
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.agent-kit-estimating-guide.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.07
+    unit: agent_hours
+    occurred_at: "2026-11-16T10:54:13+07:00"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.agent-kit-estimating-guide

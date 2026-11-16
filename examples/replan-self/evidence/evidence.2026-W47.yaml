@@ -154,3 +154,36 @@ evidence:
     targets:
       - kind: task
         id: task.self.backfill-actual-windows-from-openproject
+  - id: evidence.self.start-agent-kit-estimating-guide
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T10:09:25+07:00"
+    summary: Started two days before the planned day while Codex works on the wait report's second round; the executor writes this documentation itself.
+    targets:
+      - kind: task
+        id: task.self.agent-kit-estimating-guide
+  - id: evidence.self.measured-wait-report
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T10:54:13+07:00"
+    summary: 'Feature commit d57cbee: replan report waits measures status spans from the status records (timestamps, hours, working and calendar days), named waits and in_progress work time aggregated overall, per tag and per assignee hint, terminal statuses excluded, open spans apart, lead_time comparison and a no-lead-time hint; read-only JSON or Markdown. Review on the self project found day granularity hiding hour-long waits, terminal statuses shown as open waits, no work-time row and repeated headings; Codex fixed them in round 2; the reviewer merged its status ordering with the one already on main and kept id order for the same instant in two offsets. On the self project: 132 review waits, median 1.87 h, p75 7.99 h, max 19.98 h, against median work time 0.66 h. Gate: vet, lint 0, shellcheck, Go and Python suites, smoke, isolated smoke, 58 kit checks, live kit check 108 checks. Codex rounds 08:50:29-09:13:08 and 10:01:40-10:22:21 (0.72 h, prompt and last-file mtimes). Executor 0.20 h: 0.05 brief before the start, reviews, merge and booking measured with scripts/agent-session-consumption.sh.'
+    targets:
+      - kind: task
+        id: task.self.measured-wait-report
+  - id: evidence.self.agent-kit-estimating-guide
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T10:54:13+07:00"
+    summary: 'Docs commit 24929df: the agent kit section ''Plan, measure and calibrate estimates'' walks a project through sealing a baseline before the start, recording real start and end status times, measuring agent, CI and review time, backfilling older status history, calibrating over a recent window by size, starting from a cited prior, reading calibrated load, acknowledging real overruns and measuring waits with report waits. Gate: vet, lint 0, shellcheck, Go and Python suites, smoke, isolated smoke, 58 kit checks, live kit check 108 checks. Executor 0.07 h measured with scripts/agent-session-consumption.sh (reading the existing docs and writing the section).'
+    targets:
+      - kind: task
+        id: task.self.agent-kit-estimating-guide
