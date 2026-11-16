@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 287,
-  "count": 287,
+  "total": 288,
+  "count": 288,
   "_embedded": {
     "elements": [
       {
@@ -8320,6 +8320,35 @@
           },
           "status": {
             "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2388,
+        "subject": "Set project calibration settings through a reviewed command",
+        "description": {
+          "raw": "Found on 2026-11-16 while requiring measured CI actuals in the self project: project.calibration.require_measurement can only be set by editing .replan/project.yaml by hand, without dry run, audit record or validation before the write, unlike project set-status-date. Add a reviewed command (for example replan project set-calibration --require-measurement <resource-id> ... | --clear) with dry run, actor, reason, evidence, one audit record and validation of the resource ids, changing only that field; show the setting in project or estimate output where calibration settings are read; tests and docs (cli.md, the agent kit calibration section). Record the setting of the self project through it, replacing the hand edit's record."
+        },
+        "status": {
+          "name": "In progress"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-16",
+        "dueDate": "2026-11-16",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2388"
+          },
+          "status": {
+            "title": "In progress"
           },
           "assignee": {
             "href": "/api/v3/users/101",

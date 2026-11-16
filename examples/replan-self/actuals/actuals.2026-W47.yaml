@@ -633,3 +633,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.calibrate-measured-actuals-only
+  - id: actual.self-calibrate-measured-actuals-only.ci-github-actions.20261116T070039Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.calibrate-measured-actuals-only
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.calibrate-measured-actuals-only.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 11
+    unit: ci_minutes
+    measurement: measured
+    occurred_at: "2026-11-16T07:00:39Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-calibrate-measured-actuals-only
+  - id: actual.self-calibrate-measured-actuals-only.human-maintainer.20261116T070039Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.calibrate-measured-actuals-only
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.calibrate-measured-actuals-only.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.17
+    unit: hours
+    measurement: stated
+    occurred_at: "2026-11-16T07:00:39Z"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-calibrate-measured-actuals-only
