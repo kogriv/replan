@@ -524,3 +524,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-6
+  - id: evidence.self.publish-release-v0-5-6
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T16:02:18+07:00"
+    summary: 'Published RePlan v0.5.6 from 0edba7f after green CI: tag v0.5.6, local release build (6 archives, sums checked) identical to the release workflow run 43835385218 (SHA256SUMS match), GitHub release with notes, downloaded archives match SHA256SUMS, attestations verify for the Windows archive and SHA256SUMS, go install @v0.5.6 works. Agent kits built from the tag (no private patterns besides each kit''s purpose line): zch kit installed on the VPS (current switched from v0.5.5, version and a read-only work-package list checked); kruzhok kit uploaded to its wiki page 28 (attachments 118, 119), downloaded back and matched, its plan copy of 16 Nov validates with the new binary, page text updated with the changes; piccard Linux and Windows kits uploaded to page 54 (120, 121), downloaded back and matched, page text updated keeping the project''s own edits. The three consumer sessions were told what changed and how to start calibrating. Earlier the same day the plugin image 17.6.0-wikiapi-d4487c6 was deployed (evidence.self.deploy-plugin-d4487c6). Executor 0.25 h: release notes before the start (0.1), release, kits and messages measured with scripts/agent-session-consumption.sh, booking.'
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-6
