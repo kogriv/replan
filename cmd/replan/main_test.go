@@ -863,6 +863,9 @@ func TestUncoveredAgentWritesRemainAllowed(t *testing.T) {
 		if code := run(args, stdout, stderr); code != exitSuccess {
 			t.Fatalf("%v exit=%d; stdout=%s stderr=%s", args[:2], code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
 		}
+		if args[0] == "actual" && args[1] == "add-status" && !strings.Contains(readFileString(t, stdout.Name()), `"current_status_changed": true`) {
+			t.Fatalf("actual add-status JSON lacks current_status_changed: %s", readFileString(t, stdout.Name()))
+		}
 	}
 }
 

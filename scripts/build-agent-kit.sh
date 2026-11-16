@@ -47,6 +47,7 @@ accept-openproject-soft-drift.sh
 agent-session-consumption.sh
 apply-openproject-bootstrap.sh
 apply-openproject-relations.sh
+backfill-openproject-status-history.sh
 build-openproject-live-overlay.sh
 check-openproject-drift.sh
 check-openproject-live-alignment.sh
@@ -71,6 +72,7 @@ accept_openproject_soft_drift.py
 agent_session_consumption.py
 apply_openproject_bootstrap.py
 apply_openproject_relations.py
+backfill_openproject_status_history.py
 check_openproject_drift.py
 check_openproject_live_alignment.py
 check_resource_schedule_drift.py

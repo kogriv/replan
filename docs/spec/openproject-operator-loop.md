@@ -204,6 +204,25 @@ AI CLI agent flow:
 7. Use only approved OpenProject write-back helpers, and only after reviewing
    their dry-run output.
 
+### Historic status-history surface
+
+| Loop step | Command | Direction and gate |
+| --- | --- | --- |
+| Backfill historic work-package status journals | `scripts/backfill-openproject-status-history.sh [--task <id> ...]` | OpenProject activities to RePlan evidence and `actual_add_status` audit records. Dry-run by default; `REPLAN_APPLY=1` plus `REPLAN_ACTOR` writes RePlan only and never OpenProject. Then review/apply `replan task record-actual-window`; calibrate only after those windows are recorded. |
+
+An imported status older than the latest RePlan status audit is history only:
+`actual add-status` appends it without changing the task's current tracking
+status. The helper also skips an OpenProject journal when the same RePlan
+status was already in effect at that journal time, even when the two timestamps
+are more than the same-time tolerance apart.
+
+OpenProject 17's activity resource exposes journal details as formattable
+`raw` and `html` values rather than a structured diff. The helper ignores
+`html`, matches status names in `raw` against the live `/api/v3/statuses`
+collection, and also accepts structured values or status links if a future
+response provides them. Unmapped destinations and events that would reverse a
+later RePlan status order are review items, not inferred mutations.
+
 ## Live API Timing Contract
 
 OpenProject live operations must assume that the API can be temporarily slow

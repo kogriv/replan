@@ -20,3 +20,15 @@ func TestLatestCorrectionComparesInstantsAcrossOffsets(t *testing.T) {
 		t.Fatalf("effective = %+v, want actual.a at 0.1", effective)
 	}
 }
+
+func TestEffectiveStatusAuditsSortsByOccurrenceInstant(t *testing.T) {
+	records := []domain.AuditRecord{
+		{ID: "audit.finish", Operation: "actual_add_status", OccurredAt: "2026-07-10T10:00:00Z", NewStatus: "accepted"},
+		{ID: "audit.start", Operation: "actual_add_status", OccurredAt: "2026-07-05T10:00:00+07:00", NewStatus: "in_progress"},
+		{ID: "audit.middle", Operation: "actual_add_status", OccurredAt: "2026-07-06T10:00:00Z", NewStatus: "review_ready"},
+	}
+	effective := EffectiveStatusAudits(records)
+	if len(effective) != 3 || effective[0].ID != "audit.start" || effective[1].ID != "audit.middle" || effective[2].ID != "audit.finish" {
+		t.Fatalf("effective status order=%#v", effective)
+	}
+}

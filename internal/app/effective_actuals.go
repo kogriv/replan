@@ -1,6 +1,7 @@
 package app
 
 import (
+	"sort"
 	"time"
 
 	"github.com/kogriv/replan/internal/domain"
@@ -50,6 +51,20 @@ func EffectiveStatusAudits(records []domain.AuditRecord) []domain.AuditRecord {
 		}
 		result = append(result, record)
 	}
+	sort.SliceStable(result, func(i, j int) bool {
+		left, leftErr := time.Parse(time.RFC3339, result[i].OccurredAt)
+		right, rightErr := time.Parse(time.RFC3339, result[j].OccurredAt)
+		if leftErr == nil && rightErr == nil && !left.Equal(right) {
+			return left.Before(right)
+		}
+		if leftErr != rightErr {
+			return leftErr == nil
+		}
+		if result[i].OccurredAt != result[j].OccurredAt {
+			return result[i].OccurredAt < result[j].OccurredAt
+		}
+		return result[i].ID < result[j].ID
+	})
 	return result
 }
 

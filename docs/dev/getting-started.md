@@ -271,6 +271,13 @@ default and applied only with `REPLAN_APPLY=1`: `apply-openproject-bootstrap.sh`
 `push-openproject-status-drift.sh` and `openproject-work-package-toolkit.sh`.
 Broad or automatic write-back is out of scope.
 
+`backfill-openproject-status-history.sh` is the complementary RePlan-only
+history repair helper. It reads bound OpenProject activities, proposes missing
+evidence and tracking-status audit records, and never writes OpenProject. Run
+it before `task record-actual-window`, and record reviewed actual windows
+before estimate calibration. Older inserted records remain history and do not
+replace the task's current tracking status.
+
 Create and inspect an immutable estimate snapshot:
 
 ```bash

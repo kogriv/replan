@@ -836,6 +836,9 @@ func TestActualAddStatusDryRunSmallTeamFixture(t *testing.T) {
 	if result.NewStatus != "review_ready" {
 		t.Fatalf("unexpected new status: %s", result.NewStatus)
 	}
+	if !result.CurrentStatusChanged {
+		t.Fatal("normal status record must change current status")
+	}
 	if len(result.PlannedWrites) != 1 {
 		t.Fatalf("expected 1 planned write, got %d", len(result.PlannedWrites))
 	}
@@ -847,6 +850,61 @@ func TestActualAddStatusDryRunSmallTeamFixture(t *testing.T) {
 	}
 	if result.AuditRecordPreview.NewStatus != "review_ready" || result.AuditRecordPreview.StatusDate != "2026-07-06" {
 		t.Fatalf("audit status facts were not retained: %#v", result.AuditRecordPreview)
+	}
+}
+
+func TestActualAddHistoricalStatusKeepsCurrentStatusAndProvidesActualStart(t *testing.T) {
+	projectPath := copyAppProjectFixture(t)
+	store := filestore.New(projectPath)
+	service := app.NewActualService(store)
+
+	finished, err := service.AddStatus(context.Background(), app.ActualAddStatusRequest{
+		TaskID: "task.op.1234", Status: "accepted", EvidenceID: "evidence.github.pr.45",
+		ActorID: "actor.human.operator", OccurredAt: "2026-07-10T17:00:00+07:00",
+	})
+	if err != nil || !finished.CurrentStatusChanged {
+		t.Fatalf("finish result=%#v err=%v", finished, err)
+	}
+
+	dry, err := service.AddStatus(context.Background(), app.ActualAddStatusRequest{
+		TaskID: "task.op.1234", Status: "in_progress", EvidenceID: "evidence.github.pr.45",
+		ActorID: "actor.human.operator", OccurredAt: "2026-07-05T09:00:00+07:00", DryRun: true,
+	})
+	if err != nil || dry.CurrentStatusChanged || len(dry.PlannedWrites) != 0 {
+		t.Fatalf("historical dry run=%#v err=%v", dry, err)
+	}
+	if len(dry.Warnings) != 1 || dry.Warnings[0].Code != "historical_status_record" ||
+		!strings.Contains(dry.Warnings[0].Message, "accepted") ||
+		!strings.Contains(dry.Warnings[0].Message, "2026-07-10T17:00:00+07:00") {
+		t.Fatalf("historical warning=%#v", dry.Warnings)
+	}
+
+	historical, err := service.AddStatus(context.Background(), app.ActualAddStatusRequest{
+		TaskID: "task.op.1234", Status: "in_progress", EvidenceID: "evidence.github.pr.45",
+		ActorID: "actor.human.operator", OccurredAt: "2026-07-05T09:00:00+07:00",
+	})
+	if err != nil || historical.CurrentStatusChanged || !historical.Applied {
+		t.Fatalf("historical result=%#v err=%v", historical, err)
+	}
+	if len(historical.WrittenFiles) != 1 || !strings.Contains(historical.WrittenFiles[0], "audit/") {
+		t.Fatalf("historical writes=%#v", historical.WrittenFiles)
+	}
+
+	ws, diags := store.Load(context.Background())
+	if len(diags) != 0 {
+		t.Fatalf("load diagnostics=%#v", diags)
+	}
+	for _, task := range ws.Tasks {
+		if task.ID == "task.op.1234" && task.TrackingStatus != "accepted" {
+			t.Fatalf("historical record regressed current status to %s", task.TrackingStatus)
+		}
+	}
+
+	window, err := app.NewTaskService(store).RecordActualWindow(context.Background(), app.TaskRecordActualWindowRequest{
+		TaskID: "task.op.1234", ActorID: "actor.human.operator", EvidenceID: "evidence.github.pr.45", DryRun: true,
+	})
+	if err != nil || window.NewStart != "2026-07-05" || window.NewFinish != "2026-07-10" {
+		t.Fatalf("actual window=%#v err=%v", window, err)
 	}
 }
 

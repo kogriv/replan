@@ -224,18 +224,19 @@ type ActualAddStatusRequest struct {
 }
 
 type ActualAddStatusResult struct {
-	DryRun             bool               `json:"dry_run"`
-	Applied            bool               `json:"applied"`
-	TaskID             string             `json:"task_id"`
-	PreviousStatus     string             `json:"previous_status,omitempty"`
-	NewStatus          string             `json:"new_status"`
-	Reason             string             `json:"reason,omitempty"`
-	PlannedWrites      []PlannedWrite     `json:"planned_writes"`
-	WrittenFiles       []string           `json:"written_files,omitempty"`
-	AuditRecordPreview domain.AuditRecord `json:"audit_record_preview"`
-	Validation         *ValidateResult    `json:"validation,omitempty"`
-	Warnings           []Diagnostic       `json:"warnings"`
-	Errors             []Diagnostic       `json:"errors"`
+	DryRun               bool               `json:"dry_run"`
+	Applied              bool               `json:"applied"`
+	TaskID               string             `json:"task_id"`
+	PreviousStatus       string             `json:"previous_status,omitempty"`
+	NewStatus            string             `json:"new_status"`
+	CurrentStatusChanged bool               `json:"current_status_changed"`
+	Reason               string             `json:"reason,omitempty"`
+	PlannedWrites        []PlannedWrite     `json:"planned_writes"`
+	WrittenFiles         []string           `json:"written_files,omitempty"`
+	AuditRecordPreview   domain.AuditRecord `json:"audit_record_preview"`
+	Validation           *ValidateResult    `json:"validation,omitempty"`
+	Warnings             []Diagnostic       `json:"warnings"`
+	Errors               []Diagnostic       `json:"errors"`
 }
 
 type PlannedWrite struct {
@@ -983,26 +984,51 @@ func (s ActualService) AddStatus(ctx context.Context, req ActualAddStatusRequest
 	if statusDate == "" {
 		statusDate = projectDate(ws.Project, occurredAt)
 	}
-	patch := map[string]any{
-		"op":     "replace",
-		"path":   fmt.Sprintf("canonical/tasks/%s/tracking_status", req.TaskID),
-		"value":  req.Status,
-		"before": task.TrackingStatus,
+	result.CurrentStatusChanged = true
+	if later, ok := latestTaskStatusAudit(ws.AuditRecords, req.TaskID); ok {
+		newTime, newErr := time.Parse(time.RFC3339, occurredAt)
+		laterTime, laterErr := time.Parse(time.RFC3339, later.OccurredAt)
+		if newErr == nil && laterErr == nil && newTime.Before(laterTime) {
+			result.CurrentStatusChanged = false
+			result.Warnings = append(result.Warnings, Diagnostic{
+				Code: "historical_status_record",
+				Message: fmt.Sprintf(
+					"Recorded historical status %s at %s for task %s; current status remains %s because later status %s was recorded at %s.",
+					req.Status, occurredAt, req.TaskID, task.TrackingStatus, later.NewStatus, later.OccurredAt,
+				),
+				Severity: "warning",
+				Target:   Target{Kind: "task", ID: req.TaskID},
+			})
+		}
 	}
-	if req.Reason != "" {
-		patch["reason"] = req.Reason
-	}
-	if statusDate != "" {
-		patch["status_date"] = statusDate
-	}
-	patchYAML, err := yaml.Marshal(patch)
-	if err != nil {
-		result.Errors = append(result.Errors, Diagnostic{
-			Code:     "yaml_render_error",
-			Message:  fmt.Sprintf("failed to render task-status patch yaml: %v", err),
-			Severity: "error",
+	if result.CurrentStatusChanged {
+		patch := map[string]any{
+			"op":     "replace",
+			"path":   fmt.Sprintf("canonical/tasks/%s/tracking_status", req.TaskID),
+			"value":  req.Status,
+			"before": task.TrackingStatus,
+		}
+		if req.Reason != "" {
+			patch["reason"] = req.Reason
+		}
+		if statusDate != "" {
+			patch["status_date"] = statusDate
+		}
+		patchYAML, err := yaml.Marshal(patch)
+		if err != nil {
+			result.Errors = append(result.Errors, Diagnostic{
+				Code:     "yaml_render_error",
+				Message:  fmt.Sprintf("failed to render task-status patch yaml: %v", err),
+				Severity: "error",
+			})
+			return result, ErrValidationFailed
+		}
+		result.PlannedWrites = append(result.PlannedWrites, PlannedWrite{
+			Path:    "canonical/tasks.yaml",
+			Action:  "replace_yaml_field",
+			Format:  "yaml-patch-preview",
+			Content: string(patchYAML),
 		})
-		return result, ErrValidationFailed
 	}
 	audit := domain.AuditRecord{
 		ID:         "audit." + compactTimestamp(occurredAt) + ".actual-add-status." + slugID(req.TaskID),
@@ -1025,12 +1051,6 @@ func (s ActualService) AddStatus(ctx context.Context, req ActualAddStatusRequest
 	if req.EvidenceID != "" {
 		audit.EvidenceRefs = []domain.Ref{{Kind: "evidence", ID: req.EvidenceID}}
 	}
-	result.PlannedWrites = append(result.PlannedWrites, PlannedWrite{
-		Path:    "canonical/tasks.yaml",
-		Action:  "replace_yaml_field",
-		Format:  "yaml-patch-preview",
-		Content: string(patchYAML),
-	})
 	result.AuditRecordPreview = audit
 	if req.DryRun {
 		return result, nil
@@ -1047,17 +1067,19 @@ func (s ActualService) AddStatus(ctx context.Context, req ActualAddStatusRequest
 		})
 		return result, ErrValidationFailed
 	}
-	taskPath, err := writer.SetTaskTrackingStatus(req.TaskID, req.Status)
-	if err != nil {
-		result.Errors = append(result.Errors, Diagnostic{
-			Code:     "status_write_failed",
-			Message:  err.Error(),
-			Severity: "error",
-			Target:   Target{Kind: "task", ID: req.TaskID},
-		})
-		return result, err
+	if result.CurrentStatusChanged {
+		taskPath, err := writer.SetTaskTrackingStatus(req.TaskID, req.Status)
+		if err != nil {
+			result.Errors = append(result.Errors, Diagnostic{
+				Code:     "status_write_failed",
+				Message:  err.Error(),
+				Severity: "error",
+				Target:   Target{Kind: "task", ID: req.TaskID},
+			})
+			return result, err
+		}
+		result.WrittenFiles = append(result.WrittenFiles, taskPath)
 	}
-	result.WrittenFiles = append(result.WrittenFiles, taskPath)
 	auditPath, err := writer.AppendAudit(&audit)
 	result.AuditRecordPreview = audit
 	if err != nil {
@@ -1079,6 +1101,25 @@ func (s ActualService) AddStatus(ctx context.Context, req ActualAddStatusRequest
 	}
 	result.Applied = true
 	return result, nil
+}
+
+func latestTaskStatusAudit(records []domain.AuditRecord, taskID string) (domain.AuditRecord, bool) {
+	var latest domain.AuditRecord
+	var latestTime time.Time
+	found := false
+	for _, record := range EffectiveStatusAudits(records) {
+		if record.TargetRef.ID != taskID || record.NewStatus == "" {
+			continue
+		}
+		occurred, err := time.Parse(time.RFC3339, record.OccurredAt)
+		if err != nil {
+			continue
+		}
+		if !found || occurred.After(latestTime) || (occurred.Equal(latestTime) && record.ID > latest.ID) {
+			latest, latestTime, found = record, occurred, true
+		}
+	}
+	return latest, found
 }
 
 func actualSummary(actual domain.Actual) ActualSummary {

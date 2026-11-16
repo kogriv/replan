@@ -2501,6 +2501,17 @@ Rules:
 - `remaining_amount: 0` is stored explicitly and means "estimated, nothing
   left"; an absent field means "not estimated";
 - status actuals must use canonical RePlan statuses;
+- `actual add-status` reports `current_status_changed`. It is `true` for a
+  normal record and the command updates `canonical/tasks.yaml` as before. If
+  `occurred_at` is earlier than the task's latest existing
+  `actual_add_status` audit instant, it is `false`: the command appends the
+  historical audit record but does not change the task's current
+  `tracking_status`. Warning `historical_status_record` names the later
+  record's status and timestamp. An equal timestamp is current, not
+  historical. Dry-run applies the same decision;
+- status-history readers use effective `actual_add_status` records ordered by
+  `occurred_at`, independent of append/file order. This lets a late backfill
+  supply an earlier actual start without reopening a finished task;
 - when `--status-date` is omitted, dates derived from `occurred_at` use
   `project.timezone`. Date-only input is preserved; a missing or invalid zone,
   or non-RFC3339 text, falls back to the timestamp's own date. An explicit
