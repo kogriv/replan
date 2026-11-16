@@ -8368,7 +8368,7 @@ tasks:
     title: Suggest applying only the latest calibration of a scope
     description: 'Found on 2026-11-16 while recalibrating the self project: after calibration.2026-11-16.agents-since-november replaced calibration.2026-11-02.agents-by-size for the same resources and unit, replan next lists apply_calibration for both, so an agent could apply the superseded factor. Load commands already use the latest matching approved calibration. Make next (and the dashboard next actions) offer apply_calibration only for the latest approved calibration of each resource-unit-tag scope, name the calibration it supersedes where useful, and keep older calibrations readable through estimate list and show; tests with two calibrations of one scope and with two different scopes.'
     type: implementation
-    tracking_status: not_started
+    tracking_status: in_progress
     planned_start: "2026-11-16"
     planned_finish: "2026-11-16"
     assignee_hint:
@@ -8428,7 +8428,7 @@ tasks:
     title: Delete the live OpenProject relation of a cancelled dependency
     description: 'Found on 2026-11-16 by the date push while backfilling status history: the cancelled RePlan dependency dependency.milestone-2-before-work-package-link still has a live OpenProject relation between the plugin milestone 2 deployment and the work package link task (cancelled_dependency_still_live). Review the relation endpoints and delete it with the reviewed toolkit command relation delete --remove-private-binding, dry run first, with the maintainer''s agreement of 2026-11-16; check that the warning is gone.'
     type: implementation
-    tracking_status: not_started
+    tracking_status: review_ready
     planned_start: "2026-11-16"
     planned_finish: "2026-11-16"
     assignee_hint:

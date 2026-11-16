@@ -419,3 +419,24 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-recalibrate-self-agent-estimates
+  - id: actual.self-delete-stale-openproject-relation.ai-agent-executor.20261116T1204300700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.delete-stale-openproject-relation
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.delete-stale-openproject-relation.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.03
+    unit: agent_hours
+    occurred_at: "2026-11-16T12:04:30+07:00"
+    status_date: "2026-11-16"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.delete-stale-openproject-relation

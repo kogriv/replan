@@ -296,3 +296,36 @@ evidence:
         id: task.self.calibrate-measured-actuals-only
       - kind: task
         id: task.self.delete-stale-openproject-relation
+  - id: evidence.self.start-next-suggests-only-latest-calibration
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T12:03:14+07:00"
+    summary: 'Started on the planned day: the Codex round began at 12:03:14.'
+    targets:
+      - kind: task
+        id: task.self.next-suggests-only-latest-calibration
+  - id: evidence.self.start-delete-stale-openproject-relation
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T12:03:32+07:00"
+    summary: Started on the planned day by the executor while Codex works on the next-suggestion fix.
+    targets:
+      - kind: task
+        id: task.self.delete-stale-openproject-relation
+  - id: evidence.self.delete-stale-openproject-relation
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-16T12:04:30+07:00"
+    summary: Reviewed the endpoints of OpenProject relation 142 (follows, work package of the work package link task after the plugin milestone 2 deployment) against the private binding and the cancelled dependency dependency.milestone-2-before-work-package-link (cancelled 2026-09-27), then deleted it with the toolkit relation delete --remove-private-binding after a dry run, under the maintainer's agreement of 2026-11-16 11:55. The date push no longer warns cancelled_dependency_still_live. Executor 0.03 h measured with scripts/agent-session-consumption.sh.
+    targets:
+      - kind: task
+        id: task.self.delete-stale-openproject-relation
