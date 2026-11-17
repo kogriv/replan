@@ -96,7 +96,7 @@ fi
 
 IMPORT_JSON="$TMP_DIR/live-import.json"
 set -- "$BIN" import openproject \
-  --project "$PROJECT_PATH" \
+  --project "$(replan_py_path "$PROJECT_PATH")" \
   --base-url "$OPENPROJECT_BASE_URL" \
   --project-id "$OPENPROJECT_PROJECT_ID" \
   --token-env "$OPENPROJECT_TOKEN_ENV"
@@ -110,7 +110,7 @@ set -- "$@" --include-closed --include-relations --dry-run --format json
 import_exit=0
 "$@" >"$IMPORT_JSON" || import_exit=$?
 if [ "$import_exit" -ne 0 ]; then
-  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m openproject_import_failure --command push-openproject-status-drift --status-key mode --status-value failed --import-json "$IMPORT_JSON" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR" --bindings --import-exit "$import_exit" || exit $?
+  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m openproject_import_failure --command push-openproject-status-drift --status-key mode --status-value failed --import-json "$(replan_py_path "$IMPORT_JSON")" --tmp-dir "$(replan_py_path "$TMP_DIR")" --root-dir "$(replan_py_path "$ROOT_DIR")" --bindings --import-exit "$import_exit" || exit $?
 fi
 
-PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m push_openproject_status_drift --import-json "$IMPORT_JSON" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR"
+PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m push_openproject_status_drift --import-json "$(replan_py_path "$IMPORT_JSON")" --tmp-dir "$(replan_py_path "$TMP_DIR")" --root-dir "$(replan_py_path "$ROOT_DIR")"

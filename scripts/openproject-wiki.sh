@@ -40,12 +40,12 @@ ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P)"
 case "${1:-}" in
   -h|--help)
     (replan_help "$0" "$@")
-    PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m openproject_wiki "$@"
+    PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python_path_args -m openproject_wiki "$@"
     exit $?
     ;;
 esac
 if replan_has_help_arg "$@"; then
-  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m openproject_wiki "$@"
+  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python_path_args -m openproject_wiki "$@"
   exit $?
 fi
 . "$ROOT_DIR/scripts/lib/load-dotenv.sh"
@@ -53,4 +53,4 @@ replan_load_openproject_dotenv "$ROOT_DIR"
 replan_resolve_openproject_settings "openproject wiki" invalid
 replan_require_json_format "openproject wiki"
 
-PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m openproject_wiki "$@"
+PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python_path_args -m openproject_wiki "$@"

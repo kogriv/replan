@@ -80,7 +80,7 @@ TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/rp-at.XXXXXX")"
 cleanup() {
   if [ -z "$KEEP_TEMP" ]; then
     PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" \
-      replan_python -m platform_compat remove-tree "$TMP_DIR" >/dev/null 2>&1 || rm -rf "$TMP_DIR"
+      replan_python -m platform_compat remove-tree "$(replan_py_path "$TMP_DIR")" >/dev/null 2>&1 || rm -rf "$TMP_DIR"
   else
     printf 'kept temp dir: %s\n' "$TMP_DIR" >&2
   fi
@@ -94,4 +94,7 @@ if [ -z "$BIN" ]; then
 fi
 
 PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" \
-  replan_python -m accept_task --root-dir "$ROOT_DIR" --tmp-dir "$TMP_DIR" --replan-bin "$BIN"
+  replan_python -m accept_task \
+    --root-dir "$(replan_py_path "$ROOT_DIR")" \
+    --tmp-dir "$(replan_py_path "$TMP_DIR")" \
+    --replan-bin "$(replan_py_path "$BIN")"

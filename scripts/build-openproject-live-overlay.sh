@@ -44,4 +44,4 @@ if [ -z "$BIN" ]; then
   (cd "$ROOT_DIR" && go build -o "$BIN" ./cmd/replan)
 fi
 PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" \
-  replan_python -m openproject_live_overlay --replan-bin "$BIN" --output-dir "$OUTPUT_DIR" --root-dir "$ROOT_DIR"
+  replan_python -m openproject_live_overlay --replan-bin "$(replan_py_path "$BIN")" --output-dir "$(replan_py_path "$OUTPUT_DIR")" --root-dir "$(replan_py_path "$ROOT_DIR")"

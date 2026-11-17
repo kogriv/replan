@@ -64,9 +64,9 @@ mkdir -p "$TMP_DIR/reports"
 "$ROOT_DIR/scripts/build-openproject-plugin-image.sh"
 
 (cd "$ROOT_DIR" && go run ./cmd/replan report dashboard \
-  --project "$PROJECT_PATH" \
+  --project "$(replan_py_path "$PROJECT_PATH")" \
   --week "$WEEK" \
-  --output "$TMP_DIR/reports/latest" \
+  --output "$(replan_py_path "$TMP_DIR/reports/latest")" \
   --format json >/dev/null)
 
 OVERLAY_PATH="$TMP_DIR/reports/latest/raw/openproject_overlay.json"

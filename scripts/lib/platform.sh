@@ -17,6 +17,39 @@ replan_windows_path() {
   fi
 }
 
+# Spell one shell path for a native Windows process. Callers use this for
+# explicit path operands instead of depending on Git Bash argument conversion,
+# which may be disabled with MSYS_NO_PATHCONV or MSYS2_ARG_CONV_EXCL.
+replan_py_path() {
+  replan_windows_path "$1"
+}
+
+# Convert path-valued options accepted by helpers that forward their own
+# command line to Python. Non-path arguments, including /api/v3/... values,
+# remain byte-for-byte unchanged.
+replan_python_path_args() {
+  _replan_path_arg_count=$#
+  while [ "$_replan_path_arg_count" -gt 0 ]; do
+    _replan_path_arg=$1
+    shift
+    _replan_path_arg_count=$((_replan_path_arg_count - 1))
+    case "$_replan_path_arg" in
+      --claude|--codex|--cwd|--description-file|--diff-output|--file|--output|--project|--text-file)
+        [ "$_replan_path_arg_count" -gt 0 ] || {
+          set -- "$@" "$_replan_path_arg"
+          continue
+        }
+        _replan_path_value=$1
+        shift
+        _replan_path_arg_count=$((_replan_path_arg_count - 1))
+        set -- "$@" "$_replan_path_arg" "$(replan_py_path "$_replan_path_value")"
+        ;;
+      *) set -- "$@" "$_replan_path_arg" ;;
+    esac
+  done
+  replan_python "$@"
+}
+
 replan_prepare_windows_paths() {
   replan_is_msys || return 0
   command -v cygpath >/dev/null 2>&1 || return 0

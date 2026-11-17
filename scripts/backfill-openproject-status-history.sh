@@ -55,7 +55,7 @@ fi
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/rp-sh.XXXXXX")"
 cleanup() {
   PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" \
-    replan_python -m platform_compat remove-tree "$TMP_DIR" >/dev/null 2>&1 || rm -rf "$TMP_DIR"
+    replan_python -m platform_compat remove-tree "$(replan_py_path "$TMP_DIR")" >/dev/null 2>&1 || rm -rf "$TMP_DIR"
 }
 trap cleanup EXIT INT TERM
 BIN="${REPLAN_BIN:-}"
@@ -66,4 +66,4 @@ fi
 
 PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" \
   replan_python -m backfill_openproject_status_history \
-    --root-dir "$ROOT_DIR" --replan-bin "$BIN" --tmp-dir "$TMP_DIR" "$@"
+    --root-dir "$(replan_py_path "$ROOT_DIR")" --replan-bin "$(replan_py_path "$BIN")" --tmp-dir "$(replan_py_path "$TMP_DIR")" "$@"

@@ -88,7 +88,7 @@ if [ -z "$token_value" ]; then
 fi
 
 IMPORT_JSON="$TMP_DIR/live-import.json"
-set -- "$BIN" import openproject --project "$PROJECT_PATH"
+set -- "$BIN" import openproject --project "$(replan_py_path "$PROJECT_PATH")"
 if [ -n "$OPENPROJECT_BASE_URL" ] || [ -n "$OPENPROJECT_PROJECT_ID" ]; then
   if [ -z "$OPENPROJECT_BASE_URL" ] || [ -z "$OPENPROJECT_PROJECT_ID" ]; then
     replan_fail_json "check-openproject-live-alignment" invalid missing_setting "REPLAN_OPENPROJECT_BASE_URL and REPLAN_OPENPROJECT_PROJECT_ID must be set together" 8
@@ -123,7 +123,7 @@ set -- "$@" --dry-run --format json
 import_exit=0
 "$@" >"$IMPORT_JSON" || import_exit=$?
 if [ "$import_exit" -ne 0 ]; then
-  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m openproject_import_failure --command check-openproject-live-alignment --status-key live_alignment --status-value failed --import-json "$IMPORT_JSON" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR" --profile --import-exit "$import_exit" || exit $?
+  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m openproject_import_failure --command check-openproject-live-alignment --status-key live_alignment --status-value failed --import-json "$(replan_py_path "$IMPORT_JSON")" --tmp-dir "$(replan_py_path "$TMP_DIR")" --root-dir "$(replan_py_path "$ROOT_DIR")" --profile --import-exit "$import_exit" || exit $?
 fi
 
-PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m check_openproject_live_alignment --import-json "$IMPORT_JSON" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR"
+PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m check_openproject_live_alignment --import-json "$(replan_py_path "$IMPORT_JSON")" --tmp-dir "$(replan_py_path "$TMP_DIR")" --root-dir "$(replan_py_path "$ROOT_DIR")"

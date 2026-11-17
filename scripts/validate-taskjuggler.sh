@@ -31,7 +31,7 @@ KEEP_TEMP="${REPLAN_KEEP_TEMP:-}"
 
 if [ -n "$KEEP_TEMP" ]; then
   go run ./cmd/replan dev validate-taskjuggler \
-    --project "$PROJECT_PATH" \
+    --project "$(replan_py_path "$PROJECT_PATH")" \
     --scenario "$SCENARIO_ID" \
     --taskjuggler-bin "$TASKJUGGLER_BIN" \
     --unrepresented-assumptions "$UNREPRESENTED_ASSUMPTIONS" \
@@ -39,7 +39,7 @@ if [ -n "$KEEP_TEMP" ]; then
     --keep-temp
 else
   go run ./cmd/replan dev validate-taskjuggler \
-    --project "$PROJECT_PATH" \
+    --project "$(replan_py_path "$PROJECT_PATH")" \
     --scenario "$SCENARIO_ID" \
     --taskjuggler-bin "$TASKJUGGLER_BIN" \
     --unrepresented-assumptions "$UNREPRESENTED_ASSUMPTIONS" \

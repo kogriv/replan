@@ -29,6 +29,12 @@ The last command reads `.env.local`; without a token it returns a JSON warning
 and does not write. WSL remains an alternative if the analyst prefers a full
 Linux environment.
 
+The kit helpers convert their explicit path arguments before invoking native
+Windows Python or `replan.exe`; they do not depend on Git Bash's automatic
+argument conversion. It is safe to use the helpers with `MSYS_NO_PATHCONV=1`
+and with `MSYS2_ARG_CONV_EXCL` set, including when those settings are used to
+preserve `/api/v3/...` arguments.
+
 If `scripts/accept-task.sh` fails with `[WinError 2] The system cannot find the
 file specified`, use a full executable path including the suffix, for example
 `REPLAN_BIN=C:/path/to/replan-kit/bin/replan.exe`. This is fixed in the next

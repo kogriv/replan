@@ -88,7 +88,7 @@ TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/rp-vl.XXXXXX")"
 cleanup() {
   if [ -z "$KEEP_TEMP" ]; then
     PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" \
-      replan_python -m platform_compat remove-tree "$TMP_DIR" >/dev/null 2>&1 || rm -rf "$TMP_DIR"
+      replan_python -m platform_compat remove-tree "$(replan_py_path "$TMP_DIR")" >/dev/null 2>&1 || rm -rf "$TMP_DIR"
   else
     printf 'kept temp dir: %s\n' "$TMP_DIR" >&2
   fi
@@ -109,7 +109,7 @@ json_get() {
   file="$1"
   expr="$2"
   PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" \
-    replan_python -c 'import json, sys; from platform_compat import open_path; data=json.load(open_path(sys.argv[1])); print(eval(sys.argv[2], {}, {"data": data}))' "$file" "$expr"
+    replan_python -c 'import json, sys; from platform_compat import open_path; data=json.load(open_path(sys.argv[1])); print(eval(sys.argv[2], {}, {"data": data}))' "$(replan_py_path "$file")" "$expr"
 }
 
 normalize_optional_path() {
@@ -142,12 +142,12 @@ OPENPROJECT_RESOURCE_DEMANDS_SIDECAR="$(normalize_optional_path "$OPENPROJECT_RE
 
 json_summary() {
   file="$1"
-  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m envelope_check import-summary "$file"
+  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m envelope_check import-summary "$(replan_py_path "$file")"
 }
 
 assert_json_ok() {
   file="$1"
-  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m envelope_check require-ok "$file" --with-warnings \
+  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m envelope_check require-ok "$(replan_py_path "$file")" --with-warnings \
     || fail step_failed "a replan step returned ok false: $(basename "$file")" 1
 }
 
@@ -155,7 +155,7 @@ copy_project() {
   target="$1"
   set +e
   guard_output="$(PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" \
-    replan_python -m platform_compat copy-tree validate-openproject-live "$FORMAT" "$PROJECT_PATH" "$target" 2>&1)"
+    replan_python -m platform_compat copy-tree validate-openproject-live "$FORMAT" "$(replan_py_path "$PROJECT_PATH")" "$(replan_py_path "$target")" 2>&1)"
   guard_exit=$?
   set -e
   if [ "$guard_exit" -ne 0 ]; then
@@ -180,7 +180,7 @@ set_openproject_ids_canonical() {
 build_live_import_args() {
   project="$1"
   dry_run="$2"
-  set -- "$BIN" import openproject --project "$project"
+  set -- "$BIN" import openproject --project "$(replan_py_path "$project")"
   if [ -n "$OPENPROJECT_BASE_URL" ] || [ -n "$OPENPROJECT_PROJECT_ID" ]; then
   set -- "$@" \
     --base-url "$OPENPROJECT_BASE_URL" \
@@ -208,10 +208,10 @@ else
     set -- "$@" --include-relations
   fi
   if [ -n "$OPENPROJECT_RESOURCE_LINKS_SIDECAR" ]; then
-    set -- "$@" --resource-links-sidecar "$OPENPROJECT_RESOURCE_LINKS_SIDECAR"
+    set -- "$@" --resource-links-sidecar "$(replan_py_path "$OPENPROJECT_RESOURCE_LINKS_SIDECAR")"
   fi
   if [ -n "$OPENPROJECT_RESOURCE_DEMANDS_SIDECAR" ]; then
-    set -- "$@" --resource-demands-sidecar "$OPENPROJECT_RESOURCE_DEMANDS_SIDECAR"
+    set -- "$@" --resource-demands-sidecar "$(replan_py_path "$OPENPROJECT_RESOURCE_DEMANDS_SIDECAR")"
   fi
   if [ "$dry_run" = "1" ]; then
     set -- "$@" --dry-run
@@ -231,7 +231,7 @@ run_live_import() {
   "$(sed -n '1p' "$args_file")" $(sed -n '2,$p' "$args_file") >"$output" || import_exit=$?
   if [ "$import_exit" -ne 0 ]; then
     if [ "$FORMAT" = "json" ]; then
-      PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m openproject_import_failure --command validate-openproject-live --status-key live_api_validation --status-value failed --import-json "$output" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR" --profile --import-exit "$import_exit" || exit $?
+      PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m openproject_import_failure --command validate-openproject-live --status-key live_api_validation --status-value failed --import-json "$(replan_py_path "$output")" --tmp-dir "$(replan_py_path "$TMP_DIR")" --root-dir "$(replan_py_path "$ROOT_DIR")" --profile --import-exit "$import_exit" || exit $?
     fi
     printf 'OpenProject live validation failed during live import\n' >&2
     exit 6
@@ -262,7 +262,7 @@ snapshot1="$(json_get "$WRITE1" 'data["result"]["snapshot"]["id"]')"
 
 ACCEPT_TASKS="$TMP_DIR/accept-tasks-dry-run.json"
 "$BIN" import accept \
-  --project "$LIVE_PROJECT" \
+  --project "$(replan_py_path "$LIVE_PROJECT")" \
   --dry-run \
   --format json \
   "$snapshot1" >"$ACCEPT_TASKS"
@@ -271,7 +271,7 @@ task_accept_changes="$(json_get "$ACCEPT_TASKS" 'len(data["result"].get("changes
 
 ACCEPT_DEPENDENCIES="$TMP_DIR/accept-dependencies-dry-run.json"
 "$BIN" import accept \
-  --project "$LIVE_PROJECT" \
+  --project "$(replan_py_path "$LIVE_PROJECT")" \
   --accept-dependencies \
   --dry-run \
   --format json \
@@ -281,7 +281,7 @@ dependency_accept_changes="$(json_get "$ACCEPT_DEPENDENCIES" 'len(data["result"]
 
 ACCEPT_TIME="$TMP_DIR/accept-time-dry-run.json"
 "$BIN" import accept \
-  --project "$LIVE_PROJECT" \
+  --project "$(replan_py_path "$LIVE_PROJECT")" \
   --accept-time-entries \
   --dry-run \
   --format json \
@@ -291,7 +291,7 @@ time_accept_changes="$(json_get "$ACCEPT_TIME" 'len(data["result"].get("changes"
 
 ACCEPT_DEMANDS="$TMP_DIR/accept-resource-demands-dry-run.json"
 "$BIN" import accept \
-  --project "$LIVE_PROJECT" \
+  --project "$(replan_py_path "$LIVE_PROJECT")" \
   --accept-resource-demands \
   --dry-run \
   --format json \

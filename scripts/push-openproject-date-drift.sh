@@ -92,7 +92,7 @@ else
   fi
 
   IMPORT_JSON="$TMP_DIR/live-import.json"
-  set -- "$BIN" import openproject --project "$PROJECT_PATH"
+  set -- "$BIN" import openproject --project "$(replan_py_path "$PROJECT_PATH")"
   if [ -n "$OPENPROJECT_BASE_URL" ] || [ -n "$OPENPROJECT_PROJECT_ID" ]; then
     if [ -z "$OPENPROJECT_BASE_URL" ] || [ -z "$OPENPROJECT_PROJECT_ID" ]; then
       replan_fail_json "push-openproject-date-drift" invalid missing_setting "REPLAN_OPENPROJECT_BASE_URL and REPLAN_OPENPROJECT_PROJECT_ID must be set together" 8
@@ -121,8 +121,8 @@ else
   import_exit=0
   "$@" >"$IMPORT_JSON" || import_exit=$?
   if [ "$import_exit" -ne 0 ]; then
-    PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m openproject_import_failure --command push-openproject-date-drift --status-key mode --status-value failed --import-json "$IMPORT_JSON" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR" --bindings --import-exit "$import_exit" || exit $?
+    PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m openproject_import_failure --command push-openproject-date-drift --status-key mode --status-value failed --import-json "$(replan_py_path "$IMPORT_JSON")" --tmp-dir "$(replan_py_path "$TMP_DIR")" --root-dir "$(replan_py_path "$ROOT_DIR")" --bindings --import-exit "$import_exit" || exit $?
   fi
 fi
 
-PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m push_openproject_date_drift --import-json "$IMPORT_JSON" --tmp-dir "$TMP_DIR" --root-dir "$ROOT_DIR"
+PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m push_openproject_date_drift --import-json "$(replan_py_path "$IMPORT_JSON")" --tmp-dir "$(replan_py_path "$TMP_DIR")" --root-dir "$(replan_py_path "$ROOT_DIR")"

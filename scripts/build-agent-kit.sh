@@ -145,7 +145,7 @@ printf '%s\n' "$VERSION" > "$KIT/VERSION"
 mkdir -p "$OUT_DIR"
 ARCHIVE="$OUT_DIR/$NAME.$EXTENSION"
 if [ "$GOOS" = windows ]; then
-  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m build_agent_kit_zip "$KIT" "$ARCHIVE"
+  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" replan_python -m build_agent_kit_zip "$(replan_py_path "$KIT")" "$(replan_py_path "$ARCHIVE")"
 else
   tar -C "$WORK_DIR" --owner=0 --group=0 --numeric-owner -czf "$ARCHIVE" "$NAME"
 fi

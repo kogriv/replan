@@ -35,9 +35,9 @@ if [ -z "$OUTPUT_DIR" ]; then
 fi
 
 go run ./cmd/replan taskjuggler run \
-  --project "$PROJECT_PATH" \
+  --project "$(replan_py_path "$PROJECT_PATH")" \
   --scenario "$SCENARIO_ID" \
-  --output-dir "$OUTPUT_DIR" \
+  --output-dir "$(replan_py_path "$OUTPUT_DIR")" \
   --taskjuggler-bin "$TASKJUGGLER_BIN" \
   --unrepresented-assumptions "$UNREPRESENTED_ASSUMPTIONS" \
   --format "$FORMAT"

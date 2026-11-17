@@ -48,7 +48,7 @@ check
 
 mkdir "$WORK_DIR/unpacked"
 if [ "$KIT_OS" = windows ]; then
-  replan_python -m zipfile -e "$ARCHIVE" "$WORK_DIR/unpacked"
+  replan_python -m zipfile -e "$(replan_py_path "$ARCHIVE")" "$(replan_py_path "$WORK_DIR/unpacked")"
 else
   tar -C "$WORK_DIR/unpacked" -xzf "$ARCHIVE"
 fi
@@ -62,7 +62,7 @@ if [ "$KIT_OS" = windows ]; then
   replan_python -c 'import sys, zipfile
 with zipfile.ZipFile(sys.argv[1]) as z:
     scripts = [i for i in z.infolist() if i.filename.endswith(".sh") and i.filename.count("/") == 2]
-    assert scripts and all(((i.external_attr >> 16) & 0o111) for i in scripts)' "$ARCHIVE" \
+    assert scripts and all(((i.external_attr >> 16) & 0o111) for i in scripts)' "$(replan_py_path "$ARCHIVE")" \
     || fail "Windows ZIP does not preserve executable script attributes"
   # Python's extractor intentionally ignores the stored Unix mode. Restore it
   # after checking the archive metadata so the repository's README checker can
@@ -106,7 +106,7 @@ grep -q '^Provided for: [^@]' "$KIT/NOTICE.md" 2>/dev/null || fail "the kit noti
 
 # Every module and helper a kit script calls is in the kit.
 check
-grep -rhoE 'replan_python -m [a-z_]+' "$KIT/scripts" | awk '{print $3}' | sort -u > "$WORK_DIR/modules"
+grep -rhoE 'replan_python(_path_args)? -m [a-z_]+' "$KIT/scripts" | awk '{print $3}' | sort -u > "$WORK_DIR/modules"
 while IFS= read -r module; do
   [ -f "$KIT/scripts/lib/$module.py" ] || fail "scripts call python module $module, which the kit lacks"
 done < "$WORK_DIR/modules"
@@ -130,7 +130,7 @@ p = open(sys.argv[1], "rb").read()
 assert p[:2] == b"MZ"
 offset = struct.unpack_from("<I", p, 0x3c)[0]
 assert p[offset:offset + 4] == b"PE\0\0"
-assert struct.unpack_from("<H", p, offset + 4)[0] == 0x8664' "$BINARY" || fail "replan.exe is not a PE amd64 binary"
+assert struct.unpack_from("<H", p, offset + 4)[0] == 0x8664' "$(replan_py_path "$BINARY")" || fail "replan.exe is not a PE amd64 binary"
   check
   helper_issues="$(PYTHONPATH="$ROOT_DIR/scripts/lib" python3 -m check_agent_kit_readme helpers "$KIT/README.md" --kit "$KIT" || true)"
   [ -z "$helper_issues" ] || fail "$helper_issues"

@@ -42,4 +42,4 @@ replan_load_openproject_dotenv "$ROOT_DIR"
 replan_require_json_format "agent-session-consumption"
 
 PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" \
-  replan_python -m agent_session_consumption "$@"
+  replan_python_path_args -m agent_session_consumption "$@"
