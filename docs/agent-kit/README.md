@@ -788,11 +788,17 @@ A resource absent from `canonical/resources.yaml` warns
 defaults `resource.ai.agent.executor` and `resource.ai.codex.local`.
 
 Task windows overlap when the next task starts while the previous one waits
-for its gate or its review. The helper cannot tell whose work an overlapping
-minute was, so it warns `overlapping_task_windows` and lists the other tasks
-and the overlap in `window.overlapping_tasks`. Then narrow the window with
-`--from`/`--to`, or pass only this task's session files (for Codex, the
-rollout files of this task's rounds) instead of a whole directory.
+for its gate or its review. Each entry in `window.overlapping_tasks` keeps the
+overlap, the other task's full status-window length in `window_hours`, and a
+`kind`. A `long_running` overlap has a status window at least five times the
+measured task's effective window and at least 24 hours long; every other
+overlap is `close`. The helper cannot tell whose work an overlapping minute
+was. It warns `overlapping_task_windows` for close overlaps, and separately
+reports long-running overlaps with the `long_running_task_overlaps` info
+diagnostic so an old open task does not obscure same-day parallel work. Pass
+only this task's session files (for Codex, the rollout files of this task's
+rounds), or narrow the window with `--from`/`--to` if a listed task was really
+worked on during this window.
 
 For each measured resource that has a matching demand on the task, the result
 contains an exact dry-run command using `agent_hours`. A closed matching demand

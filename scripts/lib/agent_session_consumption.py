@@ -27,6 +27,8 @@ MACHINE_USER_PREFIXES = (
     "<system-reminder>", "<local-command-stdout>", "<command-name>",
     "<artifact-content-",
 )
+LONG_RUNNING_OVERLAP_RATIO = 5
+LONG_RUNNING_OVERLAP_MIN_HOURS = 24
 
 
 def parser():
@@ -213,6 +215,7 @@ def status_record_window(project, task):
 def overlapping_task_windows(project, task, start, end):
     """Other tasks whose status window (in_progress to review_ready or finish, else open) overlaps [start, end]."""
     now = datetime.now(timezone.utc)
+    measured_seconds = (end - start).total_seconds()
     overlaps = []
     for other, records in status_records(project).items():
         if other == task:
@@ -223,7 +226,19 @@ def overlapping_task_windows(project, task, start, end):
         other_start, other_end = window[0], window[1] or now
         seconds = (min(end, other_end) - max(start, other_start)).total_seconds()
         if seconds > 0:
-            overlaps.append({"task": other, "from": rfc3339(max(start, other_start)), "to": rfc3339(min(end, other_end)), "seconds": round(seconds, 6)})
+            other_seconds = (other_end - other_start).total_seconds()
+            kind = "long_running" if (
+                other_seconds >= measured_seconds * LONG_RUNNING_OVERLAP_RATIO
+                and other_seconds >= LONG_RUNNING_OVERLAP_MIN_HOURS * 3600
+            ) else "close"
+            overlaps.append({
+                "task": other,
+                "from": rfc3339(max(start, other_start)),
+                "to": rfc3339(min(end, other_end)),
+                "seconds": round(seconds, 6),
+                "kind": kind,
+                "window_hours": round(other_seconds / 3600, 6),
+            })
     overlaps.sort(key=lambda item: item["from"])
     return overlaps
 
@@ -782,13 +797,23 @@ def main():
     overlapping = []
     if args.task:
         overlapping = overlapping_task_windows(args.project, args.task, window_start, window_end)
-        if overlapping:
+        close_overlaps = [item for item in overlapping if item["kind"] == "close"]
+        long_running_overlaps = [item for item in overlapping if item["kind"] == "long_running"]
+        if close_overlaps:
             warnings.append(helper_envelope.diagnostic(
                 "overlapping_task_windows",
-                f"the window of {args.task} overlaps the status windows of {len(overlapping)} other task(s): "
-                + ", ".join(item["task"] for item in overlapping)
+                f"the window of {args.task} overlaps the status windows of {len(close_overlaps)} other task(s): "
+                + ", ".join(item["task"] for item in close_overlaps)
                 + "; activity in the overlap is counted here too: narrow the window with --from/--to or pass only this task's session files",
                 "warning", "task", args.task,
+            ))
+        if long_running_overlaps:
+            warnings.append(helper_envelope.diagnostic(
+                "long_running_task_overlaps",
+                f"the window of {args.task} overlaps the long-running status windows of {len(long_running_overlaps)} other task(s): "
+                + ", ".join(item["task"] for item in long_running_overlaps)
+                + "; the helper cannot split their minutes either: pass only this task's session files or narrow the window if a long-running task was really worked on in this window",
+                "info", "task", args.task,
             ))
         for item in resources:
             if item["hours"] <= 0 or not item["resource_id"]:

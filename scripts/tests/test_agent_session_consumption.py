@@ -631,7 +631,11 @@ class AgentSessionConsumptionTest(unittest.TestCase):
         self.assertEqual(rc, 0)
         self.assertIn("overlapping_task_windows", out["warning_codes"])
         self.assertEqual(out["window"]["overlapping_tasks"], [
-            {"task": "task.next", "from": "2026-11-15T10:40:00.000Z", "to": "2026-11-15T11:00:00.000Z", "seconds": 1200},
+            {
+                "task": "task.next", "from": "2026-11-15T10:40:00.000Z",
+                "to": "2026-11-15T11:00:00.000Z", "seconds": 1200,
+                "kind": "close", "window_hours": 1.333333,
+            },
         ])
         self.assertEqual(out["resources"][0]["seconds"], 420)
 
@@ -649,6 +653,99 @@ class AgentSessionConsumptionTest(unittest.TestCase):
         self.assertEqual(from_narrowed["window"]["source"], "status_records_narrowed")
         self.assertEqual(from_narrowed["window"]["from"], "2026-11-15T10:45:00.000Z")
         self.assertEqual(from_narrowed["resources"][0]["seconds"], 180)
+
+    def test_close_and_weeks_long_open_overlaps_are_reported_separately(self):
+        project, _ = self.make_stub_project()
+        self.write_status_records(project, [
+            ("2026-11-15T10:00:00Z", "in_progress"),
+            ("2026-11-15T11:00:00Z", "review_ready"),
+        ])
+        self.write_status_records(project, [
+            ("2026-11-15T09:50:00Z", "in_progress"),
+            ("2026-11-15T10:20:00Z", "review_ready"),
+        ], task="task.close.one", name="audit.close-one.jsonl")
+        self.write_status_records(project, [
+            ("2026-11-15T10:40:00Z", "in_progress"),
+            ("2026-11-15T11:10:00Z", "review_ready"),
+        ], task="task.close.two", name="audit.close-two.jsonl")
+        self.write_status_records(
+            project, [("2026-10-01T00:00:00Z", "in_progress")],
+            task="task.weeks.open", name="audit.weeks-open.jsonl",
+        )
+
+        rc, out = self.run_helper("--project", project, "--task", "task.test")
+        self.assertEqual(rc, 0)
+        warning = next(item for item in out["warnings"] if item["code"] == "overlapping_task_windows")
+        info = next(item for item in out["warnings"] if item["code"] == "long_running_task_overlaps")
+        self.assertIn("task.close.one", warning["message"])
+        self.assertIn("task.close.two", warning["message"])
+        self.assertNotIn("task.weeks.open", warning["message"])
+        self.assertEqual(warning["severity"], "warning")
+        self.assertIn("task.weeks.open", info["message"])
+        self.assertNotIn("task.close.one", info["message"])
+        self.assertNotIn("task.close.two", info["message"])
+        self.assertEqual(info["severity"], "info")
+        overlaps = {item["task"]: item for item in out["window"]["overlapping_tasks"]}
+        self.assertEqual(
+            {task: item["kind"] for task, item in overlaps.items()},
+            {"task.close.one": "close", "task.close.two": "close", "task.weeks.open": "long_running"},
+        )
+        self.assertEqual(overlaps["task.close.one"]["window_hours"], 0.5)
+        self.assertEqual(overlaps["task.close.two"]["window_hours"], 0.5)
+        self.assertGreater(overlaps["task.weeks.open"]["window_hours"], 24)
+
+    def test_only_long_running_overlap_emits_info_without_overlap_warning(self):
+        project, _ = self.make_stub_project()
+        self.write_status_records(project, [
+            ("2026-11-15T10:00:00Z", "in_progress"),
+            ("2026-11-15T11:00:00Z", "review_ready"),
+        ])
+        self.write_status_records(project, [
+            ("2026-11-14T10:00:00Z", "in_progress"),
+            ("2026-11-15T12:00:00Z", "review_ready"),
+        ], task="task.long", name="audit.long.jsonl")
+
+        rc, out = self.run_helper("--project", project, "--task", "task.test")
+        self.assertEqual(rc, 0)
+        self.assertNotIn("overlapping_task_windows", out["warning_codes"])
+        self.assertIn("long_running_task_overlaps", out["warning_codes"])
+        info = next(item for item in out["warnings"] if item["code"] == "long_running_task_overlaps")
+        self.assertEqual(info["severity"], "info")
+        self.assertEqual(out["window"]["overlapping_tasks"][0]["kind"], "long_running")
+        self.assertEqual(out["window"]["overlapping_tasks"][0]["window_hours"], 26)
+
+    def test_long_running_overlap_threshold_boundaries(self):
+        project, _ = self.make_stub_project()
+        self.write_status_records(project, [
+            ("2026-11-15T00:00:00Z", "in_progress"),
+            ("2026-11-15T04:48:00Z", "review_ready"),
+        ])
+        # Exactly 5x the 4.8-hour measured window and exactly 24 hours long.
+        self.write_status_records(project, [
+            ("2026-11-14T04:48:00Z", "in_progress"),
+            ("2026-11-15T04:48:00Z", "review_ready"),
+        ], task="task.exact", name="audit.exact.jsonl")
+        # More than 5x a separate four-hour window, but still under 24 hours.
+        self.write_status_records(project, [
+            ("2026-11-14T05:18:00Z", "in_progress"),
+            ("2026-11-15T04:48:00Z", "review_ready"),
+        ], task="task.under-day", name="audit.under-day.jsonl")
+        self.write_status_records(project, [
+            ("2026-11-15T00:00:00Z", "in_progress"),
+            ("2026-11-15T04:00:00Z", "review_ready"),
+        ], task="task.short", name="audit.short.jsonl")
+
+        rc, out = self.run_helper("--project", project, "--task", "task.test")
+        self.assertEqual(rc, 0)
+        overlaps = {item["task"]: item for item in out["window"]["overlapping_tasks"]}
+        self.assertEqual(overlaps["task.exact"]["kind"], "long_running")
+        self.assertEqual(overlaps["task.exact"]["window_hours"], 24)
+
+        rc, out = self.run_helper("--project", project, "--task", "task.short")
+        self.assertEqual(rc, 0)
+        overlaps = {item["task"]: item for item in out["window"]["overlapping_tasks"]}
+        self.assertEqual(overlaps["task.under-day"]["kind"], "close")
+        self.assertEqual(overlaps["task.under-day"]["window_hours"], 23.5)
 
     def test_task_window_uses_status_timestamps_and_to_override(self):
         project, _ = self.make_stub_project()
