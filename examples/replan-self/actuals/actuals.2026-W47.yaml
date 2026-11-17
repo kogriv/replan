@@ -1095,3 +1095,91 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-task-scoped-dependency-suggestions
+  - id: actual.self-windows-helper-path-arguments.ci-github-actions.20261117T072110Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.windows-helper-path-arguments
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.windows-helper-path-arguments.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 13
+    unit: ci_minutes
+    measurement: measured
+    occurred_at: "2026-11-17T07:21:10Z"
+    status_date: "2026-11-17"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-windows-helper-path-arguments
+  - id: actual.self-windows-helper-path-arguments.human-maintainer.20261117T072110Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.windows-helper-path-arguments
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.windows-helper-path-arguments.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.13
+    unit: hours
+    measurement: stated
+    occurred_at: "2026-11-17T07:21:10Z"
+    status_date: "2026-11-17"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-windows-helper-path-arguments
+  - id: actual.self-accept-task-scoped-dependency-suggestions.ci-github-actions.20261117T072110Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.accept-task-scoped-dependency-suggestions
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.accept-task-scoped-dependency-suggestions.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 14
+    unit: ci_minutes
+    measurement: measured
+    occurred_at: "2026-11-17T07:21:10Z"
+    status_date: "2026-11-17"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-accept-task-scoped-dependency-suggestions
+  - id: actual.self-accept-task-scoped-dependency-suggestions.human-maintainer.20261117T072110Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.accept-task-scoped-dependency-suggestions
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.accept-task-scoped-dependency-suggestions.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.13
+    unit: hours
+    measurement: stated
+    occurred_at: "2026-11-17T07:21:10Z"
+    status_date: "2026-11-17"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-accept-task-scoped-dependency-suggestions

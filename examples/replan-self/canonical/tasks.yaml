@@ -8545,7 +8545,7 @@ tasks:
     title: Pass Windows paths to Python from the kit helpers
     description: 'Reported on 2026-11-17 by the third consumer project: on Windows under Git Bash, scripts/accept-task.sh in the v0.5.6 kit fails even in a dry run with WinError 2. The helper passes REPLAN_BIN, the root dir and the temp dir to Python as arguments in their POSIX form (/c/...); replan_prepare_windows_paths converts only exported settings, so a Windows Python cannot start the binary or open the paths. The workaround is a full Windows REPLAN_BIN. Convert every path passed to Python on the command line with replan_windows_path in all helpers that do so (accept-task, accept-openproject-soft-drift, backfill-openproject-status-history, build-openproject-live-overlay, explain-resource-overload, check-resource-schedule-drift; check the others), add a shell test that simulates MSYS with a fake cygpath and asserts Windows paths reach Python, keep Linux behaviour unchanged; the consumer''s analyst checks the new kit on Windows.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-17"
     planned_finish: "2026-11-17"
     assignee_hint:
@@ -8602,7 +8602,7 @@ tasks:
     title: Limit accept-task dependency suggestions to the accepted task
     description: 'Reported on 2026-11-17 by the third consumer project: the first accept-task run in their plan wrote 71 dependency proposals at once, because step 8 runs proposal suggest-dependencies --write-candidates over the whole project and so files every accumulated candidate, not those of the task being accepted. Limit step 8 to candidates whose dependency has the accepted task as predecessor or successor (and successor-ready candidates of its successors), report other open candidates only as a count with the command to review them, keep the dry run preview identical to what apply writes, and document how to review a backlog of proposals (proposal list by type, accept or reject each with a human actor); tests with unrelated open dependencies in the plan.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-17"
     planned_finish: "2026-11-17"
     assignee_hint:

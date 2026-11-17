@@ -785,3 +785,29 @@ evidence:
     targets:
       - kind: task
         id: task.self.windows-short-temp-paths
+  - id: evidence.self.accept-windows-helper-path-arguments
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T07:21:10Z"
+    confidence: observed
+    summary: 'The maintainer accepted in chat that the kit starts the replan binary by its real .exe name on Windows (fix commit ec7767a). CI measured from GitHub Actions runs 44022209473: 13 billable minutes. Review time stated by actor.human.maintainer: 8 minutes.'
+    targets:
+      - kind: task
+        id: task.self.windows-helper-path-arguments
+  - id: evidence.self.accept-accept-task-scoped-dependency-suggestions
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T07:21:10Z"
+    confidence: observed
+    summary: 'The maintainer accepted in chat that accept-task dependency suggestions are scoped to the accepted task (feature commit 5898243). CI measured from GitHub Actions runs 44031634695: 14 billable minutes. Review time stated by actor.human.maintainer: 8 minutes.'
+    targets:
+      - kind: task
+        id: task.self.accept-task-scoped-dependency-suggestions
