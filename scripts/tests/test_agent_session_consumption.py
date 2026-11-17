@@ -63,7 +63,8 @@ class AgentSessionConsumptionTest(unittest.TestCase):
             "--codex", rollout,
         )
         self.assertEqual(rc, 0)
-        resource = out["resources"][1]
+        self.assertEqual(len(out["resources"]), 1)
+        resource = out["resources"][0]
         self.assertEqual(resource["seconds"], 300)
         self.assertEqual([item["seconds"] for item in resource["intervals"]], [300, 0])
 
@@ -82,7 +83,7 @@ class AgentSessionConsumptionTest(unittest.TestCase):
             "--codex", rollout, "--codex", filtered, "--cwd", "/keep",
         )
         self.assertEqual(rc, 0)
-        resource = out["resources"][1]
+        resource = out["resources"][0]
         self.assertEqual(resource["seconds"], 120)
         self.assertEqual(resource["counts"]["outside_window"], 1)
         self.assertEqual(resource["counts"]["no_timestamp"], 1)
@@ -105,7 +106,10 @@ class AgentSessionConsumptionTest(unittest.TestCase):
             "--codex", directory,
         )
         self.assertEqual(rc, 0)
-        resource = out["resources"][1]
+        self.assertEqual(len(out["resources"]), 1)
+        self.assertEqual(out["skipped_sources"], [{"source": "claude", "reason": "no_input_files"}])
+        self.assertEqual(out["overlap_seconds"], 0)
+        resource = out["resources"][0]
         self.assertEqual(resource["seconds"], 150)
         self.assertEqual(resource["session_sum_seconds"], 180)
         self.assertEqual(resource["parallel_seconds"], 30)
@@ -453,12 +457,13 @@ class AgentSessionConsumptionTest(unittest.TestCase):
         ])
         rc, out = self.run_helper("--project", project, "--task", "task.test", "--claude", transcript)
         self.assertEqual(rc, 0)
+        self.assertEqual(len(out["resources"]), 1)
         self.assertEqual(out["resources"][0]["resource_id"], "resource.ai.agent.executor")
-        self.assertEqual(out["resources"][1]["resource_id"], "resource.ai.codex.local")
+        self.assertEqual(out["skipped_sources"], [{"source": "codex", "reason": "no_input_files"}])
         self.assertEqual(len(out["suggested_commands"]), 1)
         self.assertIn("--demand demand.executor", out["suggested_commands"][0])
 
-    def test_unmeasured_ambiguous_codex_warns_without_blocking_claude(self):
+    def test_omitted_codex_skips_resolution_even_with_ambiguous_demands(self):
         project, _ = self.make_stub_project()
         (project / "canonical" / "actors.yaml").write_text(
             "actors:\n"
@@ -491,10 +496,32 @@ class AgentSessionConsumptionTest(unittest.TestCase):
         ])
         rc, out = self.run_helper("--project", project, "--task", "task.test", "--claude", transcript)
         self.assertEqual(rc, 0)
-        self.assertIn("resource_ambiguous", out["warning_codes"])
-        self.assertEqual(out["resources"][1]["resource_id"], "")
+        self.assertEqual(len(out["resources"]), 1)
+        self.assertEqual(out["resources"][0]["source"], "claude")
+        self.assertEqual(out["skipped_sources"], [{"source": "codex", "reason": "no_input_files"}])
+        self.assertEqual(out["overlap_seconds"], 0)
+        self.assertNotIn("resource_ambiguous", out["warning_codes"])
+        self.assertNotIn("resource_unresolved", out["warning_codes"])
         self.assertEqual(len(out["suggested_commands"]), 1)
         self.assertIn("--demand demand.claude", out["suggested_commands"][0])
+
+    def test_unmeasured_present_source_without_demand_is_unresolved(self):
+        project, _ = self.make_stub_project()
+        self.write_status_records(project, [
+            ("2026-11-15T10:00:00Z", "in_progress"),
+            ("2026-11-15T10:30:00Z", "review_ready"),
+        ])
+        codex = self.write_jsonl("empty-codex.jsonl", [])
+        rc, out = self.run_helper(
+            "--project", project, "--task", "task.test", "--codex", codex,
+        )
+        self.assertEqual(rc, 0)
+        self.assertEqual(len(out["resources"]), 1)
+        self.assertIsNone(out["resources"][0]["resource_id"])
+        self.assertEqual(out["resources"][0]["resource_source"], "unresolved")
+        self.assertEqual(out["resources"][0]["hours"], 0)
+        self.assertNotIn("resource_unresolved", out["warning_codes"])
+        self.assertEqual(out["suggested_commands"], [])
 
     def test_multiple_demands_for_same_resource_are_not_resolution_ambiguity(self):
         project, _ = self.make_stub_project()
@@ -548,6 +575,7 @@ class AgentSessionConsumptionTest(unittest.TestCase):
 
     def test_resource_flag_overrides_auto_selection(self):
         project, _ = self.make_stub_project()
+        transcript = self.write_jsonl("flag-override.jsonl", [])
         resources = project / "canonical" / "resources.yaml"
         resources.write_text(
             resources.read_text(encoding="utf-8")
@@ -565,7 +593,8 @@ class AgentSessionConsumptionTest(unittest.TestCase):
             ("2026-11-15T10:30:00Z", "review_ready"),
         ])
         rc, out = self.run_helper(
-            "--project", project, "--task", "task.test", "--claude-resource", "resource.ai.override",
+            "--project", project, "--task", "task.test", "--claude", transcript,
+            "--claude-resource", "resource.ai.override",
         )
         self.assertEqual(rc, 0)
         self.assertEqual(out["resources"][0]["resource_id"], "resource.ai.override")
@@ -573,20 +602,25 @@ class AgentSessionConsumptionTest(unittest.TestCase):
 
     def test_resource_not_in_project_warns_for_flag(self):
         project, _ = self.make_stub_project()
+        transcript = self.write_jsonl("flag-missing.jsonl", [])
         self.write_status_records(project, [
             ("2026-11-15T10:00:00Z", "in_progress"),
             ("2026-11-15T10:30:00Z", "review_ready"),
         ])
         rc, out = self.run_helper(
-            "--project", project, "--task", "task.test", "--claude-resource", "resource.ai.missing",
+            "--project", project, "--task", "task.test", "--claude", transcript,
+            "--claude-resource", "resource.ai.missing",
         )
         self.assertEqual(rc, 0)
         self.assertIn("resource_not_in_project", out["warning_codes"])
         self.assertEqual(out["resources"][0]["resource_source"], "flag")
 
     def test_explicit_window_uses_legacy_default_resources(self):
+        claude = self.write_jsonl("empty-claude.jsonl", [])
+        codex = self.write_jsonl("empty-codex.jsonl", [])
         rc, out = self.run_helper(
             "--from", "2026-11-15T10:00:00Z", "--to", "2026-11-15T11:00:00Z",
+            "--claude", claude, "--codex", codex,
         )
         self.assertEqual(rc, 0)
         self.assertEqual(

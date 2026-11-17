@@ -666,7 +666,7 @@ def resolve_resource(
     *, linked_resources=None, excluded_resources=(), fallback_excluded_resources=(),
 ):
     if configured != "auto":
-        return configured, "flag", []
+        return (configured, "flag", []) if configured else (None, "unresolved", [])
     if not task:
         default = DEFAULT_CLAUDE_RESOURCE if source == "claude" else DEFAULT_CODEX_RESOURCE
         return default, "default", []
@@ -693,10 +693,12 @@ def resolve_resource(
                 helper_envelope.EXIT["validation"],
                 extra={"source": source, "resource_candidates": candidates},
             )
-        return "", "task_demand", [helper_envelope.diagnostic(
+        return None, "unresolved", [helper_envelope.diagnostic(
             "resource_ambiguous", message, "warning", "task", task,
         )]
-    return (candidates[0]["resource_id"] if candidates else ""), "task_demand", []
+    if candidates:
+        return candidates[0]["resource_id"], "task_demand", []
+    return None, "unresolved", []
 
 
 def command_for(project, task, demand, resource, hours, occurred_at):
@@ -733,21 +735,35 @@ def main():
     claude_hours = round(union_seconds(claude_intervals) / 3600, 2)
     codex_hours = round(union_seconds(codex_intervals) / 3600, 2)
     codex_linked_resources = actor_resource_ids(args.project, "codex") if args.task else set()
-    claude_resource, claude_resource_source, claude_resource_warnings = resolve_resource(
-        args.project, args.task, "claude", args.claude_resource, demands, claude_hours,
-        fallback_excluded_resources=codex_linked_resources,
-    )
-    codex_resource, codex_resource_source, codex_resource_warnings = resolve_resource(
-        args.project, args.task, "codex", args.codex_resource, demands, codex_hours,
-        linked_resources=codex_linked_resources,
-        excluded_resources={claude_resource} if claude_resource else set(),
-    )
+    claude_resource = claude_resource_source = None
+    codex_resource = codex_resource_source = None
+    claude_resource_warnings = []
+    codex_resource_warnings = []
+    if args.claude:
+        claude_resource, claude_resource_source, claude_resource_warnings = resolve_resource(
+            args.project, args.task, "claude", args.claude_resource, demands, claude_hours,
+            fallback_excluded_resources=codex_linked_resources,
+        )
+    if args.codex:
+        codex_resource, codex_resource_source, codex_resource_warnings = resolve_resource(
+            args.project, args.task, "codex", args.codex_resource, demands, codex_hours,
+            linked_resources=codex_linked_resources,
+            excluded_resources={claude_resource} if claude_resource else set(),
+        )
     resources = []
     duration_warnings = []
-    for resource, resource_source, source, groups, intervals, skips, files, file_sessions, generation, tool_wait in (
-        (claude_resource, claude_resource_source, "claude", claude_groups, claude_intervals, claude_skips, claude_files, claude_file_sessions, generation_seconds, tool_wait_seconds),
-        (codex_resource, codex_resource_source, "codex", codex_groups, codex_intervals, codex_skips, codex_files, codex_file_sessions, 0.0, 0.0),
-    ):
+    source_results = []
+    if args.claude:
+        source_results.append(
+            (claude_resource, claude_resource_source, "claude", claude_groups, claude_intervals,
+             claude_skips, claude_files, claude_file_sessions, generation_seconds, tool_wait_seconds),
+        )
+    if args.codex:
+        source_results.append(
+            (codex_resource, codex_resource_source, "codex", codex_groups, codex_intervals,
+             codex_skips, codex_files, codex_file_sessions, 0.0, 0.0),
+        )
+    for resource, resource_source, source, groups, intervals, skips, files, file_sessions, generation, tool_wait in source_results:
         totals = session_totals(intervals)
         session_sum = sum(item["seconds"] for item in totals)
         seconds = union_seconds(intervals)
@@ -787,7 +803,7 @@ def main():
                     f"{item['source']} resource {item['resource_id']} is not a resource in the project",
                     "warning", "resource", item["resource_id"],
                 ))
-            if item["resource_source"] == "task_demand" and not item["resource_id"] and item["hours"] > 0:
+            if item["resource_source"] == "unresolved" and item["hours"] > 0:
                 warnings.append(helper_envelope.diagnostic(
                     "resource_unresolved",
                     f"task {args.task} has measured {item['source']} hours but no qualifying resource demand",
@@ -845,6 +861,11 @@ def main():
         "window": {"from": rfc3339(window_start), "to": rfc3339(window_end), "source": window_source, "overlapping_tasks": overlapping},
         "settings": {"idle_gap_minutes": args.idle_gap_minutes, "max_generation_minutes": args.max_generation_minutes, "count_tool_waits": args.count_tool_waits, "cwd_prefixes": args.cwd},
         "resources": resources,
+        "skipped_sources": [
+            {"source": source, "reason": "no_input_files"}
+            for source, paths in (("claude", args.claude), ("codex", args.codex))
+            if not paths
+        ],
         "overlap_seconds": round(overlap_seconds(claude_intervals, codex_intervals), 6),
         "suggested_commands": suggested, "warnings": warnings, "errors": [],
     })

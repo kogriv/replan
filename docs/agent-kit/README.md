@@ -714,6 +714,13 @@ normally contains sessions from other projects, so also pass `--cwd` with
 that machine's absolute repository path. Do not add transcripts or rollout
 content to the project repository.
 
+Only sources named with `--claude` or `--codex` appear in `resources`; an
+omitted source is not resolved against task demands and cannot produce a
+resource-resolution diagnostic. The top-level `skipped_sources` lists each
+omitted source once with `reason: no_input_files`. A named source whose files
+measure zero time still appears. If it has no qualifying task demand, its
+`resource_id` is `null` and its `resource_source` is `unresolved`.
+
 The default idle gap is five minutes. Events at exactly that gap stay in one
 interval; a longer gap starts another. Ordinary interval time is last event
 minus first event, so an isolated event contributes zero. For Claude Code 2.x,
@@ -784,8 +791,9 @@ produce a command. Measured hours with no choice warn `resource_unresolved` and
 produce no command. An explicit resource flag overrides automatic selection.
 A resource absent from `canonical/resources.yaml` warns
 `resource_not_in_project`. Each result reports `resource_source` as
-`task_demand`, `flag`, or `default`. Explicit-window mode keeps the legacy
-defaults `resource.ai.agent.executor` and `resource.ai.codex.local`.
+`task_demand`, `flag`, `default`, or `unresolved`. Explicit-window mode keeps
+the legacy defaults `resource.ai.agent.executor` and
+`resource.ai.codex.local` for sources whose input paths were supplied.
 
 Task windows overlap when the next task starts while the previous one waits
 for its gate or its review. Each entry in `window.overlapping_tasks` keeps the
