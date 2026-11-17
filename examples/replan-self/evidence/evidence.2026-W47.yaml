@@ -982,3 +982,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-8
+  - id: evidence.self.start-windows-explicit-path-conversion
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-17T17:04:55+07:00"
+    summary: 'Started on the planned day: the Codex round began at 17:04:55.'
+    targets:
+      - kind: task
+        id: task.self.windows-explicit-path-conversion
+  - id: evidence.self.ack-ci-overrun-session-helper-long-running-overlaps
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T17:21:06+07:00"
+    summary: 'The maintainer acknowledged in chat (2026-11-17T17:21:06+07:00) that 31 billable minutes measured from GitHub Actions runs 44051910505 (failed: the executor had not refreshed the OpenProject sample), 44054803119 (its fix) and 44059490800 exceed the 10 planned for this task, and allowed the executor to acknowledge measured CI overruns of the explicit path conversion task and release v0.5.8.'
+    targets:
+      - kind: task
+        id: task.self.session-helper-long-running-overlaps

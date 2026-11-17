@@ -17893,6 +17893,17 @@ resource_demands:
     remaining_amount: 0
     criticality: required
     status: consumed
+    overrun_review:
+      acknowledged_forecast: 31
+      unit: ci_minutes
+      reason: Measured CI (31 billable minutes from three runs, two caused by the executor's missed sample refresh) exceeds the 10 planned; acknowledged by the maintainer in chat.
+      reviewed_by:
+        kind: actor
+        id: actor.human.maintainer
+      reviewed_at: "2026-11-17T17:21:06+07:00"
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.ack-ci-overrun-session-helper-long-running-overlaps
   - id: resource_demand.windows-explicit-path-conversion.codex
     task_ref:
       kind: task
