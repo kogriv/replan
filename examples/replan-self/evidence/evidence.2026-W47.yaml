@@ -901,3 +901,27 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-7
+  - id: evidence.self.accept-publish-release-v0-5-7
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T08:59:43Z"
+    confidence: observed
+    summary: 'The maintainer accepted in chat that RePlan v0.5.7 is published and the kits are handed over. CI measured from GitHub Actions runs 44045285792, 44046200840: 14 billable minutes. Review time stated by actor.human.maintainer: 9 minutes.'
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-7
+  - id: evidence.self.plan-session-helper-long-running-overlaps
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T15:59:43+07:00"
+    summary: The maintainer agreed in chat (2026-11-17 15:59, 'делай как правильно') to a task that separates long-running tasks in the session helper's overlap warnings, estimated at Codex 0.5 h and executor 0.2 h.
+    targets:
+      - kind: task
+        id: task.self.session-helper-long-running-overlaps

@@ -578,6 +578,8 @@ current_plan:
     - kind: task
       id: task.self.windows-short-temp-paths
     - kind: task
+      id: task.self.session-helper-long-running-overlaps
+    - kind: task
       id: task.self.date-push-nothing-to-apply-is-ok
     - kind: task
       id: task.self.toolkit-comment-add-saves-comment
