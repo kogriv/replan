@@ -17650,7 +17650,7 @@ resource_demands:
     role: implementation_agent
     unit: agent_hours
     planned_amount: 0.5
-    remaining_amount: 0.5
+    remaining_amount: 0
     criticality: required
     status: active
   - id: resource_demand.accept-task-scoped-dependency-suggestions.agent
@@ -17664,7 +17664,7 @@ resource_demands:
     role: implementation_agent
     unit: agent_hours
     planned_amount: 0.2
-    remaining_amount: 0.2
+    remaining_amount: 0
     criticality: required
     status: active
   - id: resource_demand.accept-task-scoped-dependency-suggestions.maintainer

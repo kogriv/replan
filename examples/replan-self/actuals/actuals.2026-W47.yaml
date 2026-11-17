@@ -1051,3 +1051,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.windows-helper-path-arguments
+  - id: actual.self-accept-task-scoped-dependency-suggestions.ai-codex-local.20261117T1328580700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.accept-task-scoped-dependency-suggestions
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.accept-task-scoped-dependency-suggestions.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.38
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-17T13:28:58+07:00"
+    status_date: "2026-11-17"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-task-scoped-dependency-suggestions
+  - id: actual.self-accept-task-scoped-dependency-suggestions.ai-agent-executor.20261117T1328580700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.accept-task-scoped-dependency-suggestions
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.accept-task-scoped-dependency-suggestions.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.04
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-17T13:28:58+07:00"
+    status_date: "2026-11-17"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-task-scoped-dependency-suggestions

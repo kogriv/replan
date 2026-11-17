@@ -752,3 +752,36 @@ evidence:
     targets:
       - kind: task
         id: task.self.windows-short-temp-paths
+  - id: evidence.self.start-accept-task-scoped-dependency-suggestions
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-17T12:10:38+07:00"
+    summary: 'Started on the planned day: the Codex round began at 12:10:38.'
+    targets:
+      - kind: task
+        id: task.self.accept-task-scoped-dependency-suggestions
+  - id: evidence.self.accept-task-scoped-dependency-suggestions
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-17T13:28:58+07:00"
+    summary: 'Feature commit 5898243: replan proposal suggest-dependencies --task <id> limits candidates to the task''s own dependencies and successor-ready candidates of its direct successors and reports out_of_scope_candidates (unknown task refused with task_not_found); accept-task step 8 passes --task to its preview and its apply and names the backlog review when other candidates exist; the preflight now applies the actual-window change to its scratch copy before the step 8 preview so the preview equals the apply; the agent kit README explains how to review a backlog of proposals. Checked on the self project (no open candidates either way; unknown task refused). Review: clean in one round. The first gate run failed 11 accept-task tests only because the gate''s replan binary predated the new flag; rebuilt and rerun: vet, lint 0, shellcheck, Go and Python suites, smoke, isolated smoke, 58 kit checks, plugin throwaway runtime, live kit check 108 checks. Codex 12:10:38-12:33:36 (0.38 h, prompt and last-file mtimes). Executor 0.04 h measured with scripts/agent-session-consumption.sh.'
+    targets:
+      - kind: task
+        id: task.self.accept-task-scoped-dependency-suggestions
+  - id: evidence.self.start-windows-short-temp-paths
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-17T13:29:06+07:00"
+    summary: 'Started on the planned day after the accept-task scoping task that changes the same helper was committed: the Codex round began at 13:29:06.'
+    targets:
+      - kind: task
+        id: task.self.windows-short-temp-paths
