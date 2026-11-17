@@ -936,3 +936,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.session-helper-long-running-overlaps
+  - id: evidence.self.session-helper-long-running-overlaps
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-17T16:50:07+07:00"
+    summary: 'Feature commit e23fc17: scripts/agent-session-consumption.sh classifies each overlapping task as close or long_running (its own status window at least five times the measured task''s and at least 24 hours) with its window length; the overlapping_task_windows warning names only close overlaps and long-running ones go to the info diagnostic long_running_task_overlaps. Checked on the self project (close overlaps only, as expected). Review: clean in one round. Codex found that go test failed because the executor had committed the task''s planning (6fe84b2, CI run 44051910505 red) without refreshing the OpenProject sample; fixed in 25993c5. Gate: vet, lint 0, shellcheck, Go and Python suites, smoke, isolated smoke, 58 kit checks, plugin throwaway runtime, live kit check 108 checks. Codex 16:02:38-16:19:08 (0.28 h, prompt and last-file mtimes). Executor 0.06 h measured with scripts/agent-session-consumption.sh over the task window minus the 09:45:25-09:49:07Z sub-window spent on a consumer''s Windows report.'
+    targets:
+      - kind: task
+        id: task.self.session-helper-long-running-overlaps
