@@ -8545,7 +8545,7 @@ tasks:
     title: Pass Windows paths to Python from the kit helpers
     description: 'Reported on 2026-11-17 by the third consumer project: on Windows under Git Bash, scripts/accept-task.sh in the v0.5.6 kit fails even in a dry run with WinError 2. The helper passes REPLAN_BIN, the root dir and the temp dir to Python as arguments in their POSIX form (/c/...); replan_prepare_windows_paths converts only exported settings, so a Windows Python cannot start the binary or open the paths. The workaround is a full Windows REPLAN_BIN. Convert every path passed to Python on the command line with replan_windows_path in all helpers that do so (accept-task, accept-openproject-soft-drift, backfill-openproject-status-history, build-openproject-live-overlay, explain-resource-overload, check-resource-schedule-drift; check the others), add a shell test that simulates MSYS with a fake cygpath and asserts Windows paths reach Python, keep Linux behaviour unchanged; the consumer''s analyst checks the new kit on Windows.'
     type: implementation
-    tracking_status: not_started
+    tracking_status: review_ready
     planned_start: "2026-11-17"
     planned_finish: "2026-11-17"
     assignee_hint:
@@ -8598,3 +8598,64 @@ tasks:
         object_type: work_package
         object_id: "2392"
         url: https://op.example.internal/work_packages/2392
+  - id: task.self.accept-task-scoped-dependency-suggestions
+    title: Limit accept-task dependency suggestions to the accepted task
+    description: 'Reported on 2026-11-17 by the third consumer project: the first accept-task run in their plan wrote 71 dependency proposals at once, because step 8 runs proposal suggest-dependencies --write-candidates over the whole project and so files every accumulated candidate, not those of the task being accepted. Limit step 8 to candidates whose dependency has the accepted task as predecessor or successor (and successor-ready candidates of its successors), report other open candidates only as a count with the command to review them, keep the dry run preview identical to what apply writes, and document how to review a backlog of proposals (proposal list by type, accept or reject each with a human actor); tests with unrelated open dependencies in the plan.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-17"
+    planned_finish: "2026-11-17"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.accept-task-scoped-dependency-suggestions.codex
+      - kind: resource_demand
+        id: resource_demand.accept-task-scoped-dependency-suggestions.agent
+      - kind: resource_demand
+        id: resource_demand.accept-task-scoped-dependency-suggestions.maintainer
+      - kind: resource_demand
+        id: resource_demand.accept-task-scoped-dependency-suggestions.local-dev
+      - kind: resource_demand
+        id: resource_demand.accept-task-scoped-dependency-suggestions.ci
+    tags:
+      - consumer-feedback
+      - helpers
+      - gap
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2393"
+        url: https://op.example.internal/work_packages/2393
+  - id: task.self.windows-short-temp-paths
+    title: Keep kit helper temp paths short on Windows
+    description: 'Reported on 2026-11-17 by the third consumer project: on Windows under Git Bash, accept-task in the v0.5.6 kit fails with WinError 3 when the temp dir is long; a short TMPDIR such as C:/Users/<name>/rt works around it. The mktemp dir inside %TEMP% plus the nested scratch project copy and its files likely exceed the 260-character MAX_PATH limit of a Windows Python. Find which helpers build nested paths under the temp dir (accept-task scratch copy, overlay and drift helpers), measure the longest path they create, keep it well under the limit (short mktemp prefix and short nested names, or a short base dir on Windows), report a clear error code with the path length instead of WinError 3 when a path would still be too long, document TMPDIR in WINDOWS.md; tests that assert the maximum nested path length for a long base dir.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-17"
+    planned_finish: "2026-11-17"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.windows-short-temp-paths.codex
+      - kind: resource_demand
+        id: resource_demand.windows-short-temp-paths.agent
+      - kind: resource_demand
+        id: resource_demand.windows-short-temp-paths.maintainer
+      - kind: resource_demand
+        id: resource_demand.windows-short-temp-paths.local-dev
+      - kind: resource_demand
+        id: resource_demand.windows-short-temp-paths.ci
+    tags:
+      - consumer-feedback
+      - helpers
+      - windows
+      - gap
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2394"
+        url: https://op.example.internal/work_packages/2394

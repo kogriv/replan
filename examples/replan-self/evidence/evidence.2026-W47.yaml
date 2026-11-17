@@ -708,3 +708,47 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-7
+  - id: evidence.self.start-windows-helper-path-arguments
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-17T10:37:58+07:00"
+    summary: 'Started on the planned day: the Codex round began at 10:37:58.'
+    targets:
+      - kind: task
+        id: task.self.windows-helper-path-arguments
+  - id: evidence.self.windows-helper-path-arguments
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-17T11:59:02+07:00"
+    summary: 'Fix commit ec7767a: under Git Bash [ -x bin/replan ] is true when only bin/replan.exe exists, so the kit resolved REPLAN_BIN without .exe and a native Windows Python could not start it (WinError 2). replan_resolve_binary now returns bin/replan.exe under MSYS or when no plain bin/replan file exists; the six Python helpers taking --replan-bin fall back to the .exe name on Windows through platform_compat.resolve_windows_executable; WINDOWS.md names the fix and the older-kit workaround. Audit: every path passed to Python is a separate argument that Git Bash converts, and exported paths go through replan_prepare_windows_paths, so no other conversion was needed. Confirmed by simulated MSYS shell tests (.exe-only kit, configured name without .exe, implicit alias, Linux unchanged) and a Python unit test; a native Windows run is left to the third consumer project''s analyst with the v0.5.7 kit. Review: clean in one round. Gate: vet, lint 0, shellcheck, Go and Python suites, smoke, isolated smoke, 58 kit checks, plugin throwaway runtime, live kit check 108 checks. Codex 10:37:58-11:04:09 (0.44 h, prompt and last-file mtimes). Executor 0.05 h measured with scripts/agent-session-consumption.sh over the task window minus the 04:00:46-04:04:34Z sub-window spent triaging two further consumer findings.'
+    targets:
+      - kind: task
+        id: task.self.windows-helper-path-arguments
+  - id: evidence.self.plan-accept-task-scoped-dependency-suggestions
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T11:56:23+07:00"
+    summary: The maintainer agreed in chat (2026-11-17 11:56, 'делай полноценно без срезания углов') to a task to limit accept-task dependency suggestions to the accepted task, estimated at Codex 0.5 h and executor 0.2 h, both in release v0.5.7.
+    targets:
+      - kind: task
+        id: task.self.accept-task-scoped-dependency-suggestions
+  - id: evidence.self.plan-windows-short-temp-paths
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T11:56:23+07:00"
+    summary: The maintainer agreed in chat (2026-11-17 11:56, 'делай полноценно без срезания углов') to a separate task to keep kit helper temp paths short on Windows, estimated at Codex 0.5 h and executor 0.2 h, both in release v0.5.7.
+    targets:
+      - kind: task
+        id: task.self.windows-short-temp-paths
