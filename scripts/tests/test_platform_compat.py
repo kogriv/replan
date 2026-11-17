@@ -1,9 +1,15 @@
 import os
 import tempfile
 import unittest
+from unittest import mock
 
 from openproject_http import Settings, _explicit_settings_environ, _secret_setting
-from platform_compat import normalize_windows_path, resolve_replan_binary, shell_script_command
+from platform_compat import (
+    normalize_windows_path,
+    resolve_replan_binary,
+    resolve_windows_executable,
+    shell_script_command,
+)
 
 
 class PlatformCompatTests(unittest.TestCase):
@@ -14,6 +20,15 @@ class PlatformCompatTests(unittest.TestCase):
             open(exe, "wb").close()
             self.assertEqual(resolve_replan_binary(tmp), exe)
             self.assertEqual(resolve_replan_binary(tmp, exe[:-4]), exe)
+
+    def test_native_windows_executable_fallback_adds_exe(self):
+        with mock.patch("platform_compat.os.name", "nt"), mock.patch(
+            "platform_compat.os.path.exists", side_effect=lambda path: path == "C:/kit/bin/replan.exe"
+        ):
+            self.assertEqual(
+                resolve_windows_executable("C:/kit/bin/replan"),
+                "C:/kit/bin/replan.exe",
+            )
 
     def test_windows_path_spellings(self):
         expected = os.path.normpath("C:/Users/a/plan")

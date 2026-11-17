@@ -9,7 +9,7 @@ import subprocess
 from datetime import datetime
 
 import yaml
-from platform_compat import shell_script_command
+from platform_compat import resolve_windows_executable, shell_script_command
 
 import helper_envelope
 from openproject_http import Settings
@@ -25,6 +25,7 @@ parser.add_argument("--root-dir", required=True)
 parser.add_argument("--tmp-dir", required=True)
 parser.add_argument("--replan-bin", required=True)
 args = parser.parse_args()
+args.replan_bin = resolve_windows_executable(args.replan_bin)
 
 mode = "apply" if os.environ.get("REPLAN_APPLY") == "1" else "dry_run"
 partial_apply = helper_envelope.PartialApply()

@@ -88,11 +88,56 @@ class PlatformShellTests(unittest.TestCase):
             self.assertEqual(proc.returncode, 0, proc.stderr)
             self.assertEqual(proc.stdout, "/c/plan")
 
-    def test_shell_binary_resolution_finds_exe(self):
+    def test_msys_binary_resolution_names_real_exe(self):
         with tempfile.TemporaryDirectory() as tmp:
+            self.write(tmp, "uname", "printf 'MINGW64_NT-10.0\\n'\n")
             binary = pathlib.Path(tmp, "bin", "replan.exe")
             binary.parent.mkdir()
             binary.write_bytes(b"MZ")
-            proc = self.run_shell(f'. "{DOTENV}"; replan_resolve_binary "{tmp}"', env={"REPLAN_BIN": ""})
+            proc = self.run_shell(
+                f'. "{DOTENV}"; replan_resolve_binary "{tmp}"',
+                env={"PATH": f"{tmp}:/usr/bin:/bin", "MSYSTEM": "", "REPLAN_BIN": ""},
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertEqual(proc.stdout.strip(), str(binary))
+
+    def test_msys_binary_resolution_ignores_implicit_unsuffixed_alias(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.write(tmp, "uname", "printf 'MINGW64_NT-10.0\\n'\n")
+            binary = pathlib.Path(tmp, "bin", "replan.exe")
+            binary.parent.mkdir()
+            binary.write_bytes(b"MZ")
+            binary.chmod(0o755)
+            binary.with_suffix("").symlink_to(binary.name)
+            proc = self.run_shell(
+                f'. "{DOTENV}"; replan_resolve_binary "{tmp}"',
+                env={"PATH": f"{tmp}:/usr/bin:/bin", "MSYSTEM": "", "REPLAN_BIN": ""},
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertEqual(proc.stdout.strip(), str(binary))
+
+    def test_msys_configured_binary_resolution_adds_exe(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.write(tmp, "uname", "printf 'MINGW64_NT-10.0\\n'\n")
+            binary = pathlib.Path(tmp, "replan.exe")
+            binary.write_bytes(b"MZ")
+            proc = self.run_shell(
+                f'. "{DOTENV}"; replan_resolve_binary "{tmp}" "{str(binary)[:-4]}"',
+                env={"PATH": f"{tmp}:/usr/bin:/bin", "MSYSTEM": "", "REPLAN_BIN": ""},
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertEqual(proc.stdout.strip(), str(binary))
+
+    def test_linux_binary_resolution_keeps_unsuffixed_name(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.write(tmp, "uname", "printf 'Linux\\n'\n")
+            binary = pathlib.Path(tmp, "bin", "replan")
+            binary.parent.mkdir()
+            binary.write_bytes(b"native")
+            binary.chmod(0o755)
+            proc = self.run_shell(
+                f'. "{DOTENV}"; replan_resolve_binary "{tmp}"',
+                env={"PATH": f"{tmp}:/usr/bin:/bin", "MSYSTEM": "", "REPLAN_BIN": ""},
+            )
             self.assertEqual(proc.returncode, 0, proc.stderr)
             self.assertEqual(proc.stdout.strip(), str(binary))

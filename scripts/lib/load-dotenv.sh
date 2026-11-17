@@ -11,6 +11,12 @@ replan_resolve_binary() {
       replan_binary_configured=$replan_binary_configured.exe
     fi
     printf '%s\n' "$replan_binary_configured"
+  elif [ -f "$replan_binary_root/bin/replan.exe" ] && \
+       { { command -v replan_is_msys >/dev/null 2>&1 && replan_is_msys; } || \
+         [ ! -f "$replan_binary_root/bin/replan" ]; }; then
+    # MSYS test may resolve the implicit .exe suffix for bin/replan. Return
+    # the real filename so native Windows Python can start it.
+    printf '%s\n' "$replan_binary_root/bin/replan.exe"
   elif [ -x "$replan_binary_root/bin/replan" ]; then
     printf '%s\n' "$replan_binary_root/bin/replan"
   elif [ -f "$replan_binary_root/bin/replan.exe" ]; then

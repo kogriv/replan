@@ -22,6 +22,7 @@ import helper_envelope
 import openproject_bindings
 from openproject_http import Settings
 import openproject_source_profile
+from platform_compat import resolve_windows_executable
 
 
 def load_bindings(path):
@@ -126,7 +127,8 @@ def main(argv):
     parser.add_argument("--root-dir", required=True)
     args = parser.parse_args(argv[1:])
     settings = Settings.from_env(root_dir=args.root_dir)
-    replan_bin, project_path = args.replan_bin, settings.project_path
+    replan_bin = resolve_windows_executable(args.replan_bin)
+    project_path = settings.project_path
     bindings_path, output_dir = settings.bindings_path, args.output_dir
     week = os.environ.get("REPLAN_WEEK", "")
     _, source_profile_warning = openproject_source_profile.check(

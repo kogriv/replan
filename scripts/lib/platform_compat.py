@@ -17,6 +17,14 @@ def normalize_windows_path(path, *, windows=None):
     return os.path.normpath(path.replace("\\", "/"))
 
 
+def resolve_windows_executable(path, *, windows=None):
+    """Name an existing .exe when native Windows cannot start an implicit name."""
+    windows = os.name == "nt" if windows is None else windows
+    if windows and not os.path.exists(path) and os.path.exists(path + ".exe"):
+        return path + ".exe"
+    return path
+
+
 def resolve_replan_binary(root_dir, configured="", *, is_file=os.path.isfile):
     """Return the actual binary filename, preferring an explicit setting."""
     candidates = []

@@ -14,6 +14,7 @@ import yaml
 import replan_workload
 import helper_envelope
 from openproject_http import Settings
+from platform_compat import resolve_windows_executable
 
 parser = helper_envelope.internal_parser("explain-resource-overload")
 parser.add_argument("--replan-bin", required=True)
@@ -21,7 +22,7 @@ args = parser.parse_args()
 project_path = Settings.from_env().project_path
 resource_id = os.environ.get("REPLAN_RESOURCE_ID", "")
 unit = os.environ.get("REPLAN_UNIT", "")
-binary = args.replan_bin
+binary = resolve_windows_executable(args.replan_bin)
 helper_envelope.guard("explain-resource-overload")
 
 def load_yaml(rel):

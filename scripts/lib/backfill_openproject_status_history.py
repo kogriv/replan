@@ -20,6 +20,7 @@ import helper_envelope
 import openproject_bindings
 from openproject_http import OpenProjectClient, Settings
 from openproject_status_map import OPENPROJECT_TO_TRACKING_STATUS
+from platform_compat import resolve_windows_executable
 
 
 COMMAND = "backfill-openproject-status-history"
@@ -40,6 +41,7 @@ parser.add_argument("--replan-bin", required=True)
 parser.add_argument("--tmp-dir", required=True)
 parser.add_argument("--task", action="append", default=[])
 args = parser.parse_args()
+args.replan_bin = resolve_windows_executable(args.replan_bin)
 
 settings = Settings.from_env(require_token=True, root_dir=args.root_dir)
 mode = "apply" if settings.apply == "1" else "dry_run"

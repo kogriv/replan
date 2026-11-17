@@ -8,6 +8,7 @@ import yaml
 import helper_envelope
 import openproject_bindings
 from openproject_http import Settings
+from platform_compat import resolve_windows_executable
 
 parser = helper_envelope.internal_parser("accept-openproject-soft-drift")
 parser.add_argument("--import-json", required=True)
@@ -15,6 +16,7 @@ parser.add_argument("--tmp-dir", required=True)
 parser.add_argument("--root-dir", required=True)
 parser.add_argument("--replan-bin", required=True)
 args = parser.parse_args()
+args.replan_bin = resolve_windows_executable(args.replan_bin)
 settings = Settings.from_env(root_dir=args.root_dir)
 import_path, tmp_dir = args.import_json, args.tmp_dir
 project_path, bindings_path = settings.project_path, settings.bindings_path

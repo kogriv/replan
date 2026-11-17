@@ -14,11 +14,13 @@ import yaml
 import replan_workload
 import helper_envelope
 from openproject_http import Settings
+from platform_compat import resolve_windows_executable
 
 parser = helper_envelope.internal_parser("check-resource-schedule-drift")
 parser.add_argument("--replan-bin", required=True)
 args = parser.parse_args()
-project_path, binary = Settings.from_env().project_path, args.replan_bin
+project_path = Settings.from_env().project_path
+binary = resolve_windows_executable(args.replan_bin)
 helper_envelope.guard("check-resource-schedule-drift")
 
 def load_yaml(rel):

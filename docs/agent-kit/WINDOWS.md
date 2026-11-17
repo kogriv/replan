@@ -28,3 +28,8 @@ scripts/openproject-work-package-toolkit.sh work-package list
 The last command reads `.env.local`; without a token it returns a JSON warning
 and does not write. WSL remains an alternative if the analyst prefers a full
 Linux environment.
+
+If `scripts/accept-task.sh` fails with `[WinError 2] The system cannot find the
+file specified`, use a full executable path including the suffix, for example
+`REPLAN_BIN=C:/path/to/replan-kit/bin/replan.exe`. This is fixed in the next
+kit release; the explicit `.exe` setting is the workaround for older kits.
