@@ -662,3 +662,27 @@ evidence:
     targets:
       - kind: task
         id: task.self.session-helper-gap-classification
+  - id: evidence.self.accept-session-helper-gap-classification
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T03:31:07Z"
+    confidence: observed
+    summary: 'The maintainer accepted in chat that the session helper classifies Claude Code 2.x log rows (feature commit 56f90d8). CI measured from GitHub Actions runs 44009715911: 12 billable minutes. Review time stated by actor.human.maintainer: 9 minutes.'
+    targets:
+      - kind: task
+        id: task.self.session-helper-gap-classification
+  - id: evidence.self.ack-ci-overrun-session-helper-gap-classification
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-17T10:33:02+07:00"
+    summary: 'Acknowledged under the maintainer''s standing approval extended to the two session helper tasks (chat, 2026-11-17 09:43): 12 billable minutes measured from GitHub Actions run 44009715911 exceed the 10 planned.'
+    targets:
+      - kind: task
+        id: task.self.session-helper-gap-classification

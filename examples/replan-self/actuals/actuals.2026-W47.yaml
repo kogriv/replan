@@ -941,3 +941,69 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.session-helper-gap-classification
+  - id: actual.self-session-helper-gap-classification.ci-github-actions.20261117T033107Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.session-helper-gap-classification
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.session-helper-gap-classification.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 12
+    unit: ci_minutes
+    measurement: measured
+    occurred_at: "2026-11-17T03:31:07Z"
+    status_date: "2026-11-17"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-session-helper-gap-classification
+  - id: actual.self-session-helper-gap-classification.human-maintainer.20261117T033107Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.session-helper-gap-classification
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.session-helper-gap-classification.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.15
+    unit: hours
+    measurement: stated
+    occurred_at: "2026-11-17T03:31:07Z"
+    status_date: "2026-11-17"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-session-helper-gap-classification
+  - id: actual.self-session-helper-resource-from-demand.human-maintainer.20261117T024341Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.session-helper-resource-from-demand
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.session-helper-resource-from-demand.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.12
+    unit: hours
+    measurement: stated
+    occurred_at: "2026-11-17T02:43:41Z"
+    status_date: "2026-11-17"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-session-helper-resource-from-demand

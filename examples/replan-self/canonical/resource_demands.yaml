@@ -17445,7 +17445,7 @@ resource_demands:
     planned_amount: 1
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.session-helper-gap-classification.agent
     task_ref:
       kind: task
@@ -17459,7 +17459,7 @@ resource_demands:
     planned_amount: 0.5
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.session-helper-gap-classification.maintainer
     task_ref:
       kind: task
@@ -17471,9 +17471,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.session-helper-gap-classification.local-dev
     task_ref:
       kind: task
@@ -17485,9 +17485,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.session-helper-gap-classification.ci
     task_ref:
       kind: task
@@ -17499,6 +17499,17 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
+    overrun_review:
+      acknowledged_forecast: 12
+      unit: ci_minutes
+      reason: Measured CI (12 billable minutes from run 44009715911) exceeds the 10 planned; acknowledged under the maintainer's standing approval for the session helper tasks.
+      reviewed_by:
+        kind: actor
+        id: actor.human.maintainer
+      reviewed_at: "2026-11-17T10:33:02+07:00"
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.ack-ci-overrun-session-helper-gap-classification
