@@ -8576,7 +8576,7 @@ tasks:
     title: Publish release v0.5.7 with the session helper and Windows path fixes
     description: 'Tag and publish v0.5.7 with the session helper resource choice, the Claude Code 2.x log classification and the Windows path fix, verify the archives and attestations, build the Linux and Windows agent kits, install them where each consumer project takes them and tell each consumer session what changed; the third consumer project''s analyst checks the Windows kit.'
     type: release
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-17"
     planned_finish: "2026-11-17"
     assignee_hint:

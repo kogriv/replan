@@ -890,3 +890,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-7
+  - id: evidence.self.publish-release-v0-5-7
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-17T15:30:10+07:00"
+    summary: 'Published RePlan v0.5.7 from 13f0af1 after green CI (run 44045285792): tag v0.5.7, local release build (6 archives, sums checked) identical to the release workflow run 44046200840 (SHA256SUMS match), GitHub release with notes, downloaded archives match SHA256SUMS, attestations verify for the Windows archive and SHA256SUMS, go install @v0.5.7 works. Agent kits built from the tag (no private patterns besides each kit''s purpose line): the first consumer project''s kit installed on its server (current switched from v0.5.6, version and a read-only work-package list checked); the second consumer project''s kit uploaded to its wiki page, downloaded back and matched, its plan copy validates with the new binary, page text updated, the v0.5.5 kit removed; the third consumer project''s Linux and Windows kits uploaded to its wiki page, downloaded back and matched, page text updated keeping the project''s own edits (its v0.5.6 workaround note replaced by the fix), the v0.5.5 kits removed. The three consumer sessions were told what changed; the third project installed the Linux kit and passed the native Windows check of accept-task (default %TEMP%, no REPLAN_BIN) to its analyst. Executor 0.20 h measured with scripts/agent-session-consumption.sh: 0.14 h in the task window plus 0.06 h of release notes and procedure recovery just before the start.'
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-7
