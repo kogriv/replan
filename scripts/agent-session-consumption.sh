@@ -19,8 +19,9 @@
 # Options:
 #   --claude PATH                 Claude JSONL file or directory (repeatable)
 #   --codex PATH                  Codex JSONL file or recursive directory (repeatable)
-#   --claude-resource ID          default resource.ai.agent.executor
-#   --codex-resource ID           default resource.ai.codex.local
+#   --claude-resource ID          default auto (task demand; explicit-window fallback below)
+#   --codex-resource ID           default auto (task demand; explicit-window fallback below)
+#                                explicit windows use the legacy default resource ids
 #   --from RFC3339 --to RFC3339   explicit measurement window
 #   --project PATH --task ID      derive the window from task status records
 #   --to RFC3339 with --task      override the task-derived end

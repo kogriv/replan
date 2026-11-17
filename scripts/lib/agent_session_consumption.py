@@ -25,8 +25,8 @@ def parser():
     p = helper_envelope.EnvelopeArgumentParser(COMMAND, add_help=False, allow_abbrev=False)
     p.add_argument("--claude", action="append", default=[])
     p.add_argument("--codex", action="append", default=[])
-    p.add_argument("--claude-resource", default=DEFAULT_CLAUDE_RESOURCE)
-    p.add_argument("--codex-resource", default=DEFAULT_CODEX_RESOURCE)
+    p.add_argument("--claude-resource", default="auto")
+    p.add_argument("--codex-resource", default="auto")
     p.add_argument("--from", dest="window_from")
     p.add_argument("--to", dest="window_to")
     p.add_argument("--project")
@@ -487,20 +487,88 @@ def session_totals(intervals):
     ]
 
 
+def load_project_items(project, relative, top_key):
+    path = Path(project) / relative
+    try:
+        doc = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except (OSError, yaml.YAMLError):
+        return []
+    return [item for item in doc.get(top_key) or [] if isinstance(item, dict)]
+
+
 def task_demands(project, task):
     path = Path(project) / "canonical" / "resource_demands.yaml"
     try:
         doc = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     except (OSError, yaml.YAMLError):
-        return {}
-    out = defaultdict(list)
+        return []
+    out = []
     for demand in doc.get("resource_demands") or []:
+        if not isinstance(demand, dict):
+            continue
         if (demand.get("task_ref") or {}).get("id") != task:
             continue
         resource = (demand.get("resource_ref") or {}).get("id")
         if resource:
-            out[resource].append({"id": demand.get("id", ""), "status": demand.get("status", "")})
+            out.append({
+                "id": demand.get("id", ""), "status": demand.get("status", ""),
+                "resource_id": resource, "resource_class": demand.get("resource_class", ""),
+            })
     return out
+
+
+def actor_resource_ids(project, source):
+    """Concrete resources linked from ai_agent actors whose identity names the client."""
+    matches = set()
+    for actor in load_project_items(project, "canonical/actors.yaml", "actors"):
+        hint = " ".join(str(actor.get(key, "")) for key in ("id", "display_name")).lower()
+        resource = (actor.get("resource_ref") or {}).get("id", "")
+        if actor.get("kind") == "ai_agent" and source in hint and resource:
+            matches.add(resource)
+    return matches
+
+
+def distinct_resource_candidates(demands):
+    """Keep one candidate per concrete resource; command selection handles duplicate demands."""
+    return list({demand["resource_id"]: demand for demand in demands}.values())
+
+
+def resolve_resource(
+    project, task, source, configured, demands, measured_hours,
+    *, linked_resources=None, excluded_resources=(), fallback_excluded_resources=(),
+):
+    if configured != "auto":
+        return configured, "flag", []
+    if not task:
+        default = DEFAULT_CLAUDE_RESOURCE if source == "claude" else DEFAULT_CODEX_RESOURCE
+        return default, "default", []
+
+    linked = actor_resource_ids(project, source) if linked_resources is None else linked_resources
+    candidates = [
+        demand for demand in demands
+        if demand["resource_id"] in linked and demand["resource_id"] not in excluded_resources
+    ]
+    if source == "claude" and not candidates:
+        candidates = [
+            demand for demand in demands
+            if demand["resource_class"] == "ai_agent"
+            and demand["resource_id"] not in excluded_resources
+            and demand["resource_id"] not in fallback_excluded_resources
+        ]
+    candidates = distinct_resource_candidates(candidates)
+    if len(candidates) > 1:
+        names = [f"{item['id']} ({item['resource_id']})" for item in candidates]
+        message = f"task {task} has multiple {source} resource demands: {', '.join(names)}"
+        if measured_hours > 0:
+            helper_envelope.fail(
+                COMMAND, "read_only", "resource_ambiguous", message,
+                helper_envelope.EXIT["validation"],
+                extra={"source": source, "resource_candidates": candidates},
+            )
+        return "", "task_demand", [helper_envelope.diagnostic(
+            "resource_ambiguous", message, "warning", "task", task,
+        )]
+    return (candidates[0]["resource_id"] if candidates else ""), "task_demand", []
 
 
 def command_for(project, task, demand, resource, hours, occurred_at):
@@ -533,17 +601,31 @@ def main():
     codex_intervals, _, _ = build_intervals(
         codex_groups, window_start, window_end, idle_seconds, "codex", 0, False,
     )
+    demands = task_demands(args.project, args.task) if args.task else []
+    claude_hours = round(union_seconds(claude_intervals) / 3600, 2)
+    codex_hours = round(union_seconds(codex_intervals) / 3600, 2)
+    codex_linked_resources = actor_resource_ids(args.project, "codex") if args.task else set()
+    claude_resource, claude_resource_source, claude_resource_warnings = resolve_resource(
+        args.project, args.task, "claude", args.claude_resource, demands, claude_hours,
+        fallback_excluded_resources=codex_linked_resources,
+    )
+    codex_resource, codex_resource_source, codex_resource_warnings = resolve_resource(
+        args.project, args.task, "codex", args.codex_resource, demands, codex_hours,
+        linked_resources=codex_linked_resources,
+        excluded_resources={claude_resource} if claude_resource else set(),
+    )
     resources = []
-    for resource, source, intervals, skips, files, file_sessions, generation, tool_wait in (
-        (args.claude_resource, "claude", claude_intervals, claude_skips, claude_files, claude_file_sessions, generation_seconds, tool_wait_seconds),
-        (args.codex_resource, "codex", codex_intervals, codex_skips, codex_files, codex_file_sessions, 0.0, 0.0),
+    for resource, resource_source, source, intervals, skips, files, file_sessions, generation, tool_wait in (
+        (claude_resource, claude_resource_source, "claude", claude_intervals, claude_skips, claude_files, claude_file_sessions, generation_seconds, tool_wait_seconds),
+        (codex_resource, codex_resource_source, "codex", codex_intervals, codex_skips, codex_files, codex_file_sessions, 0.0, 0.0),
     ):
         totals = session_totals(intervals)
         session_sum = sum(item["seconds"] for item in totals)
         seconds = union_seconds(intervals)
         seen_sessions = {session for item in file_sessions for session in item["session_ids"]}
         resources.append({
-            "resource_id": resource, "source": source, "hours": round(seconds / 3600, 2),
+            "resource_id": resource, "resource_source": resource_source,
+            "source": source, "hours": round(seconds / 3600, 2),
             "seconds": round(seconds, 6), "session_sum_seconds": round(session_sum, 6),
             "parallel_seconds": round(max(0.0, session_sum - seconds), 6),
             "generation_seconds": round(generation, 6),
@@ -551,7 +633,28 @@ def main():
             "session_totals": totals, "source_files": file_sessions,
             "counts": {"files": len(files), "sessions": len(seen_sessions), **skips},
         })
-    warnings = window_warnings + claude_warnings + codex_warnings
+    warnings = (
+        window_warnings + claude_warnings + codex_warnings
+        + claude_resource_warnings + codex_resource_warnings
+    )
+    if args.project:
+        project_resources = {
+            item.get("id") for item in load_project_items(args.project, "canonical/resources.yaml", "resources")
+            if item.get("id")
+        }
+        for item in resources:
+            if item["resource_id"] and item["resource_id"] not in project_resources:
+                warnings.append(helper_envelope.diagnostic(
+                    "resource_not_in_project",
+                    f"{item['source']} resource {item['resource_id']} is not a resource in the project",
+                    "warning", "resource", item["resource_id"],
+                ))
+            if item["resource_source"] == "task_demand" and not item["resource_id"] and item["hours"] > 0:
+                warnings.append(helper_envelope.diagnostic(
+                    "resource_unresolved",
+                    f"task {args.task} has measured {item['source']} hours but no qualifying resource demand",
+                    "warning", "task", args.task,
+                ))
     suggested = []
     overlapping = []
     if args.task:
@@ -564,14 +667,13 @@ def main():
                 + "; activity in the overlap is counted here too: narrow the window with --from/--to or pass only this task's session files",
                 "warning", "task", args.task,
             ))
-        demands = task_demands(args.project, args.task)
         for item in resources:
-            if item["hours"] <= 0:
+            if item["hours"] <= 0 or not item["resource_id"]:
                 continue
-            matching = demands.get(item["resource_id"], [])
+            matching = [demand for demand in demands if demand["resource_id"] == item["resource_id"]]
             if not matching:
                 warnings.append(helper_envelope.diagnostic(
-                    "no_demand_for_resource", f"task {args.task} has no active demand for {item['resource_id']}",
+                    "no_demand_for_resource", f"task {args.task} has no demand for {item['resource_id']}",
                     "warning", "resource", item["resource_id"],
                 ))
                 continue

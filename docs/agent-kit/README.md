@@ -741,6 +741,23 @@ timestamped status records fall back to their derived actual dates and warn
 `window_from_dates`. With `--task`, `--from` and `--to` narrow the derived
 window. Use `--from` and `--to` without task mode for a wholly explicit window.
 
+In task mode, `--claude-resource` and `--codex-resource` default to `auto`.
+The helper links demands to `ai_agent` actors through `resource_ref`. It uses a
+case-insensitive `claude` or `codex` hint in the actor id or display name. If
+Claude has no named actor, it can use one remaining `ai_agent` resource that is
+not linked to Codex. One automatic resource cannot be used for both sources.
+Demand status does not affect selection.
+
+Several demands for one resource count as one resource choice. Several
+qualifying resources warn `resource_ambiguous`. The helper exits 2 only when
+that source also has measured hours; otherwise the other source can still
+produce a command. Measured hours with no choice warn `resource_unresolved` and
+produce no command. An explicit resource flag overrides automatic selection.
+A resource absent from `canonical/resources.yaml` warns
+`resource_not_in_project`. Each result reports `resource_source` as
+`task_demand`, `flag`, or `default`. Explicit-window mode keeps the legacy
+defaults `resource.ai.agent.executor` and `resource.ai.codex.local`.
+
 Task windows overlap when the next task starts while the previous one waits
 for its gate or its review. The helper cannot tell whose work an overlapping
 minute was, so it warns `overlapping_task_windows` and lists the other tasks
@@ -757,7 +774,7 @@ review the preview, then book it through the normal gate:
 ```sh
 replan actual add-consumption --project "$REPLAN_PROJECT" \
   --task task.example --demand demand.example.agent \
-  --resource resource.ai.agent.executor --amount 1.25 --unit agent_hours \
+  --resource resource.ai.agent.stream --amount 1.25 --unit agent_hours \
   --occurred-at 2026-11-15T12:00:00Z \
   --actor actor.human.recorder --evidence evidence.session-review \
   --dry-run --format json

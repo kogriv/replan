@@ -207,13 +207,28 @@ class AgentSessionConsumptionTest(unittest.TestCase):
         project = self.work / "project"
         (project / "canonical").mkdir(parents=True)
         (project / "evidence").mkdir()
-        (project / "canonical" / "actors.yaml").write_text("actors:\n  - id: actor.test\n", encoding="utf-8")
+        (project / "canonical" / "actors.yaml").write_text(
+            "actors:\n"
+            "  - id: actor.ai.claude.executor\n"
+            "    kind: ai_agent\n"
+            "    display_name: Claude executor\n"
+            "    resource_ref: {kind: resource, id: resource.ai.agent.executor}\n",
+            encoding="utf-8",
+        )
+        (project / "canonical" / "resources.yaml").write_text(
+            "resources:\n"
+            "  - id: resource.ai.agent.executor\n"
+            "    class: ai_agent\n"
+            "    name: Claude executor\n",
+            encoding="utf-8",
+        )
         (project / "evidence" / "evidence.yaml").write_text("evidence:\n  - id: evidence.test\n", encoding="utf-8")
         (project / "canonical" / "resource_demands.yaml").write_text(
             "resource_demands:\n"
             "  - id: demand.executor\n"
             "    task_ref: {kind: task, id: task.test}\n"
             "    resource_ref: {kind: resource, id: resource.ai.agent.executor}\n"
+            "    resource_class: ai_agent\n"
             "    status: active\n",
             encoding="utf-8",
         )
@@ -248,7 +263,254 @@ class AgentSessionConsumptionTest(unittest.TestCase):
         self.assertIn("--demand demand.executor", command)
         self.assertIn("--amount 0.25", command)
         self.assertIn("--actor <actor-id>", command)
-        self.assertIn("no_demand_for_resource", out["warning_codes"])
+        self.assertEqual(out["resources"][0]["resource_source"], "task_demand")
+        self.assertIn("resource_unresolved", out["warning_codes"])
+
+    def test_auto_picks_single_ai_agent_demand_for_claude(self):
+        project, _ = self.make_stub_project()
+        (project / "canonical" / "actors.yaml").write_text(
+            "actors:\n  - id: actor.ai.worker\n    kind: ai_agent\n    display_name: General agent\n",
+            encoding="utf-8",
+        )
+        self.write_status_records(project, [
+            ("2026-11-15T10:00:00Z", "in_progress"),
+            ("2026-11-15T10:30:00Z", "review_ready"),
+        ])
+        transcript = self.write_jsonl("single-ai.jsonl", [
+            {"timestamp": "2026-11-15T10:00:00Z", "type": "user", "sessionId": "s", "cwd": "/p", "message": {"content": "go"}},
+            {"timestamp": "2026-11-15T10:30:00Z", "type": "assistant", "sessionId": "s", "cwd": "/p"},
+        ])
+        rc, out = self.run_helper("--project", project, "--task", "task.test", "--claude", transcript)
+        self.assertEqual(rc, 0)
+        self.assertEqual(out["resources"][0]["resource_id"], "resource.ai.agent.executor")
+        self.assertEqual(out["resources"][0]["resource_source"], "task_demand")
+        self.assertEqual(len(out["suggested_commands"]), 1)
+
+    def test_auto_picks_claude_and_codex_demands_linked_from_actors(self):
+        project, _ = self.make_stub_project()
+        (project / "canonical" / "actors.yaml").write_text(
+            "actors:\n"
+            "  - id: actor.ai.claude.stream\n"
+            "    kind: ai_agent\n"
+            "    display_name: Claude stream\n"
+            "    resource_ref: {kind: resource, id: resource.ai.claude.stream}\n"
+            "  - id: actor.ai.codex.stream\n"
+            "    kind: ai_agent\n"
+            "    display_name: Codex stream\n"
+            "    resource_ref: {kind: resource, id: resource.ai.codex.stream}\n",
+            encoding="utf-8",
+        )
+        (project / "canonical" / "resources.yaml").write_text(
+            "resources:\n"
+            "  - {id: resource.ai.claude.stream, class: ai_agent, name: Claude stream}\n"
+            "  - {id: resource.ai.codex.stream, class: ai_agent, name: Codex stream}\n",
+            encoding="utf-8",
+        )
+        (project / "canonical" / "resource_demands.yaml").write_text(
+            "resource_demands:\n"
+            "  - {id: demand.claude, task_ref: {kind: task, id: task.test}, resource_ref: {kind: resource, id: resource.ai.claude.stream}, resource_class: ai_agent, status: consumed}\n"
+            "  - {id: demand.codex, task_ref: {kind: task, id: task.test}, resource_ref: {kind: resource, id: resource.ai.codex.stream}, resource_class: ai_agent, status: active}\n",
+            encoding="utf-8",
+        )
+        self.write_status_records(project, [
+            ("2026-11-15T10:00:00Z", "in_progress"),
+            ("2026-11-15T10:30:00Z", "review_ready"),
+        ])
+        claude = self.write_jsonl("linked-claude.jsonl", [
+            {"timestamp": "2026-11-15T10:00:00Z", "type": "user", "sessionId": "s", "cwd": "/p", "message": {"content": "go"}},
+            {"timestamp": "2026-11-15T10:05:00Z", "type": "assistant", "sessionId": "s", "cwd": "/p"},
+        ])
+        codex = self.write_jsonl("linked-codex.jsonl", [
+            self.codex_meta("2026-11-15T10:10:00Z", "c"),
+            {"timestamp": "2026-11-15T10:15:00Z", "type": "event_msg"},
+        ])
+        rc, out = self.run_helper(
+            "--project", project, "--task", "task.test", "--claude", claude, "--codex", codex,
+        )
+        self.assertEqual(rc, 0)
+        self.assertEqual(
+            [(item["resource_id"], item["resource_source"]) for item in out["resources"]],
+            [("resource.ai.claude.stream", "task_demand"), ("resource.ai.codex.stream", "task_demand")],
+        )
+        self.assertEqual(len(out["suggested_commands"]), 2)
+        self.assertIn("demand_closed", out["warning_codes"])
+
+    def test_claude_fallback_excludes_codex_linked_demand(self):
+        project, _ = self.make_stub_project()
+        (project / "canonical" / "actors.yaml").write_text(
+            "actors:\n"
+            "  - id: actor.ai.codex.local\n"
+            "    kind: ai_agent\n"
+            "    display_name: Codex CLI agent\n"
+            "    resource_ref: {kind: resource, id: resource.ai.codex.local}\n"
+            "  - id: actor.ai.agent.executor\n"
+            "    kind: ai_agent\n"
+            "    display_name: AI execution agent\n"
+            "    resource_ref: {kind: resource, id: resource.ai.agent.executor}\n",
+            encoding="utf-8",
+        )
+        (project / "canonical" / "resources.yaml").write_text(
+            "resources:\n"
+            "  - {id: resource.ai.codex.local, class: ai_agent, name: Codex CLI agent}\n"
+            "  - {id: resource.ai.agent.executor, class: ai_agent, name: AI execution agent}\n",
+            encoding="utf-8",
+        )
+        (project / "canonical" / "resource_demands.yaml").write_text(
+            "resource_demands:\n"
+            "  - {id: demand.codex, task_ref: {kind: task, id: task.test}, resource_ref: {kind: resource, id: resource.ai.codex.local}, resource_class: ai_agent, status: active}\n"
+            "  - {id: demand.executor, task_ref: {kind: task, id: task.test}, resource_ref: {kind: resource, id: resource.ai.agent.executor}, resource_class: ai_agent, status: active}\n",
+            encoding="utf-8",
+        )
+        self.write_status_records(project, [
+            ("2026-11-15T10:00:00Z", "in_progress"),
+            ("2026-11-15T10:30:00Z", "review_ready"),
+        ])
+        transcript = self.write_jsonl("executor-claude.jsonl", [
+            {"timestamp": "2026-11-15T10:00:00Z", "type": "user", "sessionId": "s", "cwd": "/p", "message": {"content": "go"}},
+            {"timestamp": "2026-11-15T10:05:00Z", "type": "assistant", "sessionId": "s", "cwd": "/p"},
+        ])
+        rc, out = self.run_helper("--project", project, "--task", "task.test", "--claude", transcript)
+        self.assertEqual(rc, 0)
+        self.assertEqual(out["resources"][0]["resource_id"], "resource.ai.agent.executor")
+        self.assertEqual(out["resources"][1]["resource_id"], "resource.ai.codex.local")
+        self.assertEqual(len(out["suggested_commands"]), 1)
+        self.assertIn("--demand demand.executor", out["suggested_commands"][0])
+
+    def test_unmeasured_ambiguous_codex_warns_without_blocking_claude(self):
+        project, _ = self.make_stub_project()
+        (project / "canonical" / "actors.yaml").write_text(
+            "actors:\n"
+            "  - {id: actor.ai.claude.main, kind: ai_agent, display_name: Claude main, resource_ref: {kind: resource, id: resource.ai.claude}}\n"
+            "  - {id: actor.ai.codex.one, kind: ai_agent, display_name: Codex one, resource_ref: {kind: resource, id: resource.ai.codex.one}}\n"
+            "  - {id: actor.ai.codex.two, kind: ai_agent, display_name: Codex two, resource_ref: {kind: resource, id: resource.ai.codex.two}}\n",
+            encoding="utf-8",
+        )
+        (project / "canonical" / "resources.yaml").write_text(
+            "resources:\n"
+            "  - {id: resource.ai.claude, class: ai_agent, name: Claude}\n"
+            "  - {id: resource.ai.codex.one, class: ai_agent, name: Codex one}\n"
+            "  - {id: resource.ai.codex.two, class: ai_agent, name: Codex two}\n",
+            encoding="utf-8",
+        )
+        (project / "canonical" / "resource_demands.yaml").write_text(
+            "resource_demands:\n"
+            "  - {id: demand.claude, task_ref: {kind: task, id: task.test}, resource_ref: {kind: resource, id: resource.ai.claude}, resource_class: ai_agent, status: active}\n"
+            "  - {id: demand.codex.one, task_ref: {kind: task, id: task.test}, resource_ref: {kind: resource, id: resource.ai.codex.one}, resource_class: ai_agent, status: active}\n"
+            "  - {id: demand.codex.two, task_ref: {kind: task, id: task.test}, resource_ref: {kind: resource, id: resource.ai.codex.two}, resource_class: ai_agent, status: active}\n",
+            encoding="utf-8",
+        )
+        self.write_status_records(project, [
+            ("2026-11-15T10:00:00Z", "in_progress"),
+            ("2026-11-15T10:30:00Z", "review_ready"),
+        ])
+        transcript = self.write_jsonl("claude-only.jsonl", [
+            {"timestamp": "2026-11-15T10:00:00Z", "type": "user", "sessionId": "s", "cwd": "/p", "message": {"content": "go"}},
+            {"timestamp": "2026-11-15T10:05:00Z", "type": "assistant", "sessionId": "s", "cwd": "/p"},
+        ])
+        rc, out = self.run_helper("--project", project, "--task", "task.test", "--claude", transcript)
+        self.assertEqual(rc, 0)
+        self.assertIn("resource_ambiguous", out["warning_codes"])
+        self.assertEqual(out["resources"][1]["resource_id"], "")
+        self.assertEqual(len(out["suggested_commands"]), 1)
+        self.assertIn("--demand demand.claude", out["suggested_commands"][0])
+
+    def test_multiple_demands_for_same_resource_are_not_resolution_ambiguity(self):
+        project, _ = self.make_stub_project()
+        demands = project / "canonical" / "resource_demands.yaml"
+        demands.write_text(
+            demands.read_text(encoding="utf-8")
+            + "  - {id: demand.executor.second, task_ref: {kind: task, id: task.test}, resource_ref: {kind: resource, id: resource.ai.agent.executor}, resource_class: ai_agent, status: consumed}\n",
+            encoding="utf-8",
+        )
+        self.write_status_records(project, [
+            ("2026-11-15T10:00:00Z", "in_progress"),
+            ("2026-11-15T10:30:00Z", "review_ready"),
+        ])
+        transcript = self.write_jsonl("same-resource.jsonl", [
+            {"timestamp": "2026-11-15T10:00:00Z", "type": "user", "sessionId": "s", "cwd": "/p", "message": {"content": "go"}},
+            {"timestamp": "2026-11-15T10:05:00Z", "type": "assistant", "sessionId": "s", "cwd": "/p"},
+        ])
+        rc, out = self.run_helper("--project", project, "--task", "task.test", "--claude", transcript)
+        self.assertEqual(rc, 0)
+        self.assertNotIn("resource_ambiguous", out["warning_codes"])
+        self.assertIn("multiple_demands_for_resource", out["warning_codes"])
+        self.assertEqual(len(out["suggested_commands"]), 1)
+
+    def test_auto_refuses_ambiguous_resource_demands(self):
+        project, _ = self.make_stub_project()
+        (project / "canonical" / "actors.yaml").write_text(
+            "actors:\n"
+            "  - {id: actor.ai.claude.one, kind: ai_agent, display_name: Claude one, resource_ref: {kind: resource, id: resource.ai.one}}\n"
+            "  - {id: actor.ai.claude.two, kind: ai_agent, display_name: Claude two, resource_ref: {kind: resource, id: resource.ai.two}}\n",
+            encoding="utf-8",
+        )
+        (project / "canonical" / "resource_demands.yaml").write_text(
+            "resource_demands:\n"
+            "  - {id: demand.one, task_ref: {kind: task, id: task.test}, resource_ref: {kind: resource, id: resource.ai.one}, resource_class: ai_agent, status: active}\n"
+            "  - {id: demand.two, task_ref: {kind: task, id: task.test}, resource_ref: {kind: resource, id: resource.ai.two}, resource_class: ai_agent, status: consumed}\n",
+            encoding="utf-8",
+        )
+        self.write_status_records(project, [
+            ("2026-11-15T10:00:00Z", "in_progress"),
+            ("2026-11-15T10:30:00Z", "review_ready"),
+        ])
+        transcript = self.write_jsonl("ambiguous-claude.jsonl", [
+            {"timestamp": "2026-11-15T10:00:00Z", "type": "user", "sessionId": "s", "cwd": "/p", "message": {"content": "go"}},
+            {"timestamp": "2026-11-15T10:05:00Z", "type": "assistant", "sessionId": "s", "cwd": "/p"},
+        ])
+        rc, out = self.run_helper("--project", project, "--task", "task.test", "--claude", transcript)
+        self.assertEqual(rc, 2)
+        self.assertEqual(out["error_codes"], ["resource_ambiguous"])
+        self.assertIn("demand.one (resource.ai.one)", out["errors"][0]["message"])
+        self.assertIn("demand.two (resource.ai.two)", out["errors"][0]["message"])
+
+    def test_resource_flag_overrides_auto_selection(self):
+        project, _ = self.make_stub_project()
+        resources = project / "canonical" / "resources.yaml"
+        resources.write_text(
+            resources.read_text(encoding="utf-8")
+            + "  - {id: resource.ai.override, class: ai_agent, name: Override}\n",
+            encoding="utf-8",
+        )
+        demands = project / "canonical" / "resource_demands.yaml"
+        demands.write_text(
+            demands.read_text(encoding="utf-8")
+            + "  - {id: demand.override, task_ref: {kind: task, id: task.test}, resource_ref: {kind: resource, id: resource.ai.override}, resource_class: ai_agent, status: active}\n",
+            encoding="utf-8",
+        )
+        self.write_status_records(project, [
+            ("2026-11-15T10:00:00Z", "in_progress"),
+            ("2026-11-15T10:30:00Z", "review_ready"),
+        ])
+        rc, out = self.run_helper(
+            "--project", project, "--task", "task.test", "--claude-resource", "resource.ai.override",
+        )
+        self.assertEqual(rc, 0)
+        self.assertEqual(out["resources"][0]["resource_id"], "resource.ai.override")
+        self.assertEqual(out["resources"][0]["resource_source"], "flag")
+
+    def test_resource_not_in_project_warns_for_flag(self):
+        project, _ = self.make_stub_project()
+        self.write_status_records(project, [
+            ("2026-11-15T10:00:00Z", "in_progress"),
+            ("2026-11-15T10:30:00Z", "review_ready"),
+        ])
+        rc, out = self.run_helper(
+            "--project", project, "--task", "task.test", "--claude-resource", "resource.ai.missing",
+        )
+        self.assertEqual(rc, 0)
+        self.assertIn("resource_not_in_project", out["warning_codes"])
+        self.assertEqual(out["resources"][0]["resource_source"], "flag")
+
+    def test_explicit_window_uses_legacy_default_resources(self):
+        rc, out = self.run_helper(
+            "--from", "2026-11-15T10:00:00Z", "--to", "2026-11-15T11:00:00Z",
+        )
+        self.assertEqual(rc, 0)
+        self.assertEqual(
+            [(item["resource_id"], item["resource_source"]) for item in out["resources"]],
+            [("resource.ai.agent.executor", "default"), ("resource.ai.codex.local", "default")],
+        )
 
     def write_status_records(self, project, records, task="task.test", name="audit.synthetic.jsonl"):
         audit = project / "audit" / name
