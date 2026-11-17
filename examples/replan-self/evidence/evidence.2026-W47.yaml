@@ -811,3 +811,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.accept-task-scoped-dependency-suggestions
+  - id: evidence.self.windows-short-temp-paths
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-17T15:05:40+07:00"
+    summary: 'Fix commit 03b4bb6: accept-task, the status backfill helper and the live validation copied the project into a temp dir whose deepest file (a proposal) passed the 260-character MAX_PATH of a native Windows Python under the default %TEMP% (283 characters for the self project under a 20-character user name), failing with WinError 3. Round 1 shortened temp templates and nested names (254 characters) and added a guard that would still have refused under the default %TEMP%; the review sent it back: round 2 copies, reads and removes scratch trees on Windows through extended-length paths while the replan binary and output keep ordinary paths, and refuses with temp_path_too_long only when an extended copy still fails or a path exceeds 32000 characters; WINDOWS.md updated. Simulated-Windows unit tests cover the prefix helper, prefixed copy, open and remove, unprefixed subprocess arguments and the refusal; a native Windows run is left to the third consumer project''s analyst with the v0.5.7 kit. Gate: vet, lint 0, shellcheck, Go and Python suites, smoke, isolated smoke, 58 kit checks, plugin throwaway runtime, live kit check 108 checks. Codex 13:29:06-13:31:40 (a first start on a stale clone, stopped by the executor), 13:31:40-13:57:43 and 13:58:32-14:36:55 (1.12 h, prompt and last-file mtimes). Executor 0.11 h measured with scripts/agent-session-consumption.sh over the task window minus the 07:21:10-07:37:00Z sub-window spent accepting two other tasks.'
+    targets:
+      - kind: task
+        id: task.self.windows-short-temp-paths

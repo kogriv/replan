@@ -1183,3 +1183,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-accept-task-scoped-dependency-suggestions
+  - id: actual.self-windows-short-temp-paths.ai-codex-local.20261117T1505400700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.windows-short-temp-paths
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.windows-short-temp-paths.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 1.12
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-17T15:05:40+07:00"
+    status_date: "2026-11-17"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.windows-short-temp-paths
+  - id: actual.self-windows-short-temp-paths.ai-agent-executor.20261117T1505400700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.windows-short-temp-paths
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.windows-short-temp-paths.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.11
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-17T15:05:40+07:00"
+    status_date: "2026-11-17"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.windows-short-temp-paths
