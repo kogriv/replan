@@ -947,3 +947,38 @@ evidence:
     targets:
       - kind: task
         id: task.self.session-helper-long-running-overlaps
+  - id: evidence.self.accept-session-helper-long-running-overlaps
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T09:59:37Z"
+    confidence: observed
+    summary: 'The maintainer accepted in chat that the session helper separates long-running tasks in its overlap warnings (feature commit e23fc17). CI measured from GitHub Actions runs 44051910505, 44054803119, 44059490800: 31 billable minutes. Review time stated by actor.human.maintainer: 10 minutes.'
+    targets:
+      - kind: task
+        id: task.self.session-helper-long-running-overlaps
+  - id: evidence.self.plan-windows-explicit-path-conversion
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T16:59:37+07:00"
+    summary: The maintainer agreed in chat (2026-11-17 16:59, 'делай все полноценно') to a task to convert helper path arguments to Windows form explicitly, estimated at Codex 0.5 h and executor 0.2 h.
+    targets:
+      - kind: task
+        id: task.self.windows-explicit-path-conversion
+  - id: evidence.self.plan-publish-release-v0-5-8
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T16:59:37+07:00"
+    summary: The maintainer agreed in chat (2026-11-17 16:59, 'делай все полноценно') to a v0.5.8 release with the overlap and Windows path conversion fixes right after them, estimated at executor 0.5 h and 30 CI minutes.
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-8

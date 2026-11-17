@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 295,
-  "count": 295,
+  "total": 297,
+  "count": 297,
   "_embedded": {
     "elements": [
       {
@@ -8552,6 +8552,64 @@
           },
           "status": {
             "title": "In progress"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2396,
+        "subject": "Convert helper path arguments to Windows form explicitly",
+        "description": {
+          "raw": "Reported on 2026-11-17 by the third consumer project after checking v0.5.7 on Windows: with MSYS_NO_PATHCONV=1 set in Git Bash (users set it so that /api/v3/... arguments are not turned into Windows paths), accept-task fails with WinError 2 again, because the helpers pass --replan-bin, --root-dir, --tmp-dir and other paths to Python as /c/... and rely on Git Bash to convert them. Convert every path argument passed to Python to Windows form explicitly with replan_windows_path (cygpath -m) in all helpers, so the kit works with any MSYS_NO_PATHCONV or MSYS2_ARG_CONV_EXCL setting; keep Linux unchanged; shell tests under simulated MSYS with MSYS_NO_PATHCONV=1; WINDOWS.md note."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-17",
+        "dueDate": "2026-11-17",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2396"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2397,
+        "subject": "Publish release v0.5.8 with the overlap and Windows path conversion fixes",
+        "description": {
+          "raw": "Tag and publish v0.5.8 with the long-running overlap classification of the session helper and the explicit Windows path conversion, verify the archives and attestations, build the Linux and Windows agent kits, install them where each consumer project takes them and tell each consumer session what changed; the third consumer project's analyst checks the Windows kit with MSYS_NO_PATHCONV=1."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-17",
+        "dueDate": "2026-11-17",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2397"
+          },
+          "status": {
+            "title": "New"
           },
           "assignee": {
             "href": "/api/v3/users/101",
