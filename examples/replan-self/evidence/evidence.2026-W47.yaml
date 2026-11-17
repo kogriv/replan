@@ -1061,3 +1061,27 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-8
+  - id: evidence.self.accept-publish-release-v0-5-8
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T12:41:10Z"
+    confidence: observed
+    summary: 'The maintainer accepted in chat that RePlan v0.5.8 is published and the kits are handed over. CI measured from GitHub Actions runs 44078934668, 44079955158: 15 billable minutes. Review time stated by actor.human.maintainer: 9 minutes.'
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-8
+  - id: evidence.self.plan-session-helper-skip-unused-source
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T19:41:10+07:00"
+    summary: The maintainer agreed in chat (2026-11-17 19:41, 'делай') to a task that leaves unused sources out of the session helper result, estimated at Codex 0.3 h and executor 0.1 h.
+    targets:
+      - kind: task
+        id: task.self.session-helper-skip-unused-source

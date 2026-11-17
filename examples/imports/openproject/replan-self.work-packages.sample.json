@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 297,
-  "count": 297,
+  "total": 298,
+  "count": 298,
   "_embedded": {
     "elements": [
       {
@@ -8607,6 +8607,35 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2397"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2398,
+        "subject": "Leave unused sources out of the session helper result",
+        "description": {
+          "raw": "Reported on 2026-11-17 by the second consumer project after switching to v0.5.8: when no Codex logs are passed and the task has no Codex demand, scripts/agent-session-consumption.sh still prints a Codex resource with an empty resource_id and 0 hours. Leave a source out of resources when no files were given for it and nothing was measured (or, if keeping it is needed for a stable shape, mark it with a skipped reason such as no_input_files), never print an empty resource_id, and keep resource_unresolved for a source that has measured hours; tests for Claude-only and Codex-only runs; docs in the agent kit section."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-17",
+        "dueDate": "2026-11-17",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2398"
           },
           "status": {
             "title": "New"
