@@ -875,3 +875,25 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.session-helper-resource-from-demand
+  - id: actual.self-session-helper-resource-from-demand.ci-github-actions.20261117T024341Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.session-helper-resource-from-demand
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.session-helper-resource-from-demand.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 13
+    unit: ci_minutes
+    measurement: measured
+    occurred_at: "2026-11-17T02:43:41Z"
+    status_date: "2026-11-17"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-session-helper-resource-from-demand

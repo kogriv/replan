@@ -605,3 +605,49 @@ evidence:
     targets:
       - kind: task
         id: task.self.session-helper-resource-from-demand
+  - id: evidence.self.start-session-helper-gap-classification
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-17T09:28:04+07:00"
+    summary: 'Started a day after the planned day, once the resource choice task that changes the same helper was committed: the Codex round began at 09:28:04.'
+    targets:
+      - kind: task
+        id: task.self.session-helper-gap-classification
+  - id: evidence.self.accept-session-helper-resource-from-demand
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T02:43:41Z"
+    confidence: observed
+    summary: 'The maintainer accepted in chat that the session helper takes its Claude and Codex resources from the task demands (feature commit 5390afd), and acknowledged the Codex overrun from the second review round. CI measured from GitHub Actions runs 44003141735: 13 billable minutes.'
+    targets:
+      - kind: task
+        id: task.self.session-helper-resource-from-demand
+  - id: evidence.self.ack-codex-overrun-session-helper-resource-from-demand
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T09:43:41+07:00"
+    summary: 'The maintainer acknowledged in chat (2026-11-17 09:43) that Codex took 0.65 h against the 0.5 h planned: the second review round fixed a regression found on the self project.'
+    targets:
+      - kind: task
+        id: task.self.session-helper-resource-from-demand
+  - id: evidence.self.ack-ci-overrun-session-helper-resource-from-demand
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-17T09:45:41+07:00"
+    summary: 'Acknowledged under the maintainer''s standing approval extended to the two session helper tasks (chat, 2026-11-17 09:43): 13 billable minutes measured from GitHub Actions run 44003141735 exceed the 10 planned.'
+    targets:
+      - kind: task
+        id: task.self.session-helper-resource-from-demand
