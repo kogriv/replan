@@ -8515,7 +8515,7 @@ tasks:
     title: Classify session log gaps from real Claude Code 2.x logs
     description: 'Reported on 2026-11-16 by the second consumer project and seen in the self project: scripts/agent-session-consumption.sh reports generation_seconds 0 and tool_wait_seconds almost always 0 on Claude Code 2.x logs. Their line-type counts (no content) show api-request lines before each response, thinking and text as separate assistant lines, system turn_duration records, isMeta user lines, and background-task notifications as user lines with string content, which the helper counts as human messages (idle). Use api-request to mark the start of a generation, count only real human messages as idle (not isMeta, task notifications or system reminders), treat the wait for a background task as a tool wait, cross-check with turn_duration, keep hours unchanged when the new rules do not apply; synthetic fixtures modelled on the reported line types, and a check on the self project''s own transcript.'
     type: implementation
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-16"
     planned_finish: "2026-11-16"
     assignee_hint:

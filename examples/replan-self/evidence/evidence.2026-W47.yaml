@@ -651,3 +651,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.session-helper-resource-from-demand
+  - id: evidence.self.session-helper-gap-classification
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-17T10:21:10+07:00"
+    summary: 'Feature commit 56f90d8: scripts/agent-session-consumption.sh classifies Claude Code 2.x rows (human, machine_user, task_notification, tool_result, assistant, api_request, turn_end): api-request starts a generation, tool_use is matched to its tool_result for tool waits, a task notification ends a background-task wait, only real human messages count as human, api-request rows are admitted through their session''s cwd; row counts and turn_duration_seconds are reported with a turn_duration_mismatch warning. On the self project''s own transcript (2026-11-16 to 11-17) hours stay 2.36, generation goes from 0 to 36 minutes, tool waits from 7 to 231 minutes, turn time 2.08 h with no mismatch; gaps between chunks of one response stay under 94 seconds. Review: code clean after one round; the executor corrected a docs sentence about the turn_duration check that came from the brief. Gate: vet, lint 0, shellcheck, Go and Python suites, smoke, isolated smoke, 58 kit checks, plugin throwaway runtime, live kit check 108 checks. Codex 09:28:04-09:51:33 (0.39 h, prompt and last-file mtimes). Executor 0.06 h measured with the helper over the task window minus the 02:43:41-02:51:49Z sub-window spent accepting the resource choice task and triaging a consumer report.'
+    targets:
+      - kind: task
+        id: task.self.session-helper-gap-classification
