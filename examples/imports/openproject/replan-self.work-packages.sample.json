@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 294,
-  "count": 294,
+  "total": 295,
+  "count": 295,
   "_embedded": {
     "elements": [
       {
@@ -8523,6 +8523,35 @@
           },
           "status": {
             "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2395,
+        "subject": "Separate long-running tasks in session helper overlap warnings",
+        "description": {
+          "raw": "Reported on 2026-11-17 by the second consumer project after switching to v0.5.7: scripts/agent-session-consumption.sh lists a task that has been in progress for weeks in overlapping_task_windows of every task, because its window formally overlaps everything; the real overlaps (parallel tasks of the same day) are lost in that noise. Keep reporting every overlap, but classify each overlapping task: mark one whose window is much longer than the measured task's (for example more than five times, and at least a day) as long_running, report it separately from the close overlaps, and word the warning for the close overlaps only (or a softer note when only long-running overlaps exist); tests with a weeks-long task next to same-day parallel tasks; docs in the agent kit section."
+        },
+        "status": {
+          "name": "In progress"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-17",
+        "dueDate": "2026-11-17",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2395"
+          },
+          "status": {
+            "title": "In progress"
           },
           "assignee": {
             "href": "/api/v3/users/101",

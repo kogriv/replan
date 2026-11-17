@@ -8663,7 +8663,7 @@ tasks:
     title: Separate long-running tasks in session helper overlap warnings
     description: 'Reported on 2026-11-17 by the second consumer project after switching to v0.5.7: scripts/agent-session-consumption.sh lists a task that has been in progress for weeks in overlapping_task_windows of every task, because its window formally overlaps everything; the real overlaps (parallel tasks of the same day) are lost in that noise. Keep reporting every overlap, but classify each overlapping task: mark one whose window is much longer than the measured task''s (for example more than five times, and at least a day) as long_running, report it separately from the close overlaps, and word the warning for the close overlaps only (or a softer note when only long-running overlaps exist); tests with a weeks-long task next to same-day parallel tasks; docs in the agent kit section.'
     type: implementation
-    tracking_status: not_started
+    tracking_status: in_progress
     planned_start: "2026-11-17"
     planned_finish: "2026-11-17"
     assignee_hint:
