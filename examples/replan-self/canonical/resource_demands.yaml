@@ -17974,6 +17974,17 @@ resource_demands:
     remaining_amount: 0
     criticality: required
     status: consumed
+    overrun_review:
+      acknowledged_forecast: 15
+      unit: ci_minutes
+      reason: Measured CI (15 billable minutes from run 44070377008) exceeds the 10 planned; acknowledged under the maintainer's approval for the task.
+      reviewed_by:
+        kind: actor
+        id: actor.human.maintainer
+      reviewed_at: "2026-11-17T18:58:14+07:00"
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.ack-ci-overrun-windows-explicit-path-conversion
   - id: resource_demand.publish-release-v0-5-8.agent
     task_ref:
       kind: task
