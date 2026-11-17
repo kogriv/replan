@@ -1648,6 +1648,7 @@ Examples:
 replan proposal list --status open --format json
 replan proposal show proposal.adjust-remaining-task-op-1234.20260706 --format markdown
 replan proposal suggest-dependencies --dry-run --format json
+replan proposal suggest-dependencies --task task.op.1234 --dry-run --format json
 replan proposal suggest-dependencies --write-candidates --actor actor.ai.codex.local --format json
 replan proposal accept proposal.adjust-remaining-task-op-1234.20260706 --dry-run --format json
 replan proposal accept proposal.adjust-remaining-task-op-1234.20260706 --actor actor.human.operator --apply
@@ -1659,7 +1660,7 @@ Implemented command flags:
 ```text
 replan proposal list --project -p --bindings --format --status
 replan proposal show --project -p --bindings --format
-replan proposal suggest-dependencies --project -p --bindings --format --actor --dry-run --write-candidates
+replan proposal suggest-dependencies --project -p --bindings --format --actor --task --dry-run --write-candidates
 replan proposal accept --project -p --bindings --format --actor --apply --dry-run --reason
 replan proposal reject --project -p --bindings --format --actor --apply --dry-run --reason
 ```
@@ -1674,6 +1675,10 @@ Rules:
   proposal type;
 - rejection must preserve reason when provided;
 - `suggest-dependencies --dry-run` is preview-only;
+- `suggest-dependencies --task <id>` limits dependency candidates to
+  dependencies whose predecessor or successor is that task, plus
+  `mark_successor_ready` candidates for the task's direct successors;
+- an unknown `--task` is refused with `task_not_found`;
 - `suggest-dependencies --write-candidates --actor <id>` writes reviewable
   proposal candidate files only;
 - AI agents may create proposals;
@@ -1707,6 +1712,10 @@ Implemented dependency preview slice:
 
 - `suggest-dependencies` returns dry-run proposal candidates derived from
   canonical dependency warnings;
+- its JSON result includes `scope: {"task": null}` when unscoped. With
+  `--task <id>`, `scope.task` is that id and `out_of_scope_candidates` counts
+  candidates the same unscoped run would return but the scoped run does not
+  write;
 - it returns ordinary proposal-shaped objects with status `open` and
   `requires_confirmation: true`;
 - it may preview `review_dependency_resolution`,

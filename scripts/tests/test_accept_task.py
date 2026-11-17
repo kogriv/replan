@@ -270,6 +270,8 @@ else:
         dependency = dependencies["dependencies"][0]
         dependency["predecessor_ref"]["id"] = "task.op.1234"
         dependency["successor_ref"]["id"] = "task.offline.repair-pump"
+        unrelated_dependency = dependencies["dependencies"][1]
+        unrelated_dependency["successor_ref"]["id"] = "task.offline.repair-pump"
         dump_yaml(dependencies_path, dependencies)
 
         overlay_output = os.path.join(self.temp.name, "overlay-output")
@@ -297,6 +299,15 @@ else:
         self.assertIn("actual_close_demand", audit_text)
         self.assertIn("actual_add_status", audit_text)
         self.assertTrue(out["new_proposal_ids"], out)
+        proposal_step = next(item for item in out["actions"] if item["step"] == 8)
+        self.assertEqual(proposal_step["command"][proposal_step["command"].index("--task") + 1], "task.op.1234")
+        preview_command = proposal_step["cli_dry_run"]["result"]["scope"]
+        self.assertEqual(preview_command, {"task": "task.op.1234"})
+        self.assertEqual(set(proposal_step["proposal_ids"]), set(out["new_proposal_ids"]))
+        self.assertGreater(out["out_of_scope_candidates"], 0)
+        unrelated_proposal = "proposal.dependency.dependency.openai-quota-blocks-validation.mark-successor-blocked.yaml"
+        self.assertFalse(os.path.exists(os.path.join(self.project, "proposals", "open", unrelated_proposal)))
+        self.assertTrue(any("proposal suggest-dependencies" in text and "proposal list" in text and "human actor" in text for text in out["operator_next_steps"]))
         for proposal_id in out["new_proposal_ids"]:
             self.assertTrue(any(proposal_id in text and "proposal accept" in text and "--apply" in text for text in out["operator_next_steps"]))
         self.assertTrue(os.path.isfile(os.path.join(overlay_output, ".accept-task-publish.json")))

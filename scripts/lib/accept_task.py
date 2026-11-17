@@ -525,14 +525,17 @@ else:
     actual_window_result = actual_window_preview.get("result") or {}
     if actual_window_result.get("changed"):
         actual_window_step = action_for(actual_window_command, 6, "record_actual_window", "derived actual dates differ from the planned dates", cli_dry_run=actual_window_preview)
+        preflight_json(with_write_choice(actual_window_preview_command, "--apply"))
     else:
         actual_window_step = step(6, "record_actual_window", "already_done", "planned dates already match the derived actual window", actual_window_command, cli_dry_run=actual_window_preview)
 planned.append(actual_window_step)
 
-proposal_preview_command = base + ["proposal", "suggest-dependencies", "--project", scratch, "--actor", recorder or accepted_by, "--dry-run", "--format", "json"]
+proposal_preview_command = base + ["proposal", "suggest-dependencies", "--project", scratch, "--task", task_id, "--actor", recorder or accepted_by, "--dry-run", "--format", "json"]
 proposal_preview = preflight_json(proposal_preview_command)
-proposal_ids = [item.get("id") for item in (proposal_preview.get("result") or {}).get("proposals") or [] if item.get("id")]
-proposal_command = base + ["proposal", "suggest-dependencies", "--project", project, "--write-candidates", "--actor", recorder or accepted_by, "--format", "json"]
+proposal_preview_result = proposal_preview.get("result") or {}
+proposal_ids = [item.get("id") for item in proposal_preview_result.get("proposals") or [] if item.get("id")]
+out_of_scope_candidates = proposal_preview_result.get("out_of_scope_candidates", 0)
+proposal_command = base + ["proposal", "suggest-dependencies", "--project", project, "--task", task_id, "--write-candidates", "--actor", recorder or accepted_by, "--format", "json"]
 if proposal_ids:
     proposal_step = action_for(proposal_command, 8, "suggest_dependencies", f"{len(proposal_ids)} new proposal candidate(s) are available", proposal_ids=proposal_ids, cli_dry_run=proposal_preview)
 else:
@@ -620,6 +623,8 @@ if mode == "dry_run":
     next_steps = ["Review the ordered actions and their cli_dry_run answers.", "Set REPLAN_ACTOR and rerun with REPLAN_APPLY=1 to apply the unfinished steps."]
     if proposal_ids:
         next_steps.append("After apply, review each new proposal and accept an approved one with replan proposal accept <proposal-id> --apply.")
+    if out_of_scope_candidates > 0:
+        next_steps.append(f"Review the proposal backlog with replan proposal suggest-dependencies --project {project} --dry-run, then run replan proposal list and accept or reject each proposal id with a human actor.")
     helper_envelope.emit({
         "ok": True,
         "command": COMMAND,
@@ -638,6 +643,7 @@ if mode == "dry_run":
         "review_demand_id": review_demand.get("id", "") if review_demand else "",
         "actions": planned,
         "new_proposal_ids": proposal_ids,
+        "out_of_scope_candidates": out_of_scope_candidates,
         "counts": {"planned": len([item for item in planned if item["state"] == "would_run"]), "already_done": len([item for item in planned if item["state"] == "already_done"]), "skipped": len([item for item in planned if item["state"] == "skipped"]), "applied": 0},
         "operator_next_steps": next_steps,
         "warnings": warnings,
@@ -726,6 +732,8 @@ except StepFailure as exc:
     helper_envelope.emit(out, helper_envelope.EXIT["partial"] if partial_apply.applied_so_far else exc.exit_code, mode)
 
 next_steps = [f"Review proposal {proposal_id} and, if approved, run replan proposal accept --project {project} {proposal_id} --actor {recorder} --apply --format json." for proposal_id in new_proposal_ids]
+if out_of_scope_candidates > 0:
+    next_steps.append(f"Review the proposal backlog with replan proposal suggest-dependencies --project {project} --dry-run, then run replan proposal list and accept or reject each proposal id with a human actor.")
 no_op = not any(item.get("state") == "applied" for item in planned)
 helper_envelope.emit({
     "ok": True,
@@ -746,6 +754,7 @@ helper_envelope.emit({
     "no_op": no_op,
     "actions": planned,
     "new_proposal_ids": new_proposal_ids,
+    "out_of_scope_candidates": out_of_scope_candidates,
     "counts": {"planned": 0, "already_done": len([item for item in planned if item["state"] == "already_done"]), "skipped": len([item for item in planned if item["state"] == "skipped"]), "applied": len([item for item in planned if item["state"] == "applied"])},
     "operator_next_steps": next_steps,
     "warnings": warnings,

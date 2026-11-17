@@ -2267,6 +2267,45 @@ func TestProposalSuggestDependenciesWriteCandidatesCLI(t *testing.T) {
 	assertFileContains(t, proposalPath, "type: mark_successor_blocked")
 }
 
+func TestProposalSuggestDependenciesTaskScopeCLI(t *testing.T) {
+	stdout, stderr := tempOutputFiles(t)
+	exitCode := runProposalSuggestDependencies([]string{
+		"--project", "../../examples/small-team",
+		"--task", "task.op.1234",
+		"--format", "json",
+	}, stdout, stderr)
+
+	if exitCode != exitSuccess {
+		t.Fatalf("exit code = %d, want %d; stderr=%s", exitCode, exitSuccess, readFileString(t, stderr.Name()))
+	}
+	env := readCLIEnvelope(t, stdout.Name())
+	result := resultObject(t, env)
+	scope, ok := result["scope"].(map[string]any)
+	if !ok || scope["task"] != "task.op.1234" {
+		t.Fatalf("scope = %#v, want task.op.1234", result["scope"])
+	}
+	if _, ok := result["out_of_scope_candidates"].(float64); !ok {
+		t.Fatalf("out_of_scope_candidates = %#v, want JSON number", result["out_of_scope_candidates"])
+	}
+}
+
+func TestProposalSuggestDependenciesTaskScopeCLIRefusesUnknownTask(t *testing.T) {
+	stdout, stderr := tempOutputFiles(t)
+	exitCode := runProposalSuggestDependencies([]string{
+		"--project", "../../examples/small-team",
+		"--task", "task.missing",
+		"--format", "json",
+	}, stdout, stderr)
+
+	if exitCode != exitNotFound {
+		t.Fatalf("exit code = %d, want %d; stderr=%s", exitCode, exitNotFound, readFileString(t, stderr.Name()))
+	}
+	env := readCLIEnvelope(t, stdout.Name())
+	if env.OK || len(env.Errors) == 0 || env.Errors[0].Code != "task_not_found" {
+		t.Fatalf("envelope = %#v, want task_not_found", env)
+	}
+}
+
 func TestTrackingSuggestWriteCandidatesCLI(t *testing.T) {
 	projectDir := copyCmdProjectFixtureFrom(t, "../../examples/replan-self", "replan-self")
 	removeCmdTrackingProposalArtifacts(t, projectDir)

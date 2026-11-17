@@ -185,7 +185,7 @@ func printUsage(out *os.File) {
 	fmt.Fprintln(out, "  replan scenario apply (<scenario-id> | --scenario-id <id>) --project <path> (--dry-run|--apply) [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan proposal list --project <path> [--format json|markdown]")
 	fmt.Fprintln(out, "  replan proposal show <proposal-id> --project <path> [--format json|markdown|text]")
-	fmt.Fprintln(out, "  replan proposal suggest-dependencies --project <path> [--format json|markdown]")
+	fmt.Fprintln(out, "  replan proposal suggest-dependencies --project <path> [--task <id>] [--write-candidates --actor <id>] [--format json|markdown]")
 	fmt.Fprintln(out, "  replan proposal accept <proposal-id> --project <path> (--dry-run|--apply) [--format json|markdown]")
 	fmt.Fprintln(out, "  replan proposal reject <proposal-id> --project <path> (--dry-run|--apply) [--format json|markdown]")
 	fmt.Fprintln(out, "  replan dependency list --project <path> [--format json|markdown]")

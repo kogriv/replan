@@ -302,6 +302,7 @@ func runProposalSuggestDependencies(args []string, stdout, stderr *os.File) int 
 	fs := newCLIFlagSet("proposal suggest-dependencies")
 	projectPath, format := addProjectFormatFlags(fs, "json")
 	actorID := fs.String("actor", "", "actor id preparing proposal candidates")
+	taskID := fs.String("task", "", "limit candidates to dependencies related to this task and readiness of its direct successors")
 	dryRun := fs.Bool("dry-run", true, "preview dependency proposal candidates without writing state")
 	writeCandidates := fs.Bool("write-candidates", false, "write dependency proposal candidate files without mutating canonical state")
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
@@ -313,6 +314,7 @@ func runProposalSuggestDependencies(args []string, stdout, stderr *os.File) int 
 	}
 	result, err := app.NewProposalService(newStore(*projectPath)).SuggestDependencies(context.Background(), app.ProposalSuggestDependenciesRequest{
 		ActorID:         *actorID,
+		TaskID:          *taskID,
 		WriteCandidates: *writeCandidates,
 		Now:             time.Now(),
 	})
@@ -486,6 +488,11 @@ func writeProposalSuggestDependenciesMarkdown(stdout *os.File, result app.Propos
 	}
 	if _, err := fmt.Fprintf(stdout, "- Dry run: `%t`\n", result.DryRun); err != nil {
 		return err
+	}
+	if result.Scope.Task != nil {
+		if _, err := fmt.Fprintf(stdout, "- Task scope: `%s`\n- Out-of-scope candidates: `%d`\n", *result.Scope.Task, *result.OutOfScopeCandidates); err != nil {
+			return err
+		}
 	}
 	if result.Applied {
 		if _, err := fmt.Fprintln(stdout, "- Applied: `true`"); err != nil {

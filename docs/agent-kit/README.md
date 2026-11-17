@@ -821,6 +821,11 @@ the changed dates and status to only the bound OpenProject work package,
 writes dependency proposal candidates for separate review, and refreshes the
 overlay when those scripts and a
 publish target are available. It never accepts a proposal automatically.
+Step 8 scopes both its dry-run preview and its candidate write to
+`REPLAN_TASK`: it considers dependencies where that task is the predecessor or
+successor, plus readiness of its direct successors. The result reports
+`out_of_scope_candidates` so an accumulated project-wide proposal backlog is
+visible without filing it as part of this acceptance.
 CI derived from `REPLAN_ACCEPT_CI_RUNS` is booked with `measurement: measured`;
 `REPLAN_ACCEPT_CI_MINUTES` and `REPLAN_ACCEPT_REVIEW_MINUTES` are booked with
 `measurement: stated`.
@@ -894,6 +899,17 @@ write, the envelope exits 7 and includes
 and continue. New dependency proposal ids appear in `new_proposal_ids` and in
 `operator_next_steps`, with the separate `replan proposal accept ... --apply`
 review command.
+
+### Review a backlog of proposals
+
+Preview the project-wide backlog first with `replan proposal
+suggest-dependencies --project <path> --dry-run`, then use `replan proposal
+list --project <path> --status open` and group the review by `type`.
+`mark_dependency_resolved` is bookkeeping when the predecessor really is
+done; `review_dependency_resolution` and `mark_successor_ready` need an
+operator look. Under `proposal_only`, accept or reject every proposal id
+separately with a human `--actor`; preview each decision with `--dry-run`
+before repeating it with `--apply`.
 
 Steps 1–9 derive completion from canonical RePlan and live OpenProject state.
 The publish step is the sole exception: rsync does not expose

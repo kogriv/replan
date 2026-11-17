@@ -33,8 +33,13 @@ type ProposalDecisionRequest struct {
 
 type ProposalSuggestDependenciesRequest struct {
 	ActorID         string
+	TaskID          string
 	WriteCandidates bool
 	Now             time.Time
+}
+
+type ProposalSuggestDependenciesScope struct {
+	Task *string `json:"task"`
 }
 
 type ProposalListResult struct {
@@ -79,14 +84,16 @@ type ProposalDecisionResult struct {
 }
 
 type ProposalSuggestDependenciesResult struct {
-	DryRun        bool              `json:"dry_run"`
-	Applied       bool              `json:"applied"`
-	Proposals     []domain.Proposal `json:"proposals"`
-	PlannedWrites []PlannedWrite    `json:"planned_writes"`
-	WrittenFiles  []string          `json:"written_files,omitempty"`
-	Validation    *ValidateResult   `json:"validation,omitempty"`
-	Warnings      []Diagnostic      `json:"warnings"`
-	Errors        []Diagnostic      `json:"errors"`
+	DryRun               bool                             `json:"dry_run"`
+	Applied              bool                             `json:"applied"`
+	Scope                ProposalSuggestDependenciesScope `json:"scope"`
+	OutOfScopeCandidates *int                             `json:"out_of_scope_candidates,omitempty"`
+	Proposals            []domain.Proposal                `json:"proposals"`
+	PlannedWrites        []PlannedWrite                   `json:"planned_writes"`
+	WrittenFiles         []string                         `json:"written_files,omitempty"`
+	Validation           *ValidateResult                  `json:"validation,omitempty"`
+	Warnings             []Diagnostic                     `json:"warnings"`
+	Errors               []Diagnostic                     `json:"errors"`
 }
 
 type ProposalWriter interface {
@@ -195,6 +202,19 @@ func (s ProposalService) SuggestDependencies(ctx context.Context, req ProposalSu
 	if len(result.Errors) > 0 {
 		return result, ErrValidationFailed
 	}
+	taskID := strings.TrimSpace(req.TaskID)
+	if taskID != "" {
+		result.Scope.Task = &taskID
+		if _, ok := findTask(ws.Tasks, taskID); !ok {
+			result.Errors = append(result.Errors, Diagnostic{
+				Code:     "task_not_found",
+				Message:  fmt.Sprintf("task %s not found", taskID),
+				Severity: "error",
+				Target:   Target{Kind: "task", ID: taskID},
+			})
+			return result, ErrValidationFailed
+		}
+	}
 	if req.WriteCandidates && strings.TrimSpace(req.ActorID) == "" {
 		result.Errors = append(result.Errors, Diagnostic{
 			Code:     "actor_required",
@@ -226,11 +246,18 @@ func (s ProposalService) SuggestDependencies(ctx context.Context, req ProposalSu
 	if strings.TrimSpace(req.ActorID) != "" {
 		createdBy = domain.Ref{Kind: "actor", ID: req.ActorID}
 	}
+	allCandidates := []domain.Proposal{}
 	for _, dependency := range ws.Dependencies {
-		result.Proposals = append(result.Proposals, dependencyProposalCandidates(dependency, taskByID, ws.Project.DefaultStatusDate, createdBy, now)...)
+		allCandidates = append(allCandidates, dependencyProposalCandidates(dependency, taskByID, ws.Project.DefaultStatusDate, createdBy, now)...)
 	}
-	result.Proposals = append(result.Proposals, successorReadyProposalCandidates(ws, createdBy, now)...)
-	result.Proposals = filterExistingProposalCandidates(result.Proposals, ws.Proposals, &result.Warnings)
+	allCandidates = append(allCandidates, successorReadyProposalCandidates(ws, createdBy, now)...)
+	allCandidates = filterExistingProposalCandidates(allCandidates, ws.Proposals, &result.Warnings)
+	result.Proposals = allCandidates
+	if taskID != "" {
+		result.Proposals = scopedDependencyProposalCandidates(allCandidates, ws.Dependencies, taskID)
+		outOfScope := len(allCandidates) - len(result.Proposals)
+		result.OutOfScopeCandidates = &outOfScope
+	}
 	sort.Slice(result.Proposals, func(i, j int) bool {
 		return result.Proposals[i].ID < result.Proposals[j].ID
 	})
@@ -269,6 +296,37 @@ func (s ProposalService) SuggestDependencies(ctx context.Context, req ProposalSu
 	}
 	result.Applied = len(writtenFiles) > 0
 	return result, nil
+}
+
+func scopedDependencyProposalCandidates(candidates []domain.Proposal, dependencies []domain.Dependency, taskID string) []domain.Proposal {
+	relatedDependencies := map[string]bool{}
+	directSuccessors := map[string]bool{}
+	for _, dependency := range dependencies {
+		if dependency.PredecessorRef.Kind == "task" && dependency.PredecessorRef.ID == taskID {
+			relatedDependencies[dependency.ID] = true
+			if dependency.SuccessorRef.Kind == "task" {
+				directSuccessors[dependency.SuccessorRef.ID] = true
+			}
+		}
+		if dependency.SuccessorRef.Kind == "task" && dependency.SuccessorRef.ID == taskID {
+			relatedDependencies[dependency.ID] = true
+		}
+	}
+
+	out := []domain.Proposal{}
+	for _, candidate := range candidates {
+		switch candidate.TargetRef.Kind {
+		case "dependency":
+			if relatedDependencies[candidate.TargetRef.ID] {
+				out = append(out, candidate)
+			}
+		case "task":
+			if candidate.Type == "mark_successor_ready" && directSuccessors[candidate.TargetRef.ID] {
+				out = append(out, candidate)
+			}
+		}
+	}
+	return out
 }
 
 func (s ProposalService) decide(ctx context.Context, req ProposalDecisionRequest, decision string) (ProposalDecisionResult, error) {

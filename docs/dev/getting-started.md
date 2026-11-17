@@ -560,6 +560,7 @@ Dependency lifecycle loop:
 
 ```bash
 go run ./cmd/replan proposal suggest-dependencies --project examples/small-team --format json
+go run ./cmd/replan proposal suggest-dependencies --project examples/small-team --task task.op.1234 --format json
 go run ./cmd/replan proposal suggest-dependencies --project examples/small-team --write-candidates --actor actor.ai.codex.local --format json
 go run ./cmd/replan dependency list --project examples/small-team --format json
 ```

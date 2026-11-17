@@ -56,6 +56,9 @@ func TestProposalSuggestDependenciesDryRun(t *testing.T) {
 	if len(result.Proposals) != 4 {
 		t.Fatalf("Proposals len = %d, want 4: %#v", len(result.Proposals), result.Proposals)
 	}
+	if result.Scope.Task != nil || result.OutOfScopeCandidates != nil {
+		t.Fatalf("unscoped result unexpectedly has a task scope: %#v", result)
+	}
 	if !hasSuggestedProposal(result.Proposals, "proposal.dependency.dependency.openai-quota-blocks-validation.mark-successor-blocked", "mark_successor_blocked", "tasks.task.op.1234.tracking_status") {
 		t.Fatalf("expected mark successor blocked proposal, got %#v", result.Proposals)
 	}
@@ -72,6 +75,90 @@ func TestProposalSuggestDependenciesDryRun(t *testing.T) {
 		if proposal.CreatedBy.ID != "actor.ai.codex.local" {
 			t.Fatalf("proposal CreatedBy = %#v", proposal.CreatedBy)
 		}
+	}
+}
+
+func TestProposalSuggestDependenciesTaskScope(t *testing.T) {
+	workspace := domain.Workspace{
+		Project: domain.Project{ID: "project.test", Name: "Test", Timezone: "UTC", DefaultStatusDate: "2026-11-17"},
+		Tasks: []domain.Task{
+			{ID: "task.accepted", Title: "Accepted", TrackingStatus: "accepted"},
+			{ID: "task.related-successor", Title: "Related successor", TrackingStatus: "not_started"},
+			{ID: "task.unrelated-done", Title: "Unrelated done", TrackingStatus: "accepted"},
+			{ID: "task.unrelated-open", Title: "Unrelated open", TrackingStatus: "in_progress"},
+			{ID: "task.unrelated-successor-one", Title: "Unrelated successor one", TrackingStatus: "not_started"},
+			{ID: "task.unrelated-successor-two", Title: "Unrelated successor two", TrackingStatus: "in_progress"},
+		},
+		Dependencies: []domain.Dependency{
+			{ID: "dependency.related", Type: "requires_input_from", PredecessorRef: domain.Ref{Kind: "task", ID: "task.accepted"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.related-successor"}, Status: "open", Criticality: "required"},
+			{ID: "dependency.unrelated-satisfied", Type: "requires_input_from", PredecessorRef: domain.Ref{Kind: "task", ID: "task.unrelated-done"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.unrelated-successor-one"}, Status: "open", Criticality: "required"},
+			{ID: "dependency.unrelated-open", Type: "requires_input_from", PredecessorRef: domain.Ref{Kind: "task", ID: "task.unrelated-open"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.unrelated-successor-two"}, Status: "open", Criticality: "required"},
+		},
+	}
+	service := app.NewProposalService(staticWorkspaceLoader{projectPath: "memory", workspace: workspace})
+
+	unscoped, err := service.SuggestDependencies(context.Background(), app.ProposalSuggestDependenciesRequest{Now: fixedProposalTestTime()})
+	if err != nil {
+		t.Fatalf("unscoped SuggestDependencies returned error: %v", err)
+	}
+	scoped, err := service.SuggestDependencies(context.Background(), app.ProposalSuggestDependenciesRequest{TaskID: "task.accepted", Now: fixedProposalTestTime()})
+	if err != nil {
+		t.Fatalf("scoped SuggestDependencies returned error: %v", err)
+	}
+	if scoped.Scope.Task == nil || *scoped.Scope.Task != "task.accepted" {
+		t.Fatalf("scope = %#v, want task.accepted", scoped.Scope)
+	}
+	if len(scoped.Proposals) != 1 || scoped.Proposals[0].TargetRef.ID != "dependency.related" {
+		t.Fatalf("scoped proposals = %#v, want only dependency.related", scoped.Proposals)
+	}
+	if scoped.OutOfScopeCandidates == nil || *scoped.OutOfScopeCandidates != len(unscoped.Proposals)-len(scoped.Proposals) {
+		t.Fatalf("out-of-scope count = %#v, want %d", scoped.OutOfScopeCandidates, len(unscoped.Proposals)-len(scoped.Proposals))
+	}
+	if !hasSuggestedProposal(unscoped.Proposals, "proposal.dependency.dependency.unrelated-satisfied.mark-dependency-resolved", "mark_dependency_resolved", "dependencies.dependency.unrelated-satisfied.status") {
+		t.Fatalf("unscoped result missing satisfied unrelated dependency: %#v", unscoped.Proposals)
+	}
+	if !hasSuggestedProposal(unscoped.Proposals, "proposal.dependency.dependency.unrelated-open.review-dependency-resolution", "review_dependency_resolution", "dependencies.dependency.unrelated-open.status") {
+		t.Fatalf("unscoped result missing open unrelated dependency: %#v", unscoped.Proposals)
+	}
+}
+
+func TestProposalSuggestDependenciesTaskScopeIncludesDirectSuccessorReady(t *testing.T) {
+	workspace := domain.Workspace{
+		Project: domain.Project{ID: "project.test", Name: "Test", Timezone: "UTC"},
+		Tasks: []domain.Task{
+			{ID: "task.accepted", Title: "Accepted", TrackingStatus: "accepted"},
+			{ID: "task.direct-successor", Title: "Direct successor", TrackingStatus: "blocked"},
+			{ID: "task.other-predecessor", Title: "Other predecessor", TrackingStatus: "accepted"},
+			{ID: "task.other-successor", Title: "Other successor", TrackingStatus: "blocked"},
+		},
+		Dependencies: []domain.Dependency{
+			{ID: "dependency.direct", Type: "finish_to_start", PredecessorRef: domain.Ref{Kind: "task", ID: "task.accepted"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.direct-successor"}, Status: "resolved", Criticality: "required"},
+			{ID: "dependency.other", Type: "finish_to_start", PredecessorRef: domain.Ref{Kind: "task", ID: "task.other-predecessor"}, SuccessorRef: domain.Ref{Kind: "task", ID: "task.other-successor"}, Status: "resolved", Criticality: "required"},
+		},
+	}
+	service := app.NewProposalService(staticWorkspaceLoader{projectPath: "memory", workspace: workspace})
+
+	result, err := service.SuggestDependencies(context.Background(), app.ProposalSuggestDependenciesRequest{TaskID: "task.accepted", Now: fixedProposalTestTime()})
+	if err != nil {
+		t.Fatalf("SuggestDependencies returned error: %v", err)
+	}
+	if len(result.Proposals) != 1 || !hasSuggestedProposal(result.Proposals, "proposal.task.task.direct-successor.mark-successor-ready", "mark_successor_ready", "tasks.task.direct-successor.tracking_status") {
+		t.Fatalf("scoped proposals = %#v, want direct successor readiness only", result.Proposals)
+	}
+	if result.OutOfScopeCandidates == nil || *result.OutOfScopeCandidates != 1 {
+		t.Fatalf("out-of-scope count = %#v, want 1", result.OutOfScopeCandidates)
+	}
+}
+
+func TestProposalSuggestDependenciesTaskScopeRefusesUnknownTask(t *testing.T) {
+	service := app.NewProposalService(filestore.New("../../examples/small-team"))
+
+	result, err := service.SuggestDependencies(context.Background(), app.ProposalSuggestDependenciesRequest{TaskID: "task.missing", Now: fixedProposalTestTime()})
+	if !errors.Is(err, app.ErrValidationFailed) {
+		t.Fatalf("error = %v, want ErrValidationFailed", err)
+	}
+	if !hasProposalDiagnostic(result.Errors, "task_not_found") {
+		t.Fatalf("expected task_not_found, got %#v", result.Errors)
 	}
 }
 
