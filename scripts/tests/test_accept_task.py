@@ -245,6 +245,16 @@ else:
         self.assertEqual(read_text(os.path.join(self.project, "canonical", "tasks.yaml")), before)
         self.assertFalse(any(name.startswith("evidence.2026-W44") for name in os.listdir(os.path.join(self.project, "evidence"))))
 
+    def test_msys_long_temp_path_no_longer_refuses_at_legacy_limit(self):
+        proposal_dir = os.path.join(self.project, "proposals", "open")
+        long_name = f"proposal.{'long-id-' * 27}.yaml"
+        original = os.path.join(proposal_dir, "proposal.adjust-remaining-task-op-1234.20260706.yaml")
+        os.rename(original, os.path.join(proposal_dir, long_name))
+        env = self.environment(MSYSTEM="MINGW64", TMPDIR=self.temp.name)
+        proc, out = self.run_helper(env=env)
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertNotIn("temp_path_too_long", out["error_codes"])
+
     def test_partial_helper_copy_keeps_overlay_scripts_unavailable_warning(self):
         partial_root = os.path.join(self.temp.name, "partial-kit")
         shutil.copytree(os.path.join(ROOT, "scripts"), os.path.join(partial_root, "scripts"),

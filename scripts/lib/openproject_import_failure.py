@@ -29,6 +29,7 @@ import sys
 
 import helper_envelope
 from openproject_http import Settings
+from platform_compat import open_path
 
 
 def codes(items):
@@ -37,7 +38,7 @@ def codes(items):
 
 def envelope(command, status_key, status_value, import_json, project_path, keep_temp, tmp_dir, bindings_path=None, profile=None):
     try:
-        with open(import_json, encoding="utf-8") as handle:
+        with open_path(import_json, encoding="utf-8") as handle:
             data = json.load(handle)
     except Exception:
         data = {}

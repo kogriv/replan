@@ -84,10 +84,11 @@ if [ -n "$OPENPROJECT_BASE_URL" ] || [ -n "${OPENPROJECT_PROJECT_ID:-}" ]; then
   fi
 fi
 
-TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/replan-openproject-live-validation.XXXXXX")"
+TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/rp-vl.XXXXXX")"
 cleanup() {
   if [ -z "$KEEP_TEMP" ]; then
-    rm -rf "$TMP_DIR"
+    PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" \
+      replan_python -m platform_compat remove-tree "$TMP_DIR" >/dev/null 2>&1 || rm -rf "$TMP_DIR"
   else
     printf 'kept temp dir: %s\n' "$TMP_DIR" >&2
   fi
@@ -107,7 +108,8 @@ json_quote() {
 json_get() {
   file="$1"
   expr="$2"
-  replan_python -c 'import json, sys; data=json.load(open(sys.argv[1])); print(eval(sys.argv[2], {}, {"data": data}))' "$file" "$expr"
+  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" \
+    replan_python -c 'import json, sys; from platform_compat import open_path; data=json.load(open_path(sys.argv[1])); print(eval(sys.argv[2], {}, {"data": data}))' "$file" "$expr"
 }
 
 normalize_optional_path() {
@@ -151,7 +153,19 @@ assert_json_ok() {
 
 copy_project() {
   target="$1"
-  cp -a "$PROJECT_PATH" "$target"
+  set +e
+  guard_output="$(PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" \
+    replan_python -m platform_compat copy-tree validate-openproject-live "$FORMAT" "$PROJECT_PATH" "$target" 2>&1)"
+  guard_exit=$?
+  set -e
+  if [ "$guard_exit" -ne 0 ]; then
+    if [ "$FORMAT" = "json" ]; then
+      printf '%s\n' "$guard_output"
+    else
+      printf '%s\n' "$guard_output" >&2
+    fi
+    exit "$guard_exit"
+  fi
 }
 
 set_openproject_ids_canonical() {
@@ -239,7 +253,7 @@ READONLY="$TMP_DIR/live-readonly.json"
 run_live_import "$READONLY" "$PROJECT_PATH" "1"
 readonly_summary="$(json_summary "$READONLY")"
 
-LIVE_PROJECT="$TMP_DIR/live-project"
+LIVE_PROJECT="$TMP_DIR/p"
 copy_project "$LIVE_PROJECT"
 set_openproject_ids_canonical "$LIVE_PROJECT"
 WRITE1="$TMP_DIR/live-write-before-accept.json"

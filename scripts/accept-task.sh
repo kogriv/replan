@@ -76,10 +76,11 @@ done
 replan_require_settings "accept-task" REPLAN_PROJECT REPLAN_OPENPROJECT_PROJECT_ID
 
 KEEP_TEMP="${REPLAN_KEEP_TEMP:-}"
-TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/replan-accept-task.XXXXXX")"
+TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/rp-at.XXXXXX")"
 cleanup() {
   if [ -z "$KEEP_TEMP" ]; then
-    rm -rf "$TMP_DIR"
+    PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" \
+      replan_python -m platform_compat remove-tree "$TMP_DIR" >/dev/null 2>&1 || rm -rf "$TMP_DIR"
   else
     printf 'kept temp dir: %s\n' "$TMP_DIR" >&2
   fi

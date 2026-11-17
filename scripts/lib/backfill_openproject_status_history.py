@@ -12,7 +12,6 @@ import json
 import os
 import re
 import shlex
-import shutil
 import subprocess
 import urllib.parse
 
@@ -20,7 +19,7 @@ import helper_envelope
 import openproject_bindings
 from openproject_http import OpenProjectClient, Settings
 from openproject_status_map import OPENPROJECT_TO_TRACKING_STATUS
-from platform_compat import resolve_windows_executable
+from platform_compat import TempPathTooLong, copy_project_tree, resolve_windows_executable
 
 
 COMMAND = "backfill-openproject-status-history"
@@ -472,8 +471,20 @@ def main():
     preview_error = ""
     preview_replayed = mode == "apply" or not proposals
     if mode == "dry_run" and proposals and preview_actor:
-        preview_project = os.path.join(args.tmp_dir, "status-history-preview-project")
-        shutil.copytree(project_path, preview_project)
+        preview_project = os.path.join(args.tmp_dir, "p")
+        try:
+            copy_project_tree(project_path, preview_project)
+        except TempPathTooLong as exc:
+            helper_envelope.emit({
+                "ok": False,
+                "command": COMMAND,
+                "mode": "invalid",
+                "errors": [helper_envelope.diagnostic(
+                    exc.code, str(exc), "error", "path", exc.relative_path,
+                )],
+                "path_length": exc.length,
+                "longest_relative_path": exc.relative_path,
+            }, helper_envelope.EXIT["usage"])
         try:
             for proposal in proposals:
                 run_replan(command_for_project(proposal["_evidence_argv"], preview_project, preview_actor))

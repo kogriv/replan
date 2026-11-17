@@ -4,12 +4,16 @@ import hashlib
 import math
 import os
 import re
-import shutil
 import subprocess
 from datetime import datetime
 
 import yaml
-from platform_compat import resolve_windows_executable, shell_script_command
+from platform_compat import (
+    TempPathTooLong,
+    copy_project_tree,
+    resolve_windows_executable,
+    shell_script_command,
+)
 
 import helper_envelope
 from openproject_http import Settings
@@ -494,8 +498,18 @@ if tracking_status == "accepted" and not evidence_exists:
 # Preflight steps 1-5 in order against a disposable copy. Each pending CLI
 # mutation is called with --dry-run, then applied only to the copy so later
 # dry-runs see the evidence and lifecycle state they will receive in reality.
-scratch = os.path.join(args.tmp_dir, "project-preflight")
-shutil.copytree(project, scratch)
+scratch = os.path.join(args.tmp_dir, "p")
+try:
+    copy_project_tree(project, scratch)
+except TempPathTooLong as exc:
+    refuse(
+        exc.code,
+        str(exc),
+        helper_envelope.EXIT["usage"],
+        kind="path",
+        target_id=exc.relative_path,
+        extra={"path_length": exc.length, "longest_relative_path": exc.relative_path},
+    )
 for item in pending:
     if item["step"] > 5:
         continue

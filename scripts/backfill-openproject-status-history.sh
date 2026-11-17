@@ -52,8 +52,12 @@ if [ -z "$token_value" ]; then
   replan_token_missing "backfill-openproject-status-history" "$OPENPROJECT_TOKEN_ENV"
 fi
 
-TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/replan-openproject-status-backfill.XXXXXX")"
-trap 'rm -rf "$TMP_DIR"' EXIT INT TERM
+TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/rp-sh.XXXXXX")"
+cleanup() {
+  PYTHONPATH="$ROOT_DIR/scripts/lib${PYTHONPATH:+:$PYTHONPATH}" \
+    replan_python -m platform_compat remove-tree "$TMP_DIR" >/dev/null 2>&1 || rm -rf "$TMP_DIR"
+}
+trap cleanup EXIT INT TERM
 BIN="${REPLAN_BIN:-}"
 if [ -z "$BIN" ]; then
   BIN="$TMP_DIR/replan"

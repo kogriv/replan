@@ -9,9 +9,11 @@ Usage:
 import json
 import sys
 
+from platform_compat import open_path
+
 
 def load(path):
-    with open(path, encoding="utf-8") as handle:
+    with open_path(path, encoding="utf-8") as handle:
         return json.load(handle)
 
 
