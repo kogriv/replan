@@ -1469,3 +1469,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.windows-explicit-path-conversion
+  - id: actual.self-windows-explicit-path-conversion.ci-github-actions.20261117T115356Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.windows-explicit-path-conversion
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.windows-explicit-path-conversion.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 15
+    unit: ci_minutes
+    measurement: measured
+    occurred_at: "2026-11-17T11:53:56Z"
+    status_date: "2026-11-17"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-windows-explicit-path-conversion
+  - id: actual.self-windows-explicit-path-conversion.human-maintainer.20261117T115356Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.windows-explicit-path-conversion
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.windows-explicit-path-conversion.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.12
+    unit: hours
+    measurement: stated
+    occurred_at: "2026-11-17T11:53:56Z"
+    status_date: "2026-11-17"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-windows-explicit-path-conversion

@@ -1015,3 +1015,27 @@ evidence:
     targets:
       - kind: task
         id: task.self.windows-explicit-path-conversion
+  - id: evidence.self.accept-windows-explicit-path-conversion
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T11:53:56Z"
+    confidence: observed
+    summary: 'The maintainer accepted in chat that kit helpers convert their path arguments to Windows form explicitly (fix commit 9291604). CI measured from GitHub Actions runs 44070377008: 15 billable minutes. Review time stated by actor.human.maintainer: 7 minutes.'
+    targets:
+      - kind: task
+        id: task.self.windows-explicit-path-conversion
+  - id: evidence.self.start-publish-release-v0-5-8
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-17T18:54:31+07:00"
+    summary: Started on the planned day, after both fixes of the release were accepted.
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-8

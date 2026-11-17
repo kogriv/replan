@@ -8693,7 +8693,7 @@ tasks:
     title: Convert helper path arguments to Windows form explicitly
     description: 'Reported on 2026-11-17 by the third consumer project after checking v0.5.7 on Windows: with MSYS_NO_PATHCONV=1 set in Git Bash (users set it so that /api/v3/... arguments are not turned into Windows paths), accept-task fails with WinError 2 again, because the helpers pass --replan-bin, --root-dir, --tmp-dir and other paths to Python as /c/... and rely on Git Bash to convert them. Convert every path argument passed to Python to Windows form explicitly with replan_windows_path (cygpath -m) in all helpers, so the kit works with any MSYS_NO_PATHCONV or MSYS2_ARG_CONV_EXCL setting; keep Linux unchanged; shell tests under simulated MSYS with MSYS_NO_PATHCONV=1; WINDOWS.md note.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-17"
     planned_finish: "2026-11-17"
     assignee_hint:
@@ -8724,7 +8724,7 @@ tasks:
     title: Publish release v0.5.8 with the overlap and Windows path conversion fixes
     description: 'Tag and publish v0.5.8 with the long-running overlap classification of the session helper and the explicit Windows path conversion, verify the archives and attestations, build the Linux and Windows agent kits, install them where each consumer project takes them and tell each consumer session what changed; the third consumer project''s analyst checks the Windows kit with MSYS_NO_PATHCONV=1.'
     type: release
-    tracking_status: not_started
+    tracking_status: in_progress
     planned_start: "2026-11-17"
     planned_finish: "2026-11-17"
     assignee_hint:
