@@ -174,8 +174,8 @@ class AgentSessionConsumptionTest(unittest.TestCase):
 
         transcript = self.write_jsonl("claude.jsonl", [
             row("2026-11-15T10:00:00Z", "user", "start"),
-            row("2026-11-15T10:20:00Z", "assistant"),
-            row("2026-11-15T10:30:00Z", "user", [{"type": "tool_result", "content": "done"}]),
+            row("2026-11-15T10:20:00Z", "assistant", [{"type": "tool_use", "id": "tool-one"}]),
+            row("2026-11-15T10:30:00Z", "user", [{"type": "tool_result", "tool_use_id": "tool-one", "content": "done"}]),
             row("2026-11-15T10:40:00Z", "user", "next"),
         ])
         codex = self.write_jsonl("codex.jsonl", [
@@ -202,6 +202,88 @@ class AgentSessionConsumptionTest(unittest.TestCase):
         )
         self.assertEqual(rc, 0)
         self.assertEqual(counted["resources"][0]["seconds"], 1500)
+
+    def test_claude_2x_classification_generation_waits_cwd_and_turn_duration(self):
+        session = "claude-2x"
+
+        def row(timestamp, kind, *, content=None, **extra):
+            item = {
+                "timestamp": timestamp, "type": kind, "sessionId": session,
+                "cwd": "/workspace/project", **extra,
+            }
+            if content is not None:
+                item["message"] = {"content": content}
+            return item
+
+        transcript = self.write_jsonl("claude-2x.jsonl", [
+            row("2026-11-15T10:00:00Z", "user", content="start"),
+            {"timestamp": "2026-11-15T10:00:10Z", "type": "api-request", "sessionId": session, "id": "request-one"},
+            row("2026-11-15T10:10:10Z", "assistant", content=[{"type": "thinking"}]),
+            row("2026-11-15T10:10:20Z", "assistant", content=[{"type": "text"}]),
+            row("2026-11-15T10:10:30Z", "assistant", content=[{"type": "tool_use", "id": "tool-one"}]),
+            row("2026-11-15T10:20:30Z", "user", content=[{"type": "tool_result", "tool_use_id": "tool-one"}]),
+            {"timestamp": "2026-11-15T10:20:40Z", "type": "api-request", "sessionId": session, "id": "request-two"},
+            row("2026-11-15T10:21:00Z", "assistant", content=[{"type": "text"}]),
+            row("2026-11-15T10:21:10Z", "assistant", content=[{"type": "tool_use", "id": "background-one"}]),
+            row("2026-11-15T10:31:10Z", "user", content="<task-notification>finished</task-notification>"),
+            row("2026-11-15T10:31:20Z", "user", content="metadata", isMeta=True),
+            row("2026-11-15T10:31:30Z", "user", content="<system-reminder>remember</system-reminder>"),
+            row("2026-11-15T10:31:31Z", "user", content="<local-command-stdout>output</local-command-stdout>"),
+            row("2026-11-15T10:31:32Z", "user", content="<command-name>name</command-name>"),
+            row("2026-11-15T10:31:33Z", "user", content="<artifact-content-example>artifact</artifact-content-example>"),
+            row("2026-11-15T10:31:40Z", "user", content=[{"type": "text", "text": "real follow-up"}]),
+            row("2026-11-15T10:31:50Z", "system", subtype="turn_duration", durationMs=100000, messageCount=82),
+            {"timestamp": "2026-11-15T10:05:00Z", "type": "api-request", "sessionId": "orphan", "id": "dropped"},
+            {"timestamp": "2026-11-15T10:05:01Z", "type": "api-request-blob", "sessionId": session},
+            {"timestamp": "2026-11-15T10:05:02Z", "type": "api-request-shape", "sessionId": session},
+        ])
+        args = (
+            "--from", "2026-11-15T10:00:00Z", "--to", "2026-11-15T11:00:00Z",
+            "--claude", transcript, "--cwd", "/workspace/project",
+        )
+        rc, out = self.run_helper(*args)
+        self.assertEqual(rc, 0)
+        claude = out["resources"][0]
+        self.assertEqual(claude["seconds"], 710)
+        self.assertEqual(claude["generation_seconds"], 620)
+        self.assertEqual(claude["tool_wait_seconds"], 1200)
+        self.assertEqual(claude["turn_duration_seconds"], 100)
+        self.assertEqual(
+            {kind: claude["counts"][kind] for kind in (
+                "human", "machine_user", "task_notification", "tool_result",
+                "assistant", "api_request", "turn_end",
+            )},
+            {
+                "human": 2, "machine_user": 6, "task_notification": 1,
+                "tool_result": 1, "assistant": 5, "api_request": 2,
+                "turn_end": 1,
+            },
+        )
+        self.assertEqual(claude["counts"]["cwd_filtered"], 1)
+        self.assertEqual(claude["counts"]["other_type"], 2)
+        self.assertEqual(claude["counts"]["sessions"], 1)
+        self.assertEqual(sum(item["human_messages"] for item in claude["intervals"]), 2)
+        self.assertIn("turn_duration_mismatch", out["warning_codes"])
+
+        rc, counted = self.run_helper(*args, "--count-tool-waits")
+        self.assertEqual(rc, 0)
+        self.assertEqual(counted["resources"][0]["seconds"], 1910)
+
+    def test_old_claude_format_hours_are_unchanged(self):
+        transcript = self.write_jsonl("claude-old-format.jsonl", [
+            {"timestamp": "2026-11-15T10:00:00Z", "type": "user", "sessionId": "old", "cwd": "/p", "message": {"content": "start"}},
+            {"timestamp": "2026-11-15T10:04:00Z", "type": "assistant", "sessionId": "old", "cwd": "/p"},
+            {"timestamp": "2026-11-15T10:20:00Z", "type": "user", "sessionId": "old", "cwd": "/p", "message": {"content": "continue"}},
+            {"timestamp": "2026-11-15T10:22:00Z", "type": "assistant", "sessionId": "old", "cwd": "/p"},
+        ])
+        rc, out = self.run_helper(
+            "--from", "2026-11-15T10:00:00Z", "--to", "2026-11-15T11:00:00Z",
+            "--claude", transcript,
+        )
+        self.assertEqual(rc, 0)
+        self.assertEqual(out["resources"][0]["seconds"], 360)
+        self.assertEqual(out["resources"][0]["hours"], 0.1)
+        self.assertEqual(out["resources"][0]["turn_duration_seconds"], 0)
 
     def make_stub_project(self):
         project = self.work / "project"

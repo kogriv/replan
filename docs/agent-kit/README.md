@@ -716,13 +716,42 @@ content to the project repository.
 
 The default idle gap is five minutes. Events at exactly that gap stay in one
 interval; a longer gap starts another. Ordinary interval time is last event
-minus first event, so an isolated event contributes zero. Claude assistant
-events refine long gaps: the gap ending at an assistant message is counted as
-generation time, capped at 15 minutes by default. A long gap ending in a human
-message is idle. A long gap ending in a tool result is reported as tool-wait
-time and is excluded unless `--count-tool-waits` is supplied. Each interval
-also reports its human-message count. Change the thresholds with
-`--idle-gap-minutes` and `--max-generation-minutes`.
+minus first event, so an isolated event contributes zero. For Claude Code 2.x,
+a gap from `api-request` to the next assistant line in the same session is
+generation time, even when it is shorter than the idle threshold. It is capped
+at 15 minutes by default. Older logs without `api-request` keep the previous
+fallback: a long gap ending at an assistant line is generation. Change the
+thresholds with `--idle-gap-minutes` and `--max-generation-minutes`.
+
+A long gap from an assistant `tool_use` line to its user `tool_result` line is
+reported as tool-wait time. A long gap ending at a `<task-notification>` user
+line is also a tool wait because it marks completion of a background task.
+Tool waits are excluded from work unless `--count-tool-waits` is supplied.
+
+Claude rows are classified and counted per resource as follows:
+
+| Count | Claude transcript row |
+| --- | --- |
+| `human` | A non-meta string user message without a machine marker, or non-meta list content containing `text` or `image`. |
+| `machine_user` | A user row with `isMeta: true`, or string content beginning with `<task-notification>`, `<system-reminder>`, `<local-command-stdout>`, `<command-name>` or `<artifact-content-`. |
+| `task_notification` | String user content beginning with `<task-notification>`; it is counted here as well as in `machine_user` so it can end a background wait. |
+| `tool_result` | User list content containing a `tool_result` item. |
+| `assistant` | Any assistant row, including separately written thinking, text and tool-use chunks. |
+| `api_request` | An exact `api-request` row; `api-request-blob` and `api-request-shape` remain ignored. |
+| `turn_end` | A system row whose subtype is `turn_duration`. |
+
+Only `human` rows increment an interval's `human_messages`. Machine-user rows
+remain activity events, so they can keep a segment continuous without being
+mistaken for a person typing. An `api-request` row has no `cwd`; the helper
+keeps it only when another row from its `sessionId` passes the `--cwd` filter.
+
+For Claude, each resource also reports `turn_duration_seconds`, the sum of
+`durationMs` on `turn_end` rows inside the measurement window. This is a
+cross-check only and does not change `seconds` or `hours`. The helper warns
+`turn_duration_mismatch` when measured active seconds exceed that sum by more
+than 25 percent plus five minutes. Measured time also covers a person reading
+and typing between turns, so it is normally somewhat above the turn time; a
+larger excess points at events the helper should not have joined.
 
 Parallel sessions of the same resource are merged: `hours` is the union of
 their active intervals, while `session_sum_seconds`, `parallel_seconds` and

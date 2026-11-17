@@ -19,6 +19,14 @@ import yaml
 COMMAND = "agent-session-consumption"
 DEFAULT_CLAUDE_RESOURCE = "resource.ai.agent.executor"
 DEFAULT_CODEX_RESOURCE = "resource.ai.codex.local"
+CLAUDE_EVENT_KINDS = (
+    "human", "machine_user", "task_notification", "tool_result",
+    "assistant", "api_request", "turn_end",
+)
+MACHINE_USER_PREFIXES = (
+    "<system-reminder>", "<local-command-stdout>", "<command-name>",
+    "<artifact-content-",
+)
 
 
 def parser():
@@ -304,14 +312,41 @@ def cwd_matches(value, prefixes):
 
 
 def classify_claude(obj):
-    if obj.get("type") != "user":
-        return "assistant" if obj.get("type") == "assistant" else "other"
+    row_type = obj.get("type")
+    if row_type == "assistant":
+        return "assistant"
+    if row_type == "api-request":
+        return "api_request"
+    if row_type == "system" and obj.get("subtype") == "turn_duration":
+        return "turn_end"
+    if row_type != "user":
+        return "other"
     content = (obj.get("message") or {}).get("content")
-    if isinstance(content, str):
-        return "human"
     if isinstance(content, list) and any(isinstance(item, dict) and item.get("type") == "tool_result" for item in content):
         return "tool_result"
+    if isinstance(content, str):
+        if content.startswith("<task-notification>"):
+            return "task_notification"
+        if obj.get("isMeta") is True or content.startswith(MACHINE_USER_PREFIXES):
+            return "machine_user"
+        return "human"
+    if obj.get("isMeta") is True:
+        return "machine_user"
+    if isinstance(content, list) and any(
+        isinstance(item, dict) and item.get("type") in ("text", "image") for item in content
+    ):
+        return "human"
     return "other"
+
+
+def claude_content_ids(obj, item_type, id_key):
+    content = (obj.get("message") or {}).get("content")
+    if not isinstance(content, list):
+        return set()
+    return {
+        str(item[id_key]) for item in content
+        if isinstance(item, dict) and item.get("type") == item_type and item.get(id_key)
+    }
 
 
 def empty_skips():
@@ -321,7 +356,7 @@ def empty_skips():
 def read_claude(files, prefixes, window_start, window_end):
     groups, skipped, warnings, file_sessions = defaultdict(list), empty_skips(), [], []
     for path in files:
-        last_session, sessions_seen = "", []
+        last_session, sessions_seen, rows = "", [], []
         with path.open(encoding="utf-8") as stream:
             for line_number, line in enumerate(stream, 1):
                 try:
@@ -330,7 +365,8 @@ def read_claude(files, prefixes, window_start, window_end):
                     skipped["malformed_json"] += 1
                     warnings.append(helper_envelope.diagnostic("malformed_json", f"skipped malformed JSON in {path}:{line_number}", "warning"))
                     continue
-                if obj.get("type") not in ("user", "assistant"):
+                kind = classify_claude(obj)
+                if kind == "other":
                     skipped["other_type"] += 1
                     continue
                 if obj.get("sessionId"):
@@ -346,14 +382,42 @@ def read_claude(files, prefixes, window_start, window_end):
                     skipped["malformed_json"] += 1
                     warnings.append(helper_envelope.diagnostic("invalid_timestamp", f"skipped invalid timestamp in {path}:{line_number}", "warning"))
                     continue
-                if not cwd_matches(obj.get("cwd"), prefixes):
-                    skipped["cwd_filtered"] += 1
-                    continue
-                if stamp < window_start or stamp > window_end:
-                    skipped["outside_window"] += 1
                 session = str(obj.get("sessionId") or last_session)
-                groups[(str(path),)].append({"time": stamp, "kind": classify_claude(obj), "file": str(path), "session_id": session})
-        file_sessions.append({"file": str(path), "session_ids": sessions_seen})
+                rows.append((obj, stamp, kind, session))
+
+        # api-request rows have no cwd. Admit them only when another row from
+        # the same session passes the requested cwd filter.
+        admitted_sessions = {
+            session for obj, _, kind, session in rows
+            if kind != "api_request" and session and cwd_matches(obj.get("cwd"), prefixes)
+        }
+        for obj, stamp, kind, session in rows:
+            if kind == "api_request":
+                admitted = session in admitted_sessions
+            else:
+                admitted = cwd_matches(obj.get("cwd"), prefixes)
+            if not admitted:
+                skipped["cwd_filtered"] += 1
+                continue
+            if stamp < window_start or stamp > window_end:
+                skipped["outside_window"] += 1
+            event = {
+                "time": stamp, "kind": kind, "file": str(path),
+                "session_id": session,
+            }
+            if kind == "assistant":
+                event["tool_use_ids"] = claude_content_ids(obj, "tool_use", "id")
+            if kind == "tool_result":
+                event["tool_result_ids"] = claude_content_ids(obj, "tool_result", "tool_use_id")
+            if kind == "turn_end":
+                duration_ms = obj.get("durationMs")
+                if isinstance(duration_ms, (int, float)) and not isinstance(duration_ms, bool) and math.isfinite(duration_ms) and duration_ms >= 0:
+                    event["turn_duration_seconds"] = duration_ms / 1000
+            groups[(str(path),)].append(event)
+        file_sessions.append({
+            "file": str(path),
+            "session_ids": [session for session in sessions_seen if session in admitted_sessions],
+        })
     return groups, skipped, warnings, file_sessions
 
 
@@ -415,8 +479,27 @@ def build_intervals(groups, window_start, window_end, idle_seconds, source, gene
         segment_start = events[0]["time"]
         segment_humans = 1 if events[0]["kind"] == "human" else 0
         previous = events[0]
+        api_sessions = {event["session_id"] for event in events if event["kind"] == "api_request"}
         for event in events[1:]:
             gap = (event["time"] - previous["time"]).total_seconds()
+            request_generation = (
+                source == "claude" and previous["kind"] == "api_request"
+                and event["kind"] == "assistant"
+                and previous["session_id"] == event["session_id"]
+            )
+            if request_generation:
+                normal = clipped_interval(segment_start, previous["time"], window_start, window_end, previous, segment_humans)
+                if normal is not None:
+                    intervals.append(normal)
+                active = min(gap, generation_cap)
+                special = clipped_interval(event["time"] - timedelta(seconds=active), event["time"], window_start, window_end, event, 0, "generation")
+                if special is not None:
+                    intervals.append(special)
+                    generation_seconds += special["seconds"]
+                segment_start = event["time"]
+                segment_humans = 0
+                previous = event
+                continue
             if gap <= idle_seconds:
                 segment_humans += event["kind"] == "human"
                 previous = event
@@ -424,13 +507,23 @@ def build_intervals(groups, window_start, window_end, idle_seconds, source, gene
             normal = clipped_interval(segment_start, previous["time"], window_start, window_end, previous, segment_humans)
             if normal is not None:
                 intervals.append(normal)
-            if source == "claude" and event["kind"] == "assistant":
+            if source == "claude" and event["kind"] == "assistant" and event["session_id"] not in api_sessions:
                 active = min(gap, generation_cap)
                 special = clipped_interval(event["time"] - timedelta(seconds=active), event["time"], window_start, window_end, event, 0, "generation")
                 if special is not None:
                     intervals.append(special)
                     generation_seconds += special["seconds"]
-            elif source == "claude" and event["kind"] == "tool_result":
+            elif (
+                source == "claude" and event["kind"] == "tool_result"
+                and previous.get("tool_use_ids")
+                and previous["tool_use_ids"] & event.get("tool_result_ids", set())
+            ):
+                wait = clipped_interval(previous["time"], event["time"], window_start, window_end, event, 0, "tool_wait")
+                if wait is not None:
+                    tool_wait_seconds += wait["seconds"]
+                    if count_tool_waits:
+                        intervals.append(wait)
+            elif source == "claude" and event["kind"] == "task_notification":
                 wait = clipped_interval(previous["time"], event["time"], window_start, window_end, event, 0, "tool_wait")
                 if wait is not None:
                     tool_wait_seconds += wait["seconds"]
@@ -444,6 +537,26 @@ def build_intervals(groups, window_start, window_end, idle_seconds, source, gene
             intervals.append(final)
     intervals.sort(key=lambda item: (item["_start"], item["_end"], item["file"]))
     return intervals, generation_seconds, tool_wait_seconds
+
+
+def event_counts(groups, window_start, window_end):
+    counts = {kind: 0 for kind in CLAUDE_EVENT_KINDS}
+    for events in groups.values():
+        for event in events:
+            if window_start <= event["time"] <= window_end and event["kind"] in counts:
+                counts[event["kind"]] += 1
+                if event["kind"] == "task_notification":
+                    counts["machine_user"] += 1
+    return counts
+
+
+def turn_duration_seconds(groups, window_start, window_end):
+    return sum(
+        event.get("turn_duration_seconds", 0.0)
+        for events in groups.values()
+        for event in events
+        if window_start <= event["time"] <= window_end and event["kind"] == "turn_end"
+    )
 
 
 def merged_ranges(intervals):
@@ -615,27 +728,37 @@ def main():
         excluded_resources={claude_resource} if claude_resource else set(),
     )
     resources = []
-    for resource, resource_source, source, intervals, skips, files, file_sessions, generation, tool_wait in (
-        (claude_resource, claude_resource_source, "claude", claude_intervals, claude_skips, claude_files, claude_file_sessions, generation_seconds, tool_wait_seconds),
-        (codex_resource, codex_resource_source, "codex", codex_intervals, codex_skips, codex_files, codex_file_sessions, 0.0, 0.0),
+    duration_warnings = []
+    for resource, resource_source, source, groups, intervals, skips, files, file_sessions, generation, tool_wait in (
+        (claude_resource, claude_resource_source, "claude", claude_groups, claude_intervals, claude_skips, claude_files, claude_file_sessions, generation_seconds, tool_wait_seconds),
+        (codex_resource, codex_resource_source, "codex", codex_groups, codex_intervals, codex_skips, codex_files, codex_file_sessions, 0.0, 0.0),
     ):
         totals = session_totals(intervals)
         session_sum = sum(item["seconds"] for item in totals)
         seconds = union_seconds(intervals)
+        turn_seconds = turn_duration_seconds(groups, window_start, window_end)
+        kind_counts = event_counts(groups, window_start, window_end) if source == "claude" else {kind: 0 for kind in CLAUDE_EVENT_KINDS}
         seen_sessions = {session for item in file_sessions for session in item["session_ids"]}
         resources.append({
             "resource_id": resource, "resource_source": resource_source,
             "source": source, "hours": round(seconds / 3600, 2),
-            "seconds": round(seconds, 6), "session_sum_seconds": round(session_sum, 6),
+            "seconds": round(seconds, 6), "turn_duration_seconds": round(turn_seconds, 6),
+            "session_sum_seconds": round(session_sum, 6),
             "parallel_seconds": round(max(0.0, session_sum - seconds), 6),
             "generation_seconds": round(generation, 6),
             "tool_wait_seconds": round(tool_wait, 6), "intervals": public_intervals(intervals),
             "session_totals": totals, "source_files": file_sessions,
-            "counts": {"files": len(files), "sessions": len(seen_sessions), **skips},
+            "counts": {"files": len(files), "sessions": len(seen_sessions), **kind_counts, **skips},
         })
+        if kind_counts["turn_end"] and seconds > turn_seconds * 1.25 + 300:
+            duration_warnings.append(helper_envelope.diagnostic(
+                "turn_duration_mismatch",
+                f"{source} measured active time {seconds:.3f}s exceeds turn_duration time {turn_seconds:.3f}s by more than 25% plus 300s",
+                "warning", "resource", resource,
+            ))
     warnings = (
         window_warnings + claude_warnings + codex_warnings
-        + claude_resource_warnings + codex_resource_warnings
+        + claude_resource_warnings + codex_resource_warnings + duration_warnings
     )
     if args.project:
         project_resources = {
