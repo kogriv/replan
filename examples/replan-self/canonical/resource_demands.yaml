@@ -17513,3 +17513,129 @@ resource_demands:
       evidence_refs:
         - kind: evidence
           id: evidence.self.ack-ci-overrun-session-helper-gap-classification
+  - id: resource_demand.windows-helper-path-arguments.codex
+    task_ref:
+      kind: task
+      id: task.self.windows-helper-path-arguments
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 1
+    remaining_amount: 1
+    criticality: required
+    status: active
+  - id: resource_demand.windows-helper-path-arguments.agent
+    task_ref:
+      kind: task
+      id: task.self.windows-helper-path-arguments
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 0.3
+    remaining_amount: 0.3
+    criticality: required
+    status: active
+  - id: resource_demand.windows-helper-path-arguments.maintainer
+    task_ref:
+      kind: task
+      id: task.self.windows-helper-path-arguments
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    resource_class: human
+    role: maintainer
+    unit: hours
+    planned_amount: 0.25
+    remaining_amount: 0.25
+    criticality: required
+    status: active
+  - id: resource_demand.windows-helper-path-arguments.local-dev
+    task_ref:
+      kind: task
+      id: task.self.windows-helper-path-arguments
+    resource_ref:
+      kind: resource
+      id: resource.environment.local-dev
+    resource_class: environment
+    role: development_environment
+    unit: concurrent_slots
+    planned_amount: 1
+    remaining_amount: 1
+    criticality: required
+    status: active
+  - id: resource_demand.windows-helper-path-arguments.ci
+    task_ref:
+      kind: task
+      id: task.self.windows-helper-path-arguments
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    resource_class: service_quota
+    role: ci_runtime
+    unit: ci_minutes
+    planned_amount: 10
+    remaining_amount: 10
+    criticality: required
+    status: active
+  - id: resource_demand.publish-release-v0-5-7.agent
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-5-7
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 0.5
+    remaining_amount: 0.5
+    criticality: required
+    status: active
+  - id: resource_demand.publish-release-v0-5-7.maintainer
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-5-7
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    resource_class: human
+    role: maintainer
+    unit: hours
+    planned_amount: 0.25
+    remaining_amount: 0.25
+    criticality: required
+    status: active
+  - id: resource_demand.publish-release-v0-5-7.local-dev
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-5-7
+    resource_ref:
+      kind: resource
+      id: resource.environment.local-dev
+    resource_class: environment
+    role: development_environment
+    unit: concurrent_slots
+    planned_amount: 1
+    remaining_amount: 1
+    criticality: required
+    status: active
+  - id: resource_demand.publish-release-v0-5-7.ci
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-5-7
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    resource_class: service_quota
+    role: ci_runtime
+    unit: ci_minutes
+    planned_amount: 30
+    remaining_amount: 30
+    criticality: required
+    status: active

@@ -686,3 +686,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.session-helper-gap-classification
+  - id: evidence.self.plan-windows-helper-path-arguments
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T10:31:07+07:00"
+    summary: The maintainer agreed in chat (2026-11-17 10:31) to a task to pass Windows paths to Python from the kit helpers, estimated at Codex 1 h and executor 0.3 h, checked with a simulated Git Bash test and by the third consumer project's analyst instead of a test VM of our own; the maintainer left the estimates and the Windows check method to the executor ('сам реши').
+    targets:
+      - kind: task
+        id: task.self.windows-helper-path-arguments
+  - id: evidence.self.plan-publish-release-v0-5-7
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T10:31:07+07:00"
+    summary: The maintainer agreed in chat (2026-11-17 10:31) to a v0.5.7 release with the session helper and Windows path fixes and new kits, estimated at executor 0.5 h and 30 CI minutes including the release workflow; the maintainer left the estimates and the Windows check method to the executor ('сам реши').
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-7

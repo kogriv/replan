@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 290,
-  "count": 290,
+  "total": 292,
+  "count": 292,
   "_embedded": {
     "elements": [
       {
@@ -8404,6 +8404,64 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2390"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2391,
+        "subject": "Pass Windows paths to Python from the kit helpers",
+        "description": {
+          "raw": "Reported on 2026-11-17 by the third consumer project: on Windows under Git Bash, scripts/accept-task.sh in the v0.5.6 kit fails even in a dry run with WinError 2. The helper passes REPLAN_BIN, the root dir and the temp dir to Python as arguments in their POSIX form (/c/...); replan_prepare_windows_paths converts only exported settings, so a Windows Python cannot start the binary or open the paths. The workaround is a full Windows REPLAN_BIN. Convert every path passed to Python on the command line with replan_windows_path in all helpers that do so (accept-task, accept-openproject-soft-drift, backfill-openproject-status-history, build-openproject-live-overlay, explain-resource-overload, check-resource-schedule-drift; check the others), add a shell test that simulates MSYS with a fake cygpath and asserts Windows paths reach Python, keep Linux behaviour unchanged; the consumer's analyst checks the new kit on Windows."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-17",
+        "dueDate": "2026-11-17",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2391"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2392,
+        "subject": "Publish release v0.5.7 with the session helper and Windows path fixes",
+        "description": {
+          "raw": "Tag and publish v0.5.7 with the session helper resource choice, the Claude Code 2.x log classification and the Windows path fix, verify the archives and attestations, build the Linux and Windows agent kits, install them where each consumer project takes them and tell each consumer session what changed; the third consumer project's analyst checks the Windows kit."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-17",
+        "dueDate": "2026-11-17",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2392"
           },
           "status": {
             "title": "New"

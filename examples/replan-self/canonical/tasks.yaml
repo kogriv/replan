@@ -8541,3 +8541,60 @@ tasks:
         object_type: work_package
         object_id: "2390"
         url: https://op.example.internal/work_packages/2390
+  - id: task.self.windows-helper-path-arguments
+    title: Pass Windows paths to Python from the kit helpers
+    description: 'Reported on 2026-11-17 by the third consumer project: on Windows under Git Bash, scripts/accept-task.sh in the v0.5.6 kit fails even in a dry run with WinError 2. The helper passes REPLAN_BIN, the root dir and the temp dir to Python as arguments in their POSIX form (/c/...); replan_prepare_windows_paths converts only exported settings, so a Windows Python cannot start the binary or open the paths. The workaround is a full Windows REPLAN_BIN. Convert every path passed to Python on the command line with replan_windows_path in all helpers that do so (accept-task, accept-openproject-soft-drift, backfill-openproject-status-history, build-openproject-live-overlay, explain-resource-overload, check-resource-schedule-drift; check the others), add a shell test that simulates MSYS with a fake cygpath and asserts Windows paths reach Python, keep Linux behaviour unchanged; the consumer''s analyst checks the new kit on Windows.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-17"
+    planned_finish: "2026-11-17"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.windows-helper-path-arguments.codex
+      - kind: resource_demand
+        id: resource_demand.windows-helper-path-arguments.agent
+      - kind: resource_demand
+        id: resource_demand.windows-helper-path-arguments.maintainer
+      - kind: resource_demand
+        id: resource_demand.windows-helper-path-arguments.local-dev
+      - kind: resource_demand
+        id: resource_demand.windows-helper-path-arguments.ci
+    tags:
+      - consumer-feedback
+      - helpers
+      - windows
+      - gap
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2391"
+        url: https://op.example.internal/work_packages/2391
+  - id: task.self.publish-release-v0-5-7
+    title: Publish release v0.5.7 with the session helper and Windows path fixes
+    description: 'Tag and publish v0.5.7 with the session helper resource choice, the Claude Code 2.x log classification and the Windows path fix, verify the archives and attestations, build the Linux and Windows agent kits, install them where each consumer project takes them and tell each consumer session what changed; the third consumer project''s analyst checks the Windows kit.'
+    type: release
+    tracking_status: not_started
+    planned_start: "2026-11-17"
+    planned_finish: "2026-11-17"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.publish-release-v0-5-7.agent
+      - kind: resource_demand
+        id: resource_demand.publish-release-v0-5-7.maintainer
+      - kind: resource_demand
+        id: resource_demand.publish-release-v0-5-7.local-dev
+      - kind: resource_demand
+        id: resource_demand.publish-release-v0-5-7.ci
+    tags:
+      - release
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2392"
+        url: https://op.example.internal/work_packages/2392
