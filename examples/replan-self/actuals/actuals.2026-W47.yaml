@@ -1425,3 +1425,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-session-helper-long-running-overlaps
+  - id: actual.self-windows-explicit-path-conversion.ai-codex-local.20261117T1800370700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.windows-explicit-path-conversion
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.windows-explicit-path-conversion.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.45
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-17T18:00:37+07:00"
+    status_date: "2026-11-17"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.windows-explicit-path-conversion
+  - id: actual.self-windows-explicit-path-conversion.ai-agent-executor.20261117T1800370700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.windows-explicit-path-conversion
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.windows-explicit-path-conversion.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.03
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-17T18:00:37+07:00"
+    status_date: "2026-11-17"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.windows-explicit-path-conversion
