@@ -8485,7 +8485,7 @@ tasks:
     title: Take the session helper resources from the task demands
     description: 'Reported on 2026-11-16 by the second consumer project after switching to v0.5.6: scripts/agent-session-consumption.sh defaults to resource.ai.agent.executor and resource.ai.codex.local, which do not exist in their plan, so they pass --claude-resource by hand. With --task, take the Claude and Codex resources from the task''s demands when the flags are not given (an ai_agent demand whose resource is linked to a Claude or Codex actor or named by a project setting; refuse with a clear code when several qualify), and warn resource_not_in_project when a given or default resource is not a project resource; tests and docs.'
     type: implementation
-    tracking_status: in_progress
+    tracking_status: review_ready
     planned_start: "2026-11-16"
     planned_finish: "2026-11-16"
     assignee_hint:

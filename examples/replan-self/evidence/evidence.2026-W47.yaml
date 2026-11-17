@@ -594,3 +594,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.session-helper-resource-from-demand
+  - id: evidence.self.session-helper-resource-from-demand
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-17T09:26:16+07:00"
+    summary: 'Feature commit 5390afd: scripts/agent-session-consumption.sh defaults --claude-resource and --codex-resource to auto and, in task mode, takes them from the task''s demands through ai_agent actors linked by resource_ref and named claude or codex; the Claude side falls back to the one remaining ai_agent demand not linked to Codex; resource_ambiguous refuses only a source with measured hours (warning otherwise), several demands on one resource are not ambiguity; resource_unresolved, resource_not_in_project and per-resource resource_source are reported; explicit windows keep the old defaults. Review round 1 found that the self project''s own shape (executor and Codex demands, no actor named claude) resolved nothing; round 2 fixed it with a test of that exact shape. Checked on the self project: the executor demand is picked with no flags. Gate: vet, lint 0, shellcheck, Go and Python suites, smoke, isolated smoke, 58 kit checks, plugin throwaway runtime, live kit check 108 checks. Codex 2026-11-16 16:24:07-16:45:41 and 2026-11-17 08:26:08-08:43:22 (0.65 h, prompt and last-file mtimes). Executor 0.08 h measured with scripts/agent-session-consumption.sh, which picked the resource itself.'
+    targets:
+      - kind: task
+        id: task.self.session-helper-resource-from-demand
