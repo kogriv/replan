@@ -17583,6 +17583,17 @@ resource_demands:
     remaining_amount: 0
     criticality: required
     status: consumed
+    overrun_review:
+      acknowledged_forecast: 13
+      unit: ci_minutes
+      reason: Measured CI (13 billable minutes from run 44022209473) exceeds the 10 planned; acknowledged by the maintainer in chat.
+      reviewed_by:
+        kind: actor
+        id: actor.human.maintainer
+      reviewed_at: "2026-11-17T15:09:47+07:00"
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.ack-ci-overrun-windows-helper-path-arguments
   - id: resource_demand.publish-release-v0-5-7.agent
     task_ref:
       kind: task
@@ -17709,6 +17720,17 @@ resource_demands:
     remaining_amount: 0
     criticality: required
     status: consumed
+    overrun_review:
+      acknowledged_forecast: 14
+      unit: ci_minutes
+      reason: Measured CI (14 billable minutes from run 44031634695) exceeds the 10 planned; acknowledged by the maintainer in chat.
+      reviewed_by:
+        kind: actor
+        id: actor.human.maintainer
+      reviewed_at: "2026-11-17T15:09:47+07:00"
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.ack-ci-overrun-accept-task-scoped-dependency-suggestions
   - id: resource_demand.windows-short-temp-paths.codex
     task_ref:
       kind: task
@@ -17722,7 +17744,18 @@ resource_demands:
     planned_amount: 0.5
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
+    overrun_review:
+      acknowledged_forecast: 1.12
+      unit: agent_hours
+      reason: Codex measured 1.12 h against 0.5 h planned because of a second review round and a stopped first start; acknowledged by the maintainer in chat.
+      reviewed_by:
+        kind: actor
+        id: actor.human.maintainer
+      reviewed_at: "2026-11-17T15:09:47+07:00"
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.ack-codex-overrun-windows-short-temp-paths
   - id: resource_demand.windows-short-temp-paths.agent
     task_ref:
       kind: task
@@ -17736,7 +17769,7 @@ resource_demands:
     planned_amount: 0.2
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.windows-short-temp-paths.maintainer
     task_ref:
       kind: task
@@ -17748,9 +17781,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.windows-short-temp-paths.local-dev
     task_ref:
       kind: task
@@ -17762,9 +17795,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.windows-short-temp-paths.ci
     task_ref:
       kind: task
@@ -17776,6 +17809,17 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
+    overrun_review:
+      acknowledged_forecast: 13
+      unit: ci_minutes
+      reason: Measured CI (13 billable minutes from run 44043960748) exceeds the 10 planned; acknowledged under the maintainer's approval for the v0.5.7 tasks.
+      reviewed_by:
+        kind: actor
+        id: actor.human.maintainer
+      reviewed_at: "2026-11-17T15:15:15+07:00"
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.ack-ci-overrun-windows-short-temp-paths

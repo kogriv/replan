@@ -822,3 +822,71 @@ evidence:
     targets:
       - kind: task
         id: task.self.windows-short-temp-paths
+  - id: evidence.self.ack-codex-overrun-windows-short-temp-paths
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T15:09:47+07:00"
+    summary: 'The maintainer acknowledged in chat (2026-11-17 15:09) that Codex took 1.12 h against the 0.5 h planned: a second round replaced a refusal guard with extended-length paths, and a first start on a stale clone was stopped after 2.5 minutes.'
+    targets:
+      - kind: task
+        id: task.self.windows-short-temp-paths
+  - id: evidence.self.ack-ci-overrun-windows-helper-path-arguments
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T15:09:47+07:00"
+    summary: The maintainer acknowledged in chat (2026-11-17 15:09) that the 13 billable minutes measured from GitHub Actions run 44022209473 exceed the 10 planned for this task, and allowed the executor to acknowledge measured CI overruns of the remaining v0.5.7 tasks.
+    targets:
+      - kind: task
+        id: task.self.windows-helper-path-arguments
+  - id: evidence.self.ack-ci-overrun-accept-task-scoped-dependency-suggestions
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T15:09:47+07:00"
+    summary: The maintainer acknowledged in chat (2026-11-17 15:09) that the 14 billable minutes measured from GitHub Actions run 44031634695 exceed the 10 planned for this task, and allowed the executor to acknowledge measured CI overruns of the remaining v0.5.7 tasks.
+    targets:
+      - kind: task
+        id: task.self.accept-task-scoped-dependency-suggestions
+  - id: evidence.self.accept-windows-short-temp-paths
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-17T08:09:47Z"
+    confidence: observed
+    summary: 'The maintainer accepted in chat that kit helpers copy and remove scratch trees through long paths on Windows (fix commit 03b4bb6), and acknowledged the Codex overrun. CI measured from GitHub Actions runs 44043960748: 13 billable minutes. Review time stated by actor.human.maintainer: 5 minutes.'
+    targets:
+      - kind: task
+        id: task.self.windows-short-temp-paths
+  - id: evidence.self.ack-ci-overrun-windows-short-temp-paths
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-17T15:15:15+07:00"
+    summary: 'Acknowledged under the maintainer''s approval for the remaining v0.5.7 tasks (chat, 2026-11-17 15:09): 13 billable minutes measured from GitHub Actions run 44043960748 exceed the 10 planned.'
+    targets:
+      - kind: task
+        id: task.self.windows-short-temp-paths
+  - id: evidence.self.start-publish-release-v0-5-7
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-17T15:15:15+07:00"
+    summary: Started on the planned day, after the four fixes of the release were accepted.
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-7
