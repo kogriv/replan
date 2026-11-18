@@ -8750,9 +8750,9 @@ tasks:
     title: Leave unused sources out of the session helper result
     description: 'Reported on 2026-11-17 by the second consumer project after switching to v0.5.8: when no Codex logs are passed and the task has no Codex demand, scripts/agent-session-consumption.sh still prints a Codex resource with an empty resource_id and 0 hours. Leave a source out of resources when no files were given for it and nothing was measured (or, if keeping it is needed for a stable shape, mark it with a skipped reason such as no_input_files), never print an empty resource_id, and keep resource_unresolved for a source that has measured hours; tests for Claude-only and Codex-only runs; docs in the agent kit section.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-17"
-    planned_finish: "2026-11-17"
+    planned_finish: "2026-11-18"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer

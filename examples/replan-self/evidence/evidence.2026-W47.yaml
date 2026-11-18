@@ -1107,3 +1107,27 @@ evidence:
     targets:
       - kind: task
         id: task.self.session-helper-skip-unused-source
+  - id: evidence.self.ack-codex-overrun-session-helper-skip-unused-source
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-18T08:32:35+07:00"
+    summary: 'The maintainer acknowledged in chat (2026-11-18 08:32) that Codex took 0.31 h against the 0.3 h planned: one round, measured from the prompt and result file times.'
+    targets:
+      - kind: task
+        id: task.self.session-helper-skip-unused-source
+  - id: evidence.self.accept-session-helper-skip-unused-source
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-18T01:32:35Z"
+    confidence: observed
+    summary: 'Accepted by the maintainer in chat: the session helper leaves sources without input files out of resources, lists them in skipped_sources and reports an unresolved resource as null. CI measured from GitHub Actions runs 44096250459: 13 billable minutes. Review time stated by actor.human.maintainer: 10 minutes.'
+    targets:
+      - kind: task
+        id: task.self.session-helper-skip-unused-source

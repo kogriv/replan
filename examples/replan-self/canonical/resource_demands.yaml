@@ -18054,7 +18054,18 @@ resource_demands:
     planned_amount: 0.3
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
+    overrun_review:
+      acknowledged_forecast: 0.31
+      unit: agent_hours
+      reason: Measured Codex time (0.31 h, one round) exceeds the 0.3 h planned by 0.01 h; acknowledged by the maintainer in chat.
+      reviewed_by:
+        kind: actor
+        id: actor.human.maintainer
+      reviewed_at: "2026-11-18T08:32:35+07:00"
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.ack-codex-overrun-session-helper-skip-unused-source
   - id: resource_demand.session-helper-skip-unused-source.agent
     task_ref:
       kind: task
@@ -18068,7 +18079,7 @@ resource_demands:
     planned_amount: 0.1
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.session-helper-skip-unused-source.maintainer
     task_ref:
       kind: task
@@ -18080,9 +18091,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.session-helper-skip-unused-source.local-dev
     task_ref:
       kind: task
@@ -18094,9 +18105,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.session-helper-skip-unused-source.ci
     task_ref:
       kind: task
@@ -18108,6 +18119,6 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed

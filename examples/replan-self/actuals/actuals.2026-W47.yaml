@@ -1623,3 +1623,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.session-helper-skip-unused-source
+  - id: actual.self-session-helper-skip-unused-source.ci-github-actions.20261118T013235Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.session-helper-skip-unused-source
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.session-helper-skip-unused-source.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 13
+    unit: ci_minutes
+    measurement: measured
+    occurred_at: "2026-11-18T01:32:35Z"
+    status_date: "2026-11-18"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-session-helper-skip-unused-source
+  - id: actual.self-session-helper-skip-unused-source.human-maintainer.20261118T013235Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.session-helper-skip-unused-source
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.session-helper-skip-unused-source.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.17
+    unit: hours
+    measurement: stated
+    occurred_at: "2026-11-18T01:32:35Z"
+    status_date: "2026-11-18"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-session-helper-skip-unused-source
