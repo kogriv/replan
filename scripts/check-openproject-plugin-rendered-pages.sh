@@ -284,7 +284,7 @@ overlay["openproject_project_id"] = sys.argv[3]
 row = next(item for item in overlay["work_packages"] if str(item["work_package_id"]) == sys.argv[4])
 row["title"] = "Only in the other project"
 overlay["work_packages"] = [row]
-json.dump(overlay, open(sys.argv[2], "w"))' "$VALID_OVERLAY" "$OVERLAY_DIR/projects/$OTHER_PROJECT/openproject_overlay.json" "$OTHER_PROJECT" "$WORK_PACKAGE"
+json.dump(overlay, open(sys.argv[2], "w", newline="\n"))' "$VALID_OVERLAY" "$OVERLAY_DIR/projects/$OTHER_PROJECT/openproject_overlay.json" "$OTHER_PROJECT" "$WORK_PACKAGE"
 chmod 644 "$OVERLAY_DIR/projects/$OTHER_PROJECT/openproject_overlay.json"
 fetch "$member_jar" "$OTHER_PAGE"
 expect_status "other project with its own overlay" 200

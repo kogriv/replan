@@ -50,7 +50,7 @@ def main(argv):
     first.setdefault("actuals", []).append(
         {"date": overlay.get("status_date", ""), "resource_id": "resource.rendered-check", "resource_name": title, "amount": 1, "unit": "hours"}
     )
-    with open(target, "w", encoding="utf-8") as handle:
+    with open(target, "w", encoding="utf-8", newline="\n") as handle:
         json.dump(overlay, handle)
     print(first["work_package_id"])
     print(detailed["work_package_id"])

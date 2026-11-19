@@ -134,6 +134,11 @@ def emit(data, exit_code=None, default_mode="read_only", **json_options):
     otherwise with the code its ok calls for."""
     out = normalize(data, default_mode)
     options = {"indent": 2, "ensure_ascii": False, **json_options}
+    # Native Windows Python otherwise translates the newline again when a
+    # shell helper redirects this JSON to a scratch or report file.
+    reconfigure = getattr(sys.stdout, "reconfigure", None)
+    if reconfigure is not None:
+        reconfigure(newline="\n")
     print(json.dumps(out, **options))
     raise SystemExit(exit_code_for(out) if exit_code is None else exit_code)
 

@@ -83,6 +83,14 @@ class OpenProjectBindingsTest(unittest.TestCase):
             with self.assertRaisesRegex(FileNotFoundError, f"private binding file not found: {path}"):
                 openproject_bindings.load(path, required=True)
 
+    def test_load_accepts_crlf(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "bindings.yaml")
+            with open(path, "wb") as handle:
+                handle.write(b"openproject_private_bindings:\r\n  tasks: []\r\n")
+            document = openproject_bindings.load(path)
+        self.assertEqual(openproject_bindings.root(document)["tasks"], [])
+
     def test_append_and_replace_keep_unknown_keys_and_refresh_timestamp(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "bindings.yaml")
@@ -112,6 +120,32 @@ class OpenProjectBindingsTest(unittest.TestCase):
             with open(path, "rb") as handle:
                 self.assertEqual(handle.read(), b"old contents\n")
             self.assertEqual(os.listdir(tmp), ["bindings.yaml"])
+
+    def test_write_forces_lf_newlines(self):
+        # Linux text mode already emits LF, so the binary assertion alone
+        # would not catch the Windows regression. Inspecting the tempfile call
+        # makes this test fail if the explicit cross-platform policy is lost.
+        calls = []
+        real_named_temporary_file = tempfile.NamedTemporaryFile
+
+        def named_temporary_file(*args, **kwargs):
+            calls.append((args, kwargs))
+            return real_named_temporary_file(*args, **kwargs)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "bindings.yaml")
+            with mock.patch.object(
+                openproject_bindings.tempfile,
+                "NamedTemporaryFile",
+                side_effect=named_temporary_file,
+            ):
+                openproject_bindings.write(path, openproject_bindings.empty_document())
+            with open(path, "rb") as handle:
+                contents = handle.read()
+
+        self.assertNotIn(b"\r\n", contents)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0][1]["newline"], "\n")
 
 
 if __name__ == "__main__":

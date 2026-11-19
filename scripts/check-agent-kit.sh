@@ -240,7 +240,7 @@ path = sys.argv[1] + "/canonical/tasks.yaml"
 doc = yaml.safe_load(open(path))
 for task in doc["tasks"]:
     task["planned_start"], task["planned_finish"] = "2026-07-20", "2026-07-24"
-yaml.safe_dump(doc, open(path, "w"))' "$WORK_DIR/dated-team"
+yaml.safe_dump(doc, open(path, "w", newline="\n"))' "$WORK_DIR/dated-team"
 kit env REPLAN_PROJECT="$WORK_DIR/dated-team" scripts/check-resource-schedule-drift.sh > "$WORK_DIR/schedule.json" \
   || fail "schedule drift check failed in the kit"
 json_true "$WORK_DIR/schedule.json" "d['ok'] and not d['errors'] and any(r['week'] == '2026-W30' for r in d['weekly_rows'])" \
@@ -372,7 +372,7 @@ yaml.safe_dump({"openproject_private_bindings": {
         {"replan_task_id": "task.op.1234", "source_ref": {"source": "openproject", "object_type": "work_package", "object_id": "102"}},
     ],
     "dependencies": [], "resources": [],
-}}, open(sys.argv[1], "w"), sort_keys=False)' "$KIT/private/openproject/demo-bindings.yaml"
+}}, open(sys.argv[1], "w", newline="\n"), sort_keys=False)' "$KIT/private/openproject/demo-bindings.yaml"
 check
 kit env REPLAN_PROJECT="$KIT/examples/small-team" REPLAN_OPENPROJECT_PROJECT_ID=demo \
   scripts/build-openproject-live-overlay.sh > "$WORK_DIR/overlay-build.json" \
@@ -421,7 +421,7 @@ python3 -c 'import json, sys
 path = sys.argv[1]
 doc = json.load(open(path))
 doc["openproject_project_id"] = "another-project"
-json.dump(doc, open(path, "w"))' "$KIT/tmp/openproject-live-overlay/latest/raw/openproject_overlay.json"
+json.dump(doc, open(path, "w", newline="\n"))' "$KIT/tmp/openproject-live-overlay/latest/raw/openproject_overlay.json"
 check
 rc=0
 kit env REPLAN_OPENPROJECT_PROJECT_ID=demo REPLAN_OVERLAY_PUBLISH_TARGET="$OVERLAY_TARGET" \
@@ -437,7 +437,7 @@ path = sys.argv[1]
 doc = json.load(open(path))
 doc["openproject_project_id"] = "demo"
 doc["scenario_id"] = "scenario.what-if"
-json.dump(doc, open(path, "w"))' "$KIT/tmp/openproject-live-overlay/latest/raw/openproject_overlay.json"
+json.dump(doc, open(path, "w", newline="\n"))' "$KIT/tmp/openproject-live-overlay/latest/raw/openproject_overlay.json"
 check
 rc=0
 kit env REPLAN_OPENPROJECT_PROJECT_ID=demo REPLAN_OVERLAY_PUBLISH_TARGET="$OVERLAY_TARGET" \

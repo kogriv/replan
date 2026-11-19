@@ -349,6 +349,6 @@ json.dump({"ok": not failed,
            "deleted_page_ids": [state.get("deleted_id"), state.get("child_id"), PAGES["protected"]],
            "deleted_attachment_id": state.get("child_attachment_id"),
            "results": results},
-          open(EVIDENCE_PATH, "w"), indent=2, ensure_ascii=False)
+          open(EVIDENCE_PATH, "w", newline="\n"), indent=2, ensure_ascii=False)
 print(f"http cases: {len(results) - len(failed)} of {len(results)} ok; failed: {failed}")
 sys.exit(1 if failed else 0)

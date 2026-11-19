@@ -58,6 +58,7 @@ Windows account/profile permissions and do not put secrets in a shared folder.
 The kit's `.sh` and `.py` files must retain LF endings; `.gitattributes`
 records that rule. Do not let Git or an editor rewrite them to CRLF. Notepad
 CRLF in `.env.local` and the one-line token/key files is accepted.
+Files written by the kit's Python helpers use LF endings on every platform.
 
 Run these read-only checks first:
 

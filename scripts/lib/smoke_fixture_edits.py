@@ -15,7 +15,7 @@ def drop_task_binding(source, target, task_id):
         doc = yaml.safe_load(handle)
     root = doc["openproject_private_bindings"]
     root["tasks"] = [item for item in root["tasks"] if item.get("replan_task_id") != task_id]
-    with open(target, "w", encoding="utf-8") as handle:
+    with open(target, "w", encoding="utf-8", newline="\n") as handle:
         yaml.safe_dump(doc, handle, sort_keys=False)
 
 
@@ -32,12 +32,12 @@ def add_binding_task(tasks_path, current_plan_path):
         "planned_finish": "2026-10-19",
         "tags": ["smoke"],
     })
-    with open(tasks_path, "w", encoding="utf-8") as handle:
+    with open(tasks_path, "w", encoding="utf-8", newline="\n") as handle:
         yaml.safe_dump(tasks_doc, handle, sort_keys=False)
     with open(current_plan_path, encoding="utf-8") as handle:
         plan_doc = yaml.safe_load(handle)
     plan_doc["current_plan"]["included_tasks"].append({"kind": "task", "id": "task.self.smoke-binding-helper"})
-    with open(current_plan_path, "w", encoding="utf-8") as handle:
+    with open(current_plan_path, "w", encoding="utf-8", newline="\n") as handle:
         yaml.safe_dump(plan_doc, handle, sort_keys=False)
 
 

@@ -713,7 +713,7 @@ try:
         partial_apply.writing()
         os.makedirs(overlay_output_dir, exist_ok=True)
         marker_tmp = overlay_marker_path + ".tmp"
-        with open(marker_tmp, "w", encoding="utf-8") as marker_stream:
+        with open(marker_tmp, "w", encoding="utf-8", newline="\n") as marker_stream:
             json.dump(overlay_marker_expected, marker_stream, sort_keys=True)
             marker_stream.write("\n")
         os.replace(marker_tmp, overlay_marker_path)

@@ -212,7 +212,9 @@ def write(path, document):
     os.makedirs(bindings_dir, exist_ok=True)
     temp_path = None
     try:
-        with tempfile.NamedTemporaryFile("w", dir=bindings_dir, delete=False, encoding="utf-8") as handle:
+        with tempfile.NamedTemporaryFile(
+            "w", dir=bindings_dir, delete=False, encoding="utf-8", newline="\n"
+        ) as handle:
             temp_path = handle.name
             yaml.safe_dump(document, handle, sort_keys=False, allow_unicode=True)
         os.replace(temp_path, path)

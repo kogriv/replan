@@ -225,7 +225,7 @@ def command_page_show(args):
     item["attachments"] = [attachment_summary(a) for a in embedded_attachments(page)]
     extra = {}
     if args.output:
-        with open(args.output, "w", encoding="utf-8") as handle:
+        with open(args.output, "w", encoding="utf-8", newline="\n") as handle:
             handle.write(text)
         item["text"]["written_to"] = args.output
     else:
@@ -274,7 +274,7 @@ def command_page_update(args):
         "parent_changed": parent_change, "dry_run": mode != "apply",
     }
     if args.diff_output:
-        with open(args.diff_output, "w", encoding="utf-8") as handle:
+        with open(args.diff_output, "w", encoding="utf-8", newline="\n") as handle:
             handle.write("\n".join(diff) + ("\n" if diff else ""))
         action["diff_written_to"] = args.diff_output
     if args.expect_lock_version != "" and int(args.expect_lock_version) != current.get("lockVersion"):

@@ -101,14 +101,14 @@ import sys, yaml
 path = sys.argv[1]
 with open(path, encoding="utf-8") as handle: document = yaml.safe_load(handle)
 document["dependencies"].append({"id": "dependency.repair-pump-related-validation", "type": "relates", "predecessor_ref": {"kind": "task", "id": "task.offline.repair-pump"}, "successor_ref": {"kind": "task", "id": "task.op.1234"}, "status": "open", "criticality": "optional", "notes": "Throwaway agent-kit check for a non-scheduling symmetric link."})
-with open(path, "w", encoding="utf-8") as handle: yaml.safe_dump(document, handle, sort_keys=False)
+with open(path, "w", encoding="utf-8", newline="\n") as handle: yaml.safe_dump(document, handle, sort_keys=False)
 ' "$WORK_DIR/plan/canonical/dependencies.yaml"
 python3 -c '
 import sys, yaml
 path = sys.argv[1]
 with open(path, encoding="utf-8") as handle: document = yaml.safe_load(handle)
 next(task for task in document["tasks"] if task["id"] == "task.offline.repair-pump")["tracking_status"] = "not_started"
-with open(path, "w", encoding="utf-8") as handle: yaml.safe_dump(document, handle, sort_keys=False)
+with open(path, "w", encoding="utf-8", newline="\n") as handle: yaml.safe_dump(document, handle, sort_keys=False)
 ' "$WORK_DIR/plan/canonical/tasks.yaml"
 sed -e "s#^REPLAN_OPENPROJECT_BASE_URL=.*#REPLAN_OPENPROJECT_BASE_URL=$WEB_URL#" \
     -e "s#^REPLAN_OPENPROJECT_PROJECT_ID=.*#REPLAN_OPENPROJECT_PROJECT_ID=$PROJECT#" \
@@ -292,7 +292,7 @@ next(task for task in document["tasks"] if task["id"] == "task.offline.repair-pu
 # be scheduled, which no role reaches from New for this type, so the push
 # would rightly skip it. Align it for this step and restore it afterwards.
 next(task for task in document["tasks"] if task["id"] == sys.argv[2])["tracking_status"] = "not_started"
-with open(path, "w", encoding="utf-8") as handle: yaml.safe_dump(document, handle, sort_keys=False)
+with open(path, "w", encoding="utf-8", newline="\n") as handle: yaml.safe_dump(document, handle, sort_keys=False)
 ' "$WORK_DIR/plan/canonical/tasks.yaml" "$TASK"
 run "" env REPLAN_OPENPROJECT_STATUS_SCOPE=all REPLAN_OPENPROJECT_STATUS_PATH=forward scripts/push-openproject-status-drift.sh
 expect "forward status dry run verifies only the first transition" "d['ok'] and d['mode'] == 'dry_run' and [s['to'] for s in d['actions'][0]['planned_path']] == ['In progress', 'Developed'] and [s['verified'] for s in d['actions'][0]['planned_path']] == [True, False] and d['counts']['status_actions'] == 1"
@@ -305,7 +305,7 @@ import sys, yaml
 path = sys.argv[1]
 with open(path, encoding="utf-8") as handle: document = yaml.safe_load(handle)
 next(task for task in document["tasks"] if task["id"] == sys.argv[2])["tracking_status"] = "ready"
-with open(path, "w", encoding="utf-8") as handle: yaml.safe_dump(document, handle, sort_keys=False)
+with open(path, "w", encoding="utf-8", newline="\n") as handle: yaml.safe_dump(document, handle, sort_keys=False)
 ' "$WORK_DIR/plan/canonical/tasks.yaml" "$TASK"
 
 # The bindings file is lost: it is rebuilt from OpenProject by title.
@@ -326,7 +326,7 @@ import sys, yaml
 path = sys.argv[1]
 with open(path, encoding="utf-8") as handle: document = yaml.safe_load(handle)
 document["tasks"].append({"id": sys.argv[2], "title": "Agent kit create and bind", "description": "Throwaway create-and-bind live check.", "type": "software", "tracking_status": "ready", "resource_demands": [], "tags": ["agent-kit-check"]})
-with open(path, "w", encoding="utf-8") as handle: yaml.safe_dump(document, handle, sort_keys=False)
+with open(path, "w", encoding="utf-8", newline="\n") as handle: yaml.safe_dump(document, handle, sort_keys=False)
 ' "$WORK_DIR/plan/canonical/tasks.yaml" "$CREATE_BIND_TASK"
 run "" "$TOOLKIT" work-package create --task "$CREATE_BIND_TASK" --bind --subject "Agent kit create and bind"
 expect "create and bind dry run plans no created item" "d['ok'] and d['mode'] == 'dry_run' and d['items'] == [] and d['counts']['planned_actions'] == 1"

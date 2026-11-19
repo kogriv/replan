@@ -7,6 +7,7 @@ passes.
 """
 
 import http.server
+import io
 import json
 import os
 import shutil
@@ -15,6 +16,7 @@ import sys
 import tempfile
 import threading
 import unittest
+from unittest import mock
 
 import yaml
 
@@ -85,6 +87,18 @@ TABLE = set(helper_envelope.EXIT.values()) - {0}
 
 
 class NormalizeTest(unittest.TestCase):
+    def test_emit_configures_redirected_stdout_for_lf(self):
+        class ReconfigurableStream(io.StringIO):
+            def reconfigure(self, **kwargs):
+                self.reconfigured = kwargs
+
+        stream = ReconfigurableStream()
+        with mock.patch.object(helper_envelope.sys, "stdout", stream):
+            with self.assertRaisesRegex(SystemExit, "0"):
+                helper_envelope.emit({"ok": True, "command": "c"})
+        self.assertEqual(stream.reconfigured, {"newline": "\n"})
+        self.assertNotIn("\r\n", stream.getvalue())
+
     def test_old_error_string_becomes_an_entry(self):
         out = helper_envelope.normalize({"ok": True, "command": "c", "mode": "apply", "error": "boom", "message": "it broke"})
         self.assertFalse(out["ok"])

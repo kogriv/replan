@@ -171,7 +171,8 @@ with tempfile.TemporaryDirectory(prefix="replan-release.", dir=os.environ.get("T
                 fail("release_version_mismatch", f"host binary reported {reported!r}, expected {version!r}", helper_envelope.EXIT["attention"])
 
 sums = output_dir / "SHA256SUMS"
-sums.write_text("".join(f"{item['sha256']}  {item['name']}\n" for item in archives), encoding="utf-8")
+with sums.open("w", encoding="utf-8", newline="\n") as stream:
+    stream.write("".join(f"{item['sha256']}  {item['name']}\n" for item in archives))
 helper_envelope.emit({
     "ok": True,
     "command": COMMAND,

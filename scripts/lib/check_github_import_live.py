@@ -19,7 +19,7 @@ def add_profile(project_file, repository, token_env):
     live["repository"] = repository
     live["token_env"] = token_env
     profiles.append(live)
-    with path.open("w", encoding="utf-8") as stream:
+    with path.open("w", encoding="utf-8", newline="\n") as stream:
         yaml.safe_dump(data, stream, sort_keys=False)
 
 

@@ -18,7 +18,7 @@ def main(argv):
 
     class Handler(http.server.BaseHTTPRequestHandler):
         def do_GET(self):
-            with open(log_path, "a", encoding="utf-8") as log:
+            with open(log_path, "a", encoding="utf-8", newline="\n") as log:
                 log.write("agent=%s key=%s authorization=%s path=%s\n" % (
                     (self.headers.get("User-Agent") or "").split("/")[0],
                     self.headers.get("X-Perimeter-Key") or "-",
@@ -36,7 +36,7 @@ def main(argv):
             pass
 
     server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
-    with open(port_path, "w", encoding="utf-8") as handle:
+    with open(port_path, "w", encoding="utf-8", newline="\n") as handle:
         handle.write(str(server.server_address[1]))
     server.serve_forever()
 
