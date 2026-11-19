@@ -1142,3 +1142,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.session-helper-skip-unused-source
+  - id: evidence.self.start-kit-writes-lf-line-endings
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-19T16:38:13+07:00"
+    summary: 'Started on the planned day: the Codex round began at 16:38:13.'
+    targets:
+      - kind: task
+        id: task.self.kit-writes-lf-line-endings
+  - id: evidence.self.kit-writes-lf-line-endings
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-19T17:28:15+07:00"
+    summary: 'Feature commit c273d8e: every Python helper of the agent kit writes its files with newline=''\n'' (private binding layer, accept-task overlay marker, wiki page and diff output, release SHA256SUMS, check and smoke fixtures, inline Python in shell helpers), and the helper JSON envelope reconfigures stdout for LF when a shell helper redirects it to a file. A static test rejects a text-mode write without an explicit newline in scripts/lib and the inline Python of scripts/*.sh; a binding write test checks the bytes and the newline argument; CRLF binding files still load. Review: clean in one round. Gate: vet, lint 0, shellcheck, Go and Python suites, smoke, isolated smoke, 58 kit checks, plugin throwaway runtime, live kit check 108 checks. Codex 16:38:13-16:58:54 (0.34 h, prompt and last-file mtimes). Executor 0.03 h measured with scripts/agent-session-consumption.sh, plus the booking.'
+    targets:
+      - kind: task
+        id: task.self.kit-writes-lf-line-endings
