@@ -1013,6 +1013,18 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2398"
         url: https://op.example.internal/work_packages/2398
+    - replan_task_id: task.self.kit-writes-lf-line-endings
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2399"
+        url: https://op.example.internal/work_packages/2399
+    - replan_task_id: task.self.publish-release-v0-5-9
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2400"
+        url: https://op.example.internal/work_packages/2400
     - replan_task_id: task.self.date-push-nothing-to-apply-is-ok
       source_ref:
         source: openproject

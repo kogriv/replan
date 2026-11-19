@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 298,
-  "count": 298,
+  "total": 300,
+  "count": 300,
   "_embedded": {
     "elements": [
       {
@@ -8636,6 +8636,64 @@
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2398"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2399,
+        "subject": "Write kit files with LF line endings on every platform",
+        "description": {
+          "raw": "Reported on 2026-11-19 by the third consumer project on Windows with v0.5.8: after work-package create --task X --bind, git warned that the private binding file was written with CRLF; that project's .gitattributes forces LF, so nothing broke, but in a project without such a rule every Windows write rewrites the whole binding file. scripts/lib/openproject_bindings.py writes the YAML through a text-mode file, which uses CRLF on Windows. Make every Python helper of the agent kit that writes a project, binding, evidence, overlay or temp-copy file write LF on every platform (newline='\\n' or a binary write), add a static test that rejects a text-mode write without an explicit newline in the kit helpers and a behavioural test of the binding write with CRLF translation simulated, and note it in the agent kit docs."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-19",
+        "dueDate": "2026-11-19",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2399"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2400,
+        "subject": "Publish release v0.5.9 with the unused source and LF line ending fixes",
+        "description": {
+          "raw": "Tag and publish v0.5.9 with the session helper leaving unused sources out of its result and the kit writing files with LF line endings on every platform, verify the archives and attestations, build the Linux and Windows agent kits, install them where each consumer project takes them and tell each consumer session what changed."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-19",
+        "dueDate": "2026-11-19",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2400"
           },
           "status": {
             "title": "New"

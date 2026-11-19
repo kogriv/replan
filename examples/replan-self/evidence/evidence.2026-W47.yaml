@@ -1131,3 +1131,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.session-helper-skip-unused-source
+  - id: evidence.self.ack-ci-overrun-session-helper-skip-unused-source
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-19T16:32:47+07:00"
+    summary: The maintainer acknowledged in chat (2026-11-19 16:32) that 13 billable minutes measured from GitHub Actions run 44096250459 exceed the 10 planned for this task.
+    targets:
+      - kind: task
+        id: task.self.session-helper-skip-unused-source

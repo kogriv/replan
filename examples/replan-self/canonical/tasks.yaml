@@ -8776,3 +8776,60 @@ tasks:
         object_type: work_package
         object_id: "2398"
         url: https://op.example.internal/work_packages/2398
+  - id: task.self.kit-writes-lf-line-endings
+    title: Write kit files with LF line endings on every platform
+    description: 'Reported on 2026-11-19 by the third consumer project on Windows with v0.5.8: after work-package create --task X --bind, git warned that the private binding file was written with CRLF; that project''s .gitattributes forces LF, so nothing broke, but in a project without such a rule every Windows write rewrites the whole binding file. scripts/lib/openproject_bindings.py writes the YAML through a text-mode file, which uses CRLF on Windows. Make every Python helper of the agent kit that writes a project, binding, evidence, overlay or temp-copy file write LF on every platform (newline=''\n'' or a binary write), add a static test that rejects a text-mode write without an explicit newline in the kit helpers and a behavioural test of the binding write with CRLF translation simulated, and note it in the agent kit docs.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-19"
+    planned_finish: "2026-11-19"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.kit-writes-lf-line-endings.codex
+      - kind: resource_demand
+        id: resource_demand.kit-writes-lf-line-endings.agent
+      - kind: resource_demand
+        id: resource_demand.kit-writes-lf-line-endings.maintainer
+      - kind: resource_demand
+        id: resource_demand.kit-writes-lf-line-endings.local-dev
+      - kind: resource_demand
+        id: resource_demand.kit-writes-lf-line-endings.ci
+    tags:
+      - consumer-feedback
+      - helpers
+      - windows
+      - gap
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2399"
+        url: https://op.example.internal/work_packages/2399
+  - id: task.self.publish-release-v0-5-9
+    title: Publish release v0.5.9 with the unused source and LF line ending fixes
+    description: 'Tag and publish v0.5.9 with the session helper leaving unused sources out of its result and the kit writing files with LF line endings on every platform, verify the archives and attestations, build the Linux and Windows agent kits, install them where each consumer project takes them and tell each consumer session what changed.'
+    type: release
+    tracking_status: not_started
+    planned_start: "2026-11-19"
+    planned_finish: "2026-11-19"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.publish-release-v0-5-9.agent
+      - kind: resource_demand
+        id: resource_demand.publish-release-v0-5-9.maintainer
+      - kind: resource_demand
+        id: resource_demand.publish-release-v0-5-9.local-dev
+      - kind: resource_demand
+        id: resource_demand.publish-release-v0-5-9.ci
+    tags:
+      - release
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2400"
+        url: https://op.example.internal/work_packages/2400

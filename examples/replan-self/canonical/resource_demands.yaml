@@ -18122,3 +18122,140 @@ resource_demands:
     remaining_amount: 0
     criticality: required
     status: consumed
+    overrun_review:
+      acknowledged_forecast: 13
+      unit: ci_minutes
+      reason: Measured CI (13 billable minutes, run 44096250459) exceeds the 10 planned; acknowledged by the maintainer in chat.
+      reviewed_by:
+        kind: actor
+        id: actor.human.maintainer
+      reviewed_at: "2026-11-19T16:32:47+07:00"
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.ack-ci-overrun-session-helper-skip-unused-source
+  - id: resource_demand.kit-writes-lf-line-endings.codex
+    task_ref:
+      kind: task
+      id: task.self.kit-writes-lf-line-endings
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 0.4
+    remaining_amount: 0.4
+    criticality: required
+    status: active
+  - id: resource_demand.kit-writes-lf-line-endings.agent
+    task_ref:
+      kind: task
+      id: task.self.kit-writes-lf-line-endings
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 0.15
+    remaining_amount: 0.15
+    criticality: required
+    status: active
+  - id: resource_demand.kit-writes-lf-line-endings.maintainer
+    task_ref:
+      kind: task
+      id: task.self.kit-writes-lf-line-endings
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    resource_class: human
+    role: maintainer
+    unit: hours
+    planned_amount: 0.25
+    remaining_amount: 0.25
+    criticality: required
+    status: active
+  - id: resource_demand.kit-writes-lf-line-endings.local-dev
+    task_ref:
+      kind: task
+      id: task.self.kit-writes-lf-line-endings
+    resource_ref:
+      kind: resource
+      id: resource.environment.local-dev
+    resource_class: environment
+    role: development_environment
+    unit: concurrent_slots
+    planned_amount: 1
+    remaining_amount: 1
+    criticality: required
+    status: active
+  - id: resource_demand.kit-writes-lf-line-endings.ci
+    task_ref:
+      kind: task
+      id: task.self.kit-writes-lf-line-endings
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    resource_class: service_quota
+    role: ci_runtime
+    unit: ci_minutes
+    planned_amount: 10
+    remaining_amount: 10
+    criticality: required
+    status: active
+  - id: resource_demand.publish-release-v0-5-9.agent
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-5-9
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 0.5
+    remaining_amount: 0.5
+    criticality: required
+    status: active
+  - id: resource_demand.publish-release-v0-5-9.maintainer
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-5-9
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    resource_class: human
+    role: maintainer
+    unit: hours
+    planned_amount: 0.25
+    remaining_amount: 0.25
+    criticality: required
+    status: active
+  - id: resource_demand.publish-release-v0-5-9.local-dev
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-5-9
+    resource_ref:
+      kind: resource
+      id: resource.environment.local-dev
+    resource_class: environment
+    role: development_environment
+    unit: concurrent_slots
+    planned_amount: 1
+    remaining_amount: 1
+    criticality: required
+    status: active
+  - id: resource_demand.publish-release-v0-5-9.ci
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-5-9
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    resource_class: service_quota
+    role: ci_runtime
+    unit: ci_minutes
+    planned_amount: 30
+    remaining_amount: 30
+    criticality: required
+    status: active
