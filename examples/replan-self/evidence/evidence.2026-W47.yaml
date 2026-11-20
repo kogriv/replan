@@ -1164,3 +1164,16 @@ evidence:
     targets:
       - kind: task
         id: task.self.kit-writes-lf-line-endings
+  - id: evidence.self.accept-kit-writes-lf-line-endings
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-20T04:07:58Z"
+    confidence: observed
+    summary: 'Accepted by the maintainer in chat: every Python helper of the agent kit writes its files with LF line endings on every platform, guarded by a static test. CI measured from GitHub Actions runs 44505868453, 44506436459: 23 billable minutes. Review time stated by actor.human.maintainer: 10 minutes.'
+    targets:
+      - kind: task
+        id: task.self.kit-writes-lf-line-endings

@@ -18146,7 +18146,7 @@ resource_demands:
     planned_amount: 0.4
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.kit-writes-lf-line-endings.agent
     task_ref:
       kind: task
@@ -18160,7 +18160,7 @@ resource_demands:
     planned_amount: 0.15
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.kit-writes-lf-line-endings.maintainer
     task_ref:
       kind: task
@@ -18172,9 +18172,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.kit-writes-lf-line-endings.local-dev
     task_ref:
       kind: task
@@ -18186,9 +18186,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.kit-writes-lf-line-endings.ci
     task_ref:
       kind: task
@@ -18200,9 +18200,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.publish-release-v0-5-9.agent
     task_ref:
       kind: task

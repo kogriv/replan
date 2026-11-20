@@ -1711,3 +1711,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.kit-writes-lf-line-endings
+  - id: actual.self-kit-writes-lf-line-endings.ci-github-actions.20261120T040758Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.kit-writes-lf-line-endings
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.kit-writes-lf-line-endings.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 23
+    unit: ci_minutes
+    measurement: measured
+    occurred_at: "2026-11-20T04:07:58Z"
+    status_date: "2026-11-20"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-kit-writes-lf-line-endings
+  - id: actual.self-kit-writes-lf-line-endings.human-maintainer.20261120T040758Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.kit-writes-lf-line-endings
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.kit-writes-lf-line-endings.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.17
+    unit: hours
+    measurement: stated
+    occurred_at: "2026-11-20T04:07:58Z"
+    status_date: "2026-11-20"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-kit-writes-lf-line-endings
