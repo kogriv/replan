@@ -8811,7 +8811,7 @@ tasks:
     title: Publish release v0.5.9 with the unused source and LF line ending fixes
     description: 'Tag and publish v0.5.9 with the session helper leaving unused sources out of its result and the kit writing files with LF line endings on every platform, verify the archives and attestations, build the Linux and Windows agent kits, install them where each consumer project takes them and tell each consumer session what changed.'
     type: release
-    tracking_status: not_started
+    tracking_status: review_ready
     planned_start: "2026-11-19"
     planned_finish: "2026-11-19"
     assignee_hint:

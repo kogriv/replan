@@ -1177,3 +1177,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.kit-writes-lf-line-endings
+  - id: evidence.self.start-publish-release-v0-5-9
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-20T11:14:54+07:00"
+    summary: Started one working day after the planned day, after the LF line ending task it ships was accepted on 2026-11-20.
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-9
+  - id: evidence.self.publish-release-v0-5-9
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-20T11:24:06+07:00"
+    summary: 'Published RePlan v0.5.9 from 68aabe2 after green CI (run 44672817150): tag v0.5.9, local release build (6 archives, sums checked; the first build attempt refused release_tree_dirty because the start records were uncommitted, so they were stashed for the build) identical to the release workflow run 44673509943 (SHA256SUMS match), GitHub release with notes, downloaded archives match SHA256SUMS, attestations verify for the Windows archive and SHA256SUMS, go install @v0.5.9 works. Agent kits built from the tag (no private patterns besides each kit''s purpose line): the first consumer project''s kit installed on its server (current switched from v0.5.8, version and a read-only work-package list checked); the second consumer project''s kit uploaded to its wiki page, downloaded back and matched, its plan copy validates with the new binary, page text updated; the third consumer project''s Linux and Windows kits uploaded to its wiki page, downloaded back and matched, page text updated, the v0.5.7 kits removed. The three consumer sessions were told what changed; the third project was asked to confirm on Windows that a binding write no longer leaves CRLF. Executor 0.15 h measured with scripts/agent-session-consumption.sh over the task window.'
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-9
