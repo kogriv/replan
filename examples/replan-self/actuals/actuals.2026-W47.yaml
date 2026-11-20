@@ -1843,3 +1843,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.kit-windows-git-settings-docs
+  - id: actual.self-work-package-rebind.ai-codex-local.20261120T1434290700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.work-package-rebind
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.work-package-rebind.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.43
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-20T14:34:29+07:00"
+    status_date: "2026-11-20"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.work-package-rebind
+  - id: actual.self-work-package-rebind.ai-agent-executor.20261120T1434290700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.work-package-rebind
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.work-package-rebind.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.11
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-20T14:34:29+07:00"
+    status_date: "2026-11-20"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.work-package-rebind

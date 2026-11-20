@@ -1256,3 +1256,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.kit-windows-git-settings-docs
+  - id: evidence.self.work-package-rebind
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-20T14:34:29+07:00"
+    summary: 'Feature commit edf67ea: scripts/openproject-work-package-toolkit.sh work-package bind --replace replaces a task binding in place (same list position, previous_source_ref reported, a successful no-op when the work package is unchanged, replaced: false on an unbound task) and work-package unbind removes one (task_not_bound when none); both are dry runs unless REPLAN_APPLY=1, keep the existence check and work_package_already_bound, write only the private binding file atomically with LF, and warn dependency_bindings_reference_previous_work_package for relation bindings whose recorded endpoints name the previous work package. Checked on the self project in dry run: plain bind refuses with a hint at --replace, same-package replace is a no-op, a package bound elsewhere is refused, unbind reports the previous binding; the binding file was unchanged. Review: clean in one round. Gate: vet, lint 0, shellcheck, Go and Python suites, smoke, isolated smoke, 58 kit checks, plugin throwaway runtime, live kit check 108 checks. Codex 13:32:49-13:58:25 (0.43 h, prompt and last-file mtimes). Executor 0.11 h measured with scripts/agent-session-consumption.sh over the task window minus the sub-windows of the Windows git settings docs task.'
+    targets:
+      - kind: task
+        id: task.self.work-package-rebind
