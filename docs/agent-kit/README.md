@@ -59,6 +59,10 @@ The kit's `.sh` and `.py` files must retain LF endings; `.gitattributes`
 records that rule. Do not let Git or an editor rewrite them to CRLF. Notepad
 CRLF in `.env.local` and the one-line token/key files is accepted.
 Files written by the kit's Python helpers use LF endings on every platform.
+In a Git for Windows clone with `core.autocrlf=true`, keep the plan folder LF
+with an `eol=lf` rule in the project's `.gitattributes` (or
+`core.autocrlf false` in that clone), and clone into a short path or set
+`core.longpaths true`; `WINDOWS.md` explains both.
 
 Run these read-only checks first:
 

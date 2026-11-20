@@ -29,6 +29,43 @@ The last command reads `.env.local`; without a token it returns a JSON warning
 and does not write. WSL remains an alternative if the analyst prefers a full
 Linux environment.
 
+## Your project's Git checkout
+
+The kit helpers write the plan, evidence and private binding files with LF
+line endings on every platform. Git for Windows usually installs with
+`core.autocrlf=true`, which checks text files out with CRLF; in such a clone a
+file the kit wrote with LF is reported as `LF will be replaced by CRLF the next
+time Git touches it`, and an editor or a later checkout can flip the whole file
+back. Keep the plan in LF in one of two ways:
+
+- Preferred, for everyone who clones the project: add a rule to the project's
+  `.gitattributes`, for example
+
+  ```gitattributes
+  planning/** text eol=lf
+  ```
+
+  with your plan folder in place of `planning/`. An `eol` attribute overrides
+  `core.autocrlf` for those paths, so every clone checks them out with LF.
+  After adding the rule, run `git add --renormalize planning` once and commit.
+- Only in your own clone: `git config core.autocrlf false` in that repository.
+  Other people's clones keep their own setting.
+
+A private binding file kept out of Git (ignored, the usual setup) is never
+converted by Git and stays LF. If your project commits it, cover its folder
+with the same `eol=lf` rule.
+
+Plan folders have long paths, for example under `proposals/accepted/`. If the
+clone sits in a deep folder, Git for Windows can refuse to create such files
+with `Filename too long`. Clone the project into a short path such as
+`C:/src/<project>`, or let Git use long paths:
+
+```sh
+git config --global core.longpaths true
+# or for one clone only:
+git clone -c core.longpaths=true <url> <folder>
+```
+
 The kit helpers convert their explicit path arguments before invoking native
 Windows Python or `replan.exe`; they do not depend on Git Bash's automatic
 argument conversion. It is safe to use the helpers with `MSYS_NO_PATHCONV=1`
@@ -37,8 +74,8 @@ preserve `/api/v3/...` arguments.
 
 If `scripts/accept-task.sh` fails with `[WinError 2] The system cannot find the
 file specified`, use a full executable path including the suffix, for example
-`REPLAN_BIN=C:/path/to/replan-kit/bin/replan.exe`. This is fixed in the next
-kit release; the explicit `.exe` setting is the workaround for older kits.
+`REPLAN_BIN=C:/path/to/replan-kit/bin/replan.exe`. This is fixed since kit
+v0.5.7; the explicit `.exe` setting is the workaround for older kits.
 
 The kit's scratch-project copies work with long paths by default. Native
 Windows Python accesses them through extended-length paths internally, while
