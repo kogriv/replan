@@ -1,0 +1,42 @@
+baseline:
+  id: baseline.2026-11-20.kit-windows-git-settings-docs
+  name: kit-windows-git-settings-docs as agreed on 2026-11-20
+  scope: tasks
+  created_at: "2026-11-20T13:27:26+07:00"
+  approved_at: "2026-11-20T13:27:26+07:00"
+  approved_by:
+    kind: actor
+    id: actor.human.maintainer
+  included_tasks:
+    - kind: task
+      id: task.self.kit-windows-git-settings-docs
+      planned_start: "2026-11-20"
+      planned_finish: "2026-11-20"
+  included_demands:
+    - kind: resource_demand
+      id: resource_demand.kit-windows-git-settings-docs.agent
+      task: task.self.kit-windows-git-settings-docs
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 0.15
+    - kind: resource_demand
+      id: resource_demand.kit-windows-git-settings-docs.maintainer
+      task: task.self.kit-windows-git-settings-docs
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.1
+    - kind: resource_demand
+      id: resource_demand.kit-windows-git-settings-docs.local-dev
+      task: task.self.kit-windows-git-settings-docs
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.kit-windows-git-settings-docs.ci
+      task: task.self.kit-windows-git-settings-docs
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  seal:
+    algorithm: sha256
+    digest: 406c63dfc199e5993303288317759edd19ce7f726215065d669ac70a5f41c0c5

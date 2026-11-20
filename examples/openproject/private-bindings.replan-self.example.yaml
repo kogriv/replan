@@ -1025,6 +1025,18 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2400"
         url: https://op.example.internal/work_packages/2400
+    - replan_task_id: task.self.kit-windows-git-settings-docs
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2401"
+        url: https://op.example.internal/work_packages/2401
+    - replan_task_id: task.self.work-package-rebind
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2402"
+        url: https://op.example.internal/work_packages/2402
     - replan_task_id: task.self.date-push-nothing-to-apply-is-ok
       source_ref:
         source: openproject

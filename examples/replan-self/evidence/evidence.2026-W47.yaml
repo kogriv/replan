@@ -1199,3 +1199,27 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-9
+  - id: evidence.self.ack-ci-overrun-kit-writes-lf-line-endings
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-20T13:27:26+07:00"
+    summary: The maintainer acknowledged in chat (2026-11-20 13:27) that 23 billable minutes measured from GitHub Actions runs 44505868453 (code) and 44506436459 (review-ready data), pushed separately, exceed the 10 planned for this task.
+    targets:
+      - kind: task
+        id: task.self.kit-writes-lf-line-endings
+  - id: evidence.self.accept-publish-release-v0-5-9
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-20T06:27:26Z"
+    confidence: observed
+    summary: 'The maintainer accepted in chat that RePlan v0.5.9 is published and the kits are handed over. CI measured from GitHub Actions runs 44672817150, 44673509943, 44674399064: 26 billable minutes. Review time stated by actor.human.maintainer: 9 minutes.'
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-9
