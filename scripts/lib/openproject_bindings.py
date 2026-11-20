@@ -235,6 +235,30 @@ def append_task_binding(path, task_id, source_ref, *, document=None):
     return document
 
 
+def replace_task_binding(path, task_id, source_ref, *, document=None):
+    document = document if document is not None else load(path)
+    tasks = root(document)["tasks"]
+    for index, binding in enumerate(tasks):
+        if binding.get("replan_task_id") == task_id:
+            tasks[index] = {"replan_task_id": task_id, "source_ref": source_ref}
+            refresh_generated_at(document)
+            write(path, document)
+            return document
+    raise KeyError(task_id)
+
+
+def remove_task_binding(path, task_id, *, document=None):
+    document = document if document is not None else load(path)
+    tasks = root(document)["tasks"]
+    for index, binding in enumerate(tasks):
+        if binding.get("replan_task_id") == task_id:
+            del tasks[index]
+            refresh_generated_at(document)
+            write(path, document)
+            return document
+    raise KeyError(task_id)
+
+
 def replace_dependency_bindings(path, dependencies, *, document=None):
     document = document if document is not None else load(path)
     root(document)["dependencies"] = dependencies

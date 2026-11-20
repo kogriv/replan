@@ -109,6 +109,37 @@ class OpenProjectBindingsTest(unittest.TestCase):
         self.assertEqual(layer["dependencies"], [{"replan_dependency_id": "dep.a"}])
         self.assertNotEqual(layer["generated_at"], "old")
 
+    def test_replace_and_remove_task_binding_keep_list_order(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "bindings.yaml")
+            self.write_yaml(path, {"openproject_private_bindings": {
+                "generated_at": "old",
+                "tasks": [
+                    {"replan_task_id": "task.a", "source_ref": {"object_id": "1"}, "keep": "a"},
+                    {"replan_task_id": "task.b", "source_ref": {"object_id": "2"}},
+                    {"replan_task_id": "task.c", "source_ref": {"object_id": "3"}, "keep": "c"},
+                ],
+                "dependencies": [], "resources": [],
+            }})
+            openproject_bindings.replace_task_binding(
+                path, "task.b", {"object_id": "20"},
+            )
+            document = openproject_bindings.load(path)
+            tasks = openproject_bindings.root(document)["tasks"]
+            self.assertEqual([row["replan_task_id"] for row in tasks], [
+                "task.a", "task.b", "task.c",
+            ])
+            self.assertEqual(tasks[0]["keep"], "a")
+            self.assertEqual(tasks[1]["source_ref"], {"object_id": "20"})
+            self.assertEqual(tasks[2]["keep"], "c")
+
+            openproject_bindings.remove_task_binding(path, "task.b")
+            document = openproject_bindings.load(path)
+            self.assertEqual(
+                [row["replan_task_id"] for row in openproject_bindings.root(document)["tasks"]],
+                ["task.a", "task.c"],
+            )
+
     def test_atomic_write_leaves_old_file_when_dump_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "bindings.yaml")
