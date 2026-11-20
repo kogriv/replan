@@ -8837,7 +8837,7 @@ tasks:
     title: Document git line ending and long path settings for Windows kit users
     description: 'Reported on 2026-11-20 by the third consumer project after checking v0.5.9 on Windows: the kit now writes LF, but in a clone with core.autocrlf=true and no eol rule in .gitattributes git warns ''LF will be replaced by CRLF'' on every kit write, and a clone in a deep folder fails with ''Filename too long'' on long plan paths. Add to docs/agent-kit/WINDOWS.md (and the README Windows pointer if needed) how to keep plan files LF: an eol=lf rule in .gitattributes for the plan and binding paths, or core.autocrlf false in that clone; and how to clone into a short path or set core.longpaths true; keep the existing Win32 long path policy note; check the advice against git''s documented behaviour.'
     type: documentation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-20"
     planned_finish: "2026-11-20"
     assignee_hint:
@@ -8865,7 +8865,7 @@ tasks:
     title: Replace an existing work package binding through the toolkit
     description: 'Found on 2026-11-20 by the third consumer project while checking v0.5.9 on Windows: scripts/openproject-work-package-toolkit.sh work-package bind refuses a task that is already bound (task_already_bound) and the kit has no command to replace or remove a binding, so moving a task to another work package (or rewriting a damaged binding) needs a hand edit of the private binding file. Add an explicit, reviewed way to replace a task binding (for example work-package bind --replace, or an unbind command followed by bind): dry run by default, REPLAN_APPLY=1 to write, refuse when the new work package is bound to another task, keep the binding file atomic and LF, report the previous binding in the result, leave OpenProject untouched; tests and agent kit docs.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-20"
     planned_finish: "2026-11-20"
     assignee_hint:

@@ -1267,3 +1267,29 @@ evidence:
     targets:
       - kind: task
         id: task.self.work-package-rebind
+  - id: evidence.self.accept-kit-windows-git-settings-docs
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-20T08:44:44Z"
+    confidence: observed
+    summary: 'Accepted by the maintainer in chat: the agent kit Windows notes explain the Git line ending and long path settings for a project checkout. CI measured from GitHub Actions runs 44688493699: 13 billable minutes. Review time stated by actor.human.maintainer: 10 minutes.'
+    targets:
+      - kind: task
+        id: task.self.kit-windows-git-settings-docs
+  - id: evidence.self.accept-work-package-rebind
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-20T08:44:44Z"
+    confidence: observed
+    summary: 'Accepted by the maintainer in chat: the toolkit replaces a task binding with bind --replace and removes one with unbind. CI measured from GitHub Actions runs 44696452776: 13 billable minutes. Review time stated by actor.human.maintainer: 10 minutes.'
+    targets:
+      - kind: task
+        id: task.self.work-package-rebind
