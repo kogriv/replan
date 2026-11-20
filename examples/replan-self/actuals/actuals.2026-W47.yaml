@@ -1821,3 +1821,25 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-publish-release-v0-5-9
+  - id: actual.self-kit-windows-git-settings-docs.ai-agent-executor.20261120T1404330700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.kit-windows-git-settings-docs
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.kit-windows-git-settings-docs.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.06
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-20T14:04:33+07:00"
+    status_date: "2026-11-20"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.kit-windows-git-settings-docs

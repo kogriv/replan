@@ -1223,3 +1223,36 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-9
+  - id: evidence.self.start-work-package-rebind
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-20T13:32:49+07:00"
+    summary: 'Started on the planned day: the Codex round began at 13:32:49.'
+    targets:
+      - kind: task
+        id: task.self.work-package-rebind
+  - id: evidence.self.start-kit-windows-git-settings-docs
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-20T13:33:11+07:00"
+    summary: Started on the planned day at 13:33:11, while the Codex round of the binding replacement task ran.
+    targets:
+      - kind: task
+        id: task.self.kit-windows-git-settings-docs
+  - id: evidence.self.kit-windows-git-settings-docs
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-20T14:04:33+07:00"
+    summary: 'Docs commit 681e38c: docs/agent-kit/WINDOWS.md gains a section on the project''s Git checkout (keep the plan folder LF in a Git for Windows clone with core.autocrlf=true through an eol=lf rule in .gitattributes plus a one-time renormalize, or core.autocrlf false in that clone; a committed binding file needs the same rule; avoid ''Filename too long'' with a short clone path or core.longpaths true), the agent kit README points to it, and the stale note on the replan.exe workaround now says it is fixed since v0.5.7. The advice was checked in a scratch repository with core.autocrlf=true: without the rule git warns ''LF will be replaced by CRLF'', with planning/** text eol=lf it does not and checks the file out with LF. Gate: vet, lint 0, shellcheck, Go and Python suites, smoke, isolated smoke, 58 kit checks, Windows kit static checks, plugin throwaway runtime, live kit check 108 checks. Executor 0.06 h measured with scripts/agent-session-consumption.sh over 06:33:11-06:58:36Z and 07:01:59Z to the booking, leaving out the review of the binding replacement patch.'
+    targets:
+      - kind: task
+        id: task.self.kit-windows-git-settings-docs
