@@ -1168,6 +1168,11 @@ func validateOpenProjectSourceProfile(result *ValidateResult, profile domain.Sou
 	if strings.Contains(profile.BaseURL, "@") {
 		addError(result, "secret_like_openproject_base_url", "OpenProject source profile base_url must not contain embedded credentials", "source_profile", targetID)
 	}
+	for key, status := range profile.StatusMap {
+		if strings.TrimSpace(key) == "" || !domain.ValidTrackingStatus(status) {
+			addError(result, "invalid_openproject_status_map", fmt.Sprintf("OpenProject status map entry %q has invalid tracking status %q", key, status), "source_profile", targetID)
+		}
+	}
 }
 
 func validHTTPURL(value string) bool {

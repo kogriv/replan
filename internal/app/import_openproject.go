@@ -541,7 +541,7 @@ func (s OpenProjectImportService) Import(ctx context.Context, req OpenProjectImp
 	}
 	resourceCandidates := map[string]OpenProjectResourceCandidate{}
 	for _, wp := range collection.Embedded.Elements {
-		candidate := mapOpenProjectWorkPackage(ws, wp, &result.Warnings)
+		candidate := mapOpenProjectWorkPackage(ws, wp, selectedProfile.StatusMap, &result.Warnings)
 		result.TaskCandidates = append(result.TaskCandidates, candidate)
 		if candidate.AssigneeName != "" {
 			key := candidate.AssigneeHref
@@ -1287,11 +1287,11 @@ func sourceProfileSummary(profile domain.SourceProfile) *SourceProfileSummary {
 	}
 }
 
-func mapOpenProjectWorkPackage(ws domain.Workspace, wp openProjectWorkPackage, warnings *[]Diagnostic) OpenProjectTaskCandidate {
+func mapOpenProjectWorkPackage(ws domain.Workspace, wp openProjectWorkPackage, statusMap map[string]string, warnings *[]Diagnostic) OpenProjectTaskCandidate {
 	sourceID := strconv.Itoa(wp.ID)
 	sourceURL := wp.Links.Self.Href
 	status := firstNonEmpty(wp.Status.Name, wp.Links.Status.Title)
-	mappedStatus := mapOpenProjectStatus(status)
+	mappedStatus := mapOpenProjectStatusWithOverrides(status, statusMap)
 	candidate := OpenProjectTaskCandidate{
 		SourceID:       sourceID,
 		SourceURL:      sourceURL,
@@ -1884,25 +1884,19 @@ func matchResourceByName(resources []domain.Resource, name string) string {
 	return ""
 }
 
+//go:generate python3 testdata/generate_openproject_status_map.py
 func mapOpenProjectStatus(status string) string {
-	switch normalizeStatus(status) {
-	case "new", "open":
-		return "not_started"
-	case "tobescheduled", "scheduled", "inspecification", "specified", "confirmed":
-		return "ready"
-	case "inprogress", "progress", "development", "developing":
-		return "in_progress"
-	case "blocked", "onhold":
-		return "blocked"
-	case "review", "readyforreview", "developed", "intesting", "tested":
-		return "review_ready"
-	case "closed", "done", "resolved", "accepted":
-		return "accepted"
-	case "rejected", "cancelled", "canceled":
-		return "cancelled"
-	default:
-		return ""
+	return mapOpenProjectStatusWithOverrides(status, nil)
+}
+
+func mapOpenProjectStatusWithOverrides(status string, statusMap map[string]string) string {
+	normalized := normalizeStatus(status)
+	for sourceStatus, trackingStatus := range statusMap {
+		if normalizeStatus(sourceStatus) == normalized {
+			return trackingStatus
+		}
 	}
+	return openProjectStatusByNormalizedName[normalized]
 }
 
 func normalizeStatus(status string) string {

@@ -102,6 +102,40 @@ func TestOpenProjectImportUnknownProfile(t *testing.T) {
 	}
 }
 
+func TestOpenProjectImportAppliesProfileStatusMap(t *testing.T) {
+	fixture := filepath.Join(t.TempDir(), "work-packages.json")
+	if err := os.WriteFile(fixture, []byte(`{
+  "_type": "Collection",
+  "total": 1,
+  "count": 1,
+  "_embedded": {"elements": [{
+    "id": 1,
+    "subject": "Profile status",
+    "status": {"name": "Quality gate"},
+    "_links": {"self": {"href": "/api/v3/work_packages/1"}}
+  }]}
+}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	service := app.NewOpenProjectImportService(stubLoader{ws: domain.Workspace{
+		Project: domain.Project{ID: "project.test", SourceProfiles: []domain.SourceProfile{{
+			ID: "openproject.test", Source: "openproject", BaseURL: "https://op.example.test",
+			ProjectID: "demo", TokenEnv: "OPENPROJECT_TOKEN",
+			StatusMap: map[string]string{"Quality gate": "review_ready"},
+		}}},
+	}})
+
+	result, err := service.Import(context.Background(), app.OpenProjectImportRequest{
+		FromFile: fixture, DryRun: true, Profile: "openproject.test",
+	})
+	if err != nil {
+		t.Fatalf("Import returned error: %v", err)
+	}
+	if got := result.TaskCandidates[0].MappedStatus; got != "review_ready" {
+		t.Fatalf("MappedStatus = %q, want review_ready", got)
+	}
+}
+
 func TestOpenProjectImportValidationPrecedenceReturnsAllPreloadErrors(t *testing.T) {
 	service := app.NewOpenProjectImportService(staticWorkspaceLoader{
 		projectPath: "memory",

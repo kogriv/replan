@@ -21,6 +21,7 @@ from unittest import mock
 import yaml
 
 import helper_envelope
+import openproject_status_map
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 LIB = os.path.join(ROOT, "scripts", "lib")
@@ -887,6 +888,187 @@ class ExitCodeFromOkTest(unittest.TestCase):
         )
         scope_steps = [step for step in out["operator_next_steps"] if "REPLAN_OPENPROJECT_STATUS_SCOPE=all" in step]
         self.assertEqual(len(scope_steps), 1)
+
+    def test_status_aliases_are_drift_silent_and_push_quiet(self):
+        aliases = [
+            (name, pair["tracking_status"])
+            for pair in openproject_status_map.STATUS_PAIRS
+            for name in [pair["openproject_status"], *(pair.get("aliases") or [])]
+        ]
+        tasks = [
+            {"id": f"task.{index}", "title": name, "tracking_status": tracking}
+            for index, (name, tracking) in enumerate(aliases, 1)
+        ]
+
+        class OpenProject(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                body = json.dumps({"total": 0, "_embedded": {"elements": []}}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/hal+json")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            def log_message(self, *_args):
+                pass
+
+        server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), OpenProject)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                bindings = self.project(tmp, tasks)
+                candidates = [
+                    {"source_id": str(index), "title": name, "source_status": name,
+                     "mapped_status": tracking}
+                    for index, (name, tracking) in enumerate(aliases, 1)
+                ]
+                imp = os.path.join(tmp, "import.json")
+                with open(imp, "w") as fh:
+                    json.dump({"ok": True, "result": {
+                        "task_candidates": candidates, "dependency_candidates": [],
+                    }}, fh)
+                common = {
+                    "REPLAN_PROJECT": tmp,
+                    "REPLAN_OPENPROJECT_BINDINGS_PATH": bindings,
+                    "REPLAN_OPENPROJECT_PROJECT_ID": "demo",
+                }
+                code, drift = self.run_module(
+                    "check_openproject_drift", "--import-json", imp,
+                    "--tmp-dir", tmp, "--root-dir", ROOT, env=common,
+                )
+                self.assertEqual((code, drift["counts"]["status_drifts"]), (0, 0), drift)
+
+                for status_path in ("direct", "forward"):
+                    with self.subTest(status_path=status_path):
+                        code, pushed = self.run_module(
+                            "push_openproject_status_drift", "--import-json", imp,
+                            "--tmp-dir", tmp, "--root-dir", ROOT,
+                            env={
+                                **common,
+                                "REPLAN_OPENPROJECT_BASE_URL": f"http://127.0.0.1:{server.server_address[1]}",
+                                "REPLAN_OPENPROJECT_TOKEN_ENV": "TEST_TOKEN",
+                                "REPLAN_OPENPROJECT_STATUS_PATH": status_path,
+                                "TEST_TOKEN": "t",
+                            },
+                        )
+                        self.assertEqual(code, 0, pushed)
+                        self.assertEqual(pushed["counts"]["status_actions"], 0)
+                        self.assertEqual(pushed["counts"]["in_sync"], len(aliases))
+                        self.assertEqual(
+                            {item["reason"] for item in pushed["in_sync"]},
+                            {"openproject_status_maps_to_replan_tracking_status"},
+                        )
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join()
+
+    def test_status_alias_moves_forward_when_tracking_has_advanced(self):
+        code, out, patches, forms, _ = self.status_path_case(
+            current="In specification", tracking_status="in_progress",
+            transitions={"In specification": ("In progress",)},
+            extra_statuses=("In specification",),
+        )
+        self.assertEqual(code, 0, out)
+        self.assertEqual(patches, [])
+        self.assertEqual(forms, ["In specification"])
+        self.assertEqual(out["actions"][0]["to_openproject_status"], "In progress")
+
+    def test_status_push_uses_profile_status_map(self):
+        tasks = [{"id": "task.a", "title": "A", "tracking_status": "ready"}]
+
+        class OpenProject(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                body = json.dumps({"total": 0, "_embedded": {"elements": []}}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/hal+json")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            def log_message(self, *_args):
+                pass
+
+        server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), OpenProject)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        with tempfile.TemporaryDirectory() as tmp:
+            bindings = self.project(tmp, tasks)
+            imp = os.path.join(tmp, "import.json")
+            with open(imp, "w") as fh:
+                json.dump({"ok": True, "result": {
+                    "profile": {"status_map": {"Quality gate": "ready"}},
+                    "task_candidates": [{"source_id": "1", "source_status": "Quality gate"}],
+                }}, fh)
+            code, out = self.run_module(
+                "push_openproject_status_drift", "--import-json", imp,
+                "--tmp-dir", tmp, "--root-dir", ROOT,
+                env={
+                    "REPLAN_PROJECT": tmp, "REPLAN_OPENPROJECT_BINDINGS_PATH": bindings,
+                    "REPLAN_OPENPROJECT_BASE_URL": f"http://127.0.0.1:{server.server_address[1]}",
+                    "REPLAN_OPENPROJECT_PROJECT_ID": "demo",
+                    "REPLAN_OPENPROJECT_TOKEN_ENV": "TEST_TOKEN", "TEST_TOKEN": "t",
+                },
+            )
+        self.assertEqual(code, 0, out)
+        self.assertEqual(out["counts"], {"status_actions": 0, "skipped": 0, "in_sync": 1})
+
+    def test_status_push_pages_status_catalogue(self):
+        tasks = [{"id": "task.a", "title": "A", "tracking_status": "in_progress"}]
+        requested = []
+
+        class OpenProject(http.server.BaseHTTPRequestHandler):
+            def reply(self, body):
+                data = json.dumps(body).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/hal+json")
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+            def do_GET(self):
+                requested.append(self.path)
+                if self.path == "/api/v3/statuses":
+                    self.reply({"total": 2, "pageSize": 1, "offset": 1, "_embedded": {"elements": [
+                        {"name": "New", "_links": {"self": {"href": "/api/v3/statuses/1"}}},
+                    ]}})
+                else:
+                    self.reply({"total": 2, "pageSize": 1, "offset": 2, "_embedded": {"elements": [
+                        {"name": "In progress", "_links": {"self": {"href": "/api/v3/statuses/2"}}},
+                    ]}})
+            def do_POST(self):
+                self.rfile.read(int(self.headers.get("Content-Length") or 0))
+                self.reply({"_embedded": {"schema": {"status": {"_links": {"allowedValues": [
+                    {"href": "/api/v3/statuses/2"},
+                ]}}}}})
+            def log_message(self, *_args):
+                pass
+
+        server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), OpenProject)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        with tempfile.TemporaryDirectory() as tmp:
+            bindings = self.project(tmp, tasks)
+            imp = os.path.join(tmp, "import.json")
+            with open(imp, "w") as fh:
+                json.dump({"ok": True, "result": {"task_candidates": [
+                    {"source_id": "1", "source_status": "New"},
+                ]}}, fh)
+            code, out = self.run_module(
+                "push_openproject_status_drift", "--import-json", imp,
+                "--tmp-dir", tmp, "--root-dir", ROOT,
+                env={
+                    "REPLAN_PROJECT": tmp, "REPLAN_OPENPROJECT_BINDINGS_PATH": bindings,
+                    "REPLAN_OPENPROJECT_BASE_URL": f"http://127.0.0.1:{server.server_address[1]}",
+                    "REPLAN_OPENPROJECT_PROJECT_ID": "demo",
+                    "REPLAN_OPENPROJECT_TOKEN_ENV": "TEST_TOKEN",
+                    "REPLAN_OPENPROJECT_STATUS_SCOPE": "all", "TEST_TOKEN": "t",
+                },
+            )
+        self.assertEqual(code, 0, out)
+        self.assertEqual(out["counts"]["status_actions"], 1)
+        self.assertIn("/api/v3/statuses?pageSize=1&offset=2", requested)
 
     def test_status_push_reports_writes_before_second_patch_failure(self):
         tasks = [

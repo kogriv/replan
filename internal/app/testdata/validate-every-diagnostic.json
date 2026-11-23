@@ -337,6 +337,15 @@
       }
     },
     {
+      "code": "invalid_openproject_status_map",
+      "message": "OpenProject status map entry \"Quality gate\" has invalid tracking status \"unknown\"",
+      "severity": "error",
+      "target": {
+        "kind": "source_profile",
+        "id": "op.dup"
+      }
+    },
+    {
       "code": "missing_source_profile_source",
       "message": "source profile source is required",
       "severity": "error",

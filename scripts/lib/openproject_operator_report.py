@@ -8,6 +8,7 @@ import helper_envelope
 import import_candidates
 import openproject_bindings
 from openproject_http import Settings
+from openproject_status_map import map_openproject_status, validate_profile_status_map
 
 parser = helper_envelope.internal_parser("openproject operator report")
 parser.add_argument("--import-json", required=True)
@@ -37,6 +38,13 @@ data = json.load(open(import_path, encoding="utf-8"))
 result = data.get("result") or {}
 warnings = list(data.get("warnings") or result.get("warnings") or [])
 errors = data.get("errors") or result.get("errors") or []
+profile_status_map = (result.get("profile") or {}).get("status_map") or {}
+try:
+    validate_profile_status_map(profile_status_map)
+except ValueError as exc:
+    errors.append(helper_envelope.diagnostic(
+        "invalid_openproject_status_map", str(exc), "error",
+    ))
 
 tasks_doc = load_yaml(os.path.join(project_path, "canonical", "tasks.yaml"))
 deps_doc = load_yaml(os.path.join(project_path, "canonical", "dependencies.yaml"))
@@ -117,13 +125,16 @@ for task_id in planned_task_ids:
     if not candidate:
         missing_live_tasks.append({"task_id": task_id, "work_package_id": wp_id, "title": task.get("title", "")})
         continue
+    mapped_status = map_openproject_status(
+        candidate.get("source_status"), profile_status_map
+    ) or as_text(candidate.get("mapped_status"))
     row = {
         "task_id": task_id,
         "work_package_id": wp_id,
         "title": task.get("title", ""),
         "replan_tracking_status": as_text(task.get("tracking_status")),
         "openproject_source_status": as_text(candidate.get("source_status")),
-        "openproject_mapped_status": as_text(candidate.get("mapped_status")),
+        "openproject_mapped_status": mapped_status,
         "replan_planned_start": as_text(task.get("planned_start")),
         "openproject_start_date": as_text(candidate.get("start_date")),
         "replan_planned_finish": as_text(task.get("planned_finish")),
@@ -133,7 +144,7 @@ for task_id in planned_task_ids:
     mapped_tasks.append(row)
     if norm(candidate.get("title", "")) != norm(task.get("title", "")):
         title_drifts.append({**row, "openproject_title": candidate.get("title", "")})
-    if as_text(candidate.get("mapped_status")) != as_text(task.get("tracking_status")):
+    if mapped_status != as_text(task.get("tracking_status")):
         status_drifts.append(row)
     if as_text(candidate.get("start_date")) != as_text(task.get("planned_start")):
         date_drifts.append({**row, "field": "start"})

@@ -8,6 +8,7 @@ import helper_envelope
 import import_candidates
 import openproject_bindings
 import openproject_rescheduling
+from openproject_status_map import map_openproject_status, validate_profile_status_map
 from openproject_http import OpenProjectClient, Settings
 
 parser = helper_envelope.internal_parser("check-openproject-drift")
@@ -24,6 +25,13 @@ data = json.load(open(import_path, encoding="utf-8"))
 result = data.get("result") or {}
 warnings = list(data.get("warnings") or result.get("warnings") or [])
 errors = data.get("errors") or result.get("errors") or []
+profile_status_map = (result.get("profile") or {}).get("status_map") or {}
+try:
+    validate_profile_status_map(profile_status_map)
+except ValueError as exc:
+    errors.append(helper_envelope.diagnostic(
+        "invalid_openproject_status_map", str(exc), "error",
+    ))
 
 def load_yaml(path):
     with open(path, encoding="utf-8") as fh:
@@ -152,14 +160,17 @@ for task_id in planned_task_ids:
             "replan_title": task.get("title", ""),
             "openproject_title": candidate.get("title", ""),
         })
-    if as_text(candidate.get("mapped_status")) != as_text(task.get("tracking_status")):
+    mapped_status = map_openproject_status(
+        candidate.get("source_status"), profile_status_map
+    ) or as_text(candidate.get("mapped_status"))
+    if mapped_status != as_text(task.get("tracking_status")):
         status_drifts.append({
             "kind": "status_drift",
             "task_id": task_id,
             "work_package_id": wp_id,
             "replan_tracking_status": as_text(task.get("tracking_status")),
             "openproject_source_status": as_text(candidate.get("source_status")),
-            "openproject_mapped_status": as_text(candidate.get("mapped_status")),
+            "openproject_mapped_status": mapped_status,
         })
     if as_text(candidate.get("start_date")) != as_text(task.get("planned_start")):
         date_drifts.append({

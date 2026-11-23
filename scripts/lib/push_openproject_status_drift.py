@@ -7,7 +7,11 @@ import yaml
 from openproject_http import OpenProjectClient, Settings
 import helper_envelope
 import openproject_bindings
-from openproject_status_map import TRACKING_TO_OPENPROJECT_STATUS
+from openproject_status_map import (
+    TRACKING_TO_OPENPROJECT_STATUS,
+    map_openproject_status,
+    validate_profile_status_map,
+)
 
 parser = helper_envelope.internal_parser("push-openproject-status-drift")
 parser.add_argument("--import-json", required=True)
@@ -54,9 +58,23 @@ def as_text(value):
     return str(value)
 
 def status_href_by_name():
-    _, data = client.request_json("GET", "/api/v3/statuses", expected=(200,))
     out = {}
-    for item in data.get("_embedded", {}).get("elements", []):
+    _, first_page = client.request_json("GET", "/api/v3/statuses", expected=(200,))
+    items = list((first_page.get("_embedded") or {}).get("elements") or [])
+    total = int(first_page.get("total") or len(items))
+    page_size = int(first_page.get("pageSize") or len(items) or 100)
+    offset = int(first_page.get("offset") or 1)
+    while len(items) < total:
+        offset += 1
+        _, page = client.request_json(
+            "GET", f"/api/v3/statuses?pageSize={page_size}&offset={offset}",
+            expected=(200,),
+        )
+        batch = (page.get("_embedded") or {}).get("elements") or []
+        if not batch:
+            break
+        items.extend(batch)
+    for item in items:
         name = item.get("name") or item.get("_links", {}).get("self", {}).get("title")
         href = item.get("_links", {}).get("self", {}).get("href")
         if name and href:
@@ -235,6 +253,18 @@ def main():
     result = data.get("result") or {}
     warnings = data.get("warnings") or result.get("warnings") or []
     errors = data.get("errors") or result.get("errors") or []
+    profile_status_map = (result.get("profile") or {}).get("status_map") or {}
+    try:
+        validate_profile_status_map(profile_status_map)
+    except ValueError as exc:
+        helper_envelope.emit({
+            "ok": False,
+            "command": "push-openproject-status-drift",
+            "mode": "invalid",
+            "errors": [helper_envelope.diagnostic(
+                "invalid_openproject_status_map", str(exc),
+            )],
+        }, helper_envelope.EXIT["validation"])
     tasks = load_yaml(os.path.join(project_path, "canonical", "tasks.yaml")).get("tasks") or []
     task_by_id = {task.get("id", ""): task for task in tasks if task.get("id", "")}
 
@@ -244,6 +274,7 @@ def main():
     status_hrefs = status_href_by_name()
     actions = []
     skipped = []
+    in_sync = []
     for candidate in result.get("task_candidates") or []:
         wp_id = as_text(candidate.get("source_id"))
         task_id = task_id_by_wp.get(wp_id, "")
@@ -253,7 +284,20 @@ def main():
         tracking_status = as_text(task.get("tracking_status"))
         desired_status = tracking_to_openproject_status.get(tracking_status, "")
         current_source_status = as_text(candidate.get("source_status"))
-        if not desired_status or desired_status == current_source_status:
+        current_tracking_status = map_openproject_status(
+            current_source_status, profile_status_map
+        )
+        if not desired_status:
+            continue
+        if current_tracking_status == tracking_status:
+            in_sync.append({
+                "task_id": task_id,
+                "work_package_id": wp_id,
+                "replan_tracking_status": tracking_status,
+                "openproject_source_status": current_source_status,
+                "openproject_mapped_status": current_tracking_status,
+                "reason": "openproject_status_maps_to_replan_tracking_status",
+            })
             continue
         if status_scope == "ready_only" and tracking_status != "ready":
             skipped.append({
@@ -286,14 +330,17 @@ def main():
             "to_openproject_status": desired_status,
             "to_status_href": status_href,
         }
+        current_canonical_status = tracking_to_openproject_status.get(
+            current_tracking_status, current_source_status
+        )
         use_forward = status_path == "forward" and forward_eligible(
-            current_source_status, desired_status
+            current_canonical_status, desired_status
         )
         if use_forward:
             if mode == "apply":
                 skipped_item = apply_forward_path(
                     action, task_id, wp_id, tracking_status,
-                    current_source_status, desired_status, status_href, status_hrefs,
+                    current_canonical_status, desired_status, status_href, status_hrefs,
                 )
                 if skipped_item:
                     skipped.append(skipped_item)
@@ -301,7 +348,7 @@ def main():
             else:
                 _, allowed_hrefs = allowed_status_state(wp_id)
                 planned_path = plan_forward_path(
-                    current_source_status, desired_status, status_href,
+                    current_canonical_status, desired_status, status_href,
                     allowed_hrefs, status_hrefs,
                 )
                 if not planned_path:
@@ -351,13 +398,16 @@ def main():
             "status_scope": status_scope,
             "default_scope_rule": "ready_only changes only RePlan ready tasks to OpenProject To be scheduled.",
             "status_mapping": tracking_to_openproject_status,
+            "profile_status_map": profile_status_map,
         },
         "counts": {
             "status_actions": len(actions),
             "skipped": len(skipped),
+            "in_sync": len(in_sync),
         },
         "actions": actions,
         "skipped": skipped,
+        "in_sync": in_sync,
         "warning_codes": sorted({w.get("code", "") for w in warnings if w.get("code")}),
         "error_codes": sorted({e.get("code", "") for e in errors if e.get("code")}),
         "operator_next_steps": [

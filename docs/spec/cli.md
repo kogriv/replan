@@ -2764,6 +2764,14 @@ Rules:
 
 - `import accept` requires a human actor under `proposal_only`; a dry run that
   names an agent actor reports the same policy denial as apply;
+- an OpenProject source profile may declare `status_map` entries from source
+  status names to RePlan tracking statuses. They are a normalized,
+  case/punctuation-insensitive overlay on
+  `scripts/lib/openproject_status_map.json`, the shared import/drift/push map.
+  Overlay targets must be valid tracking statuses; otherwise project and
+  import validation report `invalid_openproject_status_map`. The selected
+  profile map is applied to imported candidates and retained in the snapshot
+  summary so drift, operator-report and push helpers make the same comparison;
 - GitHub file import reads a versioned `replan.github-issues.v1` input
   document. Live import selects a repository through a GitHub source profile
   or `--repository`, reads only the REST API, and writes that same document as

@@ -25,9 +25,20 @@ class OpenProjectStatusMapTest(unittest.TestCase):
         }
         self.assertEqual(openproject_status_map.TRACKING_TO_OPENPROJECT_STATUS, expected)
         self.assertEqual(
-            openproject_status_map.OPENPROJECT_TO_TRACKING_STATUS,
+            {name: openproject_status_map.OPENPROJECT_TO_TRACKING_STATUS[name]
+             for name in expected.values()},
             {value: key for key, value in expected.items()},
         )
+        self.assertEqual(openproject_status_map.map_openproject_status("In specification"), "ready")
+        self.assertEqual(openproject_status_map.map_openproject_status("BLOCKED"), "blocked")
+        self.assertEqual(
+            openproject_status_map.map_openproject_status(
+                "In specification", {"In specification": "in_progress"}
+            ),
+            "in_progress",
+        )
+        with self.assertRaisesRegex(ValueError, "invalid tracking status"):
+            openproject_status_map.validate_profile_status_map({"New": "unknown"})
         self.assertEqual(openproject_status_map.resolve_status_argument("review_ready"), "Developed")
         self.assertEqual(openproject_status_map.resolve_status_argument("In progress"), "In progress")
         with self.assertRaisesRegex(ValueError, "valid values: not_started.*Rejected"):

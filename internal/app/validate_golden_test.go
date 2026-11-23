@@ -27,7 +27,7 @@ func everyDiagnosticWorkspace() domain.Workspace {
 			SourceProfiles: []domain.SourceProfile{
 				{Source: "openproject", BaseURL: "https://user:pw@op.example.internal", TokenEnv: "abc-123"},
 				{ID: "op.dup", Source: "openproject", BaseURL: "ftp://op.example.internal", ProjectID: "p"},
-				{ID: "op.dup", Source: "openproject", ProjectID: "p", TokenEnv: "OPENPROJECT_TOKEN"},
+				{ID: "op.dup", Source: "openproject", ProjectID: "p", TokenEnv: "OPENPROJECT_TOKEN", StatusMap: map[string]string{"Quality gate": "unknown"}},
 				{ID: "jira"},
 				{ID: "jira.other", Source: "jira"},
 				{ID: "github.missing-map", Source: "github", Repository: "owner/repo"},

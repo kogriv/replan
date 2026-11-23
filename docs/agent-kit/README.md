@@ -338,6 +338,18 @@ RePlan. Record them from evidence and actuals with `bin/replan actual
 add-status` and the other `actual` commands; push only the resulting tracking
 status to OpenProject.
 
+Import, drift, the operator report and status push use the same shipped map in
+`scripts/lib/openproject_status_map.json`. Each canonical OpenProject status
+has aliases that fold to the same RePlan tracking status; for example `In
+specification`, `Scheduled` and `Confirmed` all mean `ready`. The push treats
+any such alias as already in sync and reports
+`openproject_status_maps_to_replan_tracking_status`; it does not rewrite the
+OpenProject name merely to use the canonical spelling. If the selected
+OpenProject source profile has a `status_map`, its source-name entries override
+the shipped folding for import, drift, the operator report and push. Targets
+must be valid RePlan tracking statuses or validation fails with
+`invalid_openproject_status_map`.
+
 The status push defaults to `REPLAN_OPENPROJECT_STATUS_SCOPE=ready_only`, so
 it pushes only a RePlan `ready` task to OpenProject `To be scheduled`. Set
 `REPLAN_OPENPROJECT_STATUS_SCOPE=all` in the process environment to consider
@@ -349,7 +361,8 @@ The separate environment-only setting `REPLAN_OPENPROJECT_STATUS_PATH`
 defaults to `direct`, preserving the one-transition behavior. With
 `REPLAN_OPENPROJECT_STATUS_PATH=forward`, the helper may walk forward through
 the mapped progression `not_started`, `ready`, `in_progress`, `review_ready`,
-`accepted`. The actual OpenProject names come from the shipped status map. It
+`accepted`. The canonical destination names and alias folding come from the
+shipped status map. It
 never walks backward or through `blocked`/On hold or `cancelled`/Rejected; those
 updates remain direct. Each apply step rereads the work-package form for the
 persisted status, uses that response's current lock version, verifies the

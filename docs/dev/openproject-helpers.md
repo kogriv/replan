@@ -271,6 +271,15 @@ The helper is dry-run by default and uses
 explicitly requested. Set `REPLAN_APPLY=1` only after reviewing the planned
 status actions.
 
+The helper reads the same canonical names and aliases as Go import from
+`scripts/lib/openproject_status_map.json`. A raw OpenProject alias that already
+maps to the task's desired tracking status is listed under `in_sync` with
+reason `openproject_status_maps_to_replan_tracking_status` and is never
+patched. A selected source profile `status_map` overlays that shared map for
+import, drift, the operator report and push; invalid target tracking statuses
+are rejected. The helper pages the `/api/v3/statuses` collection before
+resolving destination links, so a destination on a later page is usable.
+
 ## Resource checks
 
 Review the current RePlan self-dogfood resource pool before mutating
