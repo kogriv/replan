@@ -295,3 +295,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.http-secret-boundaries
+  - id: evidence.self.binding-url-refresh
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-23T18:54:28+07:00"
+    summary: 'Feature commits b2baa63 and e6b1feb: work-package bind --replace with the same work package refreshes a differing URL in place (url_refreshed with previous and new URL); work-package rebase-urls --from <old base> --to <new base> rewrites task, dependency and resource source_ref URLs and the project base_url that lie under the old base on a path boundary (never a longer host), dry run by default, one atomic LF write, ids and order untouched; --to is required. Review: the executor fixed the prefix match (a longer host matched) and, after the first real run on this project''s binding file left a resource link and the project base_url on the old host, extended the command to those; tests added for both. Used on this project: 76 old-host links rewritten (74 tasks, 1 resource, project base_url), a backup kept outside the repository, drift 0/0 afterwards. Gate twice: vet, lint 0, shellcheck, Go and Python suites, smoke, isolated smoke, 58 kit checks, plugin throwaway runtime, live kit check 108 checks. Codex 17:29:07-17:50:02 (0.35 h, prompt and last-file mtimes). Executor 0.2 h measured with scripts/agent-session-consumption.sh.'
+    targets:
+      - kind: task
+        id: task.self.binding-url-refresh

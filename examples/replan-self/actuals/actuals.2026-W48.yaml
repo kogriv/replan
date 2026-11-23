@@ -395,3 +395,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-http-secret-boundaries
+  - id: actual.self-binding-url-refresh.ai-codex-local.20261123T1854280700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.binding-url-refresh
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.binding-url-refresh.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.35
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-23T18:54:28+07:00"
+    status_date: "2026-11-23"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.binding-url-refresh
+  - id: actual.self-binding-url-refresh.ai-agent-executor.20261123T1854280700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.binding-url-refresh
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.binding-url-refresh.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.2
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-23T18:54:28+07:00"
+    status_date: "2026-11-23"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.binding-url-refresh

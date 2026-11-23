@@ -19853,7 +19853,7 @@ resource_demands:
     role: implementation_agent
     unit: agent_hours
     planned_amount: 0.3
-    remaining_amount: 0.3
+    remaining_amount: 0
     criticality: required
     status: active
   - id: resource_demand.binding-url-refresh.agent
@@ -19867,7 +19867,7 @@ resource_demands:
     role: implementation_agent
     unit: agent_hours
     planned_amount: 0.1
-    remaining_amount: 0.1
+    remaining_amount: 0
     criticality: required
     status: active
   - id: resource_demand.binding-url-refresh.maintainer
