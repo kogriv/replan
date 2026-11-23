@@ -306,3 +306,49 @@ evidence:
     targets:
       - kind: task
         id: task.self.binding-url-refresh
+  - id: evidence.self.accept-binding-url-refresh
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-23T12:54:27Z"
+    confidence: observed
+    summary: 'Accepted by the maintainer in chat: bind --replace refreshes a changed work package URL, and work-package rebase-urls rewrites task, dependency and resource links and the project base URL after an OpenProject host change. CI measured from GitHub Actions runs 45169699002: 13 billable minutes. Review time stated by actor.human.maintainer: 8 minutes.'
+    targets:
+      - kind: task
+        id: task.self.binding-url-refresh
+  - id: evidence.self.ack-codex-overrun-binding-url-refresh
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-23T19:56:57+07:00"
+    summary: The maintainer acknowledged in chat (2026-11-23T12:56:57Z) that the 0.35 agent hours of the Codex round exceed the 0.3 planned.
+    targets:
+      - kind: task
+        id: task.self.binding-url-refresh
+  - id: evidence.self.ack-agent-overrun-binding-url-refresh
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-23T19:56:57+07:00"
+    summary: The maintainer acknowledged in chat (2026-11-23T12:56:57Z) that the 0.2 executor hours exceed the 0.1 planned; the extra time went into the path-boundary fix and covering resource links and the project base URL after the first real run.
+    targets:
+      - kind: task
+        id: task.self.binding-url-refresh
+  - id: evidence.self.ack-ci-overrun-binding-url-refresh
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-23T19:56:57+07:00"
+    summary: 'Acknowledged under the maintainer''s approval for the audit task series (chat, 2026-11-23 16:40): 13 billable minutes measured from GitHub Actions run 45169699002 exceed the 10 planned.'
+    targets:
+      - kind: task
+        id: task.self.binding-url-refresh

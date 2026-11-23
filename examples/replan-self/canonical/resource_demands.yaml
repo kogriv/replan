@@ -19855,7 +19855,18 @@ resource_demands:
     planned_amount: 0.3
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
+    overrun_review:
+      acknowledged_forecast: 0.35
+      unit: agent_hours
+      reason: Measured Codex round (0.35 h) exceeds the 0.3 planned; acknowledged by the maintainer.
+      reviewed_by:
+        kind: actor
+        id: actor.human.maintainer
+      reviewed_at: "2026-11-23T19:56:57+07:00"
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.ack-codex-overrun-binding-url-refresh
   - id: resource_demand.binding-url-refresh.agent
     task_ref:
       kind: task
@@ -19869,7 +19880,18 @@ resource_demands:
     planned_amount: 0.1
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
+    overrun_review:
+      acknowledged_forecast: 0.2
+      unit: agent_hours
+      reason: Measured executor time (0.2 h) exceeds the 0.1 planned; acknowledged by the maintainer.
+      reviewed_by:
+        kind: actor
+        id: actor.human.maintainer
+      reviewed_at: "2026-11-23T19:56:57+07:00"
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.ack-agent-overrun-binding-url-refresh
   - id: resource_demand.binding-url-refresh.maintainer
     task_ref:
       kind: task
@@ -19881,9 +19903,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.15
-    remaining_amount: 0.15
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.binding-url-refresh.local-dev
     task_ref:
       kind: task
@@ -19895,9 +19917,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.binding-url-refresh.ci
     task_ref:
       kind: task
@@ -19909,6 +19931,17 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
+    overrun_review:
+      acknowledged_forecast: 13
+      unit: ci_minutes
+      reason: Measured CI (13 billable minutes, run 45169699002) exceeds the 10 planned; acknowledged under the maintainer's standing approval for this series.
+      reviewed_by:
+        kind: actor
+        id: actor.human.maintainer
+      reviewed_at: "2026-11-23T19:56:57+07:00"
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.ack-ci-overrun-binding-url-refresh
