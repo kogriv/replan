@@ -65,3 +65,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-review-audits-2026-11-23
+  - id: actual.self-availability-exceptions-in-capacity.ai-codex-local.20261123T1457440700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.availability-exceptions-in-capacity
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.availability-exceptions-in-capacity.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.72
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-23T14:57:44+07:00"
+    status_date: "2026-11-23"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.availability-exceptions-in-capacity
+  - id: actual.self-availability-exceptions-in-capacity.ai-agent-executor.20261123T1457440700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.availability-exceptions-in-capacity
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.availability-exceptions-in-capacity.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.06
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-23T14:57:44+07:00"
+    status_date: "2026-11-23"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.availability-exceptions-in-capacity
