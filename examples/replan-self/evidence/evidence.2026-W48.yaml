@@ -396,3 +396,25 @@ evidence:
     targets:
       - kind: task
         id: task.self.openproject-host-rename
+  - id: evidence.self.start-rebase-urls-links-only
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-23T20:50:39+07:00"
+    summary: Started on the planned day after the maintainer agreed in chat to plan rebasing binding links without the project base URL.
+    targets:
+      - kind: task
+        id: task.self.rebase-urls-links-only
+  - id: evidence.self.rebase-urls-links-only
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-23T21:36:18+07:00"
+    summary: 'work-package rebase-urls --keep-base-url moves task, dependency and resource links and leaves the project base_url, reported as kept with reason keep_base_url_requested and counted separately; a run where only the base_url would change is a no-op; output without the flag unchanged (commit 236d79b). Codex round 1 on the shared build host 20:50:49-21:03:26 +07:00 (0.21 h, from prompt and last-message file times); reviewed by the executor without changes. Local gate green: go vet, golangci-lint, shellcheck, diff check, go test, agent kit (58 checks), Python suite, MVP smoke and isolated smoke, plugin throwaway runtime, live kit checks (108). Executor 0.03 h measured with scripts/agent-session-consumption.sh.'
+    targets:
+      - kind: task
+        id: task.self.rebase-urls-links-only

@@ -505,3 +505,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.publish-release-v0-5-10
+  - id: actual.self-rebase-urls-links-only.ai-codex-local.20261123T2136180700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.rebase-urls-links-only
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.rebase-urls-links-only.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.21
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-23T21:36:18+07:00"
+    status_date: "2026-11-23"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.rebase-urls-links-only
+  - id: actual.self-rebase-urls-links-only.ai-agent-executor.20261123T2136180700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.rebase-urls-links-only
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.rebase-urls-links-only.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.03
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-23T21:36:18+07:00"
+    status_date: "2026-11-23"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.rebase-urls-links-only

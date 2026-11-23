@@ -9534,7 +9534,7 @@ tasks:
     title: Rebase binding links without touching the project base URL
     description: 'Reported on 2026-11-23 by the third consumer project after it moved its binding links to the new OpenProject host with work-package rebase-urls: 49 more bindings still link to the operator tunnel address, and so does the binding file''s project base_url, which the project keeps on purpose. rebase-urls rewrites the project base_url together with the links whenever it sits under --from, so those links cannot be moved alone. Add an option (for example --links-only) that rewrites task, dependency and resource links but leaves the project base_url as it is, reported as skipped with a reason; keep the default behaviour; dry run by default, REPLAN_APPLY=1 to write, one atomic LF write; tests and agent kit docs.'
     type: implementation
-    tracking_status: not_started
+    tracking_status: review_ready
     planned_start: "2026-11-23"
     planned_finish: "2026-11-23"
     assignee_hint:
