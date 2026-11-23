@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 323,
-  "count": 323,
+  "total": 324,
+  "count": 324,
   "_embedded": {
     "elements": [
       {
@@ -9356,14 +9356,43 @@
         },
         "estimatedTime": "PT0.15H",
         "spentTime": "PT0H",
-        "startDate": "2026-11-24",
-        "dueDate": "2026-11-24",
+        "startDate": "2026-11-23",
+        "dueDate": "2026-11-23",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2423"
           },
           "status": {
             "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2424,
+        "subject": "Publish release v0.5.10 with the binding URL refresh and the first audit fixes",
+        "description": {
+          "raw": "Tag and publish v0.5.10 so consumer projects can rewrite their binding URLs with work-package rebase-urls before the old OpenProject host name stops answering in December 2026. It also carries the first fixes from the 2026-11-23 audit review: availability exceptions applied to weekly capacity, one OpenProject status map for import, drift and status push, and the HTTP clients refusing redirects that leave the configured origin; plus work-package bind --replace and unbind and the Windows Git settings docs. Verify the archives and attestations, build the Linux and Windows agent kits, install them where each consumer project takes them and tell each consumer session what changed, including the rebase-urls step."
+        },
+        "status": {
+          "name": "In progress"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-23",
+        "dueDate": "2026-11-23",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2424"
+          },
+          "status": {
+            "title": "In progress"
           },
           "assignee": {
             "href": "/api/v3/users/101",

@@ -1163,6 +1163,12 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2423"
         url: https://op.example.internal/work_packages/2423
+    - replan_task_id: task.self.publish-release-v0-5-10
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2424"
+        url: https://op.example.internal/work_packages/2424
     - replan_task_id: task.self.date-push-nothing-to-apply-is-ok
       source_ref:
         source: openproject

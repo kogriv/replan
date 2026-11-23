@@ -352,3 +352,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.binding-url-refresh
+  - id: evidence.self.start-publish-release-v0-5-10
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-23T20:01:09+07:00"
+    summary: Started on the planned day after the maintainer agreed in chat to release v0.5.10 now with the estimate of the previous releases.
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-10
