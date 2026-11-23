@@ -18579,7 +18579,7 @@ resource_demands:
     planned_amount: 0.6
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.one-openproject-status-map.agent
     task_ref:
       kind: task
@@ -18593,7 +18593,7 @@ resource_demands:
     planned_amount: 0.2
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.one-openproject-status-map.maintainer
     task_ref:
       kind: task
@@ -18605,9 +18605,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.one-openproject-status-map.local-dev
     task_ref:
       kind: task
@@ -18619,9 +18619,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.one-openproject-status-map.ci
     task_ref:
       kind: task
@@ -18633,9 +18633,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.http-secret-boundaries.codex
     task_ref:
       kind: task

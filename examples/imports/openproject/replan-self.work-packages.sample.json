@@ -8834,8 +8834,8 @@
         },
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
-        "startDate": "2026-11-24",
-        "dueDate": "2026-11-24",
+        "startDate": "2026-11-23",
+        "dueDate": "2026-11-23",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2405"

@@ -146,3 +146,27 @@ evidence:
     targets:
       - kind: task
         id: task.self.one-openproject-status-map
+  - id: evidence.self.start-http-secret-boundaries
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-23T16:12:32+07:00"
+    summary: 'Started one day before the planned day, right after the status map task: the Codex round began at 16:12:32.'
+    targets:
+      - kind: task
+        id: task.self.http-secret-boundaries
+  - id: evidence.self.accept-one-openproject-status-map
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-23T09:20:38Z"
+    confidence: observed
+    summary: 'Accepted by the maintainer in chat: import, drift and status push share one OpenProject status map with aliases, and the push no longer patches a status that already maps to the desired tracking status. CI measured from GitHub Actions runs 45144885601: 14 billable minutes. Review time stated by actor.human.maintainer: 10 minutes.'
+    targets:
+      - kind: task
+        id: task.self.one-openproject-status-map
