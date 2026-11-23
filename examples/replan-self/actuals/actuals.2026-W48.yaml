@@ -307,3 +307,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.http-secret-boundaries
+  - id: actual.self-openproject-host-rename.ci-github-actions.20261123T101407Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.openproject-host-rename
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.openproject-host-rename.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 14
+    unit: ci_minutes
+    measurement: measured
+    occurred_at: "2026-11-23T10:14:07Z"
+    status_date: "2026-11-23"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-openproject-host-rename
+  - id: actual.self-openproject-host-rename.human-maintainer.20261123T101407Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.openproject-host-rename
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.openproject-host-rename.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.17
+    unit: hours
+    measurement: stated
+    occurred_at: "2026-11-23T10:14:07Z"
+    status_date: "2026-11-23"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-openproject-host-rename

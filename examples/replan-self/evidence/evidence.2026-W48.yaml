@@ -214,3 +214,38 @@ evidence:
     targets:
       - kind: task
         id: task.self.http-secret-boundaries
+  - id: evidence.self.http-secret-boundaries-commit-correction
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-23T17:26:31+07:00"
+    summary: 'Correction to evidence.self.http-secret-boundaries: the feature code is in commit 8c6e4ea, not 1448bc5. The separate code commit was refused because one go test run failed; the staged code then went into the review-ready data commit 8c6e4ea. Repeated runs of the full suite and five runs of the new redirect tests passed; the first failure did not reproduce.'
+    targets:
+      - kind: task
+        id: task.self.http-secret-boundaries
+  - id: evidence.self.accept-openproject-host-rename
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-23T10:14:07Z"
+    confidence: observed
+    summary: 'Accepted by the maintainer in chat: local settings and the two consumer wiki pages use the new OpenProject host name. CI measured from GitHub Actions runs 45150054857: 14 billable minutes. Review time stated by actor.human.maintainer: 10 minutes.'
+    targets:
+      - kind: task
+        id: task.self.openproject-host-rename
+  - id: evidence.self.start-binding-url-refresh
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-23T17:29:07+07:00"
+    summary: 'Started one day before the planned day, ahead of the audit queue, because the consumer project needs it before the old host name stops answering: the Codex round began at 17:29:07.'
+    targets:
+      - kind: task
+        id: task.self.binding-url-refresh

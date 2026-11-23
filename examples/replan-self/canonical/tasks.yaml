@@ -9451,7 +9451,7 @@ tasks:
     title: Switch local settings and consumer wiki pages to the new OpenProject host name
     description: 'Agreed with the maintainer on 2026-11-23: the private OpenProject server moved to a new public host name; the old name keeps working without a redirect until its domain expires in December 2026. Switch the executor''s local settings (the Host header of the tunnel in the ignored .env.local and the private tunnel check) to the new name, check reads and a dry-run write through it, and update the two consumer wiki pages on that server that name the old host, with a dry run and the page lock version; no committed file names either host.'
     type: operations
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-23"
     planned_finish: "2026-11-23"
     assignee_hint:
@@ -9478,7 +9478,7 @@ tasks:
     title: Refresh work package URLs in the private binding file
     description: 'Reported on 2026-11-23 by the third consumer project after the OpenProject server moved to a new public host name: its binding file still links every task to the old host, which stops answering in December 2026, and the project changes its plan only through kit commands. work-package bind --replace with the same work package is a no-op even when the URL differs. Make bind --replace update the source_ref URL when the work package is unchanged and the URL differs (reported as url_refreshed, dry run by default), and add a reviewed bulk command that rewrites the host of every binding URL (tasks and dependencies) from an old base URL to a new one, or rebuilds the URLs from the configured base URL: dry run listing each change, REPLAN_APPLY=1 to write, under the binding file lock if it exists by then, atomic LF write, never touching object ids; tests and agent kit docs.'
     type: implementation
-    tracking_status: not_started
+    tracking_status: in_progress
     planned_start: "2026-11-24"
     planned_finish: "2026-11-24"
     assignee_hint:
