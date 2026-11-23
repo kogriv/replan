@@ -292,6 +292,11 @@ Project-level entry points:
   the next stabilization slice.
   Reviewed critically in Step 55 of the calibration worksheet: it missed that
   CI on `main` had been red since 2026-08-07.
+- [`audit/replan-full-audit-2026-11-23.md`](audit/replan-full-audit-2026-11-23.md)
+  — full repository audit of commit `67caa2a`: weekly workload, availability
+  exceptions, OpenProject status push, HTTP credential handling, audit
+  verification, documentation drift and CI limits. Findings are recorded
+  here and are not yet OpenProject work packages.
 - [`dev/next-product-slice-decision-2026-09-24.md`](dev/next-product-slice-decision-2026-09-24.md)
   — next product slice chosen from RePlan reports: fix what the state report
   says the operator should do next.
