@@ -320,6 +320,34 @@ class ToolkitTaskBindingsTest(unittest.TestCase):
         self.assertEqual(statuses["task.after"], ("unchanged", "https://example.invalid.other/work_packages/30"))
         self.assertTrue(statuses["task.target"][1].startswith("https://new.example.invalid/work_packages/10"))
 
+    def test_rebase_urls_also_rewrites_resource_urls_and_project_base_url(self):
+        with tempfile.TemporaryDirectory() as project:
+            bindings, fixture = self.make_plan(project)
+            with open(bindings, encoding="utf-8") as handle:
+                document = yaml.safe_load(handle)
+            layer = document["openproject_private_bindings"]
+            layer["project"]["base_url"] = "https://example.invalid"
+            layer["resources"].append({
+                "replan_resource_id": "resource.person",
+                "source_ref": {"source": "openproject", "object_type": "user",
+                               "object_id": "4", "url": "https://example.invalid/users/4"},
+            })
+            with open(bindings, "w", encoding="utf-8", newline="\n") as handle:
+                yaml.safe_dump(document, handle, sort_keys=False)
+            proc, out = self.run_toolkit(project, bindings, fixture, [
+                "work-package", "rebase-urls",
+                "--from", "https://example.invalid",
+                "--to", "https://new.example.invalid",
+            ], apply=True)
+            with open(bindings, encoding="utf-8") as handle:
+                after = yaml.safe_load(handle)["openproject_private_bindings"]
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertEqual(after["project"]["base_url"], "https://new.example.invalid")
+        self.assertEqual(after["resources"][1]["source_ref"]["url"], "https://new.example.invalid/users/4")
+        self.assertEqual(after["resources"][0], {"replan_resource_id": "resource.keep", "extension": True})
+        self.assertEqual(out["counts"]["changed_resource_bindings"], 1)
+        self.assertTrue(out["counts"]["changed_project_base_url"])
+
     def test_rebase_urls_refuses_invalid_or_equal_urls(self):
         cases = [
             ("relative/path", "https://new.example.invalid"),

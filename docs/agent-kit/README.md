@@ -574,7 +574,7 @@ to its root. A write to OpenProject or the bindings file is a dry run unless
 | Calibrate estimates | `bin/replan estimate calibrate ... [--all-baselines] [--since YYYY-MM-DD] [--include-review-ready] [--by-size] --dry-run` | Builds a sealed calibration from at least eight clean finished tasks. Use `--include-review-ready` only when completed work with actuals is waiting for acceptance; every other clean-sample rule still applies. For a new project, use `--prior 0.21 --source "replan-self, 39 tasks, 2026-11-02"`. Review the source, window, exclusions and factors, then replace `--dry-run` with `--apply`; the approver must be human. |
 | Apply a calibration as a what-if | `bin/replan estimate apply --calibration <id> --scenario-id <id> --actor <id> --dry-run` | Creates one calibration-linked scenario on apply. Inspect it with `scenario diff`, then use the existing reviewed `scenario apply` flow. |
 | Create, bind or unbind a work package | `scripts/apply-openproject-bootstrap.sh` | Creates missing work packages and bindings. For one item, use toolkit `work-package create --task <id> --bind`; omit `--bind` to create first and receive the exact follow-up `work-package bind` command. Use `work-package bind --replace` to move or repair a binding and `work-package unbind` to remove one. Use `backlog reconcile` to rebuild bindings. |
-| Refresh binding links after the OpenProject host changes | `scripts/openproject-work-package-toolkit.sh work-package rebase-urls --from <old-base-url> --to <new-base-url>` | Rewrites only matching task and dependency `source_ref.url` prefixes. It reports changed and unchanged bindings, is dry-run by default, and writes once with `REPLAN_APPLY=1`; ids and binding order stay unchanged. |
+| Refresh binding links after the OpenProject host changes | `scripts/openproject-work-package-toolkit.sh work-package rebase-urls --from <old-base-url> --to <new-base-url>` | Rewrites matching task, dependency and resource `source_ref.url` prefixes and the project `base_url` in the binding file. A URL matches only on a path boundary, so `https://op.example` never matches `https://op.example.org`. It reports changed and unchanged bindings, is dry-run by default, and writes once with `REPLAN_APPLY=1`; ids and binding order stay unchanged. |
 | Relations to OpenProject | `scripts/apply-openproject-relations.sh` | Applies supported canonical dependencies as OpenProject relations. The toolkit can list or delete a single relation. |
 | Record evidence | `bin/replan evidence add ... --dry-run` | Review the selected week file and item, then replace `--dry-run` with `--apply`; the actor and every target must already exist. |
 | Set remaining work | `bin/replan actual set-remaining ... --dry-run` | Updates one demand, or an all-or-nothing `--from-file` batch under the top-level `demands` key. `--unit` (or a batch row's `unit`) is optional and defaults to the named demand's unit; an explicit mismatch is refused. Batch rows contain `demand`, `amount`, optional `unit` and optional item `reason`; review the shared actor, evidence, timestamp and reason before `--apply`. |
@@ -1302,8 +1302,10 @@ binding needs review with `scripts/check-openproject-drift.sh`. Older bindings
 without endpoint fields cannot be identified by this check.
 
 After the OpenProject public host changes, use `work-package rebase-urls
---from <old-base-url> --to <new-base-url>` to refresh every task and dependency
-link whose `source_ref.url` begins with the old base. The dry run lists each
+--from <old-base-url> --to <new-base-url>` to refresh every task, dependency and resource
+link whose `source_ref.url` lies under the old base, and the project
+`base_url` of the binding file. A URL lies under the base when it is the base
+itself or continues with `/`, `?` or `#`, never when the host is longer. The dry run lists each
 changed and unchanged binding; apply rewrites the file once and never changes
 object ids, object types, RePlan ids or list order. Both arguments must be
 absolute HTTP(S) URLs and must differ. `--to` is deliberately required rather

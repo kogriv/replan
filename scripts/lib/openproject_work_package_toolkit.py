@@ -1300,12 +1300,30 @@ def command_wp_rebase_urls(args):
     binding_specs = (
         ("task", "tasks", "replan_task_id"),
         ("dependency", "dependencies", "replan_dependency_id"),
+        ("resource", "resources", "replan_resource_id"),
     )
+    # The project's base_url is rewritten the same way, keyed "base_url".
+    project_section = binding_root.get("project") or {}
+    old_project_base = as_text(project_section.get("base_url"))
+    if old_project_base:
+        changed = url_under_base(old_project_base, old_base)
+        item = {
+            "binding_kind": "project",
+            "replan_id": as_text(project_section.get("replan_project_id")) or "project",
+            "old_url": old_project_base,
+            "new_url": new_base.rstrip("/") + old_project_base[len(old_base.rstrip("/")):] if changed else old_project_base,
+            "status": "changed" if changed else "unchanged",
+        }
+        items.append(item)
+        if changed:
+            changes.append((project_section, item))
     for binding_kind, list_key, id_key in binding_specs:
         for binding in binding_root.get(list_key) or []:
             replan_id = as_text(binding.get(id_key))
             source_ref = binding.get("source_ref") or {}
             old_url = as_text(source_ref.get("url"))
+            if binding_kind == "resource" and not old_url:
+                continue
             changed = url_under_base(old_url, old_base)
             new_url = new_base.rstrip("/") + old_url[len(old_base.rstrip("/")):] if changed else old_url
             item = {
@@ -1328,6 +1346,12 @@ def command_wp_rebase_urls(args):
         ),
         "changed_dependency_bindings": sum(
             item["binding_kind"] == "dependency" for _, item in changes
+        ),
+        "changed_resource_bindings": sum(
+            item["binding_kind"] == "resource" for _, item in changes
+        ),
+        "changed_project_base_url": any(
+            item["binding_kind"] == "project" for _, item in changes
         ),
     }
     actions = [{
@@ -1362,8 +1386,8 @@ def command_wp_rebase_urls(args):
             extra=extra,
         ))
 
-    for source_ref, item in changes:
-        source_ref["url"] = item["new_url"]
+    for target, item in changes:
+        target["base_url" if item["binding_kind"] == "project" else "url"] = item["new_url"]
     openproject_bindings.write(bindings_path, document)
     for action in actions:
         action.update({"dry_run": False, "apply_required": False, "applied": True})
