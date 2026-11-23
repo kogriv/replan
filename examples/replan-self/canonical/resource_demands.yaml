@@ -18440,7 +18440,7 @@ resource_demands:
     role: implementation_agent
     unit: agent_hours
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
     status: active
   - id: resource_demand.review-audits-2026-11-23.maintainer

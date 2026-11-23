@@ -43,3 +43,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.review-audits-2026-11-23
+  - id: evidence.self.review-audits-2026-11-23
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-23T13:18:43+07:00"
+    summary: 'Docs commit 625dd55: docs/audit/replan-audit-review-2026-11-23.md re-checks every finding of both 2026-11-23 audits at 4607124 with throwaway Go tests, CLI runs on copies of the example projects, local HTTP server pairs with fake tokens and two-process races; four parallel verification subagents covered workload arithmetic, integrations and HTTP, storage and security, and documents, CI and calibration. Result: most findings correct, H2b (after apply) and F-12 (hotspot) wrong about the code, two CI points overstated, eight defects neither audit lists, seventeen proposed tasks with estimates awaiting the maintainer. Executor 0.79 h measured with scripts/agent-session-consumption.sh: 0.26 h main session over the task window plus 0.53 h for the four subagent transcripts measured one by one, because passed together with the parent transcript they share its session id and add nothing (a helper finding).'
+    targets:
+      - kind: task
+        id: task.self.review-audits-2026-11-23
