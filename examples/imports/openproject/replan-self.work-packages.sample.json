@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 303,
-  "count": 303,
+  "total": 321,
+  "count": 321,
   "_embedded": {
     "elements": [
       {
@@ -8784,6 +8784,528 @@
           },
           "status": {
             "title": "In progress"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2404,
+        "subject": "Apply availability exceptions to weekly capacity",
+        "description": {
+          "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Findings H2a/F-05, H2b and new finding 5. workingDays and capacityInWeek never read Availability.Exceptions, so 40 h/week with an unavailable Wednesday still shows 40; the TaskJuggler export does use unavailable, access_closed, maintenance and manual_hold; scenario diff zeroes a resource for the whole compared week regardless of the exception date, while workload --scenario shows full capacity for the same scenario. Build one per-day availability rule (windows, effective capacity dates, exceptions by type: unavailable/access_closed/maintenance/manual_hold remove the day, reduced_capacity and extra_capacity adjust it, quota_reset as the spec says) and use it in workload, the weekly report, the dashboard, scenario diff and workload --scenario; drop applyUnavailableResource in favour of the same calculation; keep the TaskJuggler export consistent and diagnose what it cannot express; tests for a mid-week absence, a partial reduction, a capacity change mid-week and the small-team scenario for its own and another week; update capacity-availability-rules.md and the README table if numbers change."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.5H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-23",
+        "dueDate": "2026-11-23",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2404"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2405,
+        "subject": "Use one OpenProject status map for import, drift and status push",
+        "description": {
+          "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding H3. Import folds many OpenProject names into one tracking status (In specification, Confirmed, Blocked and others), drift compares the folded status, but the status push compares the raw name against the seven exact pairs of openproject_status_map.json, so under the default ready_only scope a package in In specification with tracking ready shows no drift and is planned for a PATCH to To be scheduled. Make the push skip a package whose raw status already maps to the desired tracking status (or share one map with aliases between Go and Python), make the source-profile status_map actually apply to the OpenProject import or remove it with a diagnostic, page the /api/v3/statuses catalogue, and extend TestOpenProjectStatusMapMatchesSharedMapping with aliases and a drift-silent/push-quiet consistency test."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-24",
+        "dueDate": "2026-11-24",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2405"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2406,
+        "subject": "Keep integration secrets on the configured origin across redirects and paging",
+        "description": {
+          "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Findings H4/F-10, H5/F-02 and new finding 1. The Python OpenProject client follows 301/302/303/307/308 to another host or from https to http and forwards Authorization and X-Perimeter-Key; the Go OpenProject import forwards the perimeter header on every redirect and Authorization on a same-host other-port redirect (no CheckRedirect); GitHub import follows Link rel=next to any scheme and host with the Bearer token and has no page limit or cycle guard. Refuse (or strip secrets on) any redirect that changes scheme, host or port and refuse https to http in both clients; accept a GitHub next link only on the base URL's origin; add a page limit and repeated-URL detection; tests with two local servers for every redirect code, both secret headers, the downgrade, a foreign Link and a self-referencing Link."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.3H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-24",
+        "dueDate": "2026-11-24",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2406"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2407,
+        "subject": "Serialize writes to the private binding file",
+        "description": {
+          "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding M2/F-03. scripts/lib/openproject_bindings.py reads, changes and atomically replaces the binding file without an inter-process lock; two concurrent writers both exit 0 and one binding is lost (three runs out of three), and apply_openproject_relations.py keeps the document from start-up until after all HTTP calls. Take an exclusive lock around every read-modify-write (fcntl on POSIX, msvcrt or LockFileEx on Windows, through platform_compat), re-read under the lock before changing, make the relations helper apply its changes to a fresh read under the lock, and add a two-process race test that keeps both bindings."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-25",
+        "dueDate": "2026-11-25",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2407"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2408,
+        "subject": "Validate capacity, availability, dates and ids strictly",
+        "description": {
+          "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Findings F-07, F-08, M1b-g, new findings 2-4, the TaskJuggler comment newline and the baseline id. validate stays ok for capacity -10, NaN or Inf (NaN crashes workload --format json), unsupported periods (period day counts as a week), bad window times, unknown weekday names, bad exception dates and types, an unknown or empty project time zone, reversed task dates and preferred windows, a malformed preferred_start that makes a demand undated, an unparsable actual date that intersects every week, an unknown Timing.Spread value, ISO week 53 in a 52-week year, ids with newlines (which inject a task into the TaskJuggler export) and baseline ids that are not a safe path segment (dry run shows a path the apply refuses). Add the diagnostics to validation and the matching refusals to the commands, never produce a number from unsupported semantics, distinguish explicit zero capacity from missing capacity, keep error versus warning in line with the specs, and add table tests for every case."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.5H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-25",
+        "dueDate": "2026-11-25",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2408"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2409,
+        "subject": "Report undated demand and unknown remaining instead of counting them silently",
+        "description": {
+          "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Findings H1a and H1b. An undated demand counts in full in every requested week (spanShare returns 1), so weekly totals multiply its hours, and a demand with unknown remaining_amount and no reservation contributes zero load with no diagnostic, while replan next treats it as work ahead. Implement the unscheduled bucket and the remaining amount unknown warning from docs/spec/workload-calculation.md: undated demand is reported once as unscheduled (not added to every week's load) with a warning for required demand, unknown remaining is reported and counted by a stated rule; reconcile docs/spec/cli.md, which currently calls the every-week count intended; tests for one and two weeks and for the no-week view; check the self plan and the examples for changed numbers."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.3H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-26",
+        "dueDate": "2026-11-26",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2409"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2410,
+        "subject": "Allow only http and https links in reports and the overlay",
+        "description": {
+          "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding M6/F-01 and new finding 8. Dashboard and Gantt put SourceRef URLs into href after HTML escaping only, so javascript: and data: URLs become active links; validation does not check SourceRef URLs; the overlay plugin prints them with h(); the OpenProject link is the API self.href (/api/v3/work_packages/<id>) rather than the work package page. Add one URL check for all report output (absolute http or https only, otherwise plain text), validate SourceRef URLs with a warning, apply the same rule in the overlay builder and plugin templates, build the OpenProject link from the base URL and the work package id, and add golden or unit tests with javascript:, data:, mixed case and whitespace forms."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-26",
+        "dueDate": "2026-11-26",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2410"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2411,
+        "subject": "Refuse decision reports while a commit journal is pending",
+        "description": {
+          "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding M7/F-09. Read-only commands do not roll a pending commit journal forward and only warn interrupted_commit_pending; a commit cut after its first file made workload report an overload that existed in neither state, with exit 0 and ok true. Make read commands that produce plan numbers (workload, report, next, tracking, estimate and export) either read the journal's target state without writing or refuse with a clear error and the recovery command, decide which, document it, and test a cut commit followed by each read command; record the recovery itself in the audit log."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-26",
+        "dueDate": "2026-11-26",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2411"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2412,
+        "subject": "Apply only reviewed scenarios and reconcile the scenario specs",
+        "description": {
+          "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding M11 and new finding 7. ScenarioService.Apply blocks only applied scenarios, so draft and rejected scenarios apply; there is no scenario accept command; scenario-model.md requires a separate accept step and lists reviewed, while canonical-model.md has proposed and no reviewed. Settle one status list in both specs, add the accept step (or an explicit approved status) with a human approver in proposal_only, refuse apply for draft, rejected and other non-approved statuses with a clear diagnostic, migrate the examples, and test each status."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-27",
+        "dueDate": "2026-11-27",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2412"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2413,
+        "subject": "Warn when a pool and its members compete for the same capacity",
+        "description": {
+          "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding F-11. A pool row sums its members' capacity, and direct demand on a member plus demand on the pool are checked separately, so 8 h on member A plus 8 h on a pool of only A against 10 h shows no overload anywhere. Add a workload diagnostic when the combined direct and pool demand on the members exceeds their capacity (for example shared_capacity_overload, naming the pool, members and hours), explain in the workload spec that pool rows are a capacity view and not an assignment, and test a one-member pool, a two-member pool and overlapping pools."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-27",
+        "dueDate": "2026-11-27",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2413"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2414,
+        "subject": "Stop the actual_amount fallback once a demand has dated actuals",
+        "description": {
+          "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding F-06. addActuals marks a demand as having actual records only within the requested week, so a demand with actual_amount and a dated record in week A also gets its actual_amount spread into week B (8 h recorded showed as 8 + 4). Decide the fallback per demand across its whole history: if any effective dated actual exists, weekly actuals come only from the records; otherwise actual_amount is reported as undated; test one week, two weeks, corrections and voids, and the sum invariant."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.2H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-27",
+        "dueDate": "2026-11-27",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2414"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2415,
+        "subject": "Page OpenProject relations, time entries and work packages by items read",
+        "description": {
+          "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding M4. The Go import stops paging relations and time entries when offset*pageSize >= total, so a server that caps pages below the requested size loses the tail (2 of 5 read in a test); work packages also stop when count is missing; none detects a repeated page and a missing total reads as 0. Page by items actually read, stop on an empty page or a repeated page, treat a missing total explicitly, and test with a capped and a repeating server."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.2H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-30",
+        "dueDate": "2026-11-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2415"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2416,
+        "subject": "Resolve symlinks in the report output path guard",
+        "description": {
+          "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding F-04. pathInsideProject compares absolute paths lexically, so an output path through a symlink into the project, or a project given through a symlinked path, gets past the guard for active private bindings and what-if outputs, and the same function decides whether report commands take the write lock. Resolve symlinks of the project and of the nearest existing parent of the output before comparing, keep the error codes, and test both symlink directions."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.15H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-30",
+        "dueDate": "2026-11-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2416"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2417,
+        "subject": "Make the dashboard fast on the self plan",
+        "description": {
+          "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). New finding 6. replan report dashboard takes about 22 s on examples/replan-self; about 60% of CPU is CalibrationSuggestions -> calibrationObservations -> deriveTaskActualWindow rebuilding EffectiveStatusAudits over all audit lines for every task. Index status audits by task once per run (or otherwise remove the per-task rescan), keep the output byte-identical (golden files), add a benchmark, and report the before and after time."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-30",
+        "dueDate": "2026-11-30",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2417"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2418,
+        "subject": "Bring the docs in step with the binary and the CI",
+        "description": {
+          "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Findings H6, M5 and M8 wording, M9 documentation items and stale headers. docs/spec/cli.md lists exit code 3 and import github as not implemented; README.md says about 150 tasks (302) and guides with the 0.26 ratio while the latest seal is 0.33 on 67 tasks, and the agent kit README recommends 0.21; getting-started misses evidence add, task set-scheduling, actual correct-status and workload --raw, and help misses --levelled; known-gaps has a stale header and registers none of the confirmed findings; .golangci.yml, getting-started and the lint baseline say CI is paused; release-process.md says Actions does not build releases; the lint baseline points at old main.go lines and omits the wait_report.go suppression; openproject-replan-sync-plan.md and design-work-plan.md headers read as active; access-and-actor-model.md overstates the audit log and the --apply rule for import snapshots; cli.md omits import github from the snapshot exemption. Fix each statement against the code and register the open audit findings in known-gaps with links to their tasks."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.3H",
+        "spentTime": "PT0H",
+        "startDate": "2026-12-01",
+        "dueDate": "2026-12-01",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2418"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2419,
+        "subject": "Run race, TaskJuggler, Windows and vulnerability checks in CI",
+        "description": {
+          "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding M9. CI has no -race, no govulncheck and no Windows compile check, 15 TaskJuggler tests skip on the Go job because tj3 is missing, and the release workflow builds the archives without running tests. Add go test -race on the Go job, install tj3 there (or run those tests in the TaskJuggler job), add GOOS=windows build, vet and test compile, add govulncheck, and run the tests before the release build; keep CI time reasonable and measure the minutes."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-12-01",
+        "dueDate": "2026-12-01",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2419"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2420,
+        "subject": "Backtest calibration factors out of sample",
+        "description": {
+          "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding F-14. Calibration computes median, aggregate, quartile and size-band factors from finished tasks, but nothing measures whether a factor improves estimates of later tasks; the self plan's factor drifted from 0.21 to 0.33. Add a backtest (a replan estimate command or report) that, for each cut date, calibrates on tasks finished before it and scores the next window's tasks: error of the raw baseline versus the calibrated estimate (mean and median absolute error, total ratio, bias), with the protocol written out; run it on examples/replan-self and record the result in the calibration roadmap."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.5H",
+        "spentTime": "PT0H",
+        "startDate": "2026-12-02",
+        "dueDate": "2026-12-02",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2420"
+          },
+          "status": {
+            "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2421,
+        "subject": "Count subagent transcripts in the session helper",
+        "description": {
+          "raw": "Found on 2026-11-23 while booking the audit review: Claude Code writes subagent transcripts under <session>/subagents/agent-*.jsonl with the parent's sessionId; passed to scripts/agent-session-consumption.sh together with the parent transcript they add nothing (0.26 h with or without them), while each measured alone gave 0.11-0.17 h, so parallel subagent time is lost. Treat each subagent transcript as its own session (by agentId or file) and report parallel time the way parallel sessions are reported, optionally discover subagent files next to a given transcript, keep the existing results for transcripts without subagents, and test with a synthetic parent and two overlapping subagents."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.2H",
+        "spentTime": "PT0H",
+        "startDate": "2026-12-02",
+        "dueDate": "2026-12-02",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2421"
+          },
+          "status": {
+            "title": "New"
           },
           "assignee": {
             "href": "/api/v3/users/101",

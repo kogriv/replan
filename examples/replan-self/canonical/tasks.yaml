@@ -8918,3 +8918,532 @@ tasks:
         object_type: work_package
         object_id: "2403"
         url: https://op.example.internal/work_packages/2403
+  - id: task.self.availability-exceptions-in-capacity
+    title: Apply availability exceptions to weekly capacity
+    description: 'Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Findings H2a/F-05, H2b and new finding 5. workingDays and capacityInWeek never read Availability.Exceptions, so 40 h/week with an unavailable Wednesday still shows 40; the TaskJuggler export does use unavailable, access_closed, maintenance and manual_hold; scenario diff zeroes a resource for the whole compared week regardless of the exception date, while workload --scenario shows full capacity for the same scenario. Build one per-day availability rule (windows, effective capacity dates, exceptions by type: unavailable/access_closed/maintenance/manual_hold remove the day, reduced_capacity and extra_capacity adjust it, quota_reset as the spec says) and use it in workload, the weekly report, the dashboard, scenario diff and workload --scenario; drop applyUnavailableResource in favour of the same calculation; keep the TaskJuggler export consistent and diagnose what it cannot express; tests for a mid-week absence, a partial reduction, a capacity change mid-week and the small-team scenario for its own and another week; update capacity-availability-rules.md and the README table if numbers change.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-23"
+    planned_finish: "2026-11-23"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.availability-exceptions-in-capacity.codex
+      - kind: resource_demand
+        id: resource_demand.availability-exceptions-in-capacity.agent
+      - kind: resource_demand
+        id: resource_demand.availability-exceptions-in-capacity.maintainer
+      - kind: resource_demand
+        id: resource_demand.availability-exceptions-in-capacity.local-dev
+      - kind: resource_demand
+        id: resource_demand.availability-exceptions-in-capacity.ci
+    tags:
+      - audit
+      - workload
+      - gap
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2404"
+        url: https://op.example.internal/work_packages/2404
+  - id: task.self.one-openproject-status-map
+    title: Use one OpenProject status map for import, drift and status push
+    description: 'Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding H3. Import folds many OpenProject names into one tracking status (In specification, Confirmed, Blocked and others), drift compares the folded status, but the status push compares the raw name against the seven exact pairs of openproject_status_map.json, so under the default ready_only scope a package in In specification with tracking ready shows no drift and is planned for a PATCH to To be scheduled. Make the push skip a package whose raw status already maps to the desired tracking status (or share one map with aliases between Go and Python), make the source-profile status_map actually apply to the OpenProject import or remove it with a diagnostic, page the /api/v3/statuses catalogue, and extend TestOpenProjectStatusMapMatchesSharedMapping with aliases and a drift-silent/push-quiet consistency test.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-24"
+    planned_finish: "2026-11-24"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.one-openproject-status-map.codex
+      - kind: resource_demand
+        id: resource_demand.one-openproject-status-map.agent
+      - kind: resource_demand
+        id: resource_demand.one-openproject-status-map.maintainer
+      - kind: resource_demand
+        id: resource_demand.one-openproject-status-map.local-dev
+      - kind: resource_demand
+        id: resource_demand.one-openproject-status-map.ci
+    tags:
+      - audit
+      - openproject
+      - gap
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2405"
+        url: https://op.example.internal/work_packages/2405
+  - id: task.self.http-secret-boundaries
+    title: Keep integration secrets on the configured origin across redirects and paging
+    description: 'Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Findings H4/F-10, H5/F-02 and new finding 1. The Python OpenProject client follows 301/302/303/307/308 to another host or from https to http and forwards Authorization and X-Perimeter-Key; the Go OpenProject import forwards the perimeter header on every redirect and Authorization on a same-host other-port redirect (no CheckRedirect); GitHub import follows Link rel=next to any scheme and host with the Bearer token and has no page limit or cycle guard. Refuse (or strip secrets on) any redirect that changes scheme, host or port and refuse https to http in both clients; accept a GitHub next link only on the base URL''s origin; add a page limit and repeated-URL detection; tests with two local servers for every redirect code, both secret headers, the downgrade, a foreign Link and a self-referencing Link.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-24"
+    planned_finish: "2026-11-24"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.http-secret-boundaries.codex
+      - kind: resource_demand
+        id: resource_demand.http-secret-boundaries.agent
+      - kind: resource_demand
+        id: resource_demand.http-secret-boundaries.maintainer
+      - kind: resource_demand
+        id: resource_demand.http-secret-boundaries.local-dev
+      - kind: resource_demand
+        id: resource_demand.http-secret-boundaries.ci
+    tags:
+      - audit
+      - security
+      - openproject
+      - github
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2406"
+        url: https://op.example.internal/work_packages/2406
+  - id: task.self.binding-file-lock
+    title: Serialize writes to the private binding file
+    description: 'Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding M2/F-03. scripts/lib/openproject_bindings.py reads, changes and atomically replaces the binding file without an inter-process lock; two concurrent writers both exit 0 and one binding is lost (three runs out of three), and apply_openproject_relations.py keeps the document from start-up until after all HTTP calls. Take an exclusive lock around every read-modify-write (fcntl on POSIX, msvcrt or LockFileEx on Windows, through platform_compat), re-read under the lock before changing, make the relations helper apply its changes to a fresh read under the lock, and add a two-process race test that keeps both bindings.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-25"
+    planned_finish: "2026-11-25"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.binding-file-lock.codex
+      - kind: resource_demand
+        id: resource_demand.binding-file-lock.agent
+      - kind: resource_demand
+        id: resource_demand.binding-file-lock.maintainer
+      - kind: resource_demand
+        id: resource_demand.binding-file-lock.local-dev
+      - kind: resource_demand
+        id: resource_demand.binding-file-lock.ci
+    tags:
+      - audit
+      - helpers
+      - gap
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2407"
+        url: https://op.example.internal/work_packages/2407
+  - id: task.self.strict-plan-validation
+    title: Validate capacity, availability, dates and ids strictly
+    description: 'Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Findings F-07, F-08, M1b-g, new findings 2-4, the TaskJuggler comment newline and the baseline id. validate stays ok for capacity -10, NaN or Inf (NaN crashes workload --format json), unsupported periods (period day counts as a week), bad window times, unknown weekday names, bad exception dates and types, an unknown or empty project time zone, reversed task dates and preferred windows, a malformed preferred_start that makes a demand undated, an unparsable actual date that intersects every week, an unknown Timing.Spread value, ISO week 53 in a 52-week year, ids with newlines (which inject a task into the TaskJuggler export) and baseline ids that are not a safe path segment (dry run shows a path the apply refuses). Add the diagnostics to validation and the matching refusals to the commands, never produce a number from unsupported semantics, distinguish explicit zero capacity from missing capacity, keep error versus warning in line with the specs, and add table tests for every case.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-25"
+    planned_finish: "2026-11-25"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.strict-plan-validation.codex
+      - kind: resource_demand
+        id: resource_demand.strict-plan-validation.agent
+      - kind: resource_demand
+        id: resource_demand.strict-plan-validation.maintainer
+      - kind: resource_demand
+        id: resource_demand.strict-plan-validation.local-dev
+      - kind: resource_demand
+        id: resource_demand.strict-plan-validation.ci
+    tags:
+      - audit
+      - validation
+      - gap
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2408"
+        url: https://op.example.internal/work_packages/2408
+  - id: task.self.undated-demand-and-unknown-remaining
+    title: Report undated demand and unknown remaining instead of counting them silently
+    description: 'Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Findings H1a and H1b. An undated demand counts in full in every requested week (spanShare returns 1), so weekly totals multiply its hours, and a demand with unknown remaining_amount and no reservation contributes zero load with no diagnostic, while replan next treats it as work ahead. Implement the unscheduled bucket and the remaining amount unknown warning from docs/spec/workload-calculation.md: undated demand is reported once as unscheduled (not added to every week''s load) with a warning for required demand, unknown remaining is reported and counted by a stated rule; reconcile docs/spec/cli.md, which currently calls the every-week count intended; tests for one and two weeks and for the no-week view; check the self plan and the examples for changed numbers.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-26"
+    planned_finish: "2026-11-26"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.undated-demand-and-unknown-remaining.codex
+      - kind: resource_demand
+        id: resource_demand.undated-demand-and-unknown-remaining.agent
+      - kind: resource_demand
+        id: resource_demand.undated-demand-and-unknown-remaining.maintainer
+      - kind: resource_demand
+        id: resource_demand.undated-demand-and-unknown-remaining.local-dev
+      - kind: resource_demand
+        id: resource_demand.undated-demand-and-unknown-remaining.ci
+    tags:
+      - audit
+      - workload
+      - gap
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2409"
+        url: https://op.example.internal/work_packages/2409
+  - id: task.self.safe-report-urls
+    title: Allow only http and https links in reports and the overlay
+    description: 'Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding M6/F-01 and new finding 8. Dashboard and Gantt put SourceRef URLs into href after HTML escaping only, so javascript: and data: URLs become active links; validation does not check SourceRef URLs; the overlay plugin prints them with h(); the OpenProject link is the API self.href (/api/v3/work_packages/<id>) rather than the work package page. Add one URL check for all report output (absolute http or https only, otherwise plain text), validate SourceRef URLs with a warning, apply the same rule in the overlay builder and plugin templates, build the OpenProject link from the base URL and the work package id, and add golden or unit tests with javascript:, data:, mixed case and whitespace forms.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-26"
+    planned_finish: "2026-11-26"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.safe-report-urls.codex
+      - kind: resource_demand
+        id: resource_demand.safe-report-urls.agent
+      - kind: resource_demand
+        id: resource_demand.safe-report-urls.maintainer
+      - kind: resource_demand
+        id: resource_demand.safe-report-urls.local-dev
+      - kind: resource_demand
+        id: resource_demand.safe-report-urls.ci
+    tags:
+      - audit
+      - security
+      - reports
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2410"
+        url: https://op.example.internal/work_packages/2410
+  - id: task.self.readers-fail-closed-on-pending-commit
+    title: Refuse decision reports while a commit journal is pending
+    description: 'Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding M7/F-09. Read-only commands do not roll a pending commit journal forward and only warn interrupted_commit_pending; a commit cut after its first file made workload report an overload that existed in neither state, with exit 0 and ok true. Make read commands that produce plan numbers (workload, report, next, tracking, estimate and export) either read the journal''s target state without writing or refuse with a clear error and the recovery command, decide which, document it, and test a cut commit followed by each read command; record the recovery itself in the audit log.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-26"
+    planned_finish: "2026-11-26"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.readers-fail-closed-on-pending-commit.codex
+      - kind: resource_demand
+        id: resource_demand.readers-fail-closed-on-pending-commit.agent
+      - kind: resource_demand
+        id: resource_demand.readers-fail-closed-on-pending-commit.maintainer
+      - kind: resource_demand
+        id: resource_demand.readers-fail-closed-on-pending-commit.local-dev
+      - kind: resource_demand
+        id: resource_demand.readers-fail-closed-on-pending-commit.ci
+    tags:
+      - audit
+      - storage
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2411"
+        url: https://op.example.internal/work_packages/2411
+  - id: task.self.scenario-status-gate
+    title: Apply only reviewed scenarios and reconcile the scenario specs
+    description: 'Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding M11 and new finding 7. ScenarioService.Apply blocks only applied scenarios, so draft and rejected scenarios apply; there is no scenario accept command; scenario-model.md requires a separate accept step and lists reviewed, while canonical-model.md has proposed and no reviewed. Settle one status list in both specs, add the accept step (or an explicit approved status) with a human approver in proposal_only, refuse apply for draft, rejected and other non-approved statuses with a clear diagnostic, migrate the examples, and test each status.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-27"
+    planned_finish: "2026-11-27"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.scenario-status-gate.codex
+      - kind: resource_demand
+        id: resource_demand.scenario-status-gate.agent
+      - kind: resource_demand
+        id: resource_demand.scenario-status-gate.maintainer
+      - kind: resource_demand
+        id: resource_demand.scenario-status-gate.local-dev
+      - kind: resource_demand
+        id: resource_demand.scenario-status-gate.ci
+    tags:
+      - audit
+      - scenarios
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2412"
+        url: https://op.example.internal/work_packages/2412
+  - id: task.self.pool-member-shared-capacity
+    title: Warn when a pool and its members compete for the same capacity
+    description: 'Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding F-11. A pool row sums its members'' capacity, and direct demand on a member plus demand on the pool are checked separately, so 8 h on member A plus 8 h on a pool of only A against 10 h shows no overload anywhere. Add a workload diagnostic when the combined direct and pool demand on the members exceeds their capacity (for example shared_capacity_overload, naming the pool, members and hours), explain in the workload spec that pool rows are a capacity view and not an assignment, and test a one-member pool, a two-member pool and overlapping pools.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-27"
+    planned_finish: "2026-11-27"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.pool-member-shared-capacity.codex
+      - kind: resource_demand
+        id: resource_demand.pool-member-shared-capacity.agent
+      - kind: resource_demand
+        id: resource_demand.pool-member-shared-capacity.maintainer
+      - kind: resource_demand
+        id: resource_demand.pool-member-shared-capacity.local-dev
+      - kind: resource_demand
+        id: resource_demand.pool-member-shared-capacity.ci
+    tags:
+      - audit
+      - workload
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2413"
+        url: https://op.example.internal/work_packages/2413
+  - id: task.self.actual-fallback-per-demand
+    title: Stop the actual_amount fallback once a demand has dated actuals
+    description: 'Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding F-06. addActuals marks a demand as having actual records only within the requested week, so a demand with actual_amount and a dated record in week A also gets its actual_amount spread into week B (8 h recorded showed as 8 + 4). Decide the fallback per demand across its whole history: if any effective dated actual exists, weekly actuals come only from the records; otherwise actual_amount is reported as undated; test one week, two weeks, corrections and voids, and the sum invariant.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-27"
+    planned_finish: "2026-11-27"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.actual-fallback-per-demand.codex
+      - kind: resource_demand
+        id: resource_demand.actual-fallback-per-demand.agent
+      - kind: resource_demand
+        id: resource_demand.actual-fallback-per-demand.maintainer
+      - kind: resource_demand
+        id: resource_demand.actual-fallback-per-demand.local-dev
+      - kind: resource_demand
+        id: resource_demand.actual-fallback-per-demand.ci
+    tags:
+      - audit
+      - workload
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2414"
+        url: https://op.example.internal/work_packages/2414
+  - id: task.self.openproject-paging
+    title: Page OpenProject relations, time entries and work packages by items read
+    description: 'Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding M4. The Go import stops paging relations and time entries when offset*pageSize >= total, so a server that caps pages below the requested size loses the tail (2 of 5 read in a test); work packages also stop when count is missing; none detects a repeated page and a missing total reads as 0. Page by items actually read, stop on an empty page or a repeated page, treat a missing total explicitly, and test with a capped and a repeating server.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-30"
+    planned_finish: "2026-11-30"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.openproject-paging.codex
+      - kind: resource_demand
+        id: resource_demand.openproject-paging.agent
+      - kind: resource_demand
+        id: resource_demand.openproject-paging.maintainer
+      - kind: resource_demand
+        id: resource_demand.openproject-paging.local-dev
+      - kind: resource_demand
+        id: resource_demand.openproject-paging.ci
+    tags:
+      - audit
+      - openproject
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2415"
+        url: https://op.example.internal/work_packages/2415
+  - id: task.self.output-guard-resolves-symlinks
+    title: Resolve symlinks in the report output path guard
+    description: 'Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding F-04. pathInsideProject compares absolute paths lexically, so an output path through a symlink into the project, or a project given through a symlinked path, gets past the guard for active private bindings and what-if outputs, and the same function decides whether report commands take the write lock. Resolve symlinks of the project and of the nearest existing parent of the output before comparing, keep the error codes, and test both symlink directions.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-30"
+    planned_finish: "2026-11-30"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.output-guard-resolves-symlinks.codex
+      - kind: resource_demand
+        id: resource_demand.output-guard-resolves-symlinks.agent
+      - kind: resource_demand
+        id: resource_demand.output-guard-resolves-symlinks.maintainer
+      - kind: resource_demand
+        id: resource_demand.output-guard-resolves-symlinks.local-dev
+      - kind: resource_demand
+        id: resource_demand.output-guard-resolves-symlinks.ci
+    tags:
+      - audit
+      - cli
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2416"
+        url: https://op.example.internal/work_packages/2416
+  - id: task.self.dashboard-speed
+    title: Make the dashboard fast on the self plan
+    description: 'Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). New finding 6. replan report dashboard takes about 22 s on examples/replan-self; about 60% of CPU is CalibrationSuggestions -> calibrationObservations -> deriveTaskActualWindow rebuilding EffectiveStatusAudits over all audit lines for every task. Index status audits by task once per run (or otherwise remove the per-task rescan), keep the output byte-identical (golden files), add a benchmark, and report the before and after time.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-30"
+    planned_finish: "2026-11-30"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.dashboard-speed.codex
+      - kind: resource_demand
+        id: resource_demand.dashboard-speed.agent
+      - kind: resource_demand
+        id: resource_demand.dashboard-speed.maintainer
+      - kind: resource_demand
+        id: resource_demand.dashboard-speed.local-dev
+      - kind: resource_demand
+        id: resource_demand.dashboard-speed.ci
+    tags:
+      - audit
+      - reports
+      - performance
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2417"
+        url: https://op.example.internal/work_packages/2417
+  - id: task.self.docs-in-step-with-binary
+    title: Bring the docs in step with the binary and the CI
+    description: 'Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Findings H6, M5 and M8 wording, M9 documentation items and stale headers. docs/spec/cli.md lists exit code 3 and import github as not implemented; README.md says about 150 tasks (302) and guides with the 0.26 ratio while the latest seal is 0.33 on 67 tasks, and the agent kit README recommends 0.21; getting-started misses evidence add, task set-scheduling, actual correct-status and workload --raw, and help misses --levelled; known-gaps has a stale header and registers none of the confirmed findings; .golangci.yml, getting-started and the lint baseline say CI is paused; release-process.md says Actions does not build releases; the lint baseline points at old main.go lines and omits the wait_report.go suppression; openproject-replan-sync-plan.md and design-work-plan.md headers read as active; access-and-actor-model.md overstates the audit log and the --apply rule for import snapshots; cli.md omits import github from the snapshot exemption. Fix each statement against the code and register the open audit findings in known-gaps with links to their tasks.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-12-01"
+    planned_finish: "2026-12-01"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.docs-in-step-with-binary.agent
+      - kind: resource_demand
+        id: resource_demand.docs-in-step-with-binary.maintainer
+      - kind: resource_demand
+        id: resource_demand.docs-in-step-with-binary.local-dev
+      - kind: resource_demand
+        id: resource_demand.docs-in-step-with-binary.ci
+    tags:
+      - audit
+      - docs
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2418"
+        url: https://op.example.internal/work_packages/2418
+  - id: task.self.ci-hardening
+    title: Run race, TaskJuggler, Windows and vulnerability checks in CI
+    description: 'Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding M9. CI has no -race, no govulncheck and no Windows compile check, 15 TaskJuggler tests skip on the Go job because tj3 is missing, and the release workflow builds the archives without running tests. Add go test -race on the Go job, install tj3 there (or run those tests in the TaskJuggler job), add GOOS=windows build, vet and test compile, add govulncheck, and run the tests before the release build; keep CI time reasonable and measure the minutes.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-12-01"
+    planned_finish: "2026-12-01"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.ci-hardening.codex
+      - kind: resource_demand
+        id: resource_demand.ci-hardening.agent
+      - kind: resource_demand
+        id: resource_demand.ci-hardening.maintainer
+      - kind: resource_demand
+        id: resource_demand.ci-hardening.local-dev
+      - kind: resource_demand
+        id: resource_demand.ci-hardening.ci
+    tags:
+      - audit
+      - ci
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2419"
+        url: https://op.example.internal/work_packages/2419
+  - id: task.self.calibration-backtest
+    title: Backtest calibration factors out of sample
+    description: 'Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding F-14. Calibration computes median, aggregate, quartile and size-band factors from finished tasks, but nothing measures whether a factor improves estimates of later tasks; the self plan''s factor drifted from 0.21 to 0.33. Add a backtest (a replan estimate command or report) that, for each cut date, calibrates on tasks finished before it and scores the next window''s tasks: error of the raw baseline versus the calibrated estimate (mean and median absolute error, total ratio, bias), with the protocol written out; run it on examples/replan-self and record the result in the calibration roadmap.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-12-02"
+    planned_finish: "2026-12-02"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.calibration-backtest.codex
+      - kind: resource_demand
+        id: resource_demand.calibration-backtest.agent
+      - kind: resource_demand
+        id: resource_demand.calibration-backtest.maintainer
+      - kind: resource_demand
+        id: resource_demand.calibration-backtest.local-dev
+      - kind: resource_demand
+        id: resource_demand.calibration-backtest.ci
+    tags:
+      - audit
+      - calibration
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2420"
+        url: https://op.example.internal/work_packages/2420
+  - id: task.self.session-helper-subagent-transcripts
+    title: Count subagent transcripts in the session helper
+    description: 'Found on 2026-11-23 while booking the audit review: Claude Code writes subagent transcripts under <session>/subagents/agent-*.jsonl with the parent''s sessionId; passed to scripts/agent-session-consumption.sh together with the parent transcript they add nothing (0.26 h with or without them), while each measured alone gave 0.11-0.17 h, so parallel subagent time is lost. Treat each subagent transcript as its own session (by agentId or file) and report parallel time the way parallel sessions are reported, optionally discover subagent files next to a given transcript, keep the existing results for transcripts without subagents, and test with a synthetic parent and two overlapping subagents.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-12-02"
+    planned_finish: "2026-12-02"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.session-helper-subagent-transcripts.codex
+      - kind: resource_demand
+        id: resource_demand.session-helper-subagent-transcripts.agent
+      - kind: resource_demand
+        id: resource_demand.session-helper-subagent-transcripts.maintainer
+      - kind: resource_demand
+        id: resource_demand.session-helper-subagent-transcripts.local-dev
+      - kind: resource_demand
+        id: resource_demand.session-helper-subagent-transcripts.ci
+    tags:
+      - helpers
+      - gap
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2421"
+        url: https://op.example.internal/work_packages/2421

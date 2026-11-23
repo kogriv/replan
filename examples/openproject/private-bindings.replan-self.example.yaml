@@ -1043,6 +1043,114 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2403"
         url: https://op.example.internal/work_packages/2403
+    - replan_task_id: task.self.availability-exceptions-in-capacity
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2404"
+        url: https://op.example.internal/work_packages/2404
+    - replan_task_id: task.self.one-openproject-status-map
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2405"
+        url: https://op.example.internal/work_packages/2405
+    - replan_task_id: task.self.http-secret-boundaries
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2406"
+        url: https://op.example.internal/work_packages/2406
+    - replan_task_id: task.self.binding-file-lock
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2407"
+        url: https://op.example.internal/work_packages/2407
+    - replan_task_id: task.self.strict-plan-validation
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2408"
+        url: https://op.example.internal/work_packages/2408
+    - replan_task_id: task.self.undated-demand-and-unknown-remaining
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2409"
+        url: https://op.example.internal/work_packages/2409
+    - replan_task_id: task.self.safe-report-urls
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2410"
+        url: https://op.example.internal/work_packages/2410
+    - replan_task_id: task.self.readers-fail-closed-on-pending-commit
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2411"
+        url: https://op.example.internal/work_packages/2411
+    - replan_task_id: task.self.scenario-status-gate
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2412"
+        url: https://op.example.internal/work_packages/2412
+    - replan_task_id: task.self.pool-member-shared-capacity
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2413"
+        url: https://op.example.internal/work_packages/2413
+    - replan_task_id: task.self.actual-fallback-per-demand
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2414"
+        url: https://op.example.internal/work_packages/2414
+    - replan_task_id: task.self.openproject-paging
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2415"
+        url: https://op.example.internal/work_packages/2415
+    - replan_task_id: task.self.output-guard-resolves-symlinks
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2416"
+        url: https://op.example.internal/work_packages/2416
+    - replan_task_id: task.self.dashboard-speed
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2417"
+        url: https://op.example.internal/work_packages/2417
+    - replan_task_id: task.self.docs-in-step-with-binary
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2418"
+        url: https://op.example.internal/work_packages/2418
+    - replan_task_id: task.self.ci-hardening
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2419"
+        url: https://op.example.internal/work_packages/2419
+    - replan_task_id: task.self.calibration-backtest
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2420"
+        url: https://op.example.internal/work_packages/2420
+    - replan_task_id: task.self.session-helper-subagent-transcripts
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2421"
+        url: https://op.example.internal/work_packages/2421
     - replan_task_id: task.self.date-push-nothing-to-apply-is-ok
       source_ref:
         source: openproject

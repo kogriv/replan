@@ -1,0 +1,48 @@
+baseline:
+  id: baseline.2026-11-23.safe-report-urls
+  name: safe-report-urls as agreed on 2026-11-23
+  scope: tasks
+  created_at: "2026-11-23T13:28:00+07:00"
+  approved_at: "2026-11-23T13:28:00+07:00"
+  approved_by:
+    kind: actor
+    id: actor.human.maintainer
+  included_tasks:
+    - kind: task
+      id: task.self.safe-report-urls
+      planned_start: "2026-11-26"
+      planned_finish: "2026-11-26"
+  included_demands:
+    - kind: resource_demand
+      id: resource_demand.safe-report-urls.codex
+      task: task.self.safe-report-urls
+      resource: resource.ai.codex.local
+      unit: agent_hours
+      planned_amount: 0.6
+    - kind: resource_demand
+      id: resource_demand.safe-report-urls.agent
+      task: task.self.safe-report-urls
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 0.2
+    - kind: resource_demand
+      id: resource_demand.safe-report-urls.maintainer
+      task: task.self.safe-report-urls
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.safe-report-urls.local-dev
+      task: task.self.safe-report-urls
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.safe-report-urls.ci
+      task: task.self.safe-report-urls
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  seal:
+    algorithm: sha256
+    digest: 4849f42406daeb38fff994417a7728deb3025900c65d748ff8df730675cd7dfc

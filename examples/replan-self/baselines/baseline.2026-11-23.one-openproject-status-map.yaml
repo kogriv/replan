@@ -1,0 +1,48 @@
+baseline:
+  id: baseline.2026-11-23.one-openproject-status-map
+  name: one-openproject-status-map as agreed on 2026-11-23
+  scope: tasks
+  created_at: "2026-11-23T13:28:00+07:00"
+  approved_at: "2026-11-23T13:28:00+07:00"
+  approved_by:
+    kind: actor
+    id: actor.human.maintainer
+  included_tasks:
+    - kind: task
+      id: task.self.one-openproject-status-map
+      planned_start: "2026-11-24"
+      planned_finish: "2026-11-24"
+  included_demands:
+    - kind: resource_demand
+      id: resource_demand.one-openproject-status-map.codex
+      task: task.self.one-openproject-status-map
+      resource: resource.ai.codex.local
+      unit: agent_hours
+      planned_amount: 0.6
+    - kind: resource_demand
+      id: resource_demand.one-openproject-status-map.agent
+      task: task.self.one-openproject-status-map
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 0.2
+    - kind: resource_demand
+      id: resource_demand.one-openproject-status-map.maintainer
+      task: task.self.one-openproject-status-map
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.25
+    - kind: resource_demand
+      id: resource_demand.one-openproject-status-map.local-dev
+      task: task.self.one-openproject-status-map
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.one-openproject-status-map.ci
+      task: task.self.one-openproject-status-map
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  seal:
+    algorithm: sha256
+    digest: e1f62bba6f6ac64f37743299ec24ec5806a0c8ef15812e23d632be2c07d8019a

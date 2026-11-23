@@ -596,6 +596,42 @@ current_plan:
     - kind: task
       id: task.self.review-audits-2026-11-23
     - kind: task
+      id: task.self.availability-exceptions-in-capacity
+    - kind: task
+      id: task.self.one-openproject-status-map
+    - kind: task
+      id: task.self.http-secret-boundaries
+    - kind: task
+      id: task.self.binding-file-lock
+    - kind: task
+      id: task.self.strict-plan-validation
+    - kind: task
+      id: task.self.undated-demand-and-unknown-remaining
+    - kind: task
+      id: task.self.safe-report-urls
+    - kind: task
+      id: task.self.readers-fail-closed-on-pending-commit
+    - kind: task
+      id: task.self.scenario-status-gate
+    - kind: task
+      id: task.self.pool-member-shared-capacity
+    - kind: task
+      id: task.self.actual-fallback-per-demand
+    - kind: task
+      id: task.self.openproject-paging
+    - kind: task
+      id: task.self.output-guard-resolves-symlinks
+    - kind: task
+      id: task.self.dashboard-speed
+    - kind: task
+      id: task.self.docs-in-step-with-binary
+    - kind: task
+      id: task.self.ci-hardening
+    - kind: task
+      id: task.self.calibration-backtest
+    - kind: task
+      id: task.self.session-helper-subagent-transcripts
+    - kind: task
       id: task.self.date-push-nothing-to-apply-is-ok
     - kind: task
       id: task.self.toolkit-comment-add-saves-comment

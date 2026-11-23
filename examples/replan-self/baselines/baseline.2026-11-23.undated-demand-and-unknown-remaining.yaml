@@ -1,0 +1,48 @@
+baseline:
+  id: baseline.2026-11-23.undated-demand-and-unknown-remaining
+  name: undated-demand-and-unknown-remaining as agreed on 2026-11-23
+  scope: tasks
+  created_at: "2026-11-23T13:28:00+07:00"
+  approved_at: "2026-11-23T13:28:00+07:00"
+  approved_by:
+    kind: actor
+    id: actor.human.maintainer
+  included_tasks:
+    - kind: task
+      id: task.self.undated-demand-and-unknown-remaining
+      planned_start: "2026-11-26"
+      planned_finish: "2026-11-26"
+  included_demands:
+    - kind: resource_demand
+      id: resource_demand.undated-demand-and-unknown-remaining.codex
+      task: task.self.undated-demand-and-unknown-remaining
+      resource: resource.ai.codex.local
+      unit: agent_hours
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.undated-demand-and-unknown-remaining.agent
+      task: task.self.undated-demand-and-unknown-remaining
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 0.3
+    - kind: resource_demand
+      id: resource_demand.undated-demand-and-unknown-remaining.maintainer
+      task: task.self.undated-demand-and-unknown-remaining
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.3
+    - kind: resource_demand
+      id: resource_demand.undated-demand-and-unknown-remaining.local-dev
+      task: task.self.undated-demand-and-unknown-remaining
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.undated-demand-and-unknown-remaining.ci
+      task: task.self.undated-demand-and-unknown-remaining
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  seal:
+    algorithm: sha256
+    digest: ba1c576e65d867bc454301e270a3c99742564adaccf61424f4835bc605c094b7

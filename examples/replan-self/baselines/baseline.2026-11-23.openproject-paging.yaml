@@ -1,0 +1,48 @@
+baseline:
+  id: baseline.2026-11-23.openproject-paging
+  name: openproject-paging as agreed on 2026-11-23
+  scope: tasks
+  created_at: "2026-11-23T13:28:00+07:00"
+  approved_at: "2026-11-23T13:28:00+07:00"
+  approved_by:
+    kind: actor
+    id: actor.human.maintainer
+  included_tasks:
+    - kind: task
+      id: task.self.openproject-paging
+      planned_start: "2026-11-30"
+      planned_finish: "2026-11-30"
+  included_demands:
+    - kind: resource_demand
+      id: resource_demand.openproject-paging.codex
+      task: task.self.openproject-paging
+      resource: resource.ai.codex.local
+      unit: agent_hours
+      planned_amount: 0.4
+    - kind: resource_demand
+      id: resource_demand.openproject-paging.agent
+      task: task.self.openproject-paging
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 0.1
+    - kind: resource_demand
+      id: resource_demand.openproject-paging.maintainer
+      task: task.self.openproject-paging
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.2
+    - kind: resource_demand
+      id: resource_demand.openproject-paging.local-dev
+      task: task.self.openproject-paging
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.openproject-paging.ci
+      task: task.self.openproject-paging
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  seal:
+    algorithm: sha256
+    digest: 996cb7329623956c82130a85465977d7c2f80f43be8d9d2f726aaa8d3fa25254

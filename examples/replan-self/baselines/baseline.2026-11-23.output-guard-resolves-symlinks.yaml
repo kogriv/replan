@@ -1,0 +1,48 @@
+baseline:
+  id: baseline.2026-11-23.output-guard-resolves-symlinks
+  name: output-guard-resolves-symlinks as agreed on 2026-11-23
+  scope: tasks
+  created_at: "2026-11-23T13:28:00+07:00"
+  approved_at: "2026-11-23T13:28:00+07:00"
+  approved_by:
+    kind: actor
+    id: actor.human.maintainer
+  included_tasks:
+    - kind: task
+      id: task.self.output-guard-resolves-symlinks
+      planned_start: "2026-11-30"
+      planned_finish: "2026-11-30"
+  included_demands:
+    - kind: resource_demand
+      id: resource_demand.output-guard-resolves-symlinks.codex
+      task: task.self.output-guard-resolves-symlinks
+      resource: resource.ai.codex.local
+      unit: agent_hours
+      planned_amount: 0.3
+    - kind: resource_demand
+      id: resource_demand.output-guard-resolves-symlinks.agent
+      task: task.self.output-guard-resolves-symlinks
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 0.1
+    - kind: resource_demand
+      id: resource_demand.output-guard-resolves-symlinks.maintainer
+      task: task.self.output-guard-resolves-symlinks
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.15
+    - kind: resource_demand
+      id: resource_demand.output-guard-resolves-symlinks.local-dev
+      task: task.self.output-guard-resolves-symlinks
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.output-guard-resolves-symlinks.ci
+      task: task.self.output-guard-resolves-symlinks
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  seal:
+    algorithm: sha256
+    digest: 2387d92e1e9640d96888f646aee3abb08ad3aec5b286a4410d0391f76b776304
