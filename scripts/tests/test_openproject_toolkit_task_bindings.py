@@ -348,6 +348,113 @@ class ToolkitTaskBindingsTest(unittest.TestCase):
         self.assertEqual(out["counts"]["changed_resource_bindings"], 1)
         self.assertTrue(out["counts"]["changed_project_base_url"])
 
+    def test_rebase_urls_keep_base_url_dry_run_reports_kept_without_writing(self):
+        with tempfile.TemporaryDirectory() as project:
+            bindings, fixture = self.make_plan(project)
+            with open(bindings, encoding="utf-8") as handle:
+                document = yaml.safe_load(handle)
+            layer = document["openproject_private_bindings"]
+            layer["project"]["base_url"] = "https://example.invalid/tunnel"
+            with open(bindings, "w", encoding="utf-8", newline="\n") as handle:
+                yaml.safe_dump(document, handle, sort_keys=False)
+            with open(bindings, "rb") as handle:
+                before = handle.read()
+            proc, out = self.run_toolkit(project, bindings, fixture, [
+                "work-package", "rebase-urls",
+                "--from", "https://example.invalid",
+                "--to", "https://new.example.invalid",
+                "--keep-base-url",
+            ])
+            with open(bindings, "rb") as handle:
+                after = handle.read()
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertEqual(before, after)
+        project_item = out["items"][0]
+        self.assertEqual(project_item["status"], "kept")
+        self.assertEqual(project_item["reason"], "keep_base_url_requested")
+        self.assertEqual(project_item["old_url"], "https://example.invalid/tunnel")
+        self.assertEqual(project_item["new_url"], "https://example.invalid/tunnel")
+        self.assertEqual(out["counts"]["changed_bindings"], 4)
+        self.assertEqual(out["counts"]["kept_bindings"], 1)
+        self.assertFalse(out["counts"]["changed_project_base_url"])
+        self.assertTrue(out["counts"]["kept_project_base_url"])
+        self.assertTrue(all(
+            item["new_url"].startswith("https://new.example.invalid")
+            for item in out["items"] if item["status"] == "changed"
+        ))
+
+    def test_rebase_urls_keep_base_url_apply_changes_only_link_urls(self):
+        with tempfile.TemporaryDirectory() as project:
+            bindings, fixture = self.make_plan(project)
+            with open(bindings, encoding="utf-8") as handle:
+                before = yaml.safe_load(handle)
+            before["openproject_private_bindings"]["project"]["base_url"] = (
+                "https://example.invalid/tunnel"
+            )
+            rendered = yaml.safe_dump(before, sort_keys=False, allow_unicode=True)
+            with open(bindings, "wb") as handle:
+                handle.write(rendered.replace("\n", "\r\n").encode())
+            expected = copy.deepcopy(before)
+            expected_layer = expected["openproject_private_bindings"]
+            for binding in [*expected_layer["tasks"], *expected_layer["dependencies"]]:
+                source = binding.get("source_ref") or {}
+                url = source.get("url", "")
+                if url.startswith("https://example.invalid"):
+                    source["url"] = (
+                        "https://new.example.invalid"
+                        + url[len("https://example.invalid"):]
+                    )
+            proc, out = self.run_toolkit(project, bindings, fixture, [
+                "work-package", "rebase-urls",
+                "--from", "https://example.invalid",
+                "--to", "https://new.example.invalid",
+                "--keep-base-url",
+            ], apply=True)
+            with open(bindings, "rb") as handle:
+                raw = handle.read()
+            after = yaml.safe_load(raw)
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertNotIn(b"\r\n", raw)
+        self.assertEqual(after, expected)
+        self.assertEqual(
+            after["openproject_private_bindings"]["project"]["base_url"],
+            "https://example.invalid/tunnel",
+        )
+        self.assertEqual(out["counts"]["applied_actions"], 4)
+
+    def test_rebase_urls_keep_base_url_is_no_op_when_only_base_would_change(self):
+        with tempfile.TemporaryDirectory() as project:
+            bindings, fixture = self.make_plan(project)
+            with open(bindings, encoding="utf-8") as handle:
+                document = yaml.safe_load(handle)
+            layer = document["openproject_private_bindings"]
+            layer["project"]["base_url"] = "https://example.invalid/tunnel"
+            for binding in [*layer["tasks"], *layer["dependencies"]]:
+                source = binding.get("source_ref") or {}
+                url = source.get("url", "")
+                if url:
+                    source["url"] = "https://other.invalid" + url[len("https://example.invalid"):]
+            rendered = yaml.safe_dump(document, sort_keys=False, allow_unicode=True)
+            with open(bindings, "wb") as handle:
+                handle.write(rendered.replace("\n", "\r\n").encode())
+            with open(bindings, "rb") as handle:
+                before = handle.read()
+            proc, out = self.run_toolkit(project, bindings, fixture, [
+                "work-package", "rebase-urls",
+                "--from", "https://example.invalid",
+                "--to", "https://new.example.invalid",
+                "--keep-base-url",
+            ], apply=True)
+            with open(bindings, "rb") as handle:
+                after = handle.read()
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertEqual(before, after)
+        self.assertTrue(out["no_op"])
+        self.assertEqual(out["counts"]["changed_bindings"], 0)
+        self.assertEqual(out["counts"]["kept_bindings"], 1)
+        self.assertFalse(out["counts"]["changed_project_base_url"])
+        self.assertTrue(out["counts"]["kept_project_base_url"])
+
     def test_rebase_urls_refuses_invalid_or_equal_urls(self):
         cases = [
             ("relative/path", "https://new.example.invalid"),

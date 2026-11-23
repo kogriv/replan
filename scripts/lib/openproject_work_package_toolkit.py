@@ -1305,17 +1305,28 @@ def command_wp_rebase_urls(args):
     # The project's base_url is rewritten the same way, keyed "base_url".
     project_section = binding_root.get("project") or {}
     old_project_base = as_text(project_section.get("base_url"))
+    kept_project_base_url = False
     if old_project_base:
         changed = url_under_base(old_project_base, old_base)
+        kept_project_base_url = changed and args.keep_base_url
         item = {
             "binding_kind": "project",
             "replan_id": as_text(project_section.get("replan_project_id")) or "project",
             "old_url": old_project_base,
-            "new_url": new_base.rstrip("/") + old_project_base[len(old_base.rstrip("/")):] if changed else old_project_base,
-            "status": "changed" if changed else "unchanged",
+            "new_url": (
+                new_base.rstrip("/") + old_project_base[len(old_base.rstrip("/")):]
+                if changed and not kept_project_base_url else old_project_base
+            ),
+            "status": (
+                "kept" if kept_project_base_url
+                else "changed" if changed
+                else "unchanged"
+            ),
         }
+        if kept_project_base_url:
+            item["reason"] = "keep_base_url_requested"
         items.append(item)
-        if changed:
+        if changed and not kept_project_base_url:
             changes.append((project_section, item))
     for binding_kind, list_key, id_key in binding_specs:
         for binding in binding_root.get(list_key) or []:
@@ -1354,6 +1365,14 @@ def command_wp_rebase_urls(args):
             item["binding_kind"] == "project" for _, item in changes
         ),
     }
+    if args.keep_base_url:
+        counts.update({
+            "unchanged_bindings": sum(
+                item["status"] == "unchanged" for item in items
+            ),
+            "kept_bindings": sum(item["status"] == "kept" for item in items),
+            "kept_project_base_url": kept_project_base_url,
+        })
     actions = [{
         "action": "rebase_openproject_binding_url",
         **item,
@@ -2464,6 +2483,7 @@ def main():
     rebase_urls = wp_sub.add_parser("rebase-urls")
     rebase_urls.add_argument("--from", dest="from_url", required=True)
     rebase_urls.add_argument("--to", dest="to_url", required=True)
+    rebase_urls.add_argument("--keep-base-url", action="store_true")
     unbind = wp_sub.add_parser("unbind")
     unbind.add_argument("--task", required=True)
     update_status = wp_sub.add_parser("update-status")

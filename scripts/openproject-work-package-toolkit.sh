@@ -41,7 +41,7 @@
 #       [--status open|locked|closed] [--sharing none|descendants|hierarchy|tree|system]
 #   scripts/openproject-work-package-toolkit.sh work-package create [--task TASK [--bind]] --subject "Task" --version "Release 1"
 #   scripts/openproject-work-package-toolkit.sh work-package bind --task TASK --work-package ID [--replace]
-#   scripts/openproject-work-package-toolkit.sh work-package rebase-urls --from OLD_BASE_URL --to NEW_BASE_URL
+#   scripts/openproject-work-package-toolkit.sh work-package rebase-urls --from OLD_BASE_URL --to NEW_BASE_URL [--keep-base-url]
 #   scripts/openproject-work-package-toolkit.sh work-package unbind --task TASK
 #   scripts/openproject-work-package-toolkit.sh work-package update-metadata --task task.example --version "Release 1"
 #   scripts/openproject-work-package-toolkit.sh work-package update-metadata --task task.example --clear-version
