@@ -18485,6 +18485,17 @@ resource_demands:
     remaining_amount: 0
     criticality: required
     status: consumed
+    overrun_review:
+      acknowledged_forecast: 33
+      unit: ci_minutes
+      reason: Measured CI (33 billable minutes) exceeds the 1 minute placeholder of an unplanned CI demand; acknowledged by the maintainer in chat.
+      reviewed_by:
+        kind: actor
+        id: actor.human.maintainer
+      reviewed_at: "2026-11-23T15:25:59+07:00"
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.ack-ci-overrun-review-audits-2026-11-23
   - id: resource_demand.availability-exceptions-in-capacity.codex
     task_ref:
       kind: task
@@ -18498,7 +18509,7 @@ resource_demands:
     planned_amount: 1.5
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.availability-exceptions-in-capacity.agent
     task_ref:
       kind: task
@@ -18512,7 +18523,7 @@ resource_demands:
     planned_amount: 0.4
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.availability-exceptions-in-capacity.maintainer
     task_ref:
       kind: task
@@ -18524,9 +18535,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.5
-    remaining_amount: 0.5
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.availability-exceptions-in-capacity.local-dev
     task_ref:
       kind: task
@@ -18538,9 +18549,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.availability-exceptions-in-capacity.ci
     task_ref:
       kind: task
@@ -18552,9 +18563,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 15
-    remaining_amount: 15
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.one-openproject-status-map.codex
     task_ref:
       kind: task

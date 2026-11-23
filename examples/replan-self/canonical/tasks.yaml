@@ -8922,7 +8922,7 @@ tasks:
     title: Apply availability exceptions to weekly capacity
     description: 'Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Findings H2a/F-05, H2b and new finding 5. workingDays and capacityInWeek never read Availability.Exceptions, so 40 h/week with an unavailable Wednesday still shows 40; the TaskJuggler export does use unavailable, access_closed, maintenance and manual_hold; scenario diff zeroes a resource for the whole compared week regardless of the exception date, while workload --scenario shows full capacity for the same scenario. Build one per-day availability rule (windows, effective capacity dates, exceptions by type: unavailable/access_closed/maintenance/manual_hold remove the day, reduced_capacity and extra_capacity adjust it, quota_reset as the spec says) and use it in workload, the weekly report, the dashboard, scenario diff and workload --scenario; drop applyUnavailableResource in favour of the same calculation; keep the TaskJuggler export consistent and diagnose what it cannot express; tests for a mid-week absence, a partial reduction, a capacity change mid-week and the small-team scenario for its own and another week; update capacity-availability-rules.md and the README table if numbers change.'
     type: implementation
-    tracking_status: review_ready
+    tracking_status: accepted
     planned_start: "2026-11-23"
     planned_finish: "2026-11-23"
     assignee_hint:
@@ -8952,7 +8952,7 @@ tasks:
     title: Use one OpenProject status map for import, drift and status push
     description: 'Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding H3. Import folds many OpenProject names into one tracking status (In specification, Confirmed, Blocked and others), drift compares the folded status, but the status push compares the raw name against the seven exact pairs of openproject_status_map.json, so under the default ready_only scope a package in In specification with tracking ready shows no drift and is planned for a PATCH to To be scheduled. Make the push skip a package whose raw status already maps to the desired tracking status (or share one map with aliases between Go and Python), make the source-profile status_map actually apply to the OpenProject import or remove it with a diagnostic, page the /api/v3/statuses catalogue, and extend TestOpenProjectStatusMapMatchesSharedMapping with aliases and a drift-silent/push-quiet consistency test.'
     type: implementation
-    tracking_status: not_started
+    tracking_status: in_progress
     planned_start: "2026-11-24"
     planned_finish: "2026-11-24"
     assignee_hint:

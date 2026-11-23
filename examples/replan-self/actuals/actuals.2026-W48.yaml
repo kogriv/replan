@@ -109,3 +109,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.availability-exceptions-in-capacity
+  - id: actual.self-availability-exceptions-in-capacity.ci-github-actions.20261123T082559Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.availability-exceptions-in-capacity
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.availability-exceptions-in-capacity.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 14
+    unit: ci_minutes
+    measurement: measured
+    occurred_at: "2026-11-23T08:25:59Z"
+    status_date: "2026-11-23"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-availability-exceptions-in-capacity
+  - id: actual.self-availability-exceptions-in-capacity.human-maintainer.20261123T082559Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.availability-exceptions-in-capacity
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.availability-exceptions-in-capacity.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.17
+    unit: hours
+    measurement: stated
+    occurred_at: "2026-11-23T08:25:59Z"
+    status_date: "2026-11-23"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-availability-exceptions-in-capacity

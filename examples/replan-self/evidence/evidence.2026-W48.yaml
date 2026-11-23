@@ -100,3 +100,38 @@ evidence:
     targets:
       - kind: task
         id: task.self.availability-exceptions-in-capacity
+  - id: evidence.self.start-one-openproject-status-map
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-23T15:00:43+07:00"
+    summary: 'Started one day before the planned day, right after the availability exceptions task: the Codex round began at 15:00:43.'
+    targets:
+      - kind: task
+        id: task.self.one-openproject-status-map
+  - id: evidence.self.ack-ci-overrun-review-audits-2026-11-23
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-23T15:25:59+07:00"
+    summary: 'The maintainer acknowledged in chat (2026-11-23T15:25) that 33 billable minutes measured from GitHub Actions runs 45122263555 (failed: committed with a failing render test), 45122544923 (its fix) and 45123482698 exceed the 1 minute placeholder of this task, which was planned without CI.'
+    targets:
+      - kind: task
+        id: task.self.review-audits-2026-11-23
+  - id: evidence.self.accept-availability-exceptions-in-capacity
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-23T08:25:59Z"
+    confidence: observed
+    summary: 'Accepted by the maintainer in chat: availability exceptions remove whole days from weekly capacity and demand spreading, and scenario diff matches workload --scenario. CI measured from GitHub Actions runs 45135173365: 14 billable minutes. Review time stated by actor.human.maintainer: 10 minutes.'
+    targets:
+      - kind: task
+        id: task.self.availability-exceptions-in-capacity
