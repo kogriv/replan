@@ -9530,3 +9530,33 @@ tasks:
         object_type: work_package
         object_id: "2424"
         url: https://op.example.internal/work_packages/2424
+  - id: task.self.rebase-urls-links-only
+    title: Rebase binding links without touching the project base URL
+    description: 'Reported on 2026-11-23 by the third consumer project after it moved its binding links to the new OpenProject host with work-package rebase-urls: 49 more bindings still link to the operator tunnel address, and so does the binding file''s project base_url, which the project keeps on purpose. rebase-urls rewrites the project base_url together with the links whenever it sits under --from, so those links cannot be moved alone. Add an option (for example --links-only) that rewrites task, dependency and resource links but leaves the project base_url as it is, reported as skipped with a reason; keep the default behaviour; dry run by default, REPLAN_APPLY=1 to write, one atomic LF write; tests and agent kit docs.'
+    type: implementation
+    tracking_status: not_started
+    planned_start: "2026-11-23"
+    planned_finish: "2026-11-23"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.rebase-urls-links-only.codex
+      - kind: resource_demand
+        id: resource_demand.rebase-urls-links-only.agent
+      - kind: resource_demand
+        id: resource_demand.rebase-urls-links-only.maintainer
+      - kind: resource_demand
+        id: resource_demand.rebase-urls-links-only.local-dev
+      - kind: resource_demand
+        id: resource_demand.rebase-urls-links-only.ci
+    tags:
+      - consumer-feedback
+      - helpers
+      - gap
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2425"
+        url: https://op.example.internal/work_packages/2425

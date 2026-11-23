@@ -385,3 +385,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-10
+  - id: evidence.self.openproject-host-rename-first-consumer-host-header
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-23T20:48:12+07:00"
+    summary: 'Follow-up after the maintainer agreed in chat: the first consumer project''s kit settings on its server now send the new OpenProject host name in the Host header (only that line changed, backups kept, a read-only work-package list passes). The hosting side confirmed and will drop the old name from the OpenProject allowed host names on 2026-12-10.'
+    targets:
+      - kind: task
+        id: task.self.openproject-host-rename

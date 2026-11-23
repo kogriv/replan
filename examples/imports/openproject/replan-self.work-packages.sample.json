@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 324,
-  "count": 324,
+  "total": 325,
+  "count": 325,
   "_embedded": {
     "elements": [
       {
@@ -9393,6 +9393,35 @@
           },
           "status": {
             "title": "In progress"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2425,
+        "subject": "Rebase binding links without touching the project base URL",
+        "description": {
+          "raw": "Reported on 2026-11-23 by the third consumer project after it moved its binding links to the new OpenProject host with work-package rebase-urls: 49 more bindings still link to the operator tunnel address, and so does the binding file's project base_url, which the project keeps on purpose. rebase-urls rewrites the project base_url together with the links whenever it sits under --from, so those links cannot be moved alone. Add an option (for example --links-only) that rewrites task, dependency and resource links but leaves the project base_url as it is, reported as skipped with a reason; keep the default behaviour; dry run by default, REPLAN_APPLY=1 to write, one atomic LF write; tests and agent kit docs."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.15H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-23",
+        "dueDate": "2026-11-23",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2425"
+          },
+          "status": {
+            "title": "New"
           },
           "assignee": {
             "href": "/api/v3/users/101",
