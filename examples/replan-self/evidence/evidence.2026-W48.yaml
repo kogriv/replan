@@ -1,0 +1,34 @@
+evidence:
+  - id: evidence.self.ack-ci-overrun-work-package-rebind
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-23T13:01:22+07:00"
+    summary: The maintainer acknowledged in chat (2026-11-23T13:01) that CI of 13 billable minutes (run 44696452776) exceeds the 10 planned for this task.
+    targets:
+      - kind: task
+        id: task.self.work-package-rebind
+  - id: evidence.self.ack-ci-overrun-kit-windows-git-settings-docs
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-23T13:01:22+07:00"
+    summary: The maintainer acknowledged in chat (2026-11-23T13:01) that CI of 13 billable minutes (run 44688493699, the push that planned this task) exceeds the 10 planned for this task.
+    targets:
+      - kind: task
+        id: task.self.kit-windows-git-settings-docs
+  - id: evidence.self.ack-review-overrun-kit-windows-git-settings-docs
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-23T13:01:22+07:00"
+    summary: The maintainer acknowledged in chat (2026-11-23T13:01) that review time of 10 minutes (0.17 h) exceeds the 0.1 planned for this task.
+    targets:
+      - kind: task
+        id: task.self.kit-windows-git-settings-docs

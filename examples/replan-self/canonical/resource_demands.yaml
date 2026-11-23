@@ -18298,6 +18298,17 @@ resource_demands:
     remaining_amount: 0
     criticality: required
     status: consumed
+    overrun_review:
+      acknowledged_forecast: 0.17
+      unit: hours
+      reason: Measured review time of 10 minutes (0.17 h) exceeds the 0.1 planned; acknowledged by the maintainer in chat.
+      reviewed_by:
+        kind: actor
+        id: actor.human.maintainer
+      reviewed_at: "2026-11-23T13:01:22+07:00"
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.ack-review-overrun-kit-windows-git-settings-docs
   - id: resource_demand.kit-windows-git-settings-docs.local-dev
     task_ref:
       kind: task
@@ -18326,6 +18337,17 @@ resource_demands:
     remaining_amount: 0
     criticality: required
     status: consumed
+    overrun_review:
+      acknowledged_forecast: 13
+      unit: ci_minutes
+      reason: Measured CI of 13 billable minutes (run 44688493699, the push that planned this task) exceeds the 10 planned; acknowledged by the maintainer in chat.
+      reviewed_by:
+        kind: actor
+        id: actor.human.maintainer
+      reviewed_at: "2026-11-23T13:01:22+07:00"
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.ack-ci-overrun-kit-windows-git-settings-docs
   - id: resource_demand.work-package-rebind.codex
     task_ref:
       kind: task
@@ -18396,3 +18418,14 @@ resource_demands:
     remaining_amount: 0
     criticality: required
     status: consumed
+    overrun_review:
+      acknowledged_forecast: 13
+      unit: ci_minutes
+      reason: Measured CI of 13 billable minutes (run 44696452776) exceeds the 10 planned; acknowledged by the maintainer in chat.
+      reviewed_by:
+        kind: actor
+        id: actor.human.maintainer
+      reviewed_at: "2026-11-23T13:01:22+07:00"
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.ack-ci-overrun-work-package-rebind
