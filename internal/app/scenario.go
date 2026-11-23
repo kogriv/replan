@@ -385,20 +385,9 @@ func (s ScenarioService) Diff(ctx context.Context, req ScenarioDiffRequest) (Sce
 		return result, err
 	}
 
-	overlay := ApplyScenarioOverlay(ws, scenario.ID)
-	result.Warnings = append(result.Warnings, overlay.Warnings...)
-	result.Errors = append(result.Errors, overlay.Errors...)
-	if len(result.Errors) > 0 {
-		return result, ErrValidationFailed
-	}
-	after, err := NewWorkloadService(workspaceInMemory{ws: overlay.Workspace, projectPath: s.loader.ProjectPath()}).Calculate(ctx, WorkloadRequest{Week: req.Week})
+	after, err := NewWorkloadService(s.loader).Calculate(ctx, WorkloadRequest{Week: req.Week, ScenarioID: scenario.ID})
 	result.WorkloadAfter = after.Resources
-	// Keep the established diff meaning for unavailable-resource assumptions:
-	// the selected resource has no capacity in the compared window.
-	for resourceID := range scenarioUnavailableResources(scenario) {
-		applyUnavailableResource(result.WorkloadAfter, resourceID)
-	}
-	result.Warnings = append(result.Warnings, after.Warnings...)
+	result.Warnings = appendDistinctDiagnostics(result.Warnings, after.Warnings...)
 	result.Errors = append(result.Errors, after.Errors...)
 	if err != nil {
 		return result, err
@@ -896,33 +885,6 @@ func scenarioAffectedResources(ws domain.Workspace, scenario domain.Scenario) ma
 	return affected
 }
 
-func scenarioUnavailableResources(scenario domain.Scenario) map[string]bool {
-	resources := map[string]bool{}
-	for _, change := range scenario.Changes {
-		if change.Op != "add" || change.Path != "availability.exceptions" {
-			continue
-		}
-		if resourceID, exception, ok := scenarioAvailabilityException(change.Value); ok && exception.Type == "unavailable" {
-			resources[resourceID] = true
-		}
-	}
-	return resources
-}
-
-func applyUnavailableResource(rows []ResourceWorkload, resourceID string) {
-	for i := range rows {
-		if rows[i].ResourceID != resourceID {
-			continue
-		}
-		rows[i].Capacity = 0
-		load := rows[i].Reserved
-		if load == 0 {
-			load = rows[i].Remaining
-		}
-		rows[i].Overload = load
-	}
-}
-
 func demandTargetIDOrEmpty(demand domain.ResourceDemand) string {
 	if id, ok := demandTargetID(demand); ok {
 		return id
@@ -938,4 +900,20 @@ func appendLoadDiagnostics(warnings, errors *[]Diagnostic, diags []Diagnostic) {
 		}
 		*errors = append(*errors, d)
 	}
+}
+
+func appendDistinctDiagnostics(existing []Diagnostic, additions ...Diagnostic) []Diagnostic {
+	for _, addition := range additions {
+		duplicate := false
+		for _, current := range existing {
+			if current.Code == addition.Code && current.Message == addition.Message && current.Severity == addition.Severity && current.Target == addition.Target {
+				duplicate = true
+				break
+			}
+		}
+		if !duplicate {
+			existing = append(existing, addition)
+		}
+	}
+	return existing
 }

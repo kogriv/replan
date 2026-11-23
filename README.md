@@ -100,7 +100,7 @@ replan scenario diff --project examples/small-team --format markdown scenario.iv
 ## Workload Changes
 | Resource | Unit | Capacity Before | Capacity After | Overload Before | Overload After |
 |---|---:|---:|---:|---:|---:|
-| `Ivan` | hours | 32 | 0 | 0 | 8 |
+| `Ivan` | hours | 32 | 24 | 0 | 0 |
 ```
 
 Agents write suggestions, and a person accepts or rejects them; under the

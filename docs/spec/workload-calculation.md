@@ -324,6 +324,18 @@ load: 6h/day
 warning: range includes unavailable day
 ```
 
+For the implemented availability exceptions, `unavailable`, `access_closed`,
+`maintenance` and `manual_hold` remove the whole date from the eligible days
+and the demand's amount is redistributed over the remaining eligible days.
+An exception on a non-working date changes nothing. If every regular working
+date in a demand window is removed, RePlan retains the demand on those dates
+rather than dropping its amount and emits `demand_window_unavailable`.
+
+`reduced_capacity`, `extra_capacity` and `quota_reset` have no numeric amount
+in the canonical model. They leave capacity and spreading unchanged and emit
+one grouped `availability_exceptions_not_applied` diagnostic per affected
+resource in a workload result.
+
 ## contiguous spread
 
 `contiguous` means the resource is needed in an uninterrupted block.
@@ -469,6 +481,11 @@ load = sum(allocated demand amounts)
 reserved_load = sum(reservations)
 actual_load = sum(actuals)
 ```
+
+For weekly capacity, the base weekly amount is divided by the resource's
+regular working weekdays and only available, effective dates contribute. The
+denominator is not reduced by an absence: 40 hours over Monday-Friday with
+Wednesday unavailable yields 32 available hours.
 
 MVP should distinguish:
 

@@ -115,7 +115,7 @@ type workloadCalculation struct {
 	resources              map[string]domain.Resource
 	pools                  map[string]domain.ResourcePool
 	tasks                  map[string]domain.Task
-	days                   map[string]map[time.Weekday]bool
+	days                   map[string]resourceAvailability
 	capacityByResourceUnit map[string]float64
 	actualDemandIDs        map[string]bool
 	rows                   map[string]*ResourceWorkload
@@ -170,6 +170,7 @@ func (c *workloadCalculation) indexWorkspace() {
 		c.tasks[task.ID] = task
 	}
 	c.days = workingDays(c.workspace.Availabilities)
+	c.addAvailabilityExceptionDiagnostics()
 	for _, capacity := range c.workspace.Capacities {
 		key := capacity.ResourceRef.ID + "\x00" + capacity.Unit
 		c.capacityByResourceUnit[key] += c.capacityAmount(capacity)
@@ -181,6 +182,49 @@ func (c workloadCalculation) capacityAmount(capacity domain.Capacity) float64 {
 		return capacityInWeek(capacity, c.weekStart, c.weekEnd, c.days[capacity.ResourceRef.ID])
 	}
 	return capacityOnDate(capacity, c.workspace.Project.DefaultStatusDate)
+}
+
+func (c *workloadCalculation) addAvailabilityExceptionDiagnostics() {
+	counts := map[string]map[string]int{}
+	for _, availability := range c.workspace.Availabilities {
+		resourceID := availability.ResourceRef.ID
+		for _, exception := range availability.Exceptions {
+			exceptionType := strings.ToLower(strings.TrimSpace(exception.Type))
+			switch exceptionType {
+			case "reduced_capacity", "extra_capacity", "quota_reset":
+			default:
+				continue
+			}
+			if c.hasWeekFilter {
+				day, ok := parseWorkloadDate(exception.Date)
+				if !ok || day.Before(c.weekStart) || day.After(c.weekEnd) {
+					continue
+				}
+			}
+			if counts[resourceID] == nil {
+				counts[resourceID] = map[string]int{}
+			}
+			counts[resourceID][exceptionType]++
+		}
+	}
+	for resourceID, byType := range counts {
+		parts := []string{}
+		total := 0
+		for _, exceptionType := range []string{"reduced_capacity", "extra_capacity", "quota_reset"} {
+			if count := byType[exceptionType]; count > 0 {
+				total += count
+				parts = append(parts, fmt.Sprintf("%s: %d", exceptionType, count))
+			}
+		}
+		message := fmt.Sprintf("%d availability exceptions have no numeric effect because the model carries no amount (%s)", total, strings.Join(parts, ", "))
+		if total == 1 {
+			message = fmt.Sprintf("1 availability exception has no numeric effect because the model carries no amount (%s)", strings.Join(parts, ", "))
+		}
+		c.result.Warnings = append(c.result.Warnings, Diagnostic{
+			Code: "availability_exceptions_not_applied", Message: message, Severity: "warning",
+			Target: Target{Kind: "resource", ID: resourceID},
+		})
+	}
 }
 
 func (c *workloadCalculation) rowFor(resourceID, unit string) *ResourceWorkload {
@@ -259,6 +303,15 @@ func (c *workloadCalculation) addDemand(demand domain.ResourceDemand) {
 		lifecycleScale = 0
 	}
 	share := 1.0
+	spread, unavailableFallback := spreadDaysWithFallback(span, c.days[targetID])
+	if span.dated && unavailableFallback {
+		c.result.Warnings = append(c.result.Warnings, Diagnostic{
+			Code:     "demand_window_unavailable",
+			Message:  fmt.Sprintf("resource demand %s falls entirely on days removed by availability exceptions; its load is retained on the regular working days", demand.ID),
+			Severity: "warning",
+			Target:   Target{Kind: "resource_demand", ID: demand.ID},
+		})
+	}
 	if c.hasWeekFilter {
 		share = spanShare(span, c.days[targetID], c.weekStart, c.weekEnd)
 	}
@@ -279,8 +332,9 @@ func (c *workloadCalculation) addDemand(demand domain.ResourceDemand) {
 		c.calibrationIDs[key][calibrationID] = true
 	}
 	if isConcurrentResourceUnit(c.workspace.Capacities, targetID, demand.Unit) {
-		c.concurrent[key] = append(c.concurrent[key], concurrentUse{span: span, planned: planned * loadScale, remaining: remaining * loadScale, reserved: reserved * loadScale})
-		c.rawConcurrent[key] = append(c.rawConcurrent[key], concurrentUse{span: span, planned: demand.PlannedAmount * loadScale, remaining: demand.Remaining() * loadScale, reserved: demand.ReservedAmount * loadScale})
+		spreadMap := spreadDayMap(span, spread)
+		c.concurrent[key] = append(c.concurrent[key], concurrentUse{span: span, planned: planned * loadScale, remaining: remaining * loadScale, reserved: reserved * loadScale, days: spreadMap})
+		c.rawConcurrent[key] = append(c.rawConcurrent[key], concurrentUse{span: span, planned: demand.PlannedAmount * loadScale, remaining: demand.Remaining() * loadScale, reserved: demand.ReservedAmount * loadScale, days: spreadMap})
 		if !c.actualDemandIDs[demand.ID] {
 			row.Actual += demand.ActualAmount
 		}
@@ -360,18 +414,15 @@ func (c *workloadCalculation) finishRows() {
 // Wednesday splits that week and a Monday-to-Friday range holds a Monday-to-
 // Friday worker's whole week. Any other period counts in full if the capacity
 // is in effect on any day of the range.
-func capacityInWeek(capacity domain.Capacity, weekStart, weekEnd time.Time, working map[time.Weekday]bool) float64 {
+func capacityInWeek(capacity domain.Capacity, weekStart, weekEnd time.Time, availability resourceAvailability) float64 {
 	from, to := capacityEffectiveRange(capacity)
 	days := 0
 	for day := weekStart; !day.After(weekEnd); day = day.AddDate(0, 0, 1) {
-		if !day.Before(from) && !day.After(to) && (len(working) == 0 || working[day.Weekday()]) {
+		if !day.Before(from) && !day.After(to) && availability.availableDay(day) {
 			days++
 		}
 	}
-	perWeek := 7
-	if len(working) > 0 {
-		perWeek = len(working)
-	}
+	perWeek := availability.regularDaysPerWeek()
 	switch {
 	case days == 0:
 		return 0
@@ -394,7 +445,21 @@ func capacityOnDate(capacity domain.Capacity, date string) float64 {
 	if day.Before(from) || day.After(to) {
 		return 0
 	}
+	// Without a week the row shows the record's amount in effect on the
+	// status date, not that day's availability: a status date on a weekend
+	// or an absence day must not turn a weekly amount into zero.
 	return capacity.Amount
+}
+
+func spreadDayMap(span demandSpan, days []time.Time) map[string]bool {
+	if !span.dated {
+		return nil
+	}
+	out := make(map[string]bool, len(days))
+	for _, day := range days {
+		out[day.Format("2006-01-02")] = true
+	}
+	return out
 }
 
 // capacityEffectiveRange reads effective_from and effective_to as inclusive

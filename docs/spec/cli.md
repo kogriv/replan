@@ -985,7 +985,10 @@ Demands over time (GAP-031):
 - a period demand (hours, agent hours, minutes, tokens) is spread evenly over
   the working days of its window, the weekdays its resource's availability
   windows name, or every day for a resource without availability windows. A
-  window with no working day, such as a weekend, keeps every day. With
+  whole-day `unavailable`, `access_closed`, `maintenance` or `manual_hold`
+  exception removes its date from spreading. A window with no regular working
+  day, such as a weekend, keeps every day. A window whose every regular day is
+  removed keeps its load and emits `demand_window_unavailable`. With
   `--week`, a demand counts only the share of its working days inside the
   week, so an 8-hour task over two working weeks counts 4 hours in each;
 - a demand whose resource has `period: concurrent` capacity, or whose unit is
@@ -1006,8 +1009,13 @@ Capacity and effective dates:
   `effective_from` and `effective_to`. A `period: week` capacity counts its
   share of the resource's working days in effect, one seventh a day for a
   resource without availability windows, so a change on a Wednesday splits
-  that week; any other period counts in full if it is in effect on any day of
-  the week;
+  that week. The divisor is the regular working week, so a removed Wednesday
+  subtracts one fifth of a Monday-Friday weekly amount. Any other period
+  counts in full if it is in effect on any available day of the week;
+- `reduced_capacity`, `extra_capacity` and `quota_reset` carry no amount and
+  leave numbers unchanged. `availability_exceptions_not_applied` groups their
+  type counts once per resource for the selected week (or all dates without
+  `--week`);
 - without `--week`, the capacity in effect on the project status date counts.
   A project without a status date counts every capacity record;
 - a malformed effective date, or `effective_to` before `effective_from`, is a
@@ -1583,6 +1591,11 @@ description and every change as target, field, previous value and new value.
 field, current value and scenario value, sorted by task id then field. It says
 `No load changes` instead of rendering an empty workload table. JSON includes
 the same rows in `task_changes` while retaining the raw `changes` array.
+The after-state is the same in-memory overlay calculation used by
+`workload --scenario`; an availability exception affects only its own date, so a diff
+for another week has no load change. Availability-exception changes remain
+unsupported by `scenario apply` and return
+`unsupported_scenario_apply_change`; diffing them does not make them writable.
 
 Rules:
 

@@ -1302,12 +1302,14 @@ func dashboardGanttResourceLoads(ws domain.Workspace, view reports.DashboardGant
 			}
 			working := days[allocation.ResourceID]
 			if load.Concurrent {
-				working = nil
+				// Concurrent resources occupy every calendar day, but a dated
+				// whole-day removal still suppresses that day's load.
+				working.weekdays = nil
 			} else if start, err := time.Parse("2006-01-02", allocation.StartDate); err == nil {
 				// The allocation's amount per day was spread over these days.
 				finish, _ := time.Parse("2006-01-02", allocation.FinishDate)
 				if len(spreadDays(demandSpan{start: start, finish: finish, dated: true}, working)) == allocation.DurationDays {
-					working = nil
+					working.weekdays = nil
 				}
 			}
 			for day := 0; day < allocation.DurationDays; day++ {
@@ -1315,7 +1317,7 @@ func dashboardGanttResourceLoads(ws domain.Workspace, view reports.DashboardGant
 				if index < 0 || index >= view.DayCount {
 					continue
 				}
-				if working != nil && !working[viewStart.AddDate(0, 0, index).Weekday()] {
+				if (len(working.weekdays) > 0 || len(working.removedDates) > 0) && !working.availableDay(viewStart.AddDate(0, 0, index)) {
 					continue
 				}
 				load.DailyAmounts[index] += allocation.AmountPerDay

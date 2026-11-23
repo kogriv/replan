@@ -39,8 +39,11 @@ func TestWeeklyReportSmallTeamFixture(t *testing.T) {
 	if report.Summary.EvidenceCount != 2 {
 		t.Fatalf("expected 2 evidence records, got %d", report.Summary.EvidenceCount)
 	}
-	if len(report.Warnings) != 5 || len(report.Errors) != 0 {
-		t.Fatalf("expected dependency warning report, warnings=%#v errors=%#v", report.Warnings, report.Errors)
+	if len(report.Warnings) != 6 || len(report.Errors) != 0 {
+		t.Fatalf("expected availability and dependency warning report, warnings=%#v errors=%#v", report.Warnings, report.Errors)
+	}
+	if !hasReportWarning(report.Warnings, "availability_exceptions_not_applied") {
+		t.Fatalf("expected amount-less availability exception warning, got %#v", report.Warnings)
 	}
 	if !hasReportWarning(report.Warnings, "dependency_blocks_active_successor") {
 		t.Fatalf("expected dependency block warning, got %#v", report.Warnings)

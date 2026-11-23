@@ -111,7 +111,7 @@ type overlayIndex struct {
 	demands           map[string]domain.ResourceDemand
 	resourceNames     map[string]string
 	workPackages      map[string]string
-	days              map[string]map[time.Weekday]bool
+	days              map[string]resourceAvailability
 	evidence          map[string][]reports.DashboardOpenProjectOverlayEvidence
 	actuals           map[string][]reports.DashboardOpenProjectOverlayActual
 	warnings          map[string][]reports.ReportIssue
@@ -392,7 +392,7 @@ func overlayResources(ws domain.Workspace, overview reports.DashboardOverview, i
 			Class:           firstNonEmpty(load.ResourceClass, classes[load.ResourceID]),
 			Unit:            load.Unit,
 			Concurrent:      load.Concurrent,
-			WorkingWeekdays: weekdayNames(index.days[load.ResourceID]),
+			WorkingWeekdays: weekdayNames(index.days[load.ResourceID].weekdays),
 			Weeks:           []reports.DashboardOpenProjectOverlayWeekBucket{},
 		}
 		for _, bucket := range load.Buckets {

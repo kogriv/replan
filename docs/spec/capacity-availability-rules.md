@@ -340,6 +340,25 @@ Exceptions modify base capacity or availability.
 
 They are required from the beginning.
 
+The implemented date rule is shared by workload capacity and demand
+spreading. A date is available for a resource when it is named by one of the
+resource's availability windows (or any weekday when there are no windows),
+is inside the capacity record's inclusive effective range when capacity is
+being calculated, and is not removed by an `unavailable`, `access_closed`,
+`maintenance` or `manual_hold` exception. An exception on a date outside the
+regular working weekdays has no numeric effect.
+
+A weekly amount is divided by the regular working days of the week, before
+exceptions. Each removed working day therefore removes its normal share: a
+40-hour Monday-to-Friday capacity with Wednesday unavailable is 32 hours, not
+40 hours redistributed over four days.
+
+The canonical `AvailabilityException` currently has no amount. Consequently
+`reduced_capacity`, `extra_capacity` and `quota_reset` do not change numeric
+capacity. Workload reports group their type counts once per resource under
+the `availability_exceptions_not_applied` diagnostic instead of guessing an
+amount.
+
 Human examples:
 
 ```yaml

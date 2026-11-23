@@ -27,8 +27,8 @@ func TestWorkloadSmallTeamFixture(t *testing.T) {
 	if len(result.Errors) != 0 {
 		t.Fatalf("expected no errors, got %#v", result.Errors)
 	}
-	if len(result.Warnings) != 0 {
-		t.Fatalf("expected no warnings, got %#v", result.Warnings)
+	if len(result.Warnings) != 1 || result.Warnings[0].Code != "availability_exceptions_not_applied" || result.Warnings[0].Target.ID != "resource.human.ivan" {
+		t.Fatalf("expected Ivan's grouped amount-less exception warning, got %#v", result.Warnings)
 	}
 
 	assertWorkload(t, result, "resource.human.ivan", "hours", 32, 8, 8, 0)

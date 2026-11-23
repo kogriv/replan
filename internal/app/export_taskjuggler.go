@@ -1079,6 +1079,9 @@ func taskJugglerLimitsByResource(capacities []domain.Capacity, statusDate string
 		if !isTaskJugglerWeeklyHourCapacity(capacity) || capacity.ResourceRef.ID == "" {
 			continue
 		}
+		// Availability removals are emitted below as TaskJuggler vacations, so
+		// keep the base weekly limit here rather than applying the status date's
+		// exception twice.
 		amount := capacityOnDate(capacity, statusDate)
 		if capacity.EffectiveTo != "" || (capacity.EffectiveFrom != "" && amount == 0) {
 			*warnings = append(*warnings, Diagnostic{
@@ -1319,8 +1322,8 @@ func taskJugglerVacationsByResource(availabilities []domain.Availability, projec
 				notExportedCounts[exceptionType]++
 				notExportedAvailabilityIDs[availability.ID] = struct{}{}
 				continue
-			case "unavailable", "access_closed", "maintenance", "manual_hold":
-			default:
+			}
+			if !removesAvailabilityDay(exceptionType) {
 				continue
 			}
 			if exception.Date == "" {

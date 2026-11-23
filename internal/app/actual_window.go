@@ -109,7 +109,7 @@ func validRFC3339(value string) string {
 func projectWorkingDays(availabilities []domain.Availability) map[time.Weekday]bool {
 	days := map[time.Weekday]bool{}
 	for _, resourceDays := range workingDays(availabilities) {
-		for day := range resourceDays {
+		for day := range resourceDays.weekdays {
 			days[day] = true
 		}
 	}

@@ -70,11 +70,23 @@ func TestScenarioListShowDiffSmallTeamFixture(t *testing.T) {
 	if before.Capacity != 32 {
 		t.Fatalf("expected Ivan capacity before 32, got %g", before.Capacity)
 	}
-	if after.Capacity != 0 {
-		t.Fatalf("expected Ivan capacity after 0, got %g", after.Capacity)
+	if after.Capacity != 24 {
+		t.Fatalf("expected Ivan capacity after 24, got %g", after.Capacity)
 	}
-	if after.Overload != 8 {
-		t.Fatalf("expected Ivan overload after 8, got %g", after.Overload)
+	if after.Overload != 0 {
+		t.Fatalf("expected Ivan overload after 0, got %g", after.Overload)
+	}
+	preview, err := app.NewWorkloadService(store).Calculate(context.Background(), app.WorkloadRequest{Week: "2026-W28", ScenarioID: "scenario.ivan-unavailable-week-28"})
+	if err != nil || !reflect.DeepEqual(diff.WorkloadAfter, preview.Resources) {
+		t.Fatalf("week 28 diff after-state does not equal workload --scenario: err %v\ndiff %#v\npreview %#v", err, diff.WorkloadAfter, preview.Resources)
+	}
+	otherDiff, err := service.Diff(context.Background(), app.ScenarioDiffRequest{ID: "scenario.ivan-unavailable-week-28", Against: "current", Week: "2026-W29"})
+	if err != nil {
+		t.Fatalf("other-week Diff returned error: %v", err)
+	}
+	otherPreview, err := app.NewWorkloadService(store).Calculate(context.Background(), app.WorkloadRequest{Week: "2026-W29", ScenarioID: "scenario.ivan-unavailable-week-28"})
+	if err != nil || !reflect.DeepEqual(otherDiff.WorkloadAfter, otherPreview.Resources) || !reflect.DeepEqual(otherDiff.WorkloadBefore, otherDiff.WorkloadAfter) {
+		t.Fatalf("other-week diff changed or differs from workload --scenario: err %v\nbefore %#v\nafter %#v\npreview %#v", err, otherDiff.WorkloadBefore, otherDiff.WorkloadAfter, otherPreview.Resources)
 	}
 }
 
