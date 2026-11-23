@@ -66,7 +66,7 @@ def command_requires_plan(args):
         )
     if args.area != "work-package":
         return False
-    if args.wp_command in {"bind", "replan-links"}:
+    if args.wp_command in {"bind", "rebase-urls", "replan-links"}:
         return True
     return bool(getattr(args, "task", "")) and not bool(
         getattr(args, "work_package", "")
@@ -968,6 +968,11 @@ def remove_task_binding(task_id):
         bindings_path, task_id, document=binding_document()
     )
 
+def refresh_task_binding_url(task_id, url):
+    openproject_bindings.refresh_task_binding_url(
+        bindings_path, task_id, url, document=binding_document()
+    )
+
 def dependency_binding_warnings(work_package_id):
     warnings = []
     dependencies = binding_document()["openproject_private_bindings"]["dependencies"]
@@ -1199,7 +1204,13 @@ def command_wp_bind(args):
 
     source_ref = binding_source_ref(wp_id, args.url)
     replacing = bool(args.replace and previous_binding is not None and previous_wp_id != wp_id)
-    no_op = bool(args.replace and previous_binding is not None and previous_wp_id == wp_id)
+    same_work_package = bool(
+        args.replace and previous_binding is not None and previous_wp_id == wp_id
+    )
+    previous_url = as_text(previous_source_ref.get("url"))
+    new_url = as_text(source_ref.get("url"))
+    url_refreshed = bool(same_work_package and previous_url != new_url)
+    no_op = bool(same_work_package and not url_refreshed)
     if replacing:
         warnings.extend(dependency_binding_warnings(previous_wp_id))
     action = {
@@ -1209,6 +1220,7 @@ def command_wp_bind(args):
         "previous_source_ref": previous_source_ref,
         "source_ref": source_ref,
         "replaced": replacing,
+        "url_refreshed": url_refreshed,
         "bindings_path": bindings_path,
         "dry_run": mode != "apply",
         "apply_required": mode != "apply",
@@ -1229,10 +1241,17 @@ def command_wp_bind(args):
             warnings=warnings,
             extra={"dry_run": mode != "apply", "applied": False, "no_op": True},
         ))
+    if url_refreshed:
+        action.update({
+            "previous_url": previous_url,
+            "new_url": new_url,
+        })
     if mode != "apply":
         print_json(envelope("openproject work-package bind", "dry_run", actions=[action], counts={"planned_actions": 1, "blocked_actions": 0}, warnings=warnings, extra={"dry_run": True, "apply_required": True, "suggested_next_actions": ["Review the binding target and rerun with REPLAN_APPLY=1 to write the private binding.", "Run scripts/check-openproject-drift.sh after apply."]}))
 
-    if replacing:
+    if url_refreshed:
+        refresh_task_binding_url(task_id, new_url)
+    elif replacing:
         replace_task_binding(task_id, source_ref)
     else:
         append_task_binding(task_id, source_ref)
@@ -1240,6 +1259,124 @@ def command_wp_bind(args):
     action["apply_required"] = False
     action["applied"] = True
     print_json(envelope("openproject work-package bind", "apply", actions=[action], counts={"applied_actions": 1}, warnings=warnings, extra={"dry_run": False, "applied": True, "verification_command": "scripts/check-openproject-drift.sh", "suggested_next_actions": ["Run scripts/check-openproject-drift.sh to review task and dependency binding drift."]}))
+
+def absolute_http_url(value):
+    try:
+        parsed = urllib.parse.urlsplit(value)
+    except ValueError:
+        return False
+    return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
+
+def url_under_base(url, base):
+    """True when url is base itself or a path below it, never a longer host
+    such as https://op.example.org for the base https://op.example."""
+    base = base.rstrip("/")
+    return url == base or url.startswith(base + "/") or url.startswith(base + "?") or url.startswith(base + "#")
+
+def command_wp_rebase_urls(args):
+    command = "openproject work-package rebase-urls"
+    old_base = args.from_url
+    new_base = args.to_url
+    errors = []
+    if not absolute_http_url(old_base):
+        errors.append(diagnostic(
+            "invalid_arguments", "--from must be an absolute http(s) URL",
+        ))
+    if not absolute_http_url(new_base):
+        errors.append(diagnostic(
+            "invalid_arguments", "--to must be an absolute http(s) URL",
+        ))
+    if old_base == new_base:
+        errors.append(diagnostic(
+            "invalid_arguments", "--from and --to must differ",
+        ))
+    if errors:
+        print_json(envelope(command, mode, ok=False, errors=errors), 2)
+
+    document = openproject_bindings.load(bindings_path)
+    binding_root = openproject_bindings.root(document)
+    items = []
+    changes = []
+    binding_specs = (
+        ("task", "tasks", "replan_task_id"),
+        ("dependency", "dependencies", "replan_dependency_id"),
+    )
+    for binding_kind, list_key, id_key in binding_specs:
+        for binding in binding_root.get(list_key) or []:
+            replan_id = as_text(binding.get(id_key))
+            source_ref = binding.get("source_ref") or {}
+            old_url = as_text(source_ref.get("url"))
+            changed = url_under_base(old_url, old_base)
+            new_url = new_base.rstrip("/") + old_url[len(old_base.rstrip("/")):] if changed else old_url
+            item = {
+                "binding_kind": binding_kind,
+                "replan_id": replan_id,
+                "old_url": old_url,
+                "new_url": new_url,
+                "status": "changed" if changed else "unchanged",
+            }
+            items.append(item)
+            if changed:
+                changes.append((source_ref, item))
+
+    counts = {
+        "bindings": len(items),
+        "changed_bindings": len(changes),
+        "unchanged_bindings": len(items) - len(changes),
+        "changed_task_bindings": sum(
+            item["binding_kind"] == "task" for _, item in changes
+        ),
+        "changed_dependency_bindings": sum(
+            item["binding_kind"] == "dependency" for _, item in changes
+        ),
+    }
+    actions = [{
+        "action": "rebase_openproject_binding_url",
+        **item,
+        "dry_run": mode != "apply",
+        "apply_required": mode != "apply",
+        "writes_private_binding_only": True,
+    } for _, item in changes]
+    extra = {
+        "dry_run": mode != "apply",
+        "applied": False,
+        "from_url": old_base,
+        "to_url": new_base,
+        "bindings_path": bindings_path,
+    }
+    if not changes:
+        extra["no_op"] = True
+        print_json(envelope(
+            command, mode, items=items, actions=actions, counts=counts,
+            extra=extra,
+        ))
+    if mode != "apply":
+        extra.update({
+            "apply_required": True,
+            "suggested_next_actions": [
+                "Review every changed and unchanged binding, then rerun with REPLAN_APPLY=1.",
+            ],
+        })
+        print_json(envelope(
+            command, "dry_run", items=items, actions=actions, counts=counts,
+            extra=extra,
+        ))
+
+    for source_ref, item in changes:
+        source_ref["url"] = item["new_url"]
+    openproject_bindings.write(bindings_path, document)
+    for action in actions:
+        action.update({"dry_run": False, "apply_required": False, "applied": True})
+    extra.update({
+        "dry_run": False,
+        "applied": True,
+        "verification_command": "scripts/check-openproject-drift.sh",
+    })
+    print_json(envelope(
+        command, "apply", items=items, actions=actions, counts={
+            **counts, "applied_actions": len(changes),
+        }, extra=extra,
+    ))
 
 def command_wp_unbind(args):
     task_id = args.task.strip()
@@ -2300,6 +2437,9 @@ def main():
     bind.add_argument("--url", default="")
     bind.add_argument("--skip-existence-check", action="store_true")
     bind.add_argument("--replace", action="store_true")
+    rebase_urls = wp_sub.add_parser("rebase-urls")
+    rebase_urls.add_argument("--from", dest="from_url", required=True)
+    rebase_urls.add_argument("--to", dest="to_url", required=True)
     unbind = wp_sub.add_parser("unbind")
     unbind.add_argument("--task", required=True)
     update_status = wp_sub.add_parser("update-status")
@@ -2402,6 +2542,8 @@ def main():
             command_wp_bind(args)
         if args.wp_command == "unbind":
             command_wp_unbind(args)
+        if args.wp_command == "rebase-urls":
+            command_wp_rebase_urls(args)
         if args.wp_command == "replan-links":
             command_wp_replan_links(args)
         if args.wp_command == "update-text":

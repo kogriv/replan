@@ -574,6 +574,7 @@ to its root. A write to OpenProject or the bindings file is a dry run unless
 | Calibrate estimates | `bin/replan estimate calibrate ... [--all-baselines] [--since YYYY-MM-DD] [--include-review-ready] [--by-size] --dry-run` | Builds a sealed calibration from at least eight clean finished tasks. Use `--include-review-ready` only when completed work with actuals is waiting for acceptance; every other clean-sample rule still applies. For a new project, use `--prior 0.21 --source "replan-self, 39 tasks, 2026-11-02"`. Review the source, window, exclusions and factors, then replace `--dry-run` with `--apply`; the approver must be human. |
 | Apply a calibration as a what-if | `bin/replan estimate apply --calibration <id> --scenario-id <id> --actor <id> --dry-run` | Creates one calibration-linked scenario on apply. Inspect it with `scenario diff`, then use the existing reviewed `scenario apply` flow. |
 | Create, bind or unbind a work package | `scripts/apply-openproject-bootstrap.sh` | Creates missing work packages and bindings. For one item, use toolkit `work-package create --task <id> --bind`; omit `--bind` to create first and receive the exact follow-up `work-package bind` command. Use `work-package bind --replace` to move or repair a binding and `work-package unbind` to remove one. Use `backlog reconcile` to rebuild bindings. |
+| Refresh binding links after the OpenProject host changes | `scripts/openproject-work-package-toolkit.sh work-package rebase-urls --from <old-base-url> --to <new-base-url>` | Rewrites only matching task and dependency `source_ref.url` prefixes. It reports changed and unchanged bindings, is dry-run by default, and writes once with `REPLAN_APPLY=1`; ids and binding order stay unchanged. |
 | Relations to OpenProject | `scripts/apply-openproject-relations.sh` | Applies supported canonical dependencies as OpenProject relations. The toolkit can list or delete a single relation. |
 | Record evidence | `bin/replan evidence add ... --dry-run` | Review the selected week file and item, then replace `--dry-run` with `--apply`; the actor and every target must already exist. |
 | Set remaining work | `bin/replan actual set-remaining ... --dry-run` | Updates one demand, or an all-or-nothing `--from-file` batch under the top-level `demands` key. `--unit` (or a batch row's `unit`) is optional and defaults to the named demand's unit; an explicit mismatch is refused. Batch rows contain `demand`, `amount`, optional `unit` and optional item `reason`; review the shared actor, evidence, timestamp and reason before `--apply`. |
@@ -1125,6 +1126,7 @@ scripts/openproject-work-package-toolkit.sh work-package create --subject "..." 
 scripts/openproject-work-package-toolkit.sh work-package create --task <task id> --bind --subject "..." --type-name Task
 scripts/openproject-work-package-toolkit.sh work-package bind --task <task id> --work-package <number>
 scripts/openproject-work-package-toolkit.sh work-package bind --task <task id> --work-package <number> --replace
+scripts/openproject-work-package-toolkit.sh work-package rebase-urls --from https://old-op.example --to https://new-op.example
 scripts/openproject-work-package-toolkit.sh work-package unbind --task <task id>
 scripts/openproject-work-package-toolkit.sh work-package update-status --task <task id> --status "In progress"
 scripts/openproject-work-package-toolkit.sh work-package update-dates --task <task id> --start-date 2026-10-12 --due-date 2026-10-14
@@ -1286,16 +1288,29 @@ exact bind command to finish without creating the work package again.
 
 `work-package bind` refuses an already-bound task unless `--replace` is
 explicit. Replacement keeps the task binding's list position, reports the
-previous and new source references, and is a successful no-op when the work
-package id is unchanged. `--replace` on an unbound task is a normal bind and
+previous and new source references. When `--replace` names the same work
+package, a different URL from explicit `--url` or the configured base URL
+refreshes only that binding's URL and reports `url_refreshed: true`; the same
+URL is a successful no-op. `--replace` on an unbound task is a normal bind and
 reports `replaced: false`. `work-package unbind --task <id>` removes one task
-binding and refuses `task_not_bound` when none exists. Both commands are dry
+binding and refuses `task_not_bound` when none exists. These commands are dry
 runs unless `REPLAN_APPLY=1`, write only the private bindings file, and leave
 dependency bindings unchanged. Dependency bindings created by the relation
 helper record `from_work_package_id` and `to_work_package_id`; when either is
 the previous work package, bind replacement and unbind warn that the relation
 binding needs review with `scripts/check-openproject-drift.sh`. Older bindings
 without endpoint fields cannot be identified by this check.
+
+After the OpenProject public host changes, use `work-package rebase-urls
+--from <old-base-url> --to <new-base-url>` to refresh every task and dependency
+link whose `source_ref.url` begins with the old base. The dry run lists each
+changed and unchanged binding; apply rewrites the file once and never changes
+object ids, object types, RePlan ids or list order. Both arguments must be
+absolute HTTP(S) URLs and must differ. `--to` is deliberately required rather
+than defaulting to `REPLAN_OPENPROJECT_BASE_URL`, so the reviewed migration
+command records the intended destination even if a shell loaded stale
+settings. The URLs are report links only; drift and writes continue to use the
+unchanged `object_id` values.
 
 `update-text` accepts `--subject`, `--description` or `--description-file`,
 with at least one required. Its dry run reports each changed field's old and

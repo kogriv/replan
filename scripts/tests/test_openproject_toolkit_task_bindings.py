@@ -1,5 +1,6 @@
 """Fixture-only tests for replacing and removing private task bindings."""
 
+import copy
 import json
 import os
 import subprocess
@@ -83,13 +84,16 @@ class ToolkitTaskBindingsTest(unittest.TestCase):
             ]}}, handle)
         return bindings, fixture
 
-    def run_toolkit(self, project, bindings, fixture, args, *, apply=False):
+    def run_toolkit(
+        self, project, bindings, fixture, args, *, apply=False,
+        base_url="https://example.invalid",
+    ):
         env = dict(
             os.environ,
             PYTHONPATH=LIB,
             REPLAN_PROJECT=project,
             REPLAN_OPENPROJECT_PROJECT_ID="demo",
-            REPLAN_OPENPROJECT_BASE_URL="https://example.invalid",
+            REPLAN_OPENPROJECT_BASE_URL=base_url,
             REPLAN_OPENPROJECT_TOKEN_ENV="TEST_TOKEN",
             TEST_TOKEN="",
             REPLAN_OPENPROJECT_FROM_FILE=fixture,
@@ -165,7 +169,7 @@ class ToolkitTaskBindingsTest(unittest.TestCase):
         self.assertEqual(document["document_extension"], before["document_extension"])
         self.assertNotEqual(layer["generated_at"], "old")
 
-    def test_same_work_package_replace_is_no_op_even_on_apply(self):
+    def test_same_work_package_different_url_dry_run_reports_refresh(self):
         with tempfile.TemporaryDirectory() as project:
             bindings, fixture = self.make_plan(project)
             with open(bindings, "rb") as handle:
@@ -174,14 +178,169 @@ class ToolkitTaskBindingsTest(unittest.TestCase):
                 "work-package", "bind", "--task", "task.target",
                 "--work-package", "10", "--url",
                 "https://example.invalid/work_packages/10?different=true", "--replace",
+            ])
+            with open(bindings, "rb") as handle:
+                after = handle.read()
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertEqual(before, after)
+        action = out["actions"][0]
+        self.assertTrue(action["url_refreshed"])
+        self.assertFalse(action["replaced"])
+        self.assertEqual(
+            action["previous_url"],
+            "https://example.invalid/work_packages/10?label=old",
+        )
+        self.assertEqual(
+            action["new_url"],
+            "https://example.invalid/work_packages/10?different=true",
+        )
+        self.assertEqual(out["counts"]["planned_actions"], 1)
+
+    def test_same_work_package_different_configured_url_apply_updates_only_url(self):
+        with tempfile.TemporaryDirectory() as project:
+            bindings, fixture = self.make_plan(project, crlf=True)
+            with open(bindings, encoding="utf-8") as handle:
+                before = yaml.safe_load(handle)
+            expected = copy.deepcopy(before)
+            expected["openproject_private_bindings"]["tasks"][1]["source_ref"]["url"] = (
+                "https://new.example.invalid/work_packages/10"
+            )
+            proc, out = self.run_toolkit(project, bindings, fixture, [
+                "work-package", "bind", "--task", "task.target",
+                "--work-package", "10", "--replace",
+            ], apply=True, base_url="https://new.example.invalid")
+            with open(bindings, "rb") as handle:
+                raw = handle.read()
+            after = yaml.safe_load(raw)
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertNotIn(b"\r\n", raw)
+        self.assertEqual(after, expected)
+        self.assertTrue(out["actions"][0]["url_refreshed"])
+        self.assertTrue(out["actions"][0]["applied"])
+
+    def test_same_work_package_same_url_is_no_op_even_on_apply(self):
+        with tempfile.TemporaryDirectory() as project:
+            bindings, fixture = self.make_plan(project)
+            with open(bindings, "rb") as handle:
+                before = handle.read()
+            proc, out = self.run_toolkit(project, bindings, fixture, [
+                "work-package", "bind", "--task", "task.target",
+                "--work-package", "10", "--url",
+                "https://example.invalid/work_packages/10?label=old", "--replace",
             ], apply=True)
             with open(bindings, "rb") as handle:
                 after = handle.read()
         self.assertEqual(proc.returncode, 0, out)
         self.assertEqual(before, after)
         self.assertTrue(out["no_op"])
+        self.assertFalse(out["actions"][0]["url_refreshed"])
         self.assertFalse(out["actions"][0]["replaced"])
         self.assertEqual(out["counts"]["applied_actions"], 0)
+
+    def test_rebase_urls_dry_run_lists_changes_and_unchanged_without_writing(self):
+        with tempfile.TemporaryDirectory() as project:
+            bindings, fixture = self.make_plan(project)
+            with open(bindings, encoding="utf-8") as handle:
+                document = yaml.safe_load(handle)
+            document["openproject_private_bindings"]["tasks"][2]["source_ref"]["url"] = (
+                "https://other.invalid/work_packages/30"
+            )
+            with open(bindings, "w", encoding="utf-8", newline="\n") as handle:
+                yaml.safe_dump(document, handle, sort_keys=False)
+            with open(bindings, "rb") as handle:
+                before = handle.read()
+            proc, out = self.run_toolkit(project, bindings, fixture, [
+                "work-package", "rebase-urls",
+                "--from", "https://example.invalid",
+                "--to", "https://new.example.invalid",
+            ])
+            with open(bindings, "rb") as handle:
+                after = handle.read()
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertEqual(before, after)
+        self.assertEqual(out["counts"]["changed_bindings"], 3)
+        self.assertEqual(out["counts"]["unchanged_bindings"], 2)
+        self.assertEqual(
+            [(item["binding_kind"], item["replan_id"]) for item in out["items"]],
+            [
+                ("task", "task.before"),
+                ("task", "task.target"),
+                ("task", "task.after"),
+                ("dependency", "dependency.target-before"),
+                ("dependency", "dependency.legacy-no-endpoints"),
+            ],
+        )
+        self.assertEqual(
+            [item["status"] for item in out["items"]],
+            ["changed", "changed", "unchanged", "changed", "unchanged"],
+        )
+
+    def test_rebase_urls_apply_changes_only_matching_urls_and_forces_lf(self):
+        with tempfile.TemporaryDirectory() as project:
+            bindings, fixture = self.make_plan(project, crlf=True)
+            with open(bindings, encoding="utf-8") as handle:
+                before = yaml.safe_load(handle)
+            expected = copy.deepcopy(before)
+            layer = expected["openproject_private_bindings"]
+            for binding in [*layer["tasks"], *layer["dependencies"]]:
+                source = binding.get("source_ref") or {}
+                url = source.get("url", "")
+                if url.startswith("https://example.invalid"):
+                    source["url"] = "https://new.example.invalid" + url[len("https://example.invalid"):]
+            proc, out = self.run_toolkit(project, bindings, fixture, [
+                "work-package", "rebase-urls",
+                "--from", "https://example.invalid",
+                "--to", "https://new.example.invalid",
+            ], apply=True)
+            with open(bindings, "rb") as handle:
+                raw = handle.read()
+            after = yaml.safe_load(raw)
+        self.assertEqual(proc.returncode, 0, out)
+        self.assertNotIn(b"\r\n", raw)
+        self.assertEqual(after, expected)
+        self.assertEqual(out["counts"]["applied_actions"], 4)
+
+    def test_rebase_urls_never_matches_a_longer_host_with_the_same_prefix(self):
+        with tempfile.TemporaryDirectory() as project:
+            bindings, fixture = self.make_plan(project)
+            with open(bindings, encoding="utf-8") as handle:
+                document = yaml.safe_load(handle)
+            document["openproject_private_bindings"]["tasks"][2]["source_ref"]["url"] = (
+                "https://example.invalid.other/work_packages/30"
+            )
+            with open(bindings, "w", encoding="utf-8", newline="\n") as handle:
+                yaml.safe_dump(document, handle, sort_keys=False)
+            proc, out = self.run_toolkit(project, bindings, fixture, [
+                "work-package", "rebase-urls",
+                "--from", "https://example.invalid/",
+                "--to", "https://new.example.invalid",
+            ])
+        self.assertEqual(proc.returncode, 0, out)
+        statuses = {item["replan_id"]: (item["status"], item["new_url"]) for item in out["items"]}
+        self.assertEqual(statuses["task.after"], ("unchanged", "https://example.invalid.other/work_packages/30"))
+        self.assertTrue(statuses["task.target"][1].startswith("https://new.example.invalid/work_packages/10"))
+
+    def test_rebase_urls_refuses_invalid_or_equal_urls(self):
+        cases = [
+            ("relative/path", "https://new.example.invalid"),
+            ("https://old.example.invalid", "new.example.invalid"),
+            ("https://same.example.invalid", "https://same.example.invalid"),
+        ]
+        for old_url, new_url in cases:
+            with self.subTest(old_url=old_url, new_url=new_url):
+                with tempfile.TemporaryDirectory() as project:
+                    bindings, fixture = self.make_plan(project)
+                    with open(bindings, "rb") as handle:
+                        before = handle.read()
+                    proc, out = self.run_toolkit(project, bindings, fixture, [
+                        "work-package", "rebase-urls",
+                        "--from", old_url, "--to", new_url,
+                    ], apply=True)
+                    with open(bindings, "rb") as handle:
+                        after = handle.read()
+                self.assertEqual(proc.returncode, 2, out)
+                self.assertEqual(out["error_codes"], ["invalid_arguments"])
+                self.assertEqual(before, after)
 
     def test_replace_on_unbound_task_is_plain_bind(self):
         with tempfile.TemporaryDirectory() as project:

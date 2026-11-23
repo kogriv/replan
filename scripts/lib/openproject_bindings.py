@@ -247,6 +247,20 @@ def replace_task_binding(path, task_id, source_ref, *, document=None):
     raise KeyError(task_id)
 
 
+def refresh_task_binding_url(path, task_id, url, *, document=None):
+    """Change only one task binding's source URL and write it atomically."""
+    document = document if document is not None else load(path)
+    for binding in root(document)["tasks"]:
+        if binding.get("replan_task_id") == task_id:
+            source_ref = binding.get("source_ref")
+            if not isinstance(source_ref, dict):
+                raise KeyError(task_id)
+            source_ref["url"] = url
+            write(path, document)
+            return document
+    raise KeyError(task_id)
+
+
 def remove_task_binding(path, task_id, *, document=None):
     document = document if document is not None else load(path)
     tasks = root(document)["tasks"]
