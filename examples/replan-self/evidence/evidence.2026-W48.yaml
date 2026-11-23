@@ -374,3 +374,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-10
+  - id: evidence.self.publish-release-v0-5-10-second-project-switched
+    type: observation
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-23T20:21:22+07:00"
+    summary: The second consumer project's session reported it switched to v0.5.10 (archive sum matched, validate ok, dry drift, status and date runs clean); its v0.5.9 and v0.5.8 kits were removed from its wiki page and the attachment table updated.
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-10
