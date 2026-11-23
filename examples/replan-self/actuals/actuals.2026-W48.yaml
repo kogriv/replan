@@ -21,3 +21,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.review-audits-2026-11-23
+  - id: actual.self-review-audits-2026-11-23.ci-github-actions.20261123T062800Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.review-audits-2026-11-23
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.review-audits-2026-11-23.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 33
+    unit: ci_minutes
+    measurement: measured
+    occurred_at: "2026-11-23T06:28:00Z"
+    status_date: "2026-11-23"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-review-audits-2026-11-23
+  - id: actual.self-review-audits-2026-11-23.human-maintainer.20261123T062800Z.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.review-audits-2026-11-23
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.review-audits-2026-11-23.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.17
+    unit: hours
+    measurement: stated
+    occurred_at: "2026-11-23T06:28:00Z"
+    status_date: "2026-11-23"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-review-audits-2026-11-23

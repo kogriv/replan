@@ -54,3 +54,27 @@ evidence:
     targets:
       - kind: task
         id: task.self.review-audits-2026-11-23
+  - id: evidence.self.unplanned-ci-review-audits-2026-11-23
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-23T13:28:41+07:00"
+    summary: 'The audit review task was planned without a CI demand, but its pushes ran GitHub Actions: f615c05 (failed because the executor committed with a failing whole-file render test), its fix 9c2b826, and the review-ready push 63532b4. Add a CI demand with planned amount 0 so the measured minutes are recorded and the overrun goes to the maintainer.'
+    targets:
+      - kind: task
+        id: task.self.review-audits-2026-11-23
+  - id: evidence.self.accept-review-audits-2026-11-23
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-23T06:28:00Z"
+    confidence: observed
+    summary: 'Accepted by the maintainer in chat: the review of both 2026-11-23 audits gives a verdict per finding with empirical evidence, lists defects neither audit found and proposes the fix tasks. CI measured from GitHub Actions runs 45122263555, 45122544923, 45123482698: 33 billable minutes. Review time stated by actor.human.maintainer: 10 minutes.'
+    targets:
+      - kind: task
+        id: task.self.review-audits-2026-11-23
