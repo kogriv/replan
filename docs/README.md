@@ -297,6 +297,13 @@ Project-level entry points:
   exceptions, OpenProject status push, HTTP credential handling, audit
   verification, documentation drift and CI limits. Findings are recorded
   here and are not yet OpenProject work packages.
+- [`audit/replan-technical-audit-2026-11-23.md`](audit/replan-technical-audit-2026-11-23.md)
+  — second audit of commit `67caa2a` (findings F-01-F-14): HTML links, redirects,
+  binding races, output paths, availability exceptions, actuals, validation,
+  pools and calibration methodology.
+- [`audit/replan-audit-review-2026-11-23.md`](audit/replan-audit-review-2026-11-23.md)
+  — review of both 2026-11-23 audits against the code with empirical checks:
+  a verdict per finding, defects neither audit lists, and proposed tasks.
 - [`dev/next-product-slice-decision-2026-09-24.md`](dev/next-product-slice-decision-2026-09-24.md)
   — next product slice chosen from RePlan reports: fix what the state report
   says the operator should do next.
