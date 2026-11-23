@@ -363,3 +363,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.publish-release-v0-5-10
+  - id: evidence.self.publish-release-v0-5-10
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-23T20:17:44+07:00"
+    summary: 'Published RePlan v0.5.10 from 1b6d095 after green CI (run 45180218920): tag v0.5.10, local release build (6 archives, sums checked) identical to the release workflow run 45181575424 (SHA256SUMS match), GitHub release with notes, downloaded archives match SHA256SUMS, attestations verify for the Windows archive and SHA256SUMS, go install @v0.5.10 works. Agent kits built from the tag (no private patterns besides each kit''s purpose line): the first consumer project''s kit installed on its server (current switched from v0.5.9, version and a read-only work-package list checked; its settings still send the old host name in the Host header, left for the maintainer to decide); the second consumer project''s kit uploaded to its wiki page, downloaded back and matched, page text updated (its binding file has no links to the old host); the third consumer project''s Linux and Windows kits uploaded to its wiki page, downloaded back and matched, page text updated with a one-time rebase-urls step for the old host links. The three consumer sessions were told what changed, the third asked to run rebase-urls and report the counts, and the hosting session was given the migration status. Executor 0.16 h measured with scripts/agent-session-consumption.sh over the task window.'
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-10
