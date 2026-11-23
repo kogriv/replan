@@ -249,3 +249,49 @@ evidence:
     targets:
       - kind: task
         id: task.self.binding-url-refresh
+  - id: evidence.self.ack-ci-overrun-openproject-host-rename
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-23T17:35:46+07:00"
+    summary: The maintainer acknowledged in chat (2026-11-23T17:35) that 14 billable minutes measured from GitHub Actions run 45150054857 exceed the 10 planned for this task, and extended the executor's permission to acknowledge measured CI overruns to this task, the binding URL task and later tasks of this series.
+    targets:
+      - kind: task
+        id: task.self.openproject-host-rename
+  - id: evidence.self.ack-review-overrun-openproject-host-rename
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-23T17:35:46+07:00"
+    summary: The maintainer acknowledged in chat (2026-11-23T17:35) that the 10 minutes (0.17 h) of review exceed the 0.05 h planned for this task.
+    targets:
+      - kind: task
+        id: task.self.openproject-host-rename
+  - id: evidence.self.accept-http-secret-boundaries
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-23T10:35:46Z"
+    confidence: observed
+    summary: 'Accepted by the maintainer in chat: the OpenProject and GitHub clients refuse redirects that leave the configured origin, and GitHub paging stays on the API origin with a cycle guard and a page cap. CI measured from GitHub Actions runs 45155774432: 14 billable minutes. Review time stated by actor.human.maintainer: 10 minutes.'
+    targets:
+      - kind: task
+        id: task.self.http-secret-boundaries
+  - id: evidence.self.ack-ci-overrun-http-secret-boundaries
+    type: decision
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-23T17:38:19+07:00"
+    summary: 'Acknowledged under the maintainer''s approval for the audit task series (chat, 2026-11-23 16:40): 14 billable minutes measured from GitHub Actions run 45155774432 exceed the 10 planned.'
+    targets:
+      - kind: task
+        id: task.self.http-secret-boundaries

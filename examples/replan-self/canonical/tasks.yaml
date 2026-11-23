@@ -8982,9 +8982,9 @@ tasks:
     title: Keep integration secrets on the configured origin across redirects and paging
     description: 'Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Findings H4/F-10, H5/F-02 and new finding 1. The Python OpenProject client follows 301/302/303/307/308 to another host or from https to http and forwards Authorization and X-Perimeter-Key; the Go OpenProject import forwards the perimeter header on every redirect and Authorization on a same-host other-port redirect (no CheckRedirect); GitHub import follows Link rel=next to any scheme and host with the Bearer token and has no page limit or cycle guard. Refuse (or strip secrets on) any redirect that changes scheme, host or port and refuse https to http in both clients; accept a GitHub next link only on the base URL''s origin; add a page limit and repeated-URL detection; tests with two local servers for every redirect code, both secret headers, the downgrade, a foreign Link and a self-referencing Link.'
     type: implementation
-    tracking_status: review_ready
-    planned_start: "2026-11-24"
-    planned_finish: "2026-11-24"
+    tracking_status: accepted
+    planned_start: "2026-11-23"
+    planned_finish: "2026-11-23"
     assignee_hint:
       kind: resource
       id: resource.human.maintainer
