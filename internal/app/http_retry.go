@@ -2,8 +2,13 @@ package app
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
+	"net"
 	"net/http"
+	"net/url"
+	"strings"
 	"sync"
 	"time"
 )
@@ -87,4 +92,61 @@ func newRetryHTTPClient(timeout time.Duration, retries int, retryDelay time.Dura
 		base: http.DefaultTransport, retries: retries, retryDelay: retryDelay,
 		timeout: timeout, transientStatuses: transientStatuses,
 	}}
+}
+
+type redirectRefusedError struct {
+	fromOrigin string
+	toOrigin   string
+}
+
+func (e *redirectRefusedError) Error() string {
+	return fmt.Sprintf("redirect from %s to %s was refused", e.fromOrigin, e.toOrigin)
+}
+
+func sameOriginRedirectClient(client *http.Client) *http.Client {
+	if client == nil {
+		client = http.DefaultClient
+	}
+	copy := *client
+	copy.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		if len(via) == 0 {
+			return nil
+		}
+		if len(via) >= 10 {
+			return errors.New("stopped after 10 redirects")
+		}
+		fromOrigin := httpOrigin(via[0].URL)
+		toOrigin := httpOrigin(req.URL)
+		if fromOrigin != toOrigin {
+			return &redirectRefusedError{fromOrigin: fromOrigin, toOrigin: toOrigin}
+		}
+		return nil
+	}
+	return &copy
+}
+
+func httpOrigin(value *url.URL) string {
+	if value == nil {
+		return "<invalid-origin>"
+	}
+	scheme := strings.ToLower(value.Scheme)
+	host := strings.ToLower(value.Hostname())
+	port := value.Port()
+	if port == "" {
+		switch scheme {
+		case "http":
+			port = "80"
+		case "https":
+			port = "443"
+		default:
+			return scheme + "://" + host + ":<invalid>"
+		}
+	}
+	return scheme + "://" + net.JoinHostPort(host, port)
+}
+
+func refusedRedirect(err error) (*redirectRefusedError, bool) {
+	var refused *redirectRefusedError
+	ok := errors.As(err, &refused)
+	return refused, ok
 }

@@ -166,6 +166,12 @@ is removed from the file content. A direct token selected by
 file is a `missing_setting` usage error that names the `_FILE` setting; secret
 values and file contents are never included in output.
 
+Authenticated OpenProject requests follow redirects only when the scheme,
+host and effective port stay the same. A redirect to another host or port, or
+from HTTPS to HTTP, is refused before the token, perimeter key or an explicit
+Host override can reach the new destination. Fix the proxy or base URL when
+this happens; the kit has no cross-origin redirect allowlist.
+
 ## The rule every helper follows
 
 Nothing writes canonical state without `--apply` or `REPLAN_APPLY=1`.

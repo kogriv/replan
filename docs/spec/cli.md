@@ -2778,6 +2778,14 @@ Rules:
   `raw.json` so it can be replayed with `--from-file`;
 - GitHub import filters pull requests, excludes closed issues unless
   `--include-closed` is set, and applies `--since` to `updated_at`;
+- live OpenProject and GitHub requests follow redirects only on the configured
+  origin: scheme, host and effective port must remain equal, so HTTPS-to-HTTP
+  and cross-host or cross-port redirects are refused with a diagnostic before
+  authentication or perimeter headers are sent to the target;
+- GitHub pagination resolves relative `rel="next"` links against the current
+  page, then requires the configured API origin and, when the base URL has
+  one, its path prefix. A repeated page URL is rejected and each paged
+  collection is limited to 1000 pages;
 - GitHub `blocked_by` entries become `finish_to_start` candidates only inside
   the imported repository; cross-repository entries are warned and skipped;
 - dependency candidates identify their source objects with

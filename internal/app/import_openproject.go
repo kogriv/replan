@@ -693,12 +693,12 @@ func (s OpenProjectImportService) loadOpenProjectCollection(ctx context.Context,
 }
 
 func openProjectHTTPClient(req OpenProjectImportRequest) *http.Client {
-	return newRetryHTTPClient(
+	return sameOriginRedirectClient(newRetryHTTPClient(
 		time.Duration(req.RequestTimeoutSeconds*float64(time.Second)),
 		req.RequestRetries,
 		time.Duration(req.RequestRetryDelaySeconds*float64(time.Second)),
 		openProjectTransientHTTPStatuses,
-	)
+	))
 }
 
 var openProjectTransientHTTPStatuses = map[int]bool{
@@ -973,6 +973,9 @@ func fetchOpenProjectProject(ctx context.Context, client *http.Client, req openP
 	applyOpenProjectHeaders(httpReq, req)
 	resp, err := client.Do(httpReq)
 	if err != nil {
+		if diag := openProjectRedirectDiagnostic(err); diag != nil {
+			return openProjectProject{}, diag
+		}
 		return openProjectProject{}, &Diagnostic{Code: "openproject_network_error", Message: fmt.Sprintf("OpenProject project request failed: %v", err), Severity: "error"}
 	}
 	defer resp.Body.Close()
@@ -1004,6 +1007,9 @@ func fetchOpenProjectWorkPackage(ctx context.Context, client *http.Client, req o
 	applyOpenProjectHeaders(httpReq, req)
 	resp, err := client.Do(httpReq)
 	if err != nil {
+		if diag := openProjectRedirectDiagnostic(err); diag != nil {
+			return openProjectWorkPackage{}, diag
+		}
 		return openProjectWorkPackage{}, &Diagnostic{Code: "openproject_network_error", Message: fmt.Sprintf("OpenProject request failed: %v", err), Severity: "error"}
 	}
 	defer resp.Body.Close()
@@ -1074,6 +1080,9 @@ func fetchOpenProjectPage[T any](ctx context.Context, client *http.Client, req o
 	applyOpenProjectHeaders(httpReq, req)
 	resp, err := client.Do(httpReq)
 	if err != nil {
+		if diag := openProjectRedirectDiagnostic(err); diag != nil {
+			return zero, diag
+		}
 		return zero, &Diagnostic{Code: "openproject_network_error", Message: fmt.Sprintf("OpenProject %srequest failed: %v", requestLabel, err), Severity: "error"}
 	}
 	defer resp.Body.Close()
@@ -1085,6 +1094,18 @@ func fetchOpenProjectPage[T any](ctx context.Context, client *http.Client, req o
 		return zero, &Diagnostic{Code: "openproject_malformed_response", Message: fmt.Sprintf("failed to parse OpenProject %s response: %v", responseLabel, err), Severity: "error"}
 	}
 	return collection, nil
+}
+
+func openProjectRedirectDiagnostic(err error) *Diagnostic {
+	refused, ok := refusedRedirect(err)
+	if !ok {
+		return nil
+	}
+	return &Diagnostic{
+		Code:     "openproject_redirect_refused",
+		Message:  fmt.Sprintf("OpenProject redirect from %s to %s was refused", refused.fromOrigin, refused.toOrigin),
+		Severity: "error",
+	}
 }
 
 func fetchOpenProjectRelations(ctx context.Context, client *http.Client, req openProjectAPIRequest, token string, workPackages []openProjectWorkPackage) ([]openProjectRelation, int, *Diagnostic) {

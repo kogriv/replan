@@ -1636,3 +1636,94 @@ func TestOpenProjectImportSendsNoPerimeterHeaderWithoutAKey(t *testing.T) {
 		t.Fatalf("Import returned error: %v", err)
 	}
 }
+
+func TestOpenProjectImportRefusesCrossOriginRedirects(t *testing.T) {
+	const token = "fake-openproject-token"
+	const perimeter = "fake-perimeter-key"
+	t.Setenv("REPLAN_TEST_OPENPROJECT_TOKEN", token)
+	t.Setenv("REPLAN_TEST_PERIMETER_KEY", perimeter)
+	for _, status := range []int{
+		http.StatusMovedPermanently,
+		http.StatusFound,
+		http.StatusSeeOther,
+		http.StatusTemporaryRedirect,
+		http.StatusPermanentRedirect,
+	} {
+		for _, targetHost := range []string{"127.0.0.1", "localhost"} {
+			t.Run(fmt.Sprintf("%d/%s", status, targetHost), func(t *testing.T) {
+				var targetRequests atomic.Int32
+				target := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
+					targetRequests.Add(1)
+				}))
+				defer target.Close()
+				targetURL := strings.Replace(target.URL, "127.0.0.1", targetHost, 1)
+				source := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if user, password, ok := r.BasicAuth(); !ok || user != "apikey" || password != token {
+						t.Errorf("source request did not contain the fake token")
+					}
+					if r.Header.Get("X-Perimeter-Key") != perimeter || r.Host != "op.example.internal" {
+						t.Errorf("source headers = %#v host=%q", r.Header, r.Host)
+					}
+					http.Redirect(w, r, targetURL+"/capture", status)
+				}))
+				defer source.Close()
+				service := app.NewOpenProjectImportService(stubLoader{ws: domain.Workspace{
+					Project: domain.Project{ID: "project.test", Name: "Test"},
+				}})
+				result, err := service.Import(context.Background(), app.OpenProjectImportRequest{
+					DryRun: true, BaseURL: source.URL, ProjectID: "demo",
+					TokenEnv: "REPLAN_TEST_OPENPROJECT_TOKEN", HostHeader: "op.example.internal",
+					PerimeterKeyEnv: "REPLAN_TEST_PERIMETER_KEY",
+				})
+				if err == nil || !diagnosticsHaveCode(result.Errors, "openproject_redirect_refused") {
+					t.Fatalf("err=%v errors=%#v", err, result.Errors)
+				}
+				if targetRequests.Load() != 0 {
+					t.Fatalf("redirect target received %d requests", targetRequests.Load())
+				}
+				encoded, _ := json.Marshal(result)
+				if strings.Contains(string(encoded), token) || strings.Contains(string(encoded), perimeter) {
+					t.Fatal("a fake secret leaked into the redirect diagnostic")
+				}
+			})
+		}
+	}
+}
+
+func TestOpenProjectImportFollowsSameOriginRedirects(t *testing.T) {
+	t.Setenv("REPLAN_TEST_OPENPROJECT_TOKEN", "fake-openproject-token")
+	for _, status := range []int{
+		http.StatusMovedPermanently,
+		http.StatusFound,
+		http.StatusSeeOther,
+		http.StatusTemporaryRedirect,
+		http.StatusPermanentRedirect,
+	} {
+		t.Run(strconv.Itoa(status), func(t *testing.T) {
+			var finalRequests atomic.Int32
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path == "/redirected" {
+					finalRequests.Add(1)
+					w.Header().Set("Content-Type", "application/json")
+					fmt.Fprint(w, `{"_type":"Collection","total":0,"count":0,"pageSize":100,"offset":1,"_embedded":{"elements":[]}}`)
+					return
+				}
+				http.Redirect(w, r, "/redirected", status)
+			}))
+			defer server.Close()
+			service := app.NewOpenProjectImportService(stubLoader{ws: domain.Workspace{
+				Project: domain.Project{ID: "project.test", Name: "Test"},
+			}})
+			result, err := service.Import(context.Background(), app.OpenProjectImportRequest{
+				DryRun: true, BaseURL: server.URL, ProjectID: "demo",
+				TokenEnv: "REPLAN_TEST_OPENPROJECT_TOKEN",
+			})
+			if err != nil {
+				t.Fatalf("Import returned %v (%#v)", err, result.Errors)
+			}
+			if finalRequests.Load() != 1 {
+				t.Fatalf("same-origin target received %d requests", finalRequests.Load())
+			}
+		})
+	}
+}

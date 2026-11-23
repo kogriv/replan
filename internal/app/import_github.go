@@ -338,6 +338,8 @@ type githubLiveRequest struct {
 	includeRelations bool
 }
 
+const githubMaxPages = 1000
+
 func loadGitHubImportDocument(ctx context.Context, req GitHubImportRequest, profile domain.SourceProfile) (GitHubImportDocument, []byte, string, *int, *Diagnostic, *Diagnostic) {
 	if strings.TrimSpace(req.FromFile) != "" {
 		if req.Repository != "" || req.BaseURL != "" || req.TokenEnvSet || req.LiveFlagsSet {
@@ -383,11 +385,11 @@ func loadGitHubImportDocument(ctx context.Context, req GitHubImportRequest, prof
 		token: token, userAgent: firstNonEmpty(req.UserAgent, "replan/dev"), since: since,
 		includeClosed: req.IncludeClosed, includeRelations: req.IncludeRelations,
 	}
-	client := newRetryHTTPClient(
+	client := sameOriginRedirectClient(newRetryHTTPClient(
 		time.Duration(req.RequestTimeoutSeconds*float64(time.Second)), req.RequestRetries,
 		time.Duration(req.RequestRetryDelaySeconds*float64(time.Second)),
 		map[int]bool{http.StatusRequestTimeout: true, http.StatusInternalServerError: true, http.StatusBadGateway: true, http.StatusServiceUnavailable: true, http.StatusGatewayTimeout: true},
-	)
+	))
 	doc, remaining, diag := fetchGitHubImportDocument(ctx, client, live)
 	if diag != nil {
 		return doc, nil, "api", remaining, warning, diag
@@ -430,7 +432,14 @@ func fetchGitHubImportDocument(ctx context.Context, client *http.Client, req git
 	if err != nil {
 		return doc, remaining, &Diagnostic{Code: "source_unavailable", Message: fmt.Sprintf("failed to build GitHub issues URL: %v", err), Severity: "error"}
 	}
+	seen := map[string]bool{}
+	pages := 0
 	for nextURL != "" {
+		if diag := checkGitHubPage(nextURL, seen, pages); diag != nil {
+			return doc, remaining, diag
+		}
+		seen[nextURL] = true
+		pages++
 		var page []GitHubIssue
 		var next string
 		if diag := fetchGitHubJSONPage(ctx, client, req, nextURL, &page, &remaining, &next); diag != nil {
@@ -491,7 +500,14 @@ func fetchGitHubRelations(ctx context.Context, client *http.Client, req githubLi
 func fetchGitHubIssueRefs(ctx context.Context, client *http.Client, req githubLiveRequest, firstURL string, remaining **int) ([]GitHubIssueRef, *Diagnostic) {
 	var refs []GitHubIssueRef
 	nextURL := firstURL
+	seen := map[string]bool{}
+	pages := 0
 	for nextURL != "" {
+		if diag := checkGitHubPage(nextURL, seen, pages); diag != nil {
+			return nil, diag
+		}
+		seen[nextURL] = true
+		pages++
 		var page []GitHubIssue
 		var next string
 		if diag := fetchGitHubJSONPage(ctx, client, req, nextURL, &page, remaining, &next); diag != nil {
@@ -537,7 +553,12 @@ func fetchGitHubJSONPage(ctx context.Context, client *http.Client, req githubLiv
 	if err := json.NewDecoder(resp.Body).Decode(target); err != nil {
 		return &Diagnostic{Code: "source_unavailable", Message: fmt.Sprintf("failed to parse GitHub API response: %v", err), Severity: "error"}
 	}
-	*next = githubNextLink(resp.Header.Get("Link"))
+	rawNext := githubNextLink(resp.Header.Get("Link"))
+	resolvedNext, nextDiag := githubPaginationURL(pageURL, rawNext, req.baseURL)
+	if nextDiag != nil {
+		return nextDiag
+	}
+	*next = resolvedNext
 	return nil
 }
 
@@ -566,6 +587,13 @@ func doGitHubGET(ctx context.Context, client *http.Client, req githubLiveRequest
 	}
 	resp, err := client.Do(httpReq)
 	if err != nil {
+		if refused, ok := refusedRedirect(err); ok {
+			return nil, &Diagnostic{
+				Code:     "github_redirect_refused",
+				Message:  fmt.Sprintf("GitHub redirect from %s to %s was refused", refused.fromOrigin, refused.toOrigin),
+				Severity: "error",
+			}
+		}
 		return nil, &Diagnostic{Code: "source_unavailable", Message: fmt.Sprintf("GitHub API request failed: %v", err), Severity: "error"}
 	}
 	if value, parseErr := strconv.Atoi(resp.Header.Get("X-RateLimit-Remaining")); parseErr == nil {
@@ -621,6 +649,47 @@ func githubNextLink(value string) string {
 		return strings.Trim(strings.TrimSpace(sections[0]), "<>")
 	}
 	return ""
+}
+
+func githubPaginationURL(currentURL, nextLink, baseURL string) (string, *Diagnostic) {
+	if strings.TrimSpace(nextLink) == "" {
+		return "", nil
+	}
+	current, err := url.Parse(currentURL)
+	if err != nil {
+		return "", &Diagnostic{Code: "github_pagination_url_invalid", Message: "failed to parse the current GitHub page URL", Severity: "error"}
+	}
+	next, err := url.Parse(nextLink)
+	if err != nil {
+		return "", &Diagnostic{Code: "github_pagination_url_invalid", Message: "GitHub next link is not a valid URL", Severity: "error"}
+	}
+	resolved := current.ResolveReference(next)
+	base, err := url.Parse(strings.TrimRight(baseURL, "/") + "/")
+	if err != nil {
+		return "", &Diagnostic{Code: "github_pagination_url_invalid", Message: "failed to parse the configured GitHub API URL", Severity: "error"}
+	}
+	if httpOrigin(resolved) != httpOrigin(base) {
+		return "", &Diagnostic{
+			Code:     "github_pagination_url_refused",
+			Message:  fmt.Sprintf("GitHub next link changed origin from %s to %s", httpOrigin(base), httpOrigin(resolved)),
+			Severity: "error",
+		}
+	}
+	basePrefix := strings.TrimRight(base.Path, "/")
+	if basePrefix != "" && resolved.Path != basePrefix && !strings.HasPrefix(resolved.Path, basePrefix+"/") {
+		return "", &Diagnostic{Code: "github_pagination_url_refused", Message: "GitHub next link left the configured API path prefix", Severity: "error"}
+	}
+	return resolved.String(), nil
+}
+
+func checkGitHubPage(pageURL string, seen map[string]bool, pages int) *Diagnostic {
+	if seen[pageURL] {
+		return &Diagnostic{Code: "github_pagination_cycle", Message: "GitHub pagination repeated a page URL", Severity: "error"}
+	}
+	if pages >= githubMaxPages {
+		return &Diagnostic{Code: "github_page_limit_exceeded", Message: fmt.Sprintf("GitHub pagination exceeded the %d-page limit", githubMaxPages), Severity: "error"}
+	}
+	return nil
 }
 
 func readGitHubImportDocument(path string) (GitHubImportDocument, []byte, error) {

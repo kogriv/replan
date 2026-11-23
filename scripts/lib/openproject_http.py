@@ -592,17 +592,43 @@ def _unknown_outcome(attempt, retry_skipped=""):
 
 
 class _PermanentRedirectHandler(urllib.request.HTTPRedirectHandler):
-    """Follow 308 as 307, which urllib does only from Python 3.11.
+    """Follow same-origin redirects, including 308 on Python 3.10.
 
     OpenProject 17.6 answers some deprecated API paths with a 308. The kit
     supports Python 3.10, where urllib raises the 308 as an error.
     """
 
     def redirect_request(self, req, fp, code, msg, headers, newurl):
+        source_origin = _url_origin(req.full_url)
+        target_origin = _url_origin(newurl)
+        if source_origin != target_origin:
+            raise _RedirectRefused(source_origin, target_origin)
         return super().redirect_request(req, fp, 307 if code == 308 else code, msg, headers, newurl)
 
     def http_error_308(self, req, fp, code, msg, headers):
         return self.http_error_302(req, fp, code, msg, headers)
+
+
+class _RedirectRefused(Exception):
+    def __init__(self, source_origin, target_origin):
+        super().__init__(f"redirect from {source_origin} to {target_origin} was refused")
+        self.source_origin = source_origin
+        self.target_origin = target_origin
+
+
+def _url_origin(value):
+    parsed = urllib.parse.urlsplit(value)
+    scheme = parsed.scheme.lower()
+    host = (parsed.hostname or "").lower()
+    try:
+        port = parsed.port
+    except ValueError:
+        port = None
+    if port is None:
+        port = 443 if scheme == "https" else 80 if scheme == "http" else None
+    if not scheme or not host or port is None:
+        return f"{scheme or '<missing>'}://{host or '<missing>'}:<invalid>"
+    return f"{scheme}://{host}:{port}"
 
 
 _opener = urllib.request.build_opener(_PermanentRedirectHandler)
@@ -637,6 +663,19 @@ def openproject_request_json(req, method, path, expected=(200, 201, 204), *, opt
                 if not body:
                     return resp.status, {}
                 return resp.status, json.loads(body.decode())
+        except _RedirectRefused as exc:
+            raise _runtime_error(
+                "openproject_redirect_refused",
+                method,
+                path,
+                attempt + 1,
+                timeout_seconds,
+                str(exc),
+                extra={
+                    "from_origin": exc.source_origin,
+                    "to_origin": exc.target_origin,
+                },
+            )
         except urllib.error.HTTPError as exc:
             try:
                 parsed = _parse_error_body(exc)

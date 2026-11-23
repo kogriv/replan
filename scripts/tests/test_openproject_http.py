@@ -6,12 +6,15 @@ import subprocess
 import threading
 import time
 import unittest
+import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from openproject_http import (
     MissingSettingError,
     OpenProjectClient,
     Settings,
+    _PermanentRedirectHandler,
+    _RedirectRefused,
     normalize_openproject_text,
     openproject_durations_equal,
     work_package_payload_mismatches,
@@ -213,6 +216,90 @@ class OpenProjectClientTest(unittest.TestCase):
         self.assertEqual((method, path), ("GET", "/item-new"))
         self.assertTrue(headers["Authorization"].startswith("Basic "))
         self.assertEqual(headers["Host"], "openproject.example")
+
+    def test_cross_origin_redirects_are_refused_without_sending_secrets(self):
+        class TargetHandler(BaseHTTPRequestHandler):
+            requests = []
+
+            def do_GET(self):
+                type(self).requests.append(dict(self.headers))
+                self.send_response(200)
+                self.end_headers()
+
+            def log_message(self, _format, *_args):
+                pass
+
+        target = ThreadingHTTPServer(("127.0.0.1", 0), TargetHandler)
+        target_thread = threading.Thread(target=target.serve_forever, daemon=True)
+        target_thread.start()
+        try:
+            for code in (301, 302, 303, 307, 308):
+                for target_host in ("127.0.0.1", "localhost"):
+                    with self.subTest(code=code, target_host=target_host):
+                        TargetHandler.requests = []
+
+                        class RedirectHandler(BaseHTTPRequestHandler):
+                            def do_GET(self):
+                                self.send_response(code)
+                                self.send_header(
+                                    "Location",
+                                    f"http://{target_host}:{target.server_port}/capture",
+                                )
+                                self.end_headers()
+
+                            def log_message(self, _format, *_args):
+                                pass
+
+                        source = ThreadingHTTPServer(("127.0.0.1", 0), RedirectHandler)
+                        source_thread = threading.Thread(
+                            target=source.serve_forever, daemon=True
+                        )
+                        source_thread.start()
+                        try:
+                            client = OpenProjectClient(
+                                f"http://127.0.0.1:{source.server_port}",
+                                self.settings(),
+                                "openproject.example",
+                                "https",
+                            )
+                            with self.assertRaises(RuntimeError) as raised:
+                                client.request_json("GET", "/redirect", expected=(200,))
+                            error = json.loads(str(raised.exception))
+                            self.assertEqual(error["code"], "openproject_redirect_refused")
+                            self.assertEqual(
+                                error["from_origin"],
+                                f"http://127.0.0.1:{source.server_port}",
+                            )
+                            self.assertEqual(
+                                error["to_origin"],
+                                f"http://{target_host}:{target.server_port}",
+                            )
+                            self.assertNotIn("secret", str(raised.exception))
+                            self.assertEqual(TargetHandler.requests, [])
+                        finally:
+                            source.shutdown()
+                            source.server_close()
+                            source_thread.join()
+        finally:
+            target.shutdown()
+            target.server_close()
+            target_thread.join()
+
+    def test_https_to_http_redirect_is_refused_by_handler(self):
+        request = urllib.request.Request(
+            "https://openproject.example/api/v3/work_packages"
+        )
+        with self.assertRaises(_RedirectRefused) as raised:
+            _PermanentRedirectHandler().redirect_request(
+                request,
+                None,
+                308,
+                "Permanent Redirect",
+                {},
+                "http://openproject.example/api/v3/work_packages",
+            )
+        self.assertEqual(raised.exception.source_origin, "https://openproject.example:443")
+        self.assertEqual(raised.exception.target_origin, "http://openproject.example:80")
 
     def test_request_json_retries_a_transient_status(self):
         _Handler.transient_remaining = 1

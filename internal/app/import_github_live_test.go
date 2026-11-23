@@ -3,6 +3,7 @@ package app_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -36,7 +38,7 @@ func TestGitHubLivePaginationParametersAndPullRequestFiltering(t *testing.T) {
 			if r.URL.Query().Get("state") != "all" || r.URL.Query().Get("since") != "2026-10-29T00:00:00Z" || r.URL.Query().Get("per_page") != "100" {
 				t.Errorf("issues query = %s", r.URL.RawQuery)
 			}
-			w.Header().Set("Link", `<`+serverURL(r)+`/repos/acme/widgets/issues?page=2>; rel="next", <`+serverURL(r)+`/repos/acme/widgets/issues?page=2>; rel="last"`)
+			w.Header().Set("Link", `<?page=2>; rel="next", <?page=2>; rel="last"`)
 			writeJSON(t, w, []map[string]any{
 				{"id": 1, "number": 1, "title": "First", "state": "open", "updated_at": "2026-10-29T01:00:00Z"},
 				{"id": 2, "number": 2, "title": "PR", "state": "open", "updated_at": "2026-10-29T02:00:00Z", "pull_request": map[string]any{"url": "x"}},
@@ -62,6 +64,116 @@ func TestGitHubLivePaginationParametersAndPullRequestFiltering(t *testing.T) {
 	}
 	if !diagnosticsHaveCode(result.Warnings, "github_token_missing") || len(requests) != 3 {
 		t.Fatalf("requests=%v warnings=%#v", requests, result.Warnings)
+	}
+}
+
+func TestGitHubLiveRefusesCrossOriginNextLinkWithoutSendingToken(t *testing.T) {
+	const token = "fake-github-token"
+	t.Setenv("TEST_GITHUB_TOKEN", token)
+	var targetRequests atomic.Int32
+	target := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
+		targetRequests.Add(1)
+	}))
+	defer target.Close()
+	source := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assertGitHubHeaders(t, r, "Bearer "+token)
+		switch r.URL.Path {
+		case "/repos/acme/widgets":
+			writeJSON(t, w, map[string]any{"name": "widgets", "owner": map[string]any{"login": "acme"}})
+		case "/repos/acme/widgets/issues":
+			w.Header().Set("Link", `<`+target.URL+`/collect>; rel="next"`)
+			writeJSON(t, w, []any{})
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer source.Close()
+	result, err := app.NewGitHubImportService(filestore.New("../../examples/small-team")).Import(context.Background(), app.GitHubImportRequest{
+		Repository: "acme/widgets", BaseURL: source.URL, TokenEnv: "TEST_GITHUB_TOKEN", TokenEnvSet: true,
+		DryRun: true, RequestTimeoutSeconds: 2,
+	})
+	if err == nil || !diagnosticsHaveCode(result.Errors, "github_pagination_url_refused") {
+		t.Fatalf("err=%v errors=%#v", err, result.Errors)
+	}
+	if targetRequests.Load() != 0 {
+		t.Fatalf("untrusted next-link server received %d requests", targetRequests.Load())
+	}
+	encoded, _ := json.Marshal(result)
+	if strings.Contains(string(encoded), token) {
+		t.Fatal("token leaked into pagination diagnostic")
+	}
+}
+
+func TestGitHubLivePaginationCycleStops(t *testing.T) {
+	issueReads := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/repos/acme/widgets":
+			writeJSON(t, w, map[string]any{"name": "widgets", "owner": map[string]any{"login": "acme"}})
+		case "/repos/acme/widgets/issues":
+			issueReads++
+			w.Header().Set("Link", `<`+serverURL(r)+r.URL.RequestURI()+`>; rel="next"`)
+			writeJSON(t, w, []any{})
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+	result, err := app.NewGitHubImportService(filestore.New("../../examples/small-team")).Import(context.Background(), app.GitHubImportRequest{
+		Repository: "acme/widgets", BaseURL: server.URL, TokenEnvSet: true, DryRun: true, RequestTimeoutSeconds: 2,
+	})
+	if err == nil || !diagnosticsHaveCode(result.Errors, "github_pagination_cycle") {
+		t.Fatalf("err=%v errors=%#v", err, result.Errors)
+	}
+	if issueReads != 1 {
+		t.Fatalf("issue page read %d times, want 1", issueReads)
+	}
+}
+
+func TestGitHubLivePaginationPageLimit(t *testing.T) {
+	issueReads := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/repos/acme/widgets":
+			writeJSON(t, w, map[string]any{"name": "widgets", "owner": map[string]any{"login": "acme"}})
+		case "/repos/acme/widgets/issues":
+			issueReads++
+			w.Header().Set("Link", fmt.Sprintf("<?page=%d>; rel=\"next\"", issueReads+1))
+			writeJSON(t, w, []any{})
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+	result, err := app.NewGitHubImportService(filestore.New("../../examples/small-team")).Import(context.Background(), app.GitHubImportRequest{
+		Repository: "acme/widgets", BaseURL: server.URL, TokenEnvSet: true, DryRun: true, RequestTimeoutSeconds: 2,
+	})
+	if err == nil || !diagnosticsHaveCode(result.Errors, "github_page_limit_exceeded") {
+		t.Fatalf("err=%v errors=%#v", err, result.Errors)
+	}
+	if issueReads != 1000 {
+		t.Fatalf("issue pages read = %d, want 1000", issueReads)
+	}
+}
+
+func TestGitHubLiveRefusesCrossOriginHTTPRedirect(t *testing.T) {
+	var targetRequests atomic.Int32
+	target := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
+		targetRequests.Add(1)
+	}))
+	defer target.Close()
+	source := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, target.URL+"/collect", http.StatusFound)
+	}))
+	defer source.Close()
+	result, err := app.NewGitHubImportService(filestore.New("../../examples/small-team")).Import(context.Background(), app.GitHubImportRequest{
+		Repository: "acme/widgets", BaseURL: source.URL, TokenEnvSet: true, DryRun: true, RequestTimeoutSeconds: 2,
+	})
+	if err == nil || !diagnosticsHaveCode(result.Errors, "github_redirect_refused") {
+		t.Fatalf("err=%v errors=%#v", err, result.Errors)
+	}
+	if targetRequests.Load() != 0 {
+		t.Fatalf("redirect target received %d requests", targetRequests.Load())
 	}
 }
 

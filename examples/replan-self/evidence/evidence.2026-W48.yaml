@@ -203,3 +203,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.openproject-host-rename
+  - id: evidence.self.http-secret-boundaries
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-23T17:21:46+07:00"
+    summary: 'Feature commit 1448bc5: the Python OpenProject client and the Go importers refuse redirects that change scheme, host or port, including https to http (openproject_redirect_refused naming the origins, never a secret); GitHub next links must stay on the API origin and base path, are resolved against the current page, cycle-checked and capped at 1000 pages per collection. Tests with two local servers cover 301/302/303/307/308, other ports and host names, the downgrade, both secret headers and the Host override (the second server receives nothing), and GitHub foreign, relative and self-referencing links. Live checks through the tunnel (108 kit checks, drift 0/0) show no redirect in normal use. Review: one round; the executor dropped Codex''s edit of the audit review document, which wrongly called the work package pending. Gate: vet, lint 0, shellcheck, Go and Python suites, smoke, isolated smoke, 58 kit checks, plugin throwaway runtime, live kit check 108 checks. Codex 16:12:32-16:47:06 (0.58 h, prompt and last-file mtimes). Executor 0.24 h measured with scripts/agent-session-consumption.sh over the task window minus the host rename task (16:40:53-16:52:00).'
+    targets:
+      - kind: task
+        id: task.self.http-secret-boundaries

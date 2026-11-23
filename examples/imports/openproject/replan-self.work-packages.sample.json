@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 322,
-  "count": 322,
+  "total": 323,
+  "count": 323,
   "_embedded": {
     "elements": [
       {
@@ -9335,6 +9335,35 @@
           },
           "status": {
             "title": "Developed"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2423,
+        "subject": "Refresh work package URLs in the private binding file",
+        "description": {
+          "raw": "Reported on 2026-11-23 by the third consumer project after the OpenProject server moved to a new public host name: its binding file still links every task to the old host, which stops answering in December 2026, and the project changes its plan only through kit commands. work-package bind --replace with the same work package is a no-op even when the URL differs. Make bind --replace update the source_ref URL when the work package is unchanged and the URL differs (reported as url_refreshed, dry run by default), and add a reviewed bulk command that rewrites the host of every binding URL (tasks and dependencies) from an old base URL to a new one, or rebuilds the URLs from the configured base URL: dry run listing each change, REPLAN_APPLY=1 to write, under the binding file lock if it exists by then, atomic LF write, never touching object ids; tests and agent kit docs."
+        },
+        "status": {
+          "name": "New"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.15H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-24",
+        "dueDate": "2026-11-24",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2423"
+          },
+          "status": {
+            "title": "New"
           },
           "assignee": {
             "href": "/api/v3/users/101",

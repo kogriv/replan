@@ -263,3 +263,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.openproject-host-rename
+  - id: actual.self-http-secret-boundaries.ai-codex-local.20261123T1721460700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.http-secret-boundaries
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.http-secret-boundaries.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.58
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-23T17:21:46+07:00"
+    status_date: "2026-11-23"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.http-secret-boundaries
+  - id: actual.self-http-secret-boundaries.ai-agent-executor.20261123T1721460700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.http-secret-boundaries
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.http-secret-boundaries.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.24
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-23T17:21:46+07:00"
+    status_date: "2026-11-23"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.http-secret-boundaries
