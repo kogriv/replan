@@ -32,3 +32,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.kit-windows-git-settings-docs
+  - id: evidence.self.start-review-audits-2026-11-23
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-23T13:01:22+07:00"
+    summary: Started on the planned day when the maintainer asked in chat (13:01) to pull the two audits and check them in depth.
+    targets:
+      - kind: task
+        id: task.self.review-audits-2026-11-23

@@ -18429,3 +18429,45 @@ resource_demands:
       evidence_refs:
         - kind: evidence
           id: evidence.self.ack-ci-overrun-work-package-rebind
+  - id: resource_demand.review-audits-2026-11-23.agent
+    task_ref:
+      kind: task
+      id: task.self.review-audits-2026-11-23
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    resource_class: ai_agent
+    role: implementation_agent
+    unit: agent_hours
+    planned_amount: 1.0
+    remaining_amount: 1.0
+    criticality: required
+    status: active
+  - id: resource_demand.review-audits-2026-11-23.maintainer
+    task_ref:
+      kind: task
+      id: task.self.review-audits-2026-11-23
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    resource_class: human
+    role: maintainer
+    unit: hours
+    planned_amount: 0.25
+    remaining_amount: 0.25
+    criticality: required
+    status: active
+  - id: resource_demand.review-audits-2026-11-23.local-dev
+    task_ref:
+      kind: task
+      id: task.self.review-audits-2026-11-23
+    resource_ref:
+      kind: resource
+      id: resource.environment.local-dev
+    resource_class: environment
+    role: development_environment
+    unit: concurrent_slots
+    planned_amount: 1
+    remaining_amount: 1
+    criticality: required
+    status: active

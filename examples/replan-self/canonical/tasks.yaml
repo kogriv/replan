@@ -8891,3 +8891,28 @@ tasks:
         object_type: work_package
         object_id: "2402"
         url: https://op.example.internal/work_packages/2402
+  - id: task.self.review-audits-2026-11-23
+    title: Review the two external audits of 2026-11-23 against the code
+    description: 'The maintainer added two external audits on 2026-11-23 (docs/audit/replan-full-audit-2026-11-23.md and docs/audit/replan-technical-audit-2026-11-23.md, both at commit 67caa2a) and asked for a detailed, deep check of what is right and what is wrong. Verify every finding against the code with empirical checks where the auditors could not run Go (throwaway tests and CLI runs on fixture copies), record a verdict per finding with evidence, merge the duplicates between the two audits, and propose a task per confirmed defect with an estimate for the maintainer to approve; no fixes in this task.'
+    type: review
+    tracking_status: in_progress
+    planned_start: "2026-11-23"
+    planned_finish: "2026-11-23"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.review-audits-2026-11-23.agent
+      - kind: resource_demand
+        id: resource_demand.review-audits-2026-11-23.maintainer
+      - kind: resource_demand
+        id: resource_demand.review-audits-2026-11-23.local-dev
+    tags:
+      - audit
+      - review
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2403"
+        url: https://op.example.internal/work_packages/2403

@@ -1037,6 +1037,12 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2402"
         url: https://op.example.internal/work_packages/2402
+    - replan_task_id: task.self.review-audits-2026-11-23
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2403"
+        url: https://op.example.internal/work_packages/2403
     - replan_task_id: task.self.date-push-nothing-to-apply-is-ok
       source_ref:
         source: openproject

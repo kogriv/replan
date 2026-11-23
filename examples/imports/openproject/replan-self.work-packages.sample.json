@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 302,
-  "count": 302,
+  "total": 303,
+  "count": 303,
   "_embedded": {
     "elements": [
       {
@@ -8755,6 +8755,35 @@
           },
           "status": {
             "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2403,
+        "subject": "Review the two external audits of 2026-11-23 against the code",
+        "description": {
+          "raw": "The maintainer added two external audits on 2026-11-23 (docs/audit/replan-full-audit-2026-11-23.md and docs/audit/replan-technical-audit-2026-11-23.md, both at commit 67caa2a) and asked for a detailed, deep check of what is right and what is wrong. Verify every finding against the code with empirical checks where the auditors could not run Go (throwaway tests and CLI runs on fixture copies), record a verdict per finding with evidence, merge the duplicates between the two audits, and propose a task per confirmed defect with an estimate for the maintainer to approve; no fixes in this task."
+        },
+        "status": {
+          "name": "In progress"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.25H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-23",
+        "dueDate": "2026-11-23",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2403"
+          },
+          "status": {
+            "title": "In progress"
           },
           "assignee": {
             "href": "/api/v3/users/101",
