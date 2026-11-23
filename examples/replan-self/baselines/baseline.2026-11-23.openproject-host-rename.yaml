@@ -1,0 +1,42 @@
+baseline:
+  id: baseline.2026-11-23.openproject-host-rename
+  name: openproject-host-rename as agreed on 2026-11-23
+  scope: tasks
+  created_at: "2026-11-23T16:40:53+07:00"
+  approved_at: "2026-11-23T16:40:53+07:00"
+  approved_by:
+    kind: actor
+    id: actor.human.maintainer
+  included_tasks:
+    - kind: task
+      id: task.self.openproject-host-rename
+      planned_start: "2026-11-23"
+      planned_finish: "2026-11-23"
+  included_demands:
+    - kind: resource_demand
+      id: resource_demand.openproject-host-rename.agent
+      task: task.self.openproject-host-rename
+      resource: resource.ai.agent.executor
+      unit: agent_hours
+      planned_amount: 0.2
+    - kind: resource_demand
+      id: resource_demand.openproject-host-rename.maintainer
+      task: task.self.openproject-host-rename
+      resource: resource.human.maintainer
+      unit: hours
+      planned_amount: 0.05
+    - kind: resource_demand
+      id: resource_demand.openproject-host-rename.local-dev
+      task: task.self.openproject-host-rename
+      resource: resource.environment.local-dev
+      unit: concurrent_slots
+      planned_amount: 1
+    - kind: resource_demand
+      id: resource_demand.openproject-host-rename.ci
+      task: task.self.openproject-host-rename
+      resource: resource.ci.github-actions
+      unit: ci_minutes
+      planned_amount: 10
+  seal:
+    algorithm: sha256
+    digest: 2463cf3fec9f0960f0b7bd8d8a6b4f99ff27fd5156dc11ff5f95063fefaa7e57

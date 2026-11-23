@@ -1,7 +1,7 @@
 {
   "_type": "Collection",
-  "total": 321,
-  "count": 321,
+  "total": 322,
+  "count": 322,
   "_embedded": {
     "elements": [
       {
@@ -9306,6 +9306,35 @@
           },
           "status": {
             "title": "New"
+          },
+          "assignee": {
+            "href": "/api/v3/users/101",
+            "title": "RePlan maintainer"
+          }
+        }
+      },
+      {
+        "id": 2422,
+        "subject": "Switch local settings and consumer wiki pages to the new OpenProject host name",
+        "description": {
+          "raw": "Agreed with the maintainer on 2026-11-23: the private OpenProject server moved to a new public host name; the old name keeps working without a redirect until its domain expires in December 2026. Switch the executor's local settings (the Host header of the tunnel in the ignored .env.local and the private tunnel check) to the new name, check reads and a dry-run write through it, and update the two consumer wiki pages on that server that name the old host, with a dry run and the page lock version; no committed file names either host."
+        },
+        "status": {
+          "name": "Developed"
+        },
+        "assignee": {
+          "name": "RePlan maintainer"
+        },
+        "estimatedTime": "PT0.05H",
+        "spentTime": "PT0H",
+        "startDate": "2026-11-23",
+        "dueDate": "2026-11-23",
+        "_links": {
+          "self": {
+            "href": "/api/v3/work_packages/2422"
+          },
+          "status": {
+            "title": "Developed"
           },
           "assignee": {
             "href": "/api/v3/users/101",

@@ -632,6 +632,8 @@ current_plan:
     - kind: task
       id: task.self.session-helper-subagent-transcripts
     - kind: task
+      id: task.self.openproject-host-rename
+    - kind: task
       id: task.self.date-push-nothing-to-apply-is-ok
     - kind: task
       id: task.self.toolkit-comment-add-saves-comment

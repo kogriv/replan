@@ -9447,3 +9447,30 @@ tasks:
         object_type: work_package
         object_id: "2421"
         url: https://op.example.internal/work_packages/2421
+  - id: task.self.openproject-host-rename
+    title: Switch local settings and consumer wiki pages to the new OpenProject host name
+    description: 'Agreed with the maintainer on 2026-11-23: the private OpenProject server moved to a new public host name; the old name keeps working without a redirect until its domain expires in December 2026. Switch the executor''s local settings (the Host header of the tunnel in the ignored .env.local and the private tunnel check) to the new name, check reads and a dry-run write through it, and update the two consumer wiki pages on that server that name the old host, with a dry run and the page lock version; no committed file names either host.'
+    type: operations
+    tracking_status: review_ready
+    planned_start: "2026-11-23"
+    planned_finish: "2026-11-23"
+    assignee_hint:
+      kind: resource
+      id: resource.human.maintainer
+    resource_demands:
+      - kind: resource_demand
+        id: resource_demand.openproject-host-rename.agent
+      - kind: resource_demand
+        id: resource_demand.openproject-host-rename.maintainer
+      - kind: resource_demand
+        id: resource_demand.openproject-host-rename.local-dev
+      - kind: resource_demand
+        id: resource_demand.openproject-host-rename.ci
+    tags:
+      - operations
+      - openproject
+    source_refs:
+      - source: openproject
+        object_type: work_package
+        object_id: "2422"
+        url: https://op.example.internal/work_packages/2422

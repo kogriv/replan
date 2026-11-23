@@ -170,3 +170,36 @@ evidence:
     targets:
       - kind: task
         id: task.self.one-openproject-status-map
+  - id: evidence.self.ack-ci-overrun-one-openproject-status-map
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-23T16:40:53+07:00"
+    summary: The maintainer acknowledged in chat (2026-11-23T16:40) that 14 billable minutes measured from GitHub Actions run 45144885601 exceed the 10 planned for this task, and allowed the executor to acknowledge measured CI overruns of the tasks planned from the 2026-11-23 audit review.
+    targets:
+      - kind: task
+        id: task.self.one-openproject-status-map
+  - id: evidence.self.start-openproject-host-rename
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-23T16:42:08+07:00"
+    summary: Started on the planned day after the maintainer agreed in chat (16:40) to switch to the new host name.
+    targets:
+      - kind: task
+        id: task.self.openproject-host-rename
+  - id: evidence.self.openproject-host-rename
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-23T16:44:09+07:00"
+    summary: 'Switched to the new OpenProject host name: the tunnel Host header in the ignored .env.local (a copy kept outside the repository) and the private tunnel check; through it the tunnel check, a read of all work packages (322), a dry run of the date push (0 actions) and the drift check (0 status and 0 date drifts) work. The two consumer wiki pages on that server now name the new host in their setup steps, with a note that the old name works until mid-December 2026; a historical line about a check made on the old name in October was left as it was. Both updates were dry-run first, applied with the page lock version and read back identical. Executor 0.05 h measured with scripts/agent-session-consumption.sh from the maintainer''s agreement in chat to the booking.'
+    targets:
+      - kind: task
+        id: task.self.openproject-host-rename
