@@ -252,11 +252,12 @@ replan taskjuggler import-result \
   --format json
 ```
 
-Review and apply the written candidate as one flow:
+Review, approve and apply the written candidate:
 
 ```bash
 replan scenario diff --project examples/small-team --scenario-id scenario.tj.20260713T200000Z --format markdown
-replan scenario apply --project examples/small-team --scenario-id scenario.tj.20260713T200000Z --actor actor.human.operator --reason "Accept generated dates." --dry-run --format markdown
+replan scenario accept --project examples/small-team --scenario-id scenario.tj.20260713T200000Z --actor actor.human.operator --reason "Accept generated dates." --apply --format markdown
+replan scenario apply --project examples/small-team --scenario-id scenario.tj.20260713T200000Z --actor actor.human.operator --reason "Implement approved dates." --dry-run --format markdown
 replan scenario apply --project examples/small-team --scenario-id scenario.tj.20260713T200000Z --actor actor.human.operator --reason "Accept generated dates." --apply --format markdown
 ```
 

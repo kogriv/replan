@@ -1073,6 +1073,13 @@ func (s Store) ApplyProposalDecision(proposalID string, targetStatus string, tas
 }
 
 func (s Store) ApplyScenarioChanges(scenarioID string, changes []app.ScenarioApplyChange, audit *domain.AuditRecord) ([]string, error) {
+	scenarioRel, scenario, err := s.readScenarioByID(scenarioID)
+	if err != nil {
+		return nil, err
+	}
+	if scenario.Status != "accepted" {
+		return nil, fmt.Errorf("scenario %s has status %q; expected accepted", scenarioID, scenario.Status)
+	}
 	written := []string{}
 	if touchesScenarioTargetKind(changes, "task") {
 		err := s.applyScenarioTaskChanges(changes)
@@ -1097,22 +1104,36 @@ func (s Store) ApplyScenarioChanges(scenarioID string, changes []app.ScenarioApp
 		written = append(written, dependenciesRel)
 	}
 
+	statusFiles, err := s.writeScenarioStatus(scenarioRel, scenarioID, "accepted", "applied", audit)
+	return append(written, statusFiles...), err
+}
+
+func (s Store) AcceptScenario(scenarioID, previousStatus string, audit *domain.AuditRecord) ([]string, error) {
+	if !domain.ScenarioStatusCanBeAccepted(previousStatus) {
+		return nil, fmt.Errorf("scenario %s cannot be accepted from status %q", scenarioID, previousStatus)
+	}
 	scenarioRel, _, err := s.readScenarioByID(scenarioID)
 	if err != nil {
-		return written, err
+		return nil, err
 	}
+	return s.writeScenarioStatus(scenarioRel, scenarioID, previousStatus, "accepted", audit)
+}
+
+func (s Store) writeScenarioStatus(scenarioRel, scenarioID, previousStatus, status string, audit *domain.AuditRecord) ([]string, error) {
 	if err := updateYAML(s, scenarioRel, false, func(doc *scenarioDoc) error {
-		doc.Scenario.Status = "applied"
+		if doc.Scenario.Status != previousStatus {
+			return fmt.Errorf("scenario %s has status %q; expected %q", scenarioID, doc.Scenario.Status, previousStatus)
+		}
+		doc.Scenario.Status = status
 		return nil
 	}); err != nil {
-		return written, fmt.Errorf("write scenario %s: %w", scenarioID, err)
+		return nil, fmt.Errorf("write scenario %s: %w", scenarioID, err)
 	}
-	written = append(written, scenarioRel)
 	auditRel, err := s.AppendAudit(audit)
 	if err != nil {
-		return written, err
+		return []string{scenarioRel}, err
 	}
-	return append(written, auditRel), nil
+	return []string{scenarioRel, auditRel}, nil
 }
 
 func (s Store) applyScenarioTaskChanges(changes []app.ScenarioApplyChange) error {

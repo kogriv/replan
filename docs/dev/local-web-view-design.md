@@ -47,7 +47,7 @@ and that have not been built:
 1. `workload.html`: the weekly heatmap, resource by week, with the demands
    behind each overloaded cell (the overload explainer's data);
 2. `scenarios.html`: each scenario's changes and its diff against the
-   current plan, with the `scenario apply` command to copy;
+   current plan, with a command to preview approval for candidates or application for accepted scenarios;
 3. `proposals.html`: the open proposals with their evidence and impact, and
    the `proposal accept` and `reject` commands to copy;
 4. `estimates.html`: the estimate accuracy of each sealed baseline, and the

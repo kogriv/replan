@@ -724,7 +724,7 @@ run_json_ok scenario-show-leading "$BIN" scenario show scenario.ivan-unavailable
 run_json_ok scenario-show-trailing "$BIN" scenario show --project "$PROJECT_PATH" --format json scenario.ivan-unavailable-week-28
 run_json_ok scenario-diff "$BIN" scenario diff --project "$PROJECT_PATH" --against current --format json scenario.ivan-unavailable-week-28
 run_json_ok scenario-diff-flag "$BIN" scenario diff --project "$PROJECT_PATH" --scenario-id scenario.ivan-unavailable-week-28 --against current --format json
-run_json_ok scenario-apply-dry-run "$BIN" scenario apply --project "$PROJECT_PATH" --dry-run --format json scenario.task-op-1234-remaining-5
+run_json_ok scenario-accept-dry-run "$BIN" scenario accept --project "$PROJECT_PATH" --dry-run --format json scenario.task-op-1234-remaining-5
 
 run_json_ok proposal-list "$BIN" proposal list --project "$PROJECT_PATH" --status open --format json
 run_json_ok proposal-show-leading "$BIN" proposal show proposal.adjust-remaining-task-op-1234.20260706 --project "$PROJECT_PATH" --format json
@@ -849,6 +849,12 @@ run_json_ok actual-add-write "$BIN" actual add-consumption \
   --apply \
   --format json
 assert_contains "$mutation_project/audit/audit.2026-07.jsonl" 'actual_add_consumption'
+run_json_ok scenario-accept-write "$BIN" scenario accept --project "$mutation_project" \
+  --actor "$ACTOR" --reason "Reviewed the remaining-work scenario." --apply --format json \
+  scenario.task-op-1234-remaining-5
+assert_project_audit_contains "$mutation_project" 'scenario_accept'
+run_json_ok scenario-apply-dry-run "$BIN" scenario apply --project "$mutation_project" \
+  --dry-run --format json scenario.task-op-1234-remaining-5
 run_json_ok scenario-apply-write "$BIN" scenario apply \
   --project "$mutation_project" \
   --actor "$ACTOR" \
@@ -871,6 +877,8 @@ scenario:
       path: dependencies.dependency.repair-pump-before-validation.status
       value: cancelled
 YAML
+run_json_ok scenario-accept-cancel-dependency "$BIN" scenario accept --project "$mutation_project" \
+  --actor "$ACTOR" --apply --format json scenario.smoke-cancel-dependency
 if "$BIN" scenario apply --project "$mutation_project" --actor "$ACTOR" --apply --format json \
   scenario.smoke-cancel-dependency >"$TMP_DIR/scenario-cancel-no-evidence.json"; then
   printf 'scenario cancelling a dependency without evidence was applied\n' >&2

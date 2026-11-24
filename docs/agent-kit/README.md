@@ -537,7 +537,7 @@ one.
 | Change demands or move work to another resource | `bin/replan demand add`, `bin/replan demand set`, `bin/replan demand move` |
 | Add or change dependencies and add deadlines | `bin/replan dependency add`, `bin/replan dependency set`, `bin/replan deadline add`; each accepts one item or a `--from-file` batch |
 | Set dates | `bin/replan task set-dates`, then `scripts/push-openproject-date-drift.sh` |
-| Draft dates from capacity and load | `bin/replan taskjuggler run`, `bin/replan taskjuggler import-result`, then review with `bin/replan scenario diff --scenario-id <id>` and `bin/replan scenario apply --scenario-id <id>` (needs TaskJuggler's `tj3`) |
+| Draft dates from capacity and load | `bin/replan taskjuggler run`, `bin/replan taskjuggler import-result`, then review with `bin/replan scenario diff --scenario-id <id>`, approve with `bin/replan scenario accept --scenario-id <id>` and apply with `bin/replan scenario apply --scenario-id <id>` (needs TaskJuggler's `tj3`) |
 | Record work and accept a task | `bin/replan actual add-consumption`, `bin/replan actual add-status`, `scripts/accept-task.sh` |
 | Create work packages and relations | `scripts/apply-openproject-bootstrap.sh`, `scripts/apply-openproject-relations.sh` |
 | Change one work package | `scripts/openproject-work-package-toolkit.sh` for status, dates, text, metadata and Version (stage); list or create project versions with `version list` or `version create` |
@@ -546,8 +546,10 @@ one.
 
 For drafted dates, use the scenario id returned by `taskjuggler import-result
 --write-candidate`: inspect it with `scenario diff --scenario-id <id> --format
-markdown`, preview `scenario apply --scenario-id <id> --dry-run`, and then
-repeat with `--apply`, a human `--actor` and a `--reason`. Apply accepts the
+markdown`. Preview the decision with `scenario accept --scenario-id <id>
+--dry-run`, then record it with `--apply`, a human `--actor` and a `--reason`.
+When ready to change the plan, preview `scenario apply --scenario-id <id>
+--dry-run` and repeat with `--apply` and a human `--actor`. Application accepts the
 linked open TaskJuggler proposal in the same audited write. If the proposal was
 accepted first, apply still works; if it was rejected, apply refuses.
 
@@ -578,7 +580,7 @@ to its root. A write to OpenProject or the bindings file is a dry run unless
 | Seal a planning baseline | `bin/replan baseline create ... [--task <id> ...] --dry-run` | Snapshots current task dates, scheduling metadata, planned demand amounts and levelled flags. Use repeatable `--task` for newly planned work; review, then use `--apply`. Use `baseline list` or `show` to verify the seal. |
 | Compare estimates with actuals | `bin/replan report estimates --project "$REPLAN_PROJECT" --baseline <id>` | Read-only resource and split-group summary followed by baseline-task demand, split and schedule detail; resources without counted actuals are explicit. JSON is available with `--format json`. |
 | Calibrate estimates | `bin/replan estimate calibrate ... [--all-baselines] [--since YYYY-MM-DD] [--include-review-ready] [--by-size] --dry-run` | Builds a sealed calibration from at least eight clean finished tasks. Use `--include-review-ready` only when completed work with actuals is waiting for acceptance; every other clean-sample rule still applies. For a new project, use `--prior 0.21 --source "replan-self, 39 tasks, 2026-11-02"`. Review the source, window, exclusions and factors, then replace `--dry-run` with `--apply`; the approver must be human. |
-| Apply a calibration as a what-if | `bin/replan estimate apply --calibration <id> --scenario-id <id> --actor <id> --dry-run` | Creates one calibration-linked scenario on apply. Inspect it with `scenario diff`, then use the existing reviewed `scenario apply` flow. |
+| Apply a calibration as a what-if | `bin/replan estimate apply --calibration <id> --scenario-id <id> --actor <id> --dry-run` | Creates one calibration-linked scenario on apply. Inspect it with `scenario diff`, then approve it with `scenario accept` before applying it with `scenario apply`. |
 | Create, bind or unbind a work package | `scripts/apply-openproject-bootstrap.sh` | Creates missing work packages and bindings. For one item, use toolkit `work-package create --task <id> --bind`; omit `--bind` to create first and receive the exact follow-up `work-package bind` command. Use `work-package bind --replace` to move or repair a binding and `work-package unbind` to remove one. Use `backlog reconcile` to rebuild bindings. |
 | Refresh binding links after the OpenProject host changes | `scripts/openproject-work-package-toolkit.sh work-package rebase-urls --from <old-base-url> --to <new-base-url> [--keep-base-url]` | Rewrites matching task, dependency and resource `source_ref.url` prefixes and, unless `--keep-base-url` is set, the project `base_url` in the binding file. A URL matches only on a path boundary, so `https://op.example` never matches `https://op.example.org`. It reports changed, unchanged and explicitly kept bindings, is dry-run by default, and writes once with `REPLAN_APPLY=1`; ids and binding order stay unchanged. |
 | Relations to OpenProject | `scripts/apply-openproject-relations.sh` | Applies supported canonical dependencies as OpenProject relations. The toolkit can list or delete a single relation. |

@@ -13,7 +13,7 @@ The smoke must prove that a human operator or AI CLI agent can use the current
 project fixture for the core MVP loop:
 
 ```text
-validate -> workload -> reports -> scenario review -> proposal review -> actual write -> scenario apply -> audit verify -> OpenProject import
+validate -> workload -> reports -> scenario review -> proposal review -> actual write -> scenario accept -> scenario apply -> audit verify -> OpenProject import
 ```
 
 The smoke must be safe to run:
@@ -59,7 +59,7 @@ replan report weekly --project examples/small-team --week 2026-W28 --format html
 replan scenario show scenario.ivan-unavailable-week-28 --project examples/small-team --format json
 replan scenario show --project examples/small-team --format json scenario.ivan-unavailable-week-28
 replan scenario diff --project examples/small-team --against current --format json scenario.ivan-unavailable-week-28
-replan scenario apply --project examples/small-team --dry-run --format json scenario.task-op-1234-remaining-5
+replan scenario accept --project examples/small-team --dry-run --format json scenario.task-op-1234-remaining-5
 replan proposal list --project examples/small-team --status open --format json
 replan proposal show proposal.adjust-remaining-task-op-1234.20260706 --project examples/small-team --format json
 replan proposal show --project examples/small-team --format json proposal.adjust-remaining-task-op-1234.20260706
@@ -206,6 +206,7 @@ The smoke copies `examples/small-team` to a temporary directory and then runs:
 
 ```bash
 replan actual add-consumption --project <temp-project> --task task.op.1234 --demand resource_demand.task-op-1234.implementer --resource resource.human.ivan --amount 1 --unit hours --actor actor.human.operator --occurred-at 2026-07-08T10:00:00+07:00 --status-date 2026-07-08 --apply --format json
+replan scenario accept scenario.task-op-1234-remaining-5 --project <temp-project> --actor actor.human.operator --apply --format json
 replan scenario apply scenario.task-op-1234-remaining-5 --project <temp-project> --actor actor.human.operator --reason "MVP smoke scenario apply." --apply --format json
 replan validate <temp-project> --format json
 replan audit verify --project <temp-project> --format json
@@ -214,7 +215,7 @@ replan audit verify --project <temp-project> --format json
 The smoke verifies that:
 
 - actual consumption can be recorded;
-- scenario apply can mutate supported current planning state;
+- scenario approval records a decision, and application updates supported current planning state;
 - audit records are appended;
 - validation still passes after mutations;
 - audit verification still passes after mutations.

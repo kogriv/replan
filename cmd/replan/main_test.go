@@ -816,6 +816,8 @@ func TestApprovalCommandsRejectAgentActorInDryRunAndApply(t *testing.T) {
 		}},
 		{name: "scenario apply", fixture: "../../examples/small-team", agentActor: "actor.ai.codex.local", humanActor: "actor.human.operator", args: func(_ *testing.T, project, mode string) []string {
 			return []string{"scenario", "apply", "--project", project, "--actor", "actor.ai.codex.local", mode, "--format", "json", "scenario.task-op-1234-remaining-5"}
+		}}, {name: "scenario accept", fixture: "../../examples/small-team", agentActor: "actor.ai.codex.local", humanActor: "actor.human.operator", args: func(_ *testing.T, project, mode string) []string {
+			return []string{"scenario", "accept", "--project", project, "--actor", "actor.ai.codex.local", mode, "--format", "json", "scenario.task-op-1234-remaining-5"}
 		}},
 		{name: "baseline create", fixture: "../../examples/small-team", agentActor: "actor.ai.codex.local", humanActor: "actor.human.operator", args: func(_ *testing.T, project, mode string) []string {
 			return []string{"baseline", "create", "--project", project, "--id", "baseline.agent-refused", "--name", "Agent refused", "--approved-by", "actor.ai.codex.local", mode, "--format", "json"}
@@ -863,6 +865,9 @@ func TestApprovalCommandsRejectAgentActorInDryRunAndApply(t *testing.T) {
 		}
 		t.Run(tc.name+" human", func(t *testing.T) {
 			project := copyCmdProjectFixtureFrom(t, tc.fixture, "project")
+			if tc.name == "scenario apply" {
+				approveCmdScenario(t, project)
+			}
 			args := tc.args(t, project, "--dry-run")
 			for i := range args {
 				if args[i] == tc.agentActor {
@@ -1279,6 +1284,8 @@ func TestWorkspaceLoadingCommandsReportMissingProject(t *testing.T) {
 		{name: "scenario diff", args: func(path string) []string { return []string{"scenario", "diff", "scenario.test", "--project", path} }},
 		{name: "scenario apply", args: func(path string) []string {
 			return []string{"scenario", "apply", "scenario.test", "--project", path, "--actor", "actor.test", "--apply"}
+		}}, {name: "scenario accept", args: func(path string) []string {
+			return []string{"scenario", "accept", "scenario.test", "--project", path, "--actor", "actor.test", "--apply"}
 		}},
 		{name: "proposal list", args: func(path string) []string { return []string{"proposal", "list", "--project", path} }},
 		{name: "proposal show", args: func(path string) []string { return []string{"proposal", "show", "proposal.test", "--project", path} }},
@@ -2502,6 +2509,7 @@ func TestPositionalCommandHelpAndMissingArguments(t *testing.T) {
 		{name: "scenario show", command: []string{"scenario", "show"}, argument: "<scenario-id>", formats: []string{"json", "markdown", "text"}},
 		{name: "scenario diff", command: []string{"scenario", "diff"}, argument: "<scenario-id>", formats: []string{"json", "markdown", "text"}},
 		{name: "scenario apply", command: []string{"scenario", "apply"}, argument: "<scenario-id>", formats: []string{"json", "markdown", "text"}},
+		{name: "scenario accept", command: []string{"scenario", "accept"}, argument: "<scenario-id>", formats: []string{"json", "markdown", "text"}},
 		{name: "proposal show", command: []string{"proposal", "show"}, argument: "<proposal-id>", formats: []string{"json", "markdown", "text"}},
 		{name: "proposal accept", command: []string{"proposal", "accept"}, argument: "<proposal-id>", formats: []string{"json", "markdown", "text"}},
 		{name: "proposal reject", command: []string{"proposal", "reject"}, argument: "<proposal-id>", formats: []string{"json", "markdown", "text"}},

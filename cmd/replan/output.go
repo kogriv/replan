@@ -84,6 +84,16 @@ func printScenarioEnvelope(stdout, stderr *os.File, format string, env envelope,
 			} else {
 				printErr = writeScenarioListText(stdout, result)
 			}
+		case app.ScenarioAcceptResult:
+			decision := "Accepted"
+			if result.DryRun {
+				decision = "Would accept"
+			}
+			heading := "%s %s (%s -> %s)\nAudit: %s\n"
+			if format == "markdown" {
+				heading = "## %s `%s`\n\nStatus: `%s` → `%s`\n\nAudit: `%s`\n"
+			}
+			_, printErr = fmt.Fprintf(stdout, heading, decision, result.ScenarioID, result.PreviousStatus, result.NewStatus, result.AuditRecordPreview.ID)
 		case app.ScenarioShowResult:
 			if format == "markdown" {
 				printErr = writeScenarioShowMarkdown(stdout, result)

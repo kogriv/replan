@@ -93,7 +93,7 @@ func TestScenarioTaskDateOverlayMatchesApplyValidation(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			scenario := domain.Scenario{ID: "scenario.test", Changes: tc.changes}
+			scenario := domain.Scenario{ID: "scenario.test", Status: "accepted", Changes: tc.changes}
 			ws := domain.Workspace{Tasks: tc.tasks, Scenarios: []domain.Scenario{scenario}}
 			overlay := app.ApplyScenarioOverlay(ws, scenario.ID)
 			apply := app.NewScenarioService(scenarioStaticLoader{ws: ws})

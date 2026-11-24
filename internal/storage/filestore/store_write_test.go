@@ -344,6 +344,17 @@ func TestStoreApplyScenarioChanges(t *testing.T) {
 		TargetRef:  domain.Ref{Kind: "scenario", ID: "scenario.task-op-1234-remaining-5"},
 		Result:     "success",
 	}
+	approval := audit
+	approval.ID = "audit.test.scenario-accept"
+	approval.Operation = "scenario_accept"
+	scenarioID := "scenario.task-op-1234-remaining-5"
+	_, scenario, err := store.readScenarioByID(scenarioID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.AcceptScenario(scenarioID, scenario.Status, &approval); err != nil {
+		t.Fatal(err)
+	}
 	written, err := store.ApplyScenarioChanges("scenario.task-op-1234-remaining-5", []app.ScenarioApplyChange{{
 		TargetID:   "resource_demand.task-op-1234.implementer",
 		TargetKind: "resource_demand",

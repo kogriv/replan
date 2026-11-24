@@ -466,8 +466,8 @@ func TestDashboardOpenProjectOverlaySelfFixture(t *testing.T) {
 		t.Fatalf("open scenario is not first: %#v", overview.ScenariosPage.Data.Scenarios)
 	}
 	firstScenario := overview.ScenariosPage.Data.Scenarios[0]
-	if !strings.Contains(firstScenario.ApplyCommand, "scenario apply") || !strings.Contains(firstScenario.ApplyCommand, "--scenario-id "+firstScenario.ID) {
-		t.Fatalf("scenario apply command does not use --scenario-id: %q", firstScenario.ApplyCommand)
+	if !strings.Contains(firstScenario.AcceptCommand, "scenario accept") || !strings.Contains(firstScenario.AcceptCommand, "--scenario-id "+firstScenario.ID) {
+		t.Fatalf("scenario accept command does not use --scenario-id: %q", firstScenario.AcceptCommand)
 	}
 	hasSplitGroup := false
 	for _, baseline := range overview.EstimatesPage.Data.Baselines {

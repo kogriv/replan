@@ -382,3 +382,28 @@ func copyPlanningFixtureWithoutLock(t *testing.T) string {
 	}
 	return project
 }
+
+func TestScenarioAcceptRecoversPendingCommit(t *testing.T) {
+	project := copyCmdProjectFixture(t)
+	writeTestCommitJournal(t, project, interruptedEvidenceFiles(t, project, "scenario-approval"))
+
+	before := snapshotProjectFiles(t, project)
+	base := []string{"scenario", "accept", "scenario.task-op-1234-remaining-5", "--project", project, "--actor", "actor.human.operator"}
+	stdout, stderr := tempOutputFiles(t)
+	if code := run(append(base, "--dry-run"), stdout, stderr); code != exitSuccess {
+		t.Fatalf("preview exit=%d: %s", code, readFileString(t, stdout.Name()))
+	}
+	if !reflect.DeepEqual(before, snapshotProjectFiles(t, project)) {
+		t.Fatal("approval preview changed project files or recovered the journal")
+	}
+
+	stdout, stderr = tempOutputFiles(t)
+	if code := run(append(base, "--apply"), stdout, stderr); code != exitSuccess {
+		t.Fatalf("approval exit=%d: %s", code, readFileString(t, stdout.Name()))
+	}
+	env := readCLIEnvelope(t, stdout.Name())
+	if !hasDiagnosticCode(env.Warnings, "recovered_commit") {
+		t.Fatalf("warnings = %#v, want recovered_commit", env.Warnings)
+	}
+	assertRecoveredProjectValid(t, project, "scenario-approval")
+}

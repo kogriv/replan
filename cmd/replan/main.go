@@ -233,6 +233,7 @@ func printUsage(out *os.File) {
 	fmt.Fprintln(out, "  replan scenario list --project <path> [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan scenario show (<scenario-id> | --scenario-id <id>) --project <path> [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan scenario diff (<scenario-id> | --scenario-id <id>) --project <path> [--format json|markdown|text]")
+	fmt.Fprintln(out, "  replan scenario accept (<scenario-id> | --scenario-id <id>) --project <path> (--dry-run|--apply) [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan scenario apply (<scenario-id> | --scenario-id <id>) --project <path> (--dry-run|--apply) [--format json|markdown|text]")
 	fmt.Fprintln(out, "  replan proposal list --project <path> [--format json|markdown]")
 	fmt.Fprintln(out, "  replan proposal show <proposal-id> --project <path> [--format json|markdown|text]")

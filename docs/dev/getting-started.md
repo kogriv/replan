@@ -107,7 +107,7 @@ go run ./cmd/replan scenario show scenario.ivan-unavailable-week-28 --project ex
 go run ./cmd/replan scenario diff scenario.ivan-unavailable-week-28 --project examples/small-team --week 2026-W28 --against current --format markdown
 ```
 
-`scenario show`, `scenario diff` and `scenario apply` accept the scenario id
+`scenario show`, `scenario diff`, `scenario accept` and `scenario apply` accept the scenario id
 either positionally or as `--scenario-id <id>`.
 
 Workload Markdown and text contain the resource rows and optional demand
@@ -195,7 +195,7 @@ Implemented command families as of 2026-10-30:
   estimate baseline; and read-only `report waits` over tracking-status audit
   history;
 - `tracking suggest`, optionally writing proposal candidates;
-- `scenario list`, `show`, `diff`, `apply`;
+- `scenario list`, `show`, `diff`, `accept`, `apply`;
 - `proposal list`, `show`, `suggest-dependencies`, `accept`, `reject`;
 - `dependency add`, `dependency set`, `dependency list`, `deadline add`,
   `deadline list`; dependency add and set support all-or-nothing batches;
@@ -367,7 +367,8 @@ go run ./cmd/replan taskjuggler run --project examples/small-team --scenario sce
 go run ./cmd/replan taskjuggler import-result --project examples/small-team --run-dir exports/taskjuggler/scenario.ivan-capacity-6/run.manual --dry-run --format json
 go run ./cmd/replan taskjuggler import-result --project examples/small-team --run-dir exports/taskjuggler/scenario.ivan-capacity-6/run.manual --write-candidate --actor actor.human.operator --format json
 go run ./cmd/replan scenario diff --project examples/small-team --format markdown scenario.taskjuggler.<run-id>
-go run ./cmd/replan scenario apply --project examples/small-team --actor actor.human.operator --reason "Accept generated dates." --dry-run --format markdown scenario.taskjuggler.<run-id>
+go run ./cmd/replan scenario accept --project examples/small-team --actor actor.human.operator --reason "Approve generated dates." --apply --format markdown scenario.taskjuggler.<run-id>
+go run ./cmd/replan scenario apply --project examples/small-team --actor actor.human.operator --reason "Implement approved dates." --dry-run --format markdown scenario.taskjuggler.<run-id>
 go run ./cmd/replan scenario apply --project examples/small-team --actor actor.human.operator --reason "Accept generated dates." --apply --format markdown scenario.taskjuggler.<run-id>
 ```
 
@@ -550,7 +551,7 @@ without changing the project directory.
 Safe dry-run mutation previews:
 
 ```bash
-go run ./cmd/replan scenario apply --project examples/small-team --dry-run --format json scenario.task-op-1234-remaining-5
+go run ./cmd/replan scenario accept --project examples/small-team --dry-run --format json scenario.task-op-1234-remaining-5
 go run ./cmd/replan actual add-consumption --project examples/small-team --task task.op.1234 --demand resource_demand.task-op-1234.implementer --resource resource.human.ivan --amount 1 --unit hours --actor actor.human.operator --occurred-at 2026-07-08T10:00:00+07:00 --status-date 2026-07-08 --dry-run --format json
 go run ./cmd/replan import openproject --project examples/small-team --from-file examples/imports/openproject/work-packages.sample.json --dry-run --format json
 go run ./cmd/replan dependency add --project examples/small-team --type requires_input_from --predecessor task.op.1234 --successor task.offline.repair-pump --reason "Customer call changed the order." --actor actor.human.operator --evidence evidence.github.pr.45 --dry-run --format json

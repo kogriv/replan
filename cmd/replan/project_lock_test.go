@@ -172,6 +172,8 @@ func TestProjectWriteIntentInventory(t *testing.T) {
 	}{
 		{"canonical apply", []string{"evidence", "add", "--project", project, "--apply"}, true},
 		{"canonical dry run", []string{"evidence", "add", "--project", project, "--dry-run"}, false},
+		{"scenario accept apply", []string{"scenario", "accept", "scenario.test", "--project", project, "--apply"}, true},
+		{"scenario accept preview", []string{"scenario", "accept", "scenario.test", "--project", project, "--dry-run"}, false},
 		{"openproject snapshot", []string{"import", "openproject", "--project", project}, true},
 		{"openproject dry run", []string{"import", "openproject", "--project", project, "--dry-run"}, false},
 		{"github snapshot", []string{"import", "github", "--project", project}, true},

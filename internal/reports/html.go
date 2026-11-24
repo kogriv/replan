@@ -893,7 +893,19 @@ func writeDashboardScenarioHTML(w io.Writer, scenario DashboardScenarioDetail, a
 	if archived {
 		closing = "</div></details>\n"
 	}
-	_, err := fmt.Fprintf(w, "</tbody></table><p>Preview application with this command (text only):</p><pre class=\"command code\">%s</pre>%s", html.EscapeString(scenario.ApplyCommand), closing)
+	if _, err := fmt.Fprint(w, "</tbody></table>"); err != nil {
+		return err
+	}
+	command, action := scenario.AcceptCommand, "approval"
+	if scenario.ApplyCommand != "" {
+		command, action = scenario.ApplyCommand, "application"
+	}
+	if command != "" {
+		if _, err := fmt.Fprintf(w, "<p>Preview %s with this command (text only):</p><pre class=\"command code\">%s</pre>", action, html.EscapeString(command)); err != nil {
+			return err
+		}
+	}
+	_, err := fmt.Fprint(w, closing)
 	return err
 }
 

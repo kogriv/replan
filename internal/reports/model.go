@@ -207,6 +207,7 @@ type DashboardScenarioDetail struct {
 	Warnings          []ReportIssue             `json:"warnings"`
 	Errors            []ReportIssue             `json:"errors"`
 	ApplyCommand      string                    `json:"apply_command"`
+	AcceptCommand     string                    `json:"accept_command,omitempty"`
 }
 
 type DashboardScenarioChange struct {

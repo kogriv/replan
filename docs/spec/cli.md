@@ -275,7 +275,7 @@ Rules:
 - AI agents should use explicit actor id;
 - `.replan/policy.yaml` accepts `ai_agents.default_mutation_mode` values
   `proposal_only` and `direct`; omitted `ai_agents` means `proposal_only`;
-- under `proposal_only`, `proposal accept|reject`, `scenario apply`,
+- under `proposal_only`, `proposal accept|reject`, `scenario accept|apply`,
   `baseline create`, `estimate calibrate`, `import accept`, and `actual
   add-status` to `accepted` or `cancelled` require a named human actor;
   a named non-human actor fails in dry-run and apply modes with
@@ -642,6 +642,7 @@ The same rule applies to:
 - `replan estimate show <id>`;
 - `replan scenario show (<scenario-id> | --scenario-id <id>)`;
 - `replan scenario diff (<scenario-id> | --scenario-id <id>)`;
+- `replan scenario accept (<scenario-id> | --scenario-id <id>)`;
 - `replan scenario apply (<scenario-id> | --scenario-id <id>)`;
 - `replan proposal show`;
 - `replan proposal accept`;
@@ -656,7 +657,7 @@ the demand-id argument`. An extra positional also exits `8` before workspace loa
 uses `unexpected_argument`. `audit list` and `audit verify` take no positional
 argument.
 
-For `scenario show`, `scenario diff` and `scenario apply`, the positional id
+For `scenario show`, `scenario diff`, `scenario accept` and `scenario apply`, the positional id
 and `--scenario-id` are equivalent. Supplying both with the same value is
 allowed; different values use `conflicting_argument`.
 
@@ -711,6 +712,7 @@ Implemented commands that mutate local canonical state and therefore require
 the shared explicit apply choice:
 
 ```text
+scenario accept
 scenario apply
 proposal accept
 proposal reject
@@ -1619,6 +1621,7 @@ replan scenario patch
 replan scenario calculate
 replan scenario diff
 replan scenario propose-apply
+replan scenario accept
 replan scenario apply
 ```
 
@@ -1629,7 +1632,9 @@ replan scenario create --name ivan-unavailable-week-28 --from current --format j
 replan scenario patch scenario.ivan-unavailable-week-28 --add-availability-exception resource.human.ivan:2026-07-08:unavailable
 replan scenario calculate scenario.ivan-unavailable-week-28 --format json
 replan scenario diff scenario.ivan-unavailable-week-28 --against current --format markdown
-replan scenario apply scenario.ivan-unavailable-week-28 --dry-run --format json
+replan scenario diff scenario.let-validation-go-ahead --format markdown
+replan scenario accept scenario.let-validation-go-ahead --dry-run --format json
+replan scenario accept scenario.let-validation-go-ahead --actor actor.human.operator --apply --format json
 replan scenario apply scenario.let-validation-go-ahead --actor actor.human.operator --evidence evidence.decision.20260927 --apply --format json
 ```
 
@@ -1639,6 +1644,7 @@ Implemented command flags:
 replan scenario list --project -p --bindings --format
 replan scenario show --project -p --bindings --format --scenario-id
 replan scenario diff --project -p --bindings --format --scenario-id --against --week
+replan scenario accept --project -p --bindings --format --scenario-id --actor --apply --dry-run --evidence --reason
 replan scenario apply --project -p --bindings --format --scenario-id --actor --apply --dry-run --evidence --reason
 ```
 
@@ -1660,8 +1666,18 @@ Rules:
 - scenario is overlay, not full project copy;
 - `list`, `show`, `calculate` and `diff` are read-only;
 - `create` and `patch` mutate scenario files and require actor/audit;
-- `apply` mutates current plan and must support dry-run;
-- under `proposal_only`, the actor named for `apply` must be human;
+- `accept` previews or records the transition from `draft`, `calculated` or
+  `proposed` to `accepted`. Other statuses return `scenario_invalid_accept_status`.
+  Approval writes the scenario status and a `scenario_accept` audit record,
+  and leaves the live plan and linked proposals as they are.
+- `apply` requires `accepted` in both preview and write mode. It returns
+  `scenario_already_applied` for an applied scenario and `scenario_not_accepted`
+  for other statuses. For pending candidates, review with `scenario diff`
+  and approve with `scenario accept`.
+- Both writes require an explicit valid `--actor` and use the shared
+  `--dry-run` / `--apply` gate (`REPLAN_APPLY=1` also enables writes).
+  Under `proposal_only` the approver must be human. The read-only bindings
+  layer refuses both commands.
 - applying scenario must not mutate accepted actuals, historical evidence or
   old baselines.
 - implemented first apply slice supports `resource_demands.<id>.remaining_amount`
@@ -2130,7 +2146,7 @@ It does not yet skip demands whose amount was set by a person after the calibrat
 It scales open in-scope planned and recorded remaining amounts, rounds to the
 nearest quarter-unit with a quarter-unit floor, and skips closed demands or
 demands whose counted actuals exceed the scaled plan. The existing `scenario
-diff` and `scenario apply` commands inspect and apply it.
+diff`, `scenario accept` and `scenario apply` commands review, approve and apply it.
 
 `task add` reports the latest matching calibrated value beside each typed
 demand without changing the stored amount. `next` emits one actionable
@@ -3593,7 +3609,8 @@ Import-result command shape:
 replan taskjuggler import-result --project examples/small-team --run-dir exports/taskjuggler/scenario.ivan-capacity-6/run.20260713T200000Z --dry-run --format json
 replan taskjuggler import-result --project examples/small-team --run-dir exports/taskjuggler/scenario.ivan-capacity-6/run.20260713T200000Z --write-candidate --actor actor.human.operator --format json
 replan scenario diff --project examples/small-team --scenario-id scenario.taskjuggler.<run-id> --format markdown
-replan scenario apply --project examples/small-team --scenario-id scenario.taskjuggler.<run-id> --actor actor.human.operator --reason "Accept the generated schedule." --dry-run --format markdown
+replan scenario accept --project examples/small-team --scenario-id scenario.taskjuggler.<run-id> --actor actor.human.operator --reason "Approve the generated schedule." --apply --format markdown
+replan scenario apply --project examples/small-team --scenario-id scenario.taskjuggler.<run-id> --actor actor.human.operator --reason "Implement the approved schedule." --dry-run --format markdown
 replan scenario apply --project examples/small-team --scenario-id scenario.taskjuggler.<run-id> --actor actor.human.operator --reason "Accept the generated schedule." --apply --format markdown
 ```
 
@@ -3623,8 +3640,8 @@ Current import-result rules:
   `calibrations`;
 - `--write-candidate` writes only reviewable `scenarios/*.yaml` and
   `proposals/open/*.yaml` files;
-- review the candidate with `scenario diff`; its Markdown and text output show
-  the changed task dates directly;
+- review the candidate dates with `scenario diff` in Markdown or text,
+  then record approval with `scenario accept` before applying;
 - applying the candidate scenario accepts its linked open
   `taskjuggler_schedule_candidate` proposal in the same write. Accepting the
   proposal first remains valid; rejecting it makes scenario apply refuse;
@@ -3842,7 +3859,7 @@ Recommended CLI implementation order:
 7. `replan audit list/verify`;
 8. `replan import openproject`;
 9. `replan proposal accept/reject`;
-10. `replan scenario apply --dry-run`;
+10. `replan scenario accept --dry-run` for a pending scenario, or `replan scenario apply --dry-run` for an accepted one;
 11. `replan export json/csv`;
 12. TaskJuggler export proof of concept.
 

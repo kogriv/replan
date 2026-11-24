@@ -283,6 +283,7 @@ capacity_change
 dependency_change
 deadline_change
 scenario_create
+scenario_accept
 scenario_apply
 baseline_create
 warning_resolution
@@ -416,7 +417,7 @@ operations.
 Examples:
 
 - source write-back may be accepted but not yet performed;
-- scenario apply may be accepted but applied later;
+- a scenario may be approved with `scenario accept` and applied later with `scenario apply`;
 - baseline creation may be accepted but created as a separate action;
 - capacity change may need operator confirmation and later sync.
 

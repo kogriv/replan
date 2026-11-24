@@ -27,6 +27,16 @@ func ValidScenarioStatus(status string) bool {
 	}
 }
 
+// ScenarioStatusCanBeAccepted reports whether a scenario is pending approval.
+func ScenarioStatusCanBeAccepted(status string) bool {
+	switch status {
+	case "draft", "calculated", "proposed":
+		return true
+	default:
+		return false
+	}
+}
+
 func ValidResourceDemandStatus(status string) bool {
 	switch status {
 	case "draft", "active", "planned", "requested", "reserved", "partially_consumed", "consumed", "released", "cancelled", "blocked", "superseded":

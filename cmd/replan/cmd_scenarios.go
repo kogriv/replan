@@ -24,8 +24,8 @@ func runScenario(args []string, stdout, stderr *os.File) int {
 		return runScenarioShow(args[1:], stdout, stderr)
 	case "diff":
 		return runScenarioDiff(args[1:], stdout, stderr)
-	case "apply":
-		return runScenarioApply(args[1:], stdout, stderr)
+	case "accept", "apply":
+		return runScenarioDecision(args[0], args[1:], stdout, stderr)
 	case "-h", "--help":
 		printUsage(stdout)
 		return exitSuccess
@@ -134,39 +134,67 @@ func runScenarioDiff(args []string, stdout, stderr *os.File) int {
 	return printScenarioEnvelope(stdout, stderr, *format, env, err)
 }
 
-func runScenarioApply(args []string, stdout, stderr *os.File) int {
-	fs := newCLIFlagSet("scenario apply")
-	setCommandUsage(fs, "replan scenario apply (<scenario-id> | --scenario-id <id>) [flags]")
+func runScenarioDecision(operation string, args []string, stdout, stderr *os.File) int {
+	command := "scenario " + operation
+	fs := newCLIFlagSet(command)
+	setCommandUsage(fs, "replan "+command+" (<scenario-id> | --scenario-id <id>) [flags]")
 	projectPath, format := addProjectFormatFlags(fs, "json")
 	scenarioID := fs.String("scenario-id", "", "scenario id; same as the positional argument")
 	writeFlags := addCanonicalWriteFlags(fs)
-	actorID := fs.String("actor", "", "actor id applying the scenario; required unless --dry-run is used")
-	reason := fs.String("reason", "", "apply reason")
-	evidenceID := fs.String("evidence", "", "evidence id of the decision; required when the scenario cancels a dependency")
+	actorID := fs.String("actor", "", "actor id for this decision; required unless --dry-run is used")
+	reason := fs.String("reason", "", "decision reason")
+	evidenceHelp := "evidence id of the decision"
+	if operation == "apply" {
+		evidenceHelp += "; required when the scenario cancels a dependency"
+	}
+	evidenceID := fs.String("evidence", "", evidenceHelp)
 
 	positionalID, args := splitSinglePositional(args, fs)
 	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
 		return code
 	}
-	resolvedID, code, done := requireSinglePositionalOrFlag(fs, positionalID, *scenarioID, "scenario apply", "<scenario-id>", "scenario-id", *projectPath, *format, stdout, stderr)
+	resolvedID, code, done := requireSinglePositionalOrFlag(fs, positionalID, *scenarioID, command, "<scenario-id>", "scenario-id", *projectPath, *format, stdout, stderr)
 	if done {
 		return code
 	}
-	dryRun, code, done := requireCanonicalWriteChoice("scenario apply", *projectPath, *format, writeFlags, stdout, stderr)
+	dryRun, code, done := requireCanonicalWriteChoice(command, *projectPath, *format, writeFlags, stdout, stderr)
 	if done {
 		return code
 	}
-	result, err := app.NewScenarioService(newStore(*projectPath)).Apply(context.Background(), app.ScenarioApplyRequest{
+	*format = strings.ToLower(*format)
+	if *format != "json" && *format != "markdown" && *format != "text" {
+		return printScenarioEnvelope(stdout, stderr, *format, envelope{Command: command, ProjectPath: *projectPath}, app.ErrValidationFailed)
+	}
+	if !dryRun {
+		lock, code := lockProjectCommand(stdout, stderr, projectWriteIntent{
+			write: true, command: command, projectPath: *projectPath, format: *format,
+		})
+		if code != exitSuccess {
+			return code
+		}
+		defer lock.close()
+	}
+	service := app.NewScenarioService(newStore(*projectPath))
+	req := app.ScenarioApplyRequest{
 		ID:         resolvedID,
 		ActorID:    *actorID,
 		Reason:     *reason,
 		EvidenceID: *evidenceID,
 		DryRun:     dryRun,
 		Now:        time.Now(),
-	})
+	}
+	if operation == "accept" {
+		result, err := service.Accept(context.Background(), app.ScenarioAcceptRequest(req))
+		env := envelope{
+			OK: err == nil, Command: command, ProjectPath: *projectPath,
+			Result: result, Warnings: result.Warnings, Errors: result.Errors,
+		}
+		return printScenarioEnvelope(stdout, stderr, *format, env, err)
+	}
+	result, err := service.Apply(context.Background(), req)
 	env := envelope{
 		OK:          err == nil && len(result.Errors) == 0,
-		Command:     "scenario apply",
+		Command:     command,
 		ProjectPath: *projectPath,
 		Result:      result,
 		Warnings:    result.Warnings,

@@ -91,9 +91,10 @@ func TestScenarioListShowDiffSmallTeamFixture(t *testing.T) {
 }
 
 func TestScenarioApplyDryRun(t *testing.T) {
-	store := filestore.New("../../examples/small-team")
+	store := filestore.New(copyScenarioProjectFixture(t))
 	service := app.NewScenarioService(store)
 
+	approveScenarioFixture(t, service, "scenario.task-op-1234-remaining-5")
 	result, err := service.Apply(context.Background(), app.ScenarioApplyRequest{
 		ID:     "scenario.task-op-1234-remaining-5",
 		DryRun: true,
@@ -129,6 +130,7 @@ func TestScenarioApplyWritesCanonicalScenarioAndAudit(t *testing.T) {
 	store := filestore.New(projectPath)
 	service := app.NewScenarioService(store)
 
+	approveScenarioFixture(t, service, "scenario.task-op-1234-remaining-5")
 	result, err := service.Apply(context.Background(), app.ScenarioApplyRequest{
 		ID:      "scenario.task-op-1234-remaining-5",
 		ActorID: "actor.human.operator",
@@ -194,6 +196,7 @@ func TestScenarioApplyWritesTaskPlannedDates(t *testing.T) {
 		t.Fatalf("task changes = %#v", diff.TaskChanges)
 	}
 
+	approveScenarioFixture(t, service, "scenario.taskjuggler.date-apply")
 	result, err := service.Apply(context.Background(), app.ScenarioApplyRequest{
 		ID:      "scenario.taskjuggler.date-apply",
 		ActorID: "actor.human.operator",
@@ -228,6 +231,44 @@ func TestScenarioApplyAcceptsLinkedOpenProposalWithDecisionAudit(t *testing.T) {
 	writeScenarioProposalFixture(t, projectPath, "proposal.taskjuggler.linked-open", "scenario.taskjuggler.linked-open", "open")
 	store := filestore.New(projectPath)
 
+	ctx := context.Background()
+	before, _ := store.Load(ctx)
+	req := app.ScenarioAcceptRequest{
+		ID: "scenario.taskjuggler.linked-open", ActorID: "actor.human.operator",
+		Reason: "Reviewed schedule candidate.", EvidenceID: "evidence.github.pr.45", Now: fixedScenarioApplyTestTime(),
+	}
+	approval, err := app.NewScenarioService(store).Accept(ctx, req)
+	if err != nil || !approval.Accepted || len(approval.WrittenFiles) != 2 {
+		t.Fatalf("Accept result = %#v, err = %v", approval, err)
+	}
+	approved, diags := store.Load(ctx)
+	if len(diags) != 0 || !hasScenarioStatus(approved.Scenarios, req.ID, "accepted") {
+		t.Fatalf("approval status or load diagnostics: %#v", diags)
+	}
+	if !reflect.DeepEqual(before.Tasks, approved.Tasks) ||
+		!reflect.DeepEqual(before.ResourceDemands, approved.ResourceDemands) ||
+		!reflect.DeepEqual(before.Dependencies, approved.Dependencies) ||
+		!reflect.DeepEqual(before.Proposals, approved.Proposals) {
+		t.Fatal("approval mutated the current plan or proposals")
+	}
+	if len(approved.AuditRecords) != len(before.AuditRecords)+1 {
+		t.Fatal("expected exactly one approval audit")
+	}
+	var audit domain.AuditRecord
+	for _, record := range approved.AuditRecords {
+		if record.ID == approval.AuditRecordPreview.ID {
+			audit = record
+		}
+	}
+	if audit.Operation != "scenario_accept" || audit.Result != "success" || audit.ActorRef.ID != req.ActorID ||
+		audit.TargetRef != (domain.Ref{Kind: "scenario", ID: req.ID}) || audit.OccurredAt != req.Now.Format(time.RFC3339) ||
+		audit.Reason != req.Reason || audit.NewStatus != "accepted" ||
+		!reflect.DeepEqual(audit.EvidenceRefs, []domain.Ref{{Kind: "evidence", ID: req.EvidenceID}}) ||
+		!reflect.DeepEqual(audit.Before, map[string]any{"status": "proposed"}) ||
+		!reflect.DeepEqual(audit.After, map[string]any{"status": "accepted"}) {
+		t.Fatalf("unexpected approval audit: %#v", audit)
+	}
+
 	result, err := app.NewScenarioService(store).Apply(context.Background(), app.ScenarioApplyRequest{
 		ID: "scenario.taskjuggler.linked-open", ActorID: "actor.human.operator", Reason: "Approve generated dates.", Now: fixedScenarioApplyTestTime(),
 	})
@@ -260,6 +301,7 @@ func TestScenarioApplyAfterLinkedProposalAcceptedDoesNotDecideAgain(t *testing.T
 	writeScenarioProposalFixture(t, projectPath, "proposal.taskjuggler.already-accepted", "scenario.taskjuggler.already-accepted", "accepted")
 	store := filestore.New(projectPath)
 
+	approveScenarioFixture(t, app.NewScenarioService(store), "scenario.taskjuggler.already-accepted")
 	result, err := app.NewScenarioService(store).Apply(context.Background(), app.ScenarioApplyRequest{
 		ID: "scenario.taskjuggler.already-accepted", ActorID: "actor.human.operator", Reason: "Apply accepted dates.", Now: fixedScenarioApplyTestTime(),
 	})
@@ -284,6 +326,7 @@ func TestScenarioApplyRefusesLinkedRejectedProposal(t *testing.T) {
 	writeScenarioProposalFixture(t, projectPath, "proposal.taskjuggler.rejected", "scenario.taskjuggler.rejected", "rejected")
 	store := filestore.New(projectPath)
 
+	approveScenarioFixture(t, app.NewScenarioService(store), "scenario.taskjuggler.rejected")
 	result, err := app.NewScenarioService(store).Apply(context.Background(), app.ScenarioApplyRequest{
 		ID: "scenario.taskjuggler.rejected", ActorID: "actor.human.operator", Reason: "Try rejected dates.", Now: fixedScenarioApplyTestTime(),
 	})
@@ -294,7 +337,7 @@ func TestScenarioApplyRefusesLinkedRejectedProposal(t *testing.T) {
 	if len(diags) != 0 {
 		t.Fatalf("load diagnostics = %#v", diags)
 	}
-	if !hasScenarioStatus(ws.Scenarios, "scenario.taskjuggler.rejected", "proposed") {
+	if !hasScenarioStatus(ws.Scenarios, "scenario.taskjuggler.rejected", "accepted") {
 		t.Fatalf("rejected scenario was mutated")
 	}
 }
@@ -386,6 +429,7 @@ func TestMovedTaskDateScenarioPreviewMatchesApply(t *testing.T) {
 		t.Fatalf("diff after Ivan row = %#v", got)
 	}
 
+	approveScenarioFixture(t, app.NewScenarioService(store), "scenario.move-validation-to-week-29")
 	apply, err := app.NewScenarioService(store).Apply(ctx, app.ScenarioApplyRequest{
 		ID: "scenario.move-validation-to-week-29", ActorID: "actor.human.operator", Now: fixedScenarioApplyTestTime(),
 	})
@@ -488,6 +532,7 @@ func TestScenarioApplyRejectsInvalidTaskDate(t *testing.T) {
 	store := filestore.New(projectPath)
 	service := app.NewScenarioService(store)
 
+	approveScenarioFixture(t, service, "scenario.taskjuggler.invalid-date")
 	result, err := service.Apply(context.Background(), app.ScenarioApplyRequest{
 		ID:     "scenario.taskjuggler.invalid-date",
 		DryRun: true,
@@ -503,9 +548,10 @@ func TestScenarioApplyRejectsInvalidTaskDate(t *testing.T) {
 }
 
 func TestScenarioApplyReportsUnsupportedChange(t *testing.T) {
-	store := filestore.New("../../examples/small-team")
+	store := filestore.New(copyScenarioProjectFixture(t))
 	service := app.NewScenarioService(store)
 
+	approveScenarioFixture(t, service, "scenario.ivan-unavailable-week-28")
 	result, err := service.Apply(context.Background(), app.ScenarioApplyRequest{
 		ID:     "scenario.ivan-unavailable-week-28",
 		DryRun: true,
@@ -532,6 +578,7 @@ func TestScenarioApplyRefusesSchedulingOverlayFieldsForNow(t *testing.T) {
       path: tasks.task.op.1234.priority
       value: 800
 `)
+	approveScenarioFixture(t, app.NewScenarioService(filestore.New(projectPath)), "scenario.scheduling")
 	result, err := app.NewScenarioService(filestore.New(projectPath)).Apply(context.Background(), app.ScenarioApplyRequest{ID: "scenario.scheduling", DryRun: true, Now: fixedScenarioApplyTestTime()})
 	if !errors.Is(err, app.ErrValidationFailed) || !hasScenarioDiagnostic(result.Errors, "unsupported_scenario_apply_change") {
 		t.Fatalf("want unsupported_scenario_apply_change, got %v %#v", err, result.Errors)
@@ -737,6 +784,7 @@ func TestScenarioApplyCancelsDependencyWithEvidence(t *testing.T) {
 	writeScenarioFixture(t, projectPath, "scenario.cancel-repair-pump-dependency", cancelDependencyScenario)
 	store := filestore.New(projectPath)
 
+	approveScenarioFixture(t, app.NewScenarioService(store), "scenario.cancel-repair-pump-dependency")
 	result, err := app.NewScenarioService(store).Apply(context.Background(), app.ScenarioApplyRequest{
 		ID:         "scenario.cancel-repair-pump-dependency",
 		ActorID:    "actor.human.operator",
@@ -777,6 +825,7 @@ func TestScenarioApplyCancelDependencyRequiresEvidence(t *testing.T) {
 	writeScenarioFixture(t, projectPath, "scenario.cancel-repair-pump-dependency", cancelDependencyScenario)
 	service := app.NewScenarioService(filestore.New(projectPath))
 
+	approveScenarioFixture(t, service, "scenario.cancel-repair-pump-dependency")
 	result, err := service.Apply(context.Background(), app.ScenarioApplyRequest{
 		ID:      "scenario.cancel-repair-pump-dependency",
 		ActorID: "actor.human.operator",
@@ -802,6 +851,7 @@ func TestScenarioApplyRefusesOtherDependencyStatuses(t *testing.T) {
 	writeScenarioFixture(t, projectPath, "scenario.cancel-repair-pump-dependency",
 		strings.Replace(cancelDependencyScenario, "value: cancelled", "value: resolved", 1))
 
+	approveScenarioFixture(t, app.NewScenarioService(filestore.New(projectPath)), "scenario.cancel-repair-pump-dependency")
 	result, err := app.NewScenarioService(filestore.New(projectPath)).Apply(context.Background(), app.ScenarioApplyRequest{
 		ID:         "scenario.cancel-repair-pump-dependency",
 		ActorID:    "actor.human.operator",
@@ -810,5 +860,15 @@ func TestScenarioApplyRefusesOtherDependencyStatuses(t *testing.T) {
 	})
 	if !errors.Is(err, app.ErrValidationFailed) || !hasDiagnostic(result.Errors, "unsupported_scenario_apply_change") {
 		t.Fatalf("want unsupported_scenario_apply_change, got %v %#v", err, result.Errors)
+	}
+}
+
+func approveScenarioFixture(t *testing.T, service app.ScenarioService, id string) {
+	t.Helper()
+	result, err := service.Accept(context.Background(), app.ScenarioAcceptRequest{
+		ID: id, ActorID: "actor.human.operator", Now: fixedScenarioApplyTestTime(),
+	})
+	if err != nil || !result.Accepted {
+		t.Fatalf("accept %s: %v, diagnostics: %#v", id, err, result.Errors)
 	}
 }

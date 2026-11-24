@@ -265,7 +265,7 @@ Approved lifecycle:
 ```text
 draft
 calculated
-reviewed
+proposed
 accepted
 rejected
 applied
@@ -280,15 +280,17 @@ Scenario exists but has not been calculated yet.
 
 RePlan has calculated workload, warnings and comparison for the scenario.
 
-### reviewed
+### proposed
 
-A human or trusted actor has reviewed scenario output.
+A scenario is pending review. Review its changes with `scenario diff`.
 
 ### accepted
 
-The scenario is accepted as a decision direction.
-
-Accepted does not mean applied.
+An approver has recorded a decision with `scenario accept`. The command
+accepts `draft`, `calculated` or `proposed` and declines every other status,
+including repeat approval. It updates the scenario status and appends a
+`scenario_accept` audit record with the actor, time and status transition.
+Use `--reason` and `--evidence` to record optional decision context.
 
 ### rejected
 
@@ -310,17 +312,20 @@ This distinction is mandatory:
 accept scenario != apply scenario
 ```
 
-A scenario may be accepted as the preferred strategy but applied later or only
-partially.
+An operator can record the decision now and schedule implementation for later.
+Acceptance leaves the current plan and linked proposals as they are. Application
+requires `accepted` status even for a preview and checks the supported changes
+and linked proposals against current state. A linked rejected proposal blocks
+application. Applying an accepted scenario also accepts its linked open
+proposals in the same transaction.
 
-For MVP, applying a scenario may be simplified:
+The gate protects CLI and service workflows. A project file editor can change
+scenario YAML directly. Use the CLI to record approval, and put any revisions to
+an approved scenario's changes in a fresh candidate for review. Approval here
+records a status decision and does not seal scenario contents.
 
-```text
-apply scenario -> selected changes become current plan proposals or current
-plan updates
-```
-
-Applying a scenario does not change baseline.
+Applying a scenario writes supported changes to the current plan and leaves the
+baseline in place.
 
 If a new approved plan is needed:
 
@@ -467,7 +472,10 @@ replan scenario patch scenario-001 --add-demand codex_agent_pool:2agent_hours
 replan scenario calculate scenario-001 --format json
 replan scenario diff scenario-001 --against current --format markdown
 replan scenario propose-apply scenario-001
+replan scenario accept scenario-001 --dry-run
+replan scenario accept scenario-001 --actor actor.human.operator --apply
 replan scenario apply scenario-001 --dry-run
+replan scenario apply scenario-001 --actor actor.human.operator --apply
 ```
 
 AI agents should prefer:
@@ -552,7 +560,7 @@ MVP should implement or model:
 - scenario diff against baseline when baseline exists;
 - reject scenario;
 - apply scenario explicitly;
-- keep scenario read-only until apply;
+- record scenario approval before applying its changes to current plan;
 - ensure scenario does not mutate actuals or baseline;
 - machine-readable scenario output.
 

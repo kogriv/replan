@@ -300,7 +300,7 @@ Dry-run should produce preview-only scenario/proposal candidates.
 
 Write-candidate mode writes reviewable scenario/proposal files only.
 
-The review flow is `scenario diff` followed by `scenario apply`. Markdown and
+Review with `scenario diff`, approve with `scenario accept` and apply with `scenario apply`. Markdown and
 text diff output show the task id, title, field, current value and candidate
 value and omit an empty workload table. Applying the scenario accepts its
 linked open proposal in the same staged write and records the proposal decision

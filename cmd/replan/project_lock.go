@@ -84,7 +84,7 @@ func projectWriteIntentForArgs(args []string) projectWriteIntent {
 
 func (intent projectWriteIntent) planningCommand() bool {
 	switch intent.command {
-	case "workload", "next", "report weekly", "report state", "report dashboard",
+	case "scenario accept", "scenario apply", "workload", "next", "report weekly", "report state", "report dashboard",
 		"report estimates", "report waits", "estimate list", "estimate show",
 		"export json", "export csv", "export taskjuggler", "taskjuggler run",
 		"dev validate-taskjuggler", "estimate calibrate", "estimate apply",
@@ -99,6 +99,9 @@ func (intent projectWriteIntent) planningCommand() bool {
 // the project. Only operations that change project state can recover first.
 func (intent projectWriteIntent) requiresCleanCommit() bool {
 	switch intent.command {
+	case "scenario accept", "scenario apply":
+		// Previews only read. Writes recover under the lock after parsing.
+		return false
 	case "estimate calibrate", "estimate apply", "tracking suggest", "taskjuggler import-result":
 		return !intent.write || intent.bindingsLayer
 	default:

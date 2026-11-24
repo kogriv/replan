@@ -1386,7 +1386,12 @@ Rules:
 - scenario cannot change accepted actuals;
 - scenario cannot rewrite historical evidence;
 - scenario cannot rewrite old baselines;
-- applying a scenario should create audited current plan changes.
+- `proposed` means pending review;
+- `scenario accept` transitions `draft`, `calculated` or `proposed` to
+  `accepted` with audit and leaves plan and proposal state as they are;
+- `scenario apply` requires `accepted`, writes supported current plan changes
+  with audit and transitions the scenario to `applied`. Historical applied
+  scenarios remain readable.
 
 ## Evidence
 

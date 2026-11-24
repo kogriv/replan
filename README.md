@@ -116,12 +116,14 @@ replan proposal list --project examples/small-team --status open --format markdo
 replan proposal show --project examples/small-team --format markdown proposal.adjust-remaining-task-op-1234.20260706
 ```
 
-To try a command that writes, copy the example first. The dry run lists the
-changes and the files it would write; the apply writes them and an audit
-record:
+Copy the example before trying a write. Review the scenario diff, record approval, then preview and apply the approved change. Approval and application each write an audit record.
 
 ```bash
 cp -a examples/small-team /tmp/small-team
+replan scenario diff --project /tmp/small-team --format markdown scenario.task-op-1234-remaining-5
+replan scenario accept --project /tmp/small-team --apply --format markdown \
+  --actor actor.human.operator --reason "Review found less work left." \
+  scenario.task-op-1234-remaining-5
 replan scenario apply --project /tmp/small-team --dry-run --format markdown \
   scenario.task-op-1234-remaining-5
 replan scenario apply --project /tmp/small-team --apply --format markdown \

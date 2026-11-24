@@ -192,10 +192,10 @@ those with actuals already above the scaled amount, and those whose amount a
 person set after the calibration date.
 
 The existing scenario workflow then does the rest: `scenario diff` shows the
-load and date effect, and `scenario apply` (a person, with audit) makes it
-the plan. The original estimates stay in the baselines, and the scenario
-records the calibration id, so `report estimates` can later tell calibrated
-estimates from raw ones.
+load and date effect. A person records approval with `scenario accept`, and
+`scenario apply` updates the current plan. The original estimates stay in the
+baselines, and the scenario records the calibration id, so `report estimates`
+can later tell calibrated estimates from raw ones.
 
 A scenario is preferred over one proposal per demand because the effect of a
 calibration is a whole-plan question: a person wants to see the new load and

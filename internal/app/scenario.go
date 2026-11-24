@@ -33,11 +33,27 @@ type ScenarioApplyRequest struct {
 	ID      string
 	ActorID string
 	Reason  string
-	// EvidenceID names the evidence of the decision the scenario records; a
-	// scenario that cancels a dependency requires it.
+	// EvidenceID identifies evidence for the decision. Applying a dependency
+	// cancellation requires it.
 	EvidenceID string
 	DryRun     bool
 	Now        time.Time
+}
+
+type ScenarioAcceptRequest ScenarioApplyRequest
+
+type ScenarioAcceptResult struct {
+	DryRun             bool                `json:"dry_run"`
+	Accepted           bool                `json:"accepted"`
+	ScenarioID         string              `json:"scenario_id"`
+	PreviousStatus     string              `json:"previous_status,omitempty"`
+	NewStatus          string              `json:"new_status,omitempty"`
+	PlannedWrites      []PlannedWrite      `json:"planned_writes"`
+	WrittenFiles       []string            `json:"written_files,omitempty"`
+	AuditRecordPreview *domain.AuditRecord `json:"audit_record_preview,omitempty"`
+	Validation         *ValidateResult     `json:"validation,omitempty"`
+	Warnings           []Diagnostic        `json:"warnings"`
+	Errors             []Diagnostic        `json:"errors"`
 }
 
 type ScenarioListResult struct {
@@ -401,12 +417,137 @@ func (s ScenarioService) Diff(ctx context.Context, req ScenarioDiffRequest) (Sce
 	return result, nil
 }
 
+func validateScenarioDecision(ws domain.Workspace, req ScenarioApplyRequest, operation string) (domain.Scenario, bool, []Diagnostic) {
+	var diagnostics []Diagnostic
+	scenario, ok := findScenario(ws.Scenarios, req.ID)
+	if strings.TrimSpace(req.ID) == "" {
+		diagnostics = append(diagnostics, Diagnostic{
+			Code:     "scenario_id_required",
+			Message:  "scenario " + operation + " requires scenario id",
+			Severity: "error",
+			Target:   Target{Kind: "scenario"},
+		})
+	} else if !ok {
+		diagnostics = append(diagnostics, Diagnostic{
+			Code:     "scenario_not_found",
+			Message:  fmt.Sprintf("scenario %s not found", req.ID),
+			Severity: "error",
+			Target:   Target{Kind: "scenario", ID: req.ID},
+		})
+	}
+	if !req.DryRun && strings.TrimSpace(req.ActorID) == "" {
+		diagnostics = append(diagnostics, Diagnostic{
+			Code:     "actor_required",
+			Message:  "scenario " + operation + " requires --actor unless --dry-run is used",
+			Severity: "error",
+			Target:   Target{Kind: "actor"},
+		})
+	}
+	if req.ActorID != "" {
+		if diagnostic := validateApprovingActor(ws, req.ActorID); diagnostic != nil {
+			diagnostics = append(diagnostics, *diagnostic)
+		}
+	}
+	if req.EvidenceID != "" && !hasEvidence(ws.Evidence, req.EvidenceID) {
+		diagnostics = append(diagnostics, Diagnostic{
+			Code:     "evidence_not_found",
+			Message:  fmt.Sprintf("evidence %s not found", req.EvidenceID),
+			Severity: "error",
+			Target:   Target{Kind: "evidence", ID: req.EvidenceID},
+		})
+	}
+	return scenario, ok, diagnostics
+}
+
+type scenarioAcceptanceWriter interface {
+	AcceptScenario(scenarioID, previousStatus string, audit *domain.AuditRecord) ([]string, error)
+}
+
+func (s ScenarioService) Accept(ctx context.Context, req ScenarioAcceptRequest) (ScenarioAcceptResult, error) {
+	ws, loadDiags := s.loader.Load(ctx)
+	result := ScenarioAcceptResult{
+		DryRun: req.DryRun, ScenarioID: req.ID,
+		PlannedWrites: []PlannedWrite{}, Warnings: []Diagnostic{}, Errors: []Diagnostic{},
+	}
+	appendLoadDiagnostics(&result.Warnings, &result.Errors, loadDiags)
+	scenario, found, diagnostics := validateScenarioDecision(ws, ScenarioApplyRequest(req), "accept")
+	result.Errors = append(result.Errors, diagnostics...)
+	if found {
+		result.PreviousStatus = scenario.Status
+		if !domain.ScenarioStatusCanBeAccepted(scenario.Status) {
+			result.Errors = append(result.Errors, Diagnostic{
+				Code:     "scenario_invalid_accept_status",
+				Message:  fmt.Sprintf("scenario %s cannot be accepted from status %q; expected draft, calculated or proposed", scenario.ID, scenario.Status),
+				Severity: "error", Target: Target{Kind: "scenario", ID: scenario.ID},
+			})
+		}
+	}
+	if len(result.Errors) > 0 {
+		return result, ErrValidationFailed
+	}
+
+	now := req.Now
+	if now.IsZero() {
+		now = time.Now()
+	}
+	audit := domain.AuditRecord{
+		ID:         "audit." + compactTimestamp(now.Format(time.RFC3339)) + ".scenario-accept." + slugID(scenario.ID),
+		OccurredAt: now.Format(time.RFC3339),
+		ActorRef:   domain.Ref{Kind: "actor", ID: req.ActorID},
+		Operation:  "scenario_accept",
+		TargetRef:  domain.Ref{Kind: "scenario", ID: scenario.ID},
+		Result:     "success",
+		Reason:     req.Reason,
+		Before:     map[string]string{"status": scenario.Status},
+		After:      map[string]string{"status": "accepted"},
+		NewStatus:  "accepted",
+	}
+	if req.DryRun {
+		audit.Result = "dry_run"
+	}
+	if req.EvidenceID != "" {
+		audit.EvidenceRefs = []domain.Ref{{Kind: "evidence", ID: req.EvidenceID}}
+	}
+	result.NewStatus = "accepted"
+	result.AuditRecordPreview = &audit
+	result.PlannedWrites = scenarioStatusPlannedWrites(scenario, result.NewStatus, audit)
+	if req.DryRun {
+		return result, nil
+	}
+
+	session := beginWrite(s.loader)
+	writer, ok := session.target.(scenarioAcceptanceWriter)
+	if !ok {
+		result.Errors = append(result.Errors, Diagnostic{
+			Code: "storage_write_not_supported", Message: "configured project store does not support scenario acceptance",
+			Severity: "error", Target: Target{Kind: "project", ID: s.loader.ProjectPath()},
+		})
+		return result, ErrValidationFailed
+	}
+	written, err := writer.AcceptScenario(scenario.ID, scenario.Status, &audit)
+	if err != nil {
+		result.Errors = append(result.Errors, Diagnostic{
+			Code: "scenario_accept_write_failed", Message: err.Error(), Severity: "error",
+			Target: Target{Kind: "scenario", ID: scenario.ID},
+		})
+		return result, err
+	}
+	validation, written, err := session.finish(ctx, written)
+	result.Validation = &validation
+	result.WrittenFiles = written
+	if err != nil {
+		result.Errors = append(result.Errors, validation.Errors...)
+		return result, err
+	}
+	result.Accepted = true
+	return result, nil
+}
+
 func (s ScenarioService) Apply(ctx context.Context, req ScenarioApplyRequest) (ScenarioApplyResult, error) {
 	ws, loadDiags := s.loader.Load(ctx)
 	result := ScenarioApplyResult{
 		DryRun:          req.DryRun,
 		ScenarioID:      req.ID,
-		NewStatus:       "applied",
 		Changes:         []ScenarioApplyChange{},
 		PlannedWrites:   []PlannedWrite{},
 		WrittenFiles:    []string{},
@@ -415,42 +556,20 @@ func (s ScenarioService) Apply(ctx context.Context, req ScenarioApplyRequest) (S
 		Errors:          []Diagnostic{},
 	}
 	appendLoadDiagnostics(&result.Warnings, &result.Errors, loadDiags)
-	scenario, ok := findScenario(ws.Scenarios, req.ID)
-	if strings.TrimSpace(req.ID) == "" {
-		result.Errors = append(result.Errors, Diagnostic{
-			Code:     "scenario_id_required",
-			Message:  "scenario apply requires scenario id",
-			Severity: "error",
-			Target:   Target{Kind: "scenario"},
-		})
-	} else if !ok {
-		result.Errors = append(result.Errors, Diagnostic{
-			Code:     "scenario_not_found",
-			Message:  fmt.Sprintf("scenario %s not found", req.ID),
-			Severity: "error",
-			Target:   Target{Kind: "scenario", ID: req.ID},
-		})
-	}
-	if !req.DryRun && strings.TrimSpace(req.ActorID) == "" {
-		result.Errors = append(result.Errors, Diagnostic{
-			Code:     "actor_required",
-			Message:  "scenario apply requires --actor unless --dry-run is used",
-			Severity: "error",
-			Target:   Target{Kind: "actor"},
-		})
-	}
-	if req.ActorID != "" {
-		if diagnostic := validateApprovingActor(ws, req.ActorID); diagnostic != nil {
-			result.Errors = append(result.Errors, *diagnostic)
+	scenario, ok, diagnostics := validateScenarioDecision(ws, req, "apply")
+	result.Errors = append(result.Errors, diagnostics...)
+	if ok {
+		result.PreviousStatus = scenario.Status
+		if scenario.Status != "accepted" && scenario.Status != "applied" {
+			message := fmt.Sprintf("scenario %s has status %q; scenario apply requires accepted status", scenario.ID, scenario.Status)
+			if domain.ScenarioStatusCanBeAccepted(scenario.Status) {
+				message += fmt.Sprintf(". Review with scenario diff %s, then approve with scenario accept %s --actor <actor-id> --apply", scenario.ID, scenario.ID)
+			}
+			result.Errors = append(result.Errors, Diagnostic{
+				Code: "scenario_not_accepted", Message: message, Severity: "error",
+				Target: Target{Kind: "scenario", ID: scenario.ID},
+			})
 		}
-	}
-	if req.EvidenceID != "" && !hasEvidence(ws.Evidence, req.EvidenceID) {
-		result.Errors = append(result.Errors, Diagnostic{
-			Code:     "evidence_not_found",
-			Message:  fmt.Sprintf("evidence %s not found", req.EvidenceID),
-			Severity: "error",
-			Target:   Target{Kind: "evidence", ID: req.EvidenceID},
-		})
 	}
 	if ok && scenario.Status == "applied" {
 		result.Errors = append(result.Errors, Diagnostic{
@@ -476,8 +595,8 @@ func (s ScenarioService) Apply(ctx context.Context, req ScenarioApplyRequest) (S
 		return result, ErrValidationFailed
 	}
 
+	result.NewStatus = "applied"
 	result.ScenarioName = scenario.Name
-	result.PreviousStatus = scenario.Status
 	result.Changes = buildScenarioApplyChanges(ws, scenario, &result.Errors)
 	result.Errors = append(result.Errors, scenarioTaskDateRangeDiagnostics(ws, result.Changes)...)
 	if scenarioApplyTouches(result.Changes, "dependency") && req.EvidenceID == "" {
@@ -785,11 +904,6 @@ func scenarioApplyAuditRecord(req ScenarioApplyRequest, scenario domain.Scenario
 }
 
 func scenarioApplyPlannedWrites(scenario domain.Scenario, changes []ScenarioApplyChange, audit domain.AuditRecord) []PlannedWrite {
-	appliedScenario := scenario
-	appliedScenario.Status = "applied"
-	scenarioContent, _ := yaml.Marshal(struct {
-		Scenario domain.Scenario `yaml:"scenario"`
-	}{Scenario: appliedScenario})
 	writes := []PlannedWrite{}
 	if scenarioApplyTouches(changes, "resource_demand") {
 		writes = append(writes, PlannedWrite{
@@ -812,18 +926,18 @@ func scenarioApplyPlannedWrites(scenario domain.Scenario, changes []ScenarioAppl
 			Format: "yaml",
 		})
 	}
-	writes = append(writes, PlannedWrite{
-		Path:    "scenarios/" + scenario.ID + ".yaml",
-		Action:  "update",
-		Format:  "yaml",
-		Content: string(scenarioContent),
-	})
-	writes = append(writes, PlannedWrite{
-		Path:   AuditShardPath(audit.OccurredAt),
-		Action: "append_jsonl_record",
-		Format: "jsonl",
-	})
-	return writes
+	return append(writes, scenarioStatusPlannedWrites(scenario, "applied", audit)...)
+}
+
+func scenarioStatusPlannedWrites(scenario domain.Scenario, status string, audit domain.AuditRecord) []PlannedWrite {
+	scenario.Status = status
+	content, _ := yaml.Marshal(struct {
+		Scenario domain.Scenario `yaml:"scenario"`
+	}{Scenario: scenario})
+	return []PlannedWrite{
+		{Path: "scenarios/" + scenario.ID + ".yaml", Action: "update", Format: "yaml", Content: string(content)},
+		{Path: AuditShardPath(audit.OccurredAt), Action: "append_jsonl_record", Format: "jsonl"},
+	}
 }
 
 func scenarioApplyTouches(changes []ScenarioApplyChange, targetKind string) bool {

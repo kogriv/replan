@@ -48,6 +48,7 @@ var canonicalWriteCommands = []string{
 	"resource add",
 	"resource set-name",
 	"actor set-name",
+	"scenario accept",
 	"scenario apply",
 	"task add",
 	"task record-actual-window",

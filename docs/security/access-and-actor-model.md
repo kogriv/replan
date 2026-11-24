@@ -15,7 +15,7 @@ directly. It does not authenticate anyone:
   checks that the caller is that actor.
 - When `ai_agents.default_mutation_mode` is `proposal_only`, the approving
   actor must have `kind: human` for `proposal accept`, `proposal reject`,
-  `scenario apply`, `baseline create`, `estimate calibrate`, `import accept`
+  `scenario accept`, `scenario apply`, `baseline create`, `estimate calibrate`, `import accept`
   and `actual add-status --status accepted|cancelled`. A named non-human actor
   produces `approver_not_human`, exit 3, in dry-run and apply modes, and
   nothing is written. Omitting `ai_agents` defaults to `proposal_only`.
