@@ -18741,7 +18741,7 @@ resource_demands:
     planned_amount: 0.6
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.binding-file-lock.agent
     task_ref:
       kind: task
@@ -18755,7 +18755,7 @@ resource_demands:
     planned_amount: 0.2
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.binding-file-lock.maintainer
     task_ref:
       kind: task
@@ -18767,9 +18767,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.binding-file-lock.local-dev
     task_ref:
       kind: task
@@ -18783,7 +18783,7 @@ resource_demands:
     planned_amount: 1
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.binding-file-lock.ci
     task_ref:
       kind: task
@@ -18795,9 +18795,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.strict-plan-validation.codex
     task_ref:
       kind: task
@@ -20071,3 +20071,14 @@ resource_demands:
     remaining_amount: 0
     criticality: required
     status: consumed
+    overrun_review:
+      acknowledged_forecast: 14
+      unit: ci_minutes
+      reason: 'The maintainer confirmed the measured CI overrun: 14 billable minutes against 10 planned.'
+      reviewed_by:
+        kind: actor
+        id: actor.human.maintainer
+      reviewed_at: "2026-11-24T12:06:30+07:00"
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-rebase-urls-links-only

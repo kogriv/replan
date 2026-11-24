@@ -466,3 +466,26 @@ evidence:
     targets:
       - kind: task
         id: task.self.binding-file-lock
+  - id: evidence.self.accept-binding-file-lock
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-24T12:09:33+07:00"
+    confidence: observed
+    summary: 'The maintainer accepted the binding write lock. Review time was not supplied. CI measured from GitHub Actions runs 45329377140: 14 billable minutes.'
+    targets:
+      - kind: task
+        id: task.self.binding-file-lock
+  - id: evidence.self.start-strict-plan-validation
+    type: agent_observation
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-24T12:05:57+07:00"
+    summary: The maintainer authorized implementation of strict plan validation.
+    targets:
+      - kind: task
+        id: task.self.strict-plan-validation
