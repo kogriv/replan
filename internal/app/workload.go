@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -56,7 +55,9 @@ type ResourceWorkload struct {
 	RawPlanned          *float64 `json:"raw_planned,omitempty"`
 	RawRemaining        *float64 `json:"raw_remaining,omitempty"`
 	// Demands is filled only on request (WorkloadRequest.WithDemands).
-	Demands []WorkloadDemandShare `json:"demands,omitempty"`
+	Demands         []WorkloadDemandShare `json:"demands,omitempty"`
+	capacityKnown   bool
+	monthlyCapacity bool
 }
 
 // WorkloadDemandShare is one demand's part of a workload row. Share is the
@@ -94,11 +95,23 @@ func (s WorkloadService) Calculate(ctx context.Context, req WorkloadRequest) (Wo
 	}
 	appendLoadDiagnostics(&result.Warnings, &result.Errors, loadDiags)
 	if len(result.Errors) > 0 {
+		if errs := planInputErrors(ws); len(errs) != 0 {
+			result.Errors = append(result.Errors, errs...)
+			return result, ErrInvalidPlanInputs
+		}
 		return result, ErrValidationFailed
 	}
 	state := newWorkloadCalculation(req, ws, &result)
+	if req.Week != "" && !state.hasWeekFilter {
+		result.Errors = append(result.Errors, Diagnostic{Code: "invalid_week", Severity: "error", Message: fmt.Sprintf("week %q is not a valid ISO week", req.Week)})
+		return result, ErrInvalidPlanInputs
+	}
 	if err := state.applyScenario(); err != nil {
 		return result, err
+	}
+	if errs := planInputErrors(state.workspace); len(errs) != 0 {
+		result.Errors = append(result.Errors, errs...)
+		return result, ErrInvalidPlanInputs
 	}
 	state.indexWorkspace()
 	state.addCapacities()
@@ -117,6 +130,7 @@ type workloadCalculation struct {
 	tasks                  map[string]domain.Task
 	days                   map[string]resourceAvailability
 	capacityByResourceUnit map[string]float64
+	monthlyCapacity        map[string]bool
 	actualDemandIDs        map[string]bool
 	rows                   map[string]*ResourceWorkload
 	concurrent             map[string][]concurrentUse
@@ -134,7 +148,7 @@ func newWorkloadCalculation(req WorkloadRequest, ws domain.Workspace, result *Wo
 	start, end, filtered := workloadWeekRange(req.Week)
 	return &workloadCalculation{
 		req: req, workspace: ws, result: result, resources: map[string]domain.Resource{}, pools: map[string]domain.ResourcePool{},
-		tasks: map[string]domain.Task{}, capacityByResourceUnit: map[string]float64{}, actualDemandIDs: map[string]bool{},
+		tasks: map[string]domain.Task{}, capacityByResourceUnit: map[string]float64{}, monthlyCapacity: map[string]bool{}, actualDemandIDs: map[string]bool{},
 		rows: map[string]*ResourceWorkload{}, concurrent: map[string][]concurrentUse{}, rawConcurrent: map[string][]concurrentUse{},
 		calibrations: map[string]DemandCalibration{}, calibrationIDs: map[string]map[string]bool{}, rawPlanned: map[string]float64{}, rawRemaining: map[string]float64{},
 		weekStart: start, weekEnd: end, hasWeekFilter: filtered,
@@ -172,9 +186,25 @@ func (c *workloadCalculation) indexWorkspace() {
 	c.days = workingDays(c.workspace.Availabilities)
 	c.addAvailabilityExceptionDiagnostics()
 	for _, capacity := range c.workspace.Capacities {
+		if !c.capacityApplies(capacity) {
+			continue
+		}
 		key := capacity.ResourceRef.ID + "\x00" + capacity.Unit
+		if c.hasWeekFilter && capacity.Period == "month" {
+			c.monthlyCapacity[key] = true
+			continue
+		}
 		c.capacityByResourceUnit[key] += c.capacityAmount(capacity)
 	}
+}
+
+func (c workloadCalculation) capacityApplies(capacity domain.Capacity) bool {
+	from, to := capacityEffectiveRange(capacity)
+	if c.hasWeekFilter {
+		return !from.After(c.weekEnd) && !to.Before(c.weekStart)
+	}
+	day, ok := parseWorkloadDate(c.workspace.Project.DefaultStatusDate)
+	return !ok || (!day.Before(from) && !day.After(to))
 }
 
 func (c workloadCalculation) capacityAmount(capacity domain.Capacity) float64 {
@@ -234,10 +264,16 @@ func (c *workloadCalculation) rowFor(resourceID, unit string) *ResourceWorkload 
 	}
 	resource := c.resources[resourceID]
 	row := &ResourceWorkload{ResourceID: resourceID, ResourceName: resource.Name, ResourceClass: resource.Class, Unit: unit}
+	row.Capacity, row.capacityKnown = c.capacityByResourceUnit[key]
+	row.monthlyCapacity = c.monthlyCapacity[key]
 	if pool, ok := c.pools[resourceID]; ok {
 		row.ResourceName, row.ResourceClass = pool.Name, pool.ResourceClass
 		for _, member := range pool.Members {
-			row.Capacity += c.capacityByResourceUnit[member.ID+"\x00"+unit]
+			memberKey := member.ID + "\x00" + unit
+			amount, known := c.capacityByResourceUnit[memberKey]
+			row.Capacity += amount
+			row.capacityKnown = row.capacityKnown || known
+			row.monthlyCapacity = row.monthlyCapacity || c.monthlyCapacity[memberKey]
 		}
 	}
 	c.rows[key] = row
@@ -247,18 +283,32 @@ func (c *workloadCalculation) rowFor(resourceID, unit string) *ResourceWorkload 
 func (c *workloadCalculation) addCapacities() {
 	for _, capacity := range c.workspace.Capacities {
 		if c.req.ResourceID == "" || capacity.ResourceRef.ID == c.req.ResourceID {
-			c.rowFor(capacity.ResourceRef.ID, capacity.Unit).Capacity += c.capacityAmount(capacity)
+			c.rowFor(capacity.ResourceRef.ID, capacity.Unit)
 		}
 	}
 }
 
 func (c *workloadCalculation) addActuals() {
 	for _, actual := range EffectiveActuals(c.workspace.Actuals) {
-		if actual.Type != "work_consumed" || (c.hasWeekFilter && !actualIntersectsWeek(c.workspace.Project, actual, c.weekStart, c.weekEnd)) || actual.ResourceRef.ID == "" || actual.Unit == "" {
+		if actual.Type != "work_consumed" || actual.ResourceRef.ID == "" || actual.Unit == "" {
 			continue
 		}
 		if c.req.ResourceID != "" && actual.ResourceRef.ID != c.req.ResourceID {
 			continue
+		}
+		if c.hasWeekFilter {
+			dateText := actual.StatusDate
+			if dateText == "" {
+				dateText = projectDate(c.workspace.Project, actual.OccurredAt)
+			}
+			date, ok := parseWorkloadDate(dateText)
+			if !ok {
+				c.result.Warnings = append(c.result.Warnings, Diagnostic{Code: "undated_actual", Severity: "warning", Target: Target{Kind: "actual", ID: actual.ID}, Message: "actual without a date was omitted from weekly workload"})
+				continue
+			}
+			if date.Before(c.weekStart) || date.After(c.weekEnd) {
+				continue
+			}
 		}
 		c.rowFor(actual.ResourceRef.ID, actual.Unit).Actual += actual.Amount
 		if actual.DemandRef.ID != "" {
@@ -370,7 +420,9 @@ func (c *workloadCalculation) finishRows() {
 		if (c.req.ResourceClass != "" && row.ResourceClass != c.req.ResourceClass) || (c.req.Unit != "" && row.Unit != c.req.Unit) {
 			continue
 		}
-		if row.Capacity == 0 && (row.Planned > 0 || row.Remaining > 0 || row.Reserved > 0) {
+		if row.monthlyCapacity {
+			c.result.Warnings = append(c.result.Warnings, Diagnostic{Code: "monthly_capacity_not_weekly", Message: fmt.Sprintf("monthly capacity for %s in unit %s is not a weekly entitlement; omitted from weekly capacity and overload", row.ResourceID, row.Unit), Severity: "warning", Target: Target{Kind: "resource", ID: row.ResourceID}})
+		} else if !row.capacityKnown && (row.Planned > 0 || row.Remaining > 0 || row.Reserved > 0) {
 			c.result.Warnings = append(c.result.Warnings, Diagnostic{Code: "missing_capacity", Message: fmt.Sprintf("no capacity found for %s in unit %s", row.ResourceID, row.Unit), Severity: "warning", Target: Target{Kind: "resource", ID: row.ResourceID}})
 		}
 		row.Planned, row.Reserved = roundDashboardFloat(row.Planned), roundDashboardFloat(row.Reserved)
@@ -388,7 +440,7 @@ func (c *workloadCalculation) finishRows() {
 		if load == 0 {
 			load = row.Remaining
 		}
-		if row.Capacity > 0 && load > row.Capacity {
+		if row.capacityKnown && load > row.Capacity {
 			row.Overload = load - row.Capacity
 		}
 		c.result.Resources = append(c.result.Resources, *row)
@@ -412,9 +464,12 @@ func (c *workloadCalculation) finishRows() {
 // A weekly capacity counts its share of the resource's working days, one
 // seventh a day for a resource without working days, so a change on a
 // Wednesday splits that week and a Monday-to-Friday range holds a Monday-to-
-// Friday worker's whole week. Any other period counts in full if the capacity
-// is in effect on any day of the range.
+// Friday worker's whole week. Unscoped or concurrent capacity counts in full
+// when in effect. A monthly limit cannot be used as weekly capacity.
 func capacityInWeek(capacity domain.Capacity, weekStart, weekEnd time.Time, availability resourceAvailability) float64 {
+	if capacity.Period == "month" {
+		return 0
+	}
 	from, to := capacityEffectiveRange(capacity)
 	days := 0
 	for day := weekStart; !day.After(weekEnd); day = day.AddDate(0, 0, 1) {
@@ -478,27 +533,7 @@ func capacityEffectiveRange(capacity domain.Capacity) (time.Time, time.Time) {
 }
 
 func workloadWeekRange(week string) (time.Time, time.Time, bool) {
-	if len(week) != 8 || week[4] != '-' || week[5] != 'W' {
-		return time.Time{}, time.Time{}, false
-	}
-	year, err := strconv.Atoi(week[0:4])
-	if err != nil {
-		return time.Time{}, time.Time{}, false
-	}
-	weekNumber, err := strconv.Atoi(week[6:8])
-	if err != nil || weekNumber < 1 || weekNumber > 53 {
-		return time.Time{}, time.Time{}, false
-	}
-
-	// January 4 is always in ISO week 1. Move to that week's Monday, then add weeks.
-	jan4 := time.Date(year, time.January, 4, 0, 0, 0, 0, time.UTC)
-	weekday := int(jan4.Weekday())
-	if weekday == 0 {
-		weekday = 7
-	}
-	start := jan4.AddDate(0, 0, -(weekday-1)+(weekNumber-1)*7)
-	end := start.AddDate(0, 0, 6)
-	return start, end, true
+	return domain.ISOWeekRange(week)
 }
 
 // demandShare describes a demand's part of a row: share is the fraction in
@@ -535,18 +570,6 @@ func parseWorkloadDate(value string) (time.Time, bool) {
 		return time.Time{}, false
 	}
 	return t, true
-}
-
-func actualIntersectsWeek(project domain.Project, actual domain.Actual, weekStart, weekEnd time.Time) bool {
-	dateText := strings.TrimSpace(actual.StatusDate)
-	if dateText == "" {
-		dateText = projectDate(project, actual.OccurredAt)
-	}
-	date, ok := parseWorkloadDate(dateText)
-	if !ok {
-		return true
-	}
-	return !date.Before(weekStart) && !date.After(weekEnd)
 }
 
 func demandTargetID(demand domain.ResourceDemand) (string, bool) {

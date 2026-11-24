@@ -400,6 +400,9 @@ func runReportDashboard(args []string, stdout, stderr *os.File) int {
 		return code
 	}
 
+	if outputDir != "" && errors.Is(err, app.ErrInvalidPlanInputs) {
+		return printFailedReport(stdout, stderr, env)
+	}
 	if outputDir != "" {
 		result, writeErr := writeDashboardArtifacts(projectPath, outputDir, overview)
 		if writeErr != nil {
@@ -518,6 +521,9 @@ func runReportWeekly(args []string, stdout, stderr *os.File) int {
 		return code
 	}
 
+	if write && errors.Is(err, app.ErrInvalidPlanInputs) {
+		return printFailedReport(stdout, stderr, env)
+	}
 	if write {
 		outputPath, writeErr := writeWeeklyReportArtifact(projectPath, week, format, report)
 		if writeErr != nil {
@@ -563,6 +569,14 @@ func runReportWeekly(args []string, stdout, stderr *os.File) int {
 		return exitGeneralError
 	}
 	return exitSuccess
+}
+
+func printFailedReport(stdout, stderr *os.File, env envelope) int {
+	if printErr := printEnvelope(stdout, "json", env); printErr != nil {
+		fmt.Fprintf(stderr, "failed to write output: %v\n", printErr)
+		return exitGeneralError
+	}
+	return validationFailureExit(env.Errors)
 }
 
 func writeWeeklyReportArtifact(projectPath, week, format string, report reports.WeeklyReport) (string, error) {

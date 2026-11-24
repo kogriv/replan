@@ -296,7 +296,11 @@ milestone
 solver
 ```
 
-Future modes are intentionally not required for MVP.
+Future modes are intentionally not required for MVP. The current calculator
+implements `even`, also used when `spread` is omitted. `contiguous` and
+`manual` are planned but are not silently approximated by `even`: they
+return `unsupported_demand_spread`. Unknown values return
+`invalid_demand_spread`.
 
 ## even spread
 
@@ -486,6 +490,10 @@ For weekly capacity, the base weekly amount is divided by the resource's
 regular working weekdays and only available, effective dates contribute. The
 denominator is not reduced by an absence: 40 hours over Monday-Friday with
 Wednesday unavailable yields 32 available hours.
+
+Only effective capacity in a supported period can set an overload threshold.
+An explicit zero threshold is valid. A missing threshold does not imply
+overload against zero, and a monthly cap is not a weekly threshold.
 
 MVP should distinguish:
 

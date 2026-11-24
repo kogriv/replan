@@ -237,6 +237,8 @@ func validateBaselineCreateRequest(errors *[]Diagnostic, ws domain.Workspace, re
 	}
 	if strings.TrimSpace(req.ID) == "" {
 		add("missing_baseline_id", "baseline id is required", "baseline", "")
+	} else if !safeBaselineID(req.ID) {
+		add("invalid_baseline_id", fmt.Sprintf("baseline id %q must be a portable filename segment", req.ID), "baseline", req.ID)
 	}
 	if strings.TrimSpace(req.Name) == "" {
 		add("missing_baseline_name", "baseline name is required", "baseline", req.ID)

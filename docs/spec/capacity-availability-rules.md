@@ -353,6 +353,19 @@ exceptions. Each removed working day therefore removes its normal share: a
 40-hour Monday-to-Friday capacity with Wednesday unavailable is 32 hours, not
 40 hours redistributed over four days.
 
+The current workload calculator accepts `week`, `month`, `concurrent`,
+`instant`, and a legacy omitted period. A monthly amount is available as a
+nominal limit in the unfiltered view, not as a weekly allowance. Other period
+models shown in this design, such as `day`, are not implemented and are
+rejected before calculation. An in-effect record with amount `0` sets a zero
+limit; no in-effect record means that capacity is unknown.
+
+Availability accepts full weekday names, optional whole-day windows without
+clock bounds, and same-day windows with two increasing `HH:MM` bounds (an end
+of `24:00` is allowed). Weekly workload uses the weekdays, not hour-level
+duration. Unknown weekdays, malformed bounds, invalid dates and unknown
+exception types are errors, not calendar defaults.
+
 The canonical `AvailabilityException` currently has no amount. Consequently
 `reduced_capacity`, `extra_capacity` and `quota_reset` do not change numeric
 capacity. Workload reports group their type counts once per resource under

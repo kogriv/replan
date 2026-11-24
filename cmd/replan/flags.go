@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/kogriv/replan/internal/app"
+	"github.com/kogriv/replan/internal/domain"
 )
 
 type repeatedStringFlag []string
@@ -276,18 +276,8 @@ func printPositionalUsageError(stdout, stderr *os.File, format, command, project
 // 2026-W31. An empty string is not well-formed; callers that treat an empty
 // week as "use the project default" must check emptiness separately.
 func validISOWeek(week string) bool {
-	if len(week) != 8 || week[4] != '-' || week[5] != 'W' {
-		return false
-	}
-	year, err := strconv.Atoi(week[0:4])
-	if err != nil || year < 1 {
-		return false
-	}
-	number, err := strconv.Atoi(week[6:8])
-	if err != nil || number < 1 || number > 53 {
-		return false
-	}
-	return true
+	_, _, ok := domain.ISOWeekRange(week)
+	return ok
 }
 
 // printInvalidWeek emits a stable JSON envelope for a malformed --week value and

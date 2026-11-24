@@ -27,14 +27,15 @@ func TestWorkloadSmallTeamFixture(t *testing.T) {
 	if len(result.Errors) != 0 {
 		t.Fatalf("expected no errors, got %#v", result.Errors)
 	}
-	if len(result.Warnings) != 1 || result.Warnings[0].Code != "availability_exceptions_not_applied" || result.Warnings[0].Target.ID != "resource.human.ivan" {
-		t.Fatalf("expected Ivan's grouped amount-less exception warning, got %#v", result.Warnings)
+	if len(result.Warnings) != 3 || result.Warnings[0].Code != "availability_exceptions_not_applied" || result.Warnings[0].Target.ID != "resource.human.ivan" ||
+		result.Warnings[1].Code != "monthly_capacity_not_weekly" || result.Warnings[2].Code != "monthly_capacity_not_weekly" {
+		t.Fatalf("expected Ivan's grouped amount-less exception and two monthly limit warnings, got %#v", result.Warnings)
 	}
 
 	assertWorkload(t, result, "resource.human.ivan", "hours", 32, 8, 8, 0)
 	assertWorkload(t, result, "resource.ai.codex.local", "agent_hours", 20, 2, 2, 0)
-	assertWorkload(t, result, "resource.service.openai.tokens", "tokens", 10000000, 500000, 500000, 0)
-	assertWorkload(t, result, "resource.project.budget", "rub", 250000, 12000, 12000, 0)
+	assertWorkload(t, result, "resource.service.openai.tokens", "tokens", 0, 500000, 500000, 0)
+	assertWorkload(t, result, "resource.project.budget", "rub", 0, 12000, 12000, 0)
 	assertWorkload(t, result, "resource.environment.staging", "concurrent_slots", 1, 1, 1, 0)
 	assertWorkload(t, result, "resource_pool.reviewers", "review_hours", 8, 2, 2, 0)
 }
@@ -381,7 +382,6 @@ func TestWorkloadAppliesQuotaCapacityScenario(t *testing.T) {
 
 	result, err := service.Calculate(context.Background(), app.WorkloadRequest{
 		ProjectPath: "../../examples/small-team",
-		Week:        "2026-W28",
 		ScenarioID:  "scenario.openai-quota-300k",
 	})
 	if err != nil {

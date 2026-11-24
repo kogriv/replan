@@ -118,6 +118,7 @@ type workspaceValidator struct {
 func validateWorkspace(result *ValidateResult, ws domain.Workspace) {
 	v := &workspaceValidator{result: result, ids: map[string]string{}}
 	v.project(ws.Project)
+	validatePlanInputs(result, ws)
 	v.policy(ws.Policy)
 	v.actors(ws.Actors)
 	v.resources(ws.Resources)
@@ -179,6 +180,9 @@ func (v *workspaceValidator) register(kind, id string) {
 		v.errorf("missing_id", kind, "", "%s id is required", kind)
 		return
 	}
+	if invalidPlanID(id) {
+		v.errorf("invalid_id", kind, id, "%s id %q must not contain control characters or line separators", kind, id)
+	}
 	key := kind + ":" + id
 	if prev, ok := v.ids[key]; ok {
 		v.errorf("duplicate_id", kind, id, "duplicate %s id %q already seen in %s", kind, id, prev)
@@ -198,6 +202,8 @@ func (v *workspaceValidator) resolves(ref domain.Ref, kind, id, what string) {
 func (v *workspaceValidator) project(project domain.Project) {
 	if project.ID == "" {
 		v.errorf("missing_project_id", "project", ".replan/project.yaml", "project id is required")
+	} else if invalidPlanID(project.ID) {
+		v.errorf("invalid_id", "project", project.ID, "project id %q must not contain control characters or line separators", project.ID)
 	}
 	if project.Name == "" {
 		v.errorf("missing_project_name", "project", ".replan/project.yaml", "project name is required")
@@ -310,12 +316,6 @@ func (v *workspaceValidator) resourceDemand(demand domain.ResourceDemand) {
 	if !demand.IsLevelled() && !isHourUnit(demand.Unit) {
 		v.errorf("invalid_unlevelled_demand_unit", kind, demand.ID, "resource demand with levelled false must use an hour unit, got %q", demand.Unit)
 	}
-	if !validAmount(demand.PlannedAmount) {
-		v.errorf("invalid_planned_amount", kind, demand.ID, "resource demand planned_amount %v must be a finite number, zero or greater", demand.PlannedAmount)
-	}
-	if demand.RemainingAmount != nil && !validAmount(*demand.RemainingAmount) {
-		v.errorf("invalid_remaining_amount", kind, demand.ID, "resource demand remaining_amount %v must be a finite number, zero or greater", *demand.RemainingAmount)
-	}
 	if demand.ResourceClass == "" {
 		v.errorf("missing_resource_class", kind, demand.ID, "resource demand resource_class is required")
 	}
@@ -329,18 +329,6 @@ func (v *workspaceValidator) resourceDemand(demand domain.ResourceDemand) {
 	}
 	if hasPool {
 		v.resolves(demand.ResourcePoolRef, kind, demand.ID, "demand resource_pool_ref")
-	}
-	startValid, finishValid := true, true
-	if demand.Timing.EarliestStart != "" && !validDate(demand.Timing.EarliestStart) {
-		v.errorf("invalid_demand_earliest_start", kind, demand.ID, "resource demand earliest_start %q must use YYYY-MM-DD", demand.Timing.EarliestStart)
-		startValid = false
-	}
-	if demand.Timing.LatestFinish != "" && !validDate(demand.Timing.LatestFinish) {
-		v.errorf("invalid_demand_latest_finish", kind, demand.ID, "resource demand latest_finish %q must use YYYY-MM-DD", demand.Timing.LatestFinish)
-		finishValid = false
-	}
-	if startValid && finishValid && demand.Timing.EarliestStart != "" && demand.Timing.LatestFinish != "" && demand.Timing.LatestFinish < demand.Timing.EarliestStart {
-		v.errorf("invalid_demand_timing_range", kind, demand.ID, "resource demand latest_finish %s is before earliest_start %s", demand.Timing.LatestFinish, demand.Timing.EarliestStart)
 	}
 }
 
@@ -487,12 +475,6 @@ func (v *workspaceValidator) deadlines(deadlines []domain.Deadline) {
 // task's references to them resolve.
 func (v *workspaceValidator) taskDatesAndRefs(tasks []domain.Task) {
 	for _, task := range tasks {
-		if task.PlannedStart != "" && !validDate(task.PlannedStart) {
-			v.errorf("invalid_task_planned_start", "task", task.ID, "task planned_start %q must use YYYY-MM-DD", task.PlannedStart)
-		}
-		if task.PlannedFinish != "" && !validDate(task.PlannedFinish) {
-			v.errorf("invalid_task_planned_finish", "task", task.ID, "task planned_finish %q must use YYYY-MM-DD", task.PlannedFinish)
-		}
 		v.warnIfLeadTimeExceedsPlannedSpan(task)
 		for _, demandRef := range task.ResourceDemands {
 			v.resolves(demandRef, "task", task.ID, "task resource demand")
@@ -580,7 +562,6 @@ func (v *workspaceValidator) capacities(capacities []domain.Capacity) {
 		if capacity.Type == "" {
 			v.errorf("missing_capacity_type", "capacity", capacity.ID, "capacity type is required")
 		}
-		validateCapacityEffectiveDates(v.result, capacity)
 	}
 }
 
@@ -709,12 +690,6 @@ func (v *workspaceValidator) actuals(actuals []domain.Actual) {
 		if actual.CorrectedAmount == nil && actual.CorrectedStatusDate == "" {
 			v.errorf("invalid_actual_correction", "actual", actual.ID, "correction must provide corrected_amount or corrected_status_date")
 		}
-		if actual.CorrectedAmount != nil && !validAmount(*actual.CorrectedAmount) {
-			v.errorf("invalid_amount", "actual", actual.ID, "correction corrected_amount must be finite, zero or greater")
-		}
-		if actual.CorrectedStatusDate != "" && !validDate(actual.CorrectedStatusDate) {
-			v.errorf("invalid_status_date", "actual", actual.ID, "correction corrected_status_date %q must use YYYY-MM-DD", actual.CorrectedStatusDate)
-		}
 		if actual.DemandRef.ID != original.DemandRef.ID {
 			v.errorf("actual_correction_demand_mismatch", "actual", actual.ID, "correction demand %s does not match original demand %s", actual.DemandRef.ID, original.DemandRef.ID)
 		}
@@ -742,6 +717,9 @@ func (v *workspaceValidator) baselineScope(baseline domain.Baseline) {
 func (v *workspaceValidator) baselines(baselines []domain.Baseline) {
 	for _, baseline := range baselines {
 		v.register("baseline", baseline.ID)
+		if baseline.ID != "" && !safeBaselineID(baseline.ID) {
+			v.errorf("invalid_baseline_id", "baseline", baseline.ID, "baseline id %q must be a portable filename segment", baseline.ID)
+		}
 		v.baselineScope(baseline)
 		if baseline.ApprovedBy.ID == "" {
 			v.errorf("missing_approved_actor", "baseline", baseline.ID, "baseline approved_by is required")
@@ -1240,7 +1218,7 @@ func validateCapacityEffectiveDates(result *ValidateResult, capacity domain.Capa
 		if field.value == "" {
 			continue
 		}
-		if _, err := time.Parse("2006-01-02", field.value); err != nil {
+		if !validDate(field.value) {
 			addError(result, "invalid_capacity_date", fmt.Sprintf("capacity %s %q is not YYYY-MM-DD", field.name, field.value), "capacity", capacity.ID)
 			valid = false
 		}

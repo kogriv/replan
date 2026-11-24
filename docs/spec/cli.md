@@ -867,6 +867,14 @@ replan capacity set --project --resource --unit --amount --period --effective-fr
 Purpose:
 
 Validate project structure, canonical files, references, ids and basic policy.
+Planning inputs are checked before calculation as well: non-finite or negative
+capacity, unsupported periods and spread modes, malformed calendar and actual
+dates, invalid time zones, and reversed task or demand windows are errors.
+An omitted project time zone is a warning for legacy projects; an explicit
+unknown zone (including the process-dependent `Local`) is an error. IDs must
+not contain control characters or line separators. Workload, weekly reports,
+dashboards and TaskJuggler exports refuse invalid planning inputs rather than
+producing partial calculations or replacing generated artifacts.
 
 Examples:
 
@@ -962,8 +970,9 @@ Time selector:
 - `--week <YYYY-Www>` keeps actuals whose status date, or occurrence date
   when there is none, falls in that ISO week, and demands whose own timing,
   or their task's planned window when the demand has none, intersects it.
-  Undated actuals and demands count in every week. A malformed value returns
-  exit `8`;
+  An actual without either date is omitted with `undated_actual`. Undated
+  demands still count in every week. A malformed value or a week that does
+  not exist in its ISO year (for example `2025-W53`) returns exit `8`;
 - without `--week` the command sums over all weeks: every actual and every
   demand counts. Reports and `next` default to the week of the project status
   date; `workload` does not, so the all-weeks view stays available.
@@ -1010,14 +1019,19 @@ Capacity and effective dates:
   share of the resource's working days in effect, one seventh a day for a
   resource without availability windows, so a change on a Wednesday splits
   that week. The divisor is the regular working week, so a removed Wednesday
-  subtracts one fifth of a Monday-Friday weekly amount. Any other period
-  counts in full if it is in effect on any available day of the week;
+  subtracts one fifth of a Monday-Friday weekly amount. Unscoped, concurrent
+  and instantaneous capacity counts in full if in effect on any available
+  day. Monthly capacity does not imply a weekly amount: the report omits it
+  from capacity and overload and warns with `monthly_capacity_not_weekly`;
 - `reduced_capacity`, `extra_capacity` and `quota_reset` carry no amount and
   leave numbers unchanged. `availability_exceptions_not_applied` groups their
   type counts once per resource for the selected week (or all dates without
   `--week`);
 - without `--week`, the capacity in effect on the project status date counts.
   A project without a status date counts every capacity record;
+- a defined zero in effect is a real limit: positive load can exceed it.
+  Missing capacity is not a zero limit and emits `missing_capacity` for
+  loaded rows where there is no applicable capacity;
 - a malformed effective date, or `effective_to` before `effective_from`, is a
   validation error.
 
@@ -2124,7 +2138,10 @@ Rules:
   `planned_amount` and `levelled`, not remaining work. Repeatable `--task`
   limits the snapshot to those current-plan tasks and writes `scope: tasks`;
   an unknown task returns `task_not_found` with exit 4;
-- the id and approving actor must already be unique and known respectively;
+- the id must be unique and a portable filename segment: ASCII letters,
+  digits, `_`, `-` or `.`, with no leading or trailing dot or Windows device
+  name. Invalid ids are rejected in both dry-run and apply. The approving
+  actor must already be known;
   `created_at` and `approved_at` both use `--occurred-at`, or the current time;
 - dry-run reports the target file, counts and preview. Apply creates
   `baselines/<id>.yaml`, appends a `baseline_create` audit event, validates the

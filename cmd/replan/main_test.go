@@ -2212,6 +2212,50 @@ func TestCLIJSONEnvelopeContract(t *testing.T) {
 	}
 }
 
+func TestInvalidPlanRefusesReportArtifacts(t *testing.T) {
+	project := copyCmdProjectFixture(t)
+	capacities := filepath.Join(project, "canonical", "capacities.yaml")
+	data := readFileString(t, capacities)
+	if !strings.Contains(data, "amount: 32\n") {
+		t.Fatal("expected weekly capacity in project fixture")
+	}
+	if err := os.WriteFile(capacities, []byte(strings.Replace(data, "amount: 32\n", "amount: .nan\n", 1)), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	outDir := t.TempDir()
+	index := filepath.Join(outDir, "index.html")
+	if err := os.WriteFile(index, []byte("previous dashboard"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		name  string
+		run   func([]string, *os.File, *os.File) int
+		flags []string
+	}{
+		{"workload", runWorkload, []string{"--format", "json"}},
+		{"dashboard", runReportDashboard, []string{"--output", outDir}},
+		{"weekly", runReportWeekly, []string{"--write"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			stdout, stderr := tempOutputFiles(t)
+			args := append([]string{"--project", project, "--week", "2026-W28"}, tc.flags...)
+			if code := tc.run(args, stdout, stderr); code != exitValidationFailed {
+				t.Fatalf("exit = %d; stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+			}
+			env := readCLIEnvelope(t, stdout.Name())
+			if env.OK || len(env.Errors) != 1 || env.Errors[0].Code != "invalid_capacity_amount" {
+				t.Fatalf("expected structured refusal: %+v", env.Errors)
+			}
+		})
+	}
+	if got := readFileString(t, index); got != "previous dashboard" {
+		t.Fatalf("dashboard overwritten: %q", got)
+	}
+	if _, err := os.Stat(filepath.Join(project, "reports", "weekly", "2026-W28.md")); !os.IsNotExist(err) {
+		t.Fatalf("weekly report artifact was written: %v", err)
+	}
+}
+
 func TestWorkloadAndScenarioHumanReadableResults(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -2761,6 +2805,14 @@ func TestCLIRejectsMalformedWeek(t *testing.T) {
 		projectPath string
 		run         func(stdout, stderr *os.File) int
 	}{
+		{
+			name:        "workload ISO year without week 53",
+			command:     "workload",
+			projectPath: "../../examples/small-team",
+			run: func(stdout, stderr *os.File) int {
+				return runWorkload([]string{"--project", "../../examples/small-team", "--week", "2025-W53", "--format", "json"}, stdout, stderr)
+			},
+		},
 		{
 			name:        "workload",
 			command:     "workload",

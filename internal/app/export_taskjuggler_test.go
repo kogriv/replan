@@ -213,6 +213,7 @@ func TestExportTaskJugglerFinishedAndCancelledTasksHaveNoNotBefore(t *testing.T)
 	ws.Tasks[0].PlannedFinish = "2026-11-02"
 	ws.Tasks = append(ws.Tasks, domain.Task{ID: "task.cancelled", Title: "Cancelled", TrackingStatus: "cancelled"})
 	ws.ResourceDemands[0].Timing.EarliestStart = "2026-11-11"
+	ws.ResourceDemands[0].Timing.LatestFinish = "2026-11-13"
 	cancelled := ws.ResourceDemands[0]
 	cancelled.ID = "demand.cancelled"
 	cancelled.TaskRef.ID = "task.cancelled"

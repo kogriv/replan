@@ -38,6 +38,7 @@ func everyDiagnosticWorkspace() domain.Workspace {
 		Actors: []domain.Actor{
 			{ID: "actor.ok", Kind: "human", TrustLevel: "high"},
 			{ID: "actor.bare"},
+			{ID: "actor.multiline\nid", Kind: "human", TrustLevel: "high"},
 			{},
 			{ID: "actor.ok", Kind: "human", TrustLevel: "high"},
 		},
@@ -112,6 +113,7 @@ func everyDiagnosticWorkspace() domain.Workspace {
 				Seal: &domain.BaselineSeal{Algorithm: "md5", Digest: "bad"},
 			},
 			{ID: "baseline.modified", ApprovedBy: ref("actor", "actor.ok"), Seal: &domain.BaselineSeal{Algorithm: "sha256", Digest: "bad"}},
+			{ID: "baseline/invalid", ApprovedBy: ref("actor", "actor.ok")},
 		},
 		Calibrations: []domain.Calibration{
 			{ID: "calibration.unsealed", ApprovedBy: ref("actor", "actor.ok"), Scope: domain.CalibrationScope{Since: "yesterday", RequireMeasurement: []string{"resource.outside"}}, Result: domain.CalibrationResult{Count: 1}},
@@ -179,13 +181,16 @@ func TestValidateEveryDiagnosticGolden(t *testing.T) {
 
 // The fixture covers every code the validator source can emit.
 func TestValidateFixtureTriggersEveryDiagnosticCode(t *testing.T) {
-	source, err := os.ReadFile("validate.go")
-	if err != nil {
-		t.Fatal(err)
-	}
 	all := map[string]bool{}
-	for _, m := range regexp.MustCompile(`(?:add(?:Error|Warning)\(result, |v\.(?:errorf|warn)\(|Code:\s*)"([a-z_]+)"`).FindAllSubmatch(source, -1) {
-		all[string(m[1])] = true
+	codes := regexp.MustCompile(`(?:add(?:Error|Warning)\(result, |v\.(?:errorf|warn)\(|Code:\s*)"([a-z_]+)"`)
+	for _, path := range []string{"validate.go", "strict_plan_inputs.go"} {
+		source, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, m := range codes.FindAllSubmatch(source, -1) {
+			all[string(m[1])] = true
+		}
 	}
 	// A few codes need a project without a status date or time zone, so the
 	// same workspace is validated once more without them.
@@ -193,7 +198,13 @@ func TestValidateFixtureTriggersEveryDiagnosticCode(t *testing.T) {
 	withoutStatusDate.Project.DefaultStatusDate = ""
 	withoutStatusDate.Project.Timezone = ""
 	seen := map[string]bool{}
-	for _, ws := range []domain.Workspace{everyDiagnosticWorkspace(), withoutStatusDate} {
+	workspaces := []domain.Workspace{everyDiagnosticWorkspace(), withoutStatusDate}
+	for _, tc := range strictInputCases() {
+		ws := strictInputWorkspace()
+		tc.change(&ws)
+		workspaces = append(workspaces, ws)
+	}
+	for _, ws := range workspaces {
 		result := validateForGolden(ws)
 		for _, d := range append(append([]Diagnostic{}, result.Errors...), result.Warnings...) {
 			seen[d.Code] = true
@@ -207,6 +218,6 @@ func TestValidateFixtureTriggersEveryDiagnosticCode(t *testing.T) {
 	}
 	sort.Strings(missing)
 	if len(all) < 50 || len(missing) > 0 {
-		t.Fatalf("codes in validate.go: %d; not triggered by the fixture: %v", len(all), missing)
+		t.Fatalf("validator codes: %d; not triggered by the fixtures: %v", len(all), missing)
 	}
 }

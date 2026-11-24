@@ -25,13 +25,13 @@ type demandSpan struct {
 	dated         bool
 }
 
+func demandBounds(demand domain.ResourceDemand, task domain.Task) (string, string) {
+	return firstNonEmpty(demand.Timing.PreferredStart, demand.Timing.EarliestStart, task.PlannedStart),
+		firstNonEmpty(demand.Timing.PreferredFinish, demand.Timing.LatestFinish, task.PlannedFinish)
+}
+
 func demandWindow(demand domain.ResourceDemand, taskByID map[string]domain.Task) demandSpan {
-	startText := firstNonEmpty(strings.TrimSpace(demand.Timing.PreferredStart), strings.TrimSpace(demand.Timing.EarliestStart))
-	finishText := firstNonEmpty(strings.TrimSpace(demand.Timing.PreferredFinish), strings.TrimSpace(demand.Timing.LatestFinish))
-	if task, ok := taskByID[demand.TaskRef.ID]; ok {
-		startText = firstNonEmpty(startText, strings.TrimSpace(task.PlannedStart))
-		finishText = firstNonEmpty(finishText, strings.TrimSpace(task.PlannedFinish))
-	}
+	startText, finishText := demandBounds(demand, taskByID[demand.TaskRef.ID])
 	start, startOK := parseWorkloadDate(startText)
 	finish, finishOK := parseWorkloadDate(finishText)
 	switch {
@@ -41,9 +41,6 @@ func demandWindow(demand domain.ResourceDemand, taskByID map[string]domain.Task)
 		start = finish
 	case !finishOK:
 		finish = start
-	}
-	if finish.Before(start) {
-		start, finish = finish, start
 	}
 	return demandSpan{start: start, finish: finish, dated: true}
 }
@@ -85,20 +82,21 @@ func removesAvailabilityDay(exceptionType string) bool {
 	}
 }
 
+var availabilityWeekdays = map[string]time.Weekday{
+	"sunday": time.Sunday, "monday": time.Monday, "tuesday": time.Tuesday, "wednesday": time.Wednesday,
+	"thursday": time.Thursday, "friday": time.Friday, "saturday": time.Saturday,
+}
+
 // workingDays maps each resource to its regular weekdays and dated removals.
 // A resource without windows works every day.
 func workingDays(availabilities []domain.Availability) map[string]resourceAvailability {
-	names := map[string]time.Weekday{
-		"sunday": time.Sunday, "monday": time.Monday, "tuesday": time.Tuesday, "wednesday": time.Wednesday,
-		"thursday": time.Thursday, "friday": time.Friday, "saturday": time.Saturday,
-	}
 	out := map[string]resourceAvailability{}
 	for _, availability := range availabilities {
 		resourceID := availability.ResourceRef.ID
 		rule := out[resourceID]
 		for _, window := range availability.Windows {
 			for _, day := range window.Days {
-				weekday, ok := names[strings.ToLower(strings.TrimSpace(day))]
+				weekday, ok := availabilityWeekdays[strings.ToLower(strings.TrimSpace(day))]
 				if !ok {
 					continue
 				}

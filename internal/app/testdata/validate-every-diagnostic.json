@@ -400,6 +400,105 @@
       }
     },
     {
+      "code": "invalid_task_planned_start",
+      "message": "task planned_start \"10/01/2026\" must use YYYY-MM-DD",
+      "severity": "error",
+      "target": {
+        "kind": "task",
+        "id": "task.b"
+      }
+    },
+    {
+      "code": "invalid_task_planned_finish",
+      "message": "task planned_finish \"soon\" must use YYYY-MM-DD",
+      "severity": "error",
+      "target": {
+        "kind": "task",
+        "id": "task.b"
+      }
+    },
+    {
+      "code": "invalid_planned_amount",
+      "message": "resource demand planned_amount NaN must be a finite number, zero or greater",
+      "severity": "error",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.b"
+      }
+    },
+    {
+      "code": "invalid_remaining_amount",
+      "message": "resource demand remaining_amount NaN must be a finite number, zero or greater",
+      "severity": "error",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.b"
+      }
+    },
+    {
+      "code": "invalid_demand_timing_range",
+      "message": "resource demand latest_finish 2026-11-01 is before earliest_start 2026-11-10",
+      "severity": "error",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.orphan"
+      }
+    },
+    {
+      "code": "invalid_demand_earliest_start",
+      "message": "resource demand earliest_start \"soon\" must use YYYY-MM-DD",
+      "severity": "error",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.bad-timing"
+      }
+    },
+    {
+      "code": "invalid_demand_latest_finish",
+      "message": "resource demand latest_finish \"later\" must use YYYY-MM-DD",
+      "severity": "error",
+      "target": {
+        "kind": "resource_demand",
+        "id": "demand.bad-timing"
+      }
+    },
+    {
+      "code": "invalid_capacity_range",
+      "message": "capacity effective_to 2026-10-01 is before effective_from 2026-10-10",
+      "severity": "error",
+      "target": {
+        "kind": "capacity",
+        "id": "capacity.bad"
+      }
+    },
+    {
+      "code": "invalid_capacity_date",
+      "message": "capacity effective_from \"tomorrow\" is not YYYY-MM-DD",
+      "severity": "error",
+      "target": {
+        "kind": "capacity",
+        "id": "capacity.date"
+      }
+    },
+    {
+      "code": "invalid_amount",
+      "message": "correction corrected_amount must be finite, zero or greater",
+      "severity": "error",
+      "target": {
+        "kind": "actual",
+        "id": "actual.correction.bad"
+      }
+    },
+    {
+      "code": "invalid_status_date",
+      "message": "correction corrected_status_date \"soon\" must use YYYY-MM-DD",
+      "severity": "error",
+      "target": {
+        "kind": "actual",
+        "id": "actual.correction.bad"
+      }
+    },
+    {
       "code": "invalid_ai_agent_mutation_mode",
       "message": "policy ai_agents.default_mutation_mode must be \"proposal_only\" or \"direct\", got \"unbounded\"",
       "severity": "error",
@@ -415,6 +514,15 @@
       "target": {
         "kind": "actor",
         "id": "actor.bare"
+      }
+    },
+    {
+      "code": "invalid_id",
+      "message": "actor id \"actor.multiline\\nid\" must not contain control characters or line separators",
+      "severity": "error",
+      "target": {
+        "kind": "actor",
+        "id": "actor.multiline\nid"
       }
     },
     {
@@ -567,24 +675,6 @@
       }
     },
     {
-      "code": "invalid_planned_amount",
-      "message": "resource demand planned_amount NaN must be a finite number, zero or greater",
-      "severity": "error",
-      "target": {
-        "kind": "resource_demand",
-        "id": "demand.b"
-      }
-    },
-    {
-      "code": "invalid_remaining_amount",
-      "message": "resource demand remaining_amount NaN must be a finite number, zero or greater",
-      "severity": "error",
-      "target": {
-        "kind": "resource_demand",
-        "id": "demand.b"
-      }
-    },
-    {
       "code": "missing_resource_class",
       "message": "resource demand resource_class is required",
       "severity": "error",
@@ -609,33 +699,6 @@
       "target": {
         "kind": "resource_demand",
         "id": "demand.c"
-      }
-    },
-    {
-      "code": "invalid_demand_timing_range",
-      "message": "resource demand latest_finish 2026-11-01 is before earliest_start 2026-11-10",
-      "severity": "error",
-      "target": {
-        "kind": "resource_demand",
-        "id": "demand.orphan"
-      }
-    },
-    {
-      "code": "invalid_demand_earliest_start",
-      "message": "resource demand earliest_start \"soon\" must use YYYY-MM-DD",
-      "severity": "error",
-      "target": {
-        "kind": "resource_demand",
-        "id": "demand.bad-timing"
-      }
-    },
-    {
-      "code": "invalid_demand_latest_finish",
-      "message": "resource demand latest_finish \"later\" must use YYYY-MM-DD",
-      "severity": "error",
-      "target": {
-        "kind": "resource_demand",
-        "id": "demand.bad-timing"
       }
     },
     {
@@ -846,24 +909,6 @@
       }
     },
     {
-      "code": "invalid_task_planned_start",
-      "message": "task planned_start \"10/01/2026\" must use YYYY-MM-DD",
-      "severity": "error",
-      "target": {
-        "kind": "task",
-        "id": "task.b"
-      }
-    },
-    {
-      "code": "invalid_task_planned_finish",
-      "message": "task planned_finish \"soon\" must use YYYY-MM-DD",
-      "severity": "error",
-      "target": {
-        "kind": "task",
-        "id": "task.b"
-      }
-    },
-    {
       "code": "unresolved_reference",
       "message": "capacity resource_ref \"resource.missing\" does not exist",
       "severity": "error",
@@ -888,24 +933,6 @@
       "target": {
         "kind": "capacity",
         "id": "capacity.bad"
-      }
-    },
-    {
-      "code": "invalid_capacity_range",
-      "message": "capacity effective_to 2026-10-01 is before effective_from 2026-10-10",
-      "severity": "error",
-      "target": {
-        "kind": "capacity",
-        "id": "capacity.bad"
-      }
-    },
-    {
-      "code": "invalid_capacity_date",
-      "message": "capacity effective_from \"tomorrow\" is not YYYY-MM-DD",
-      "severity": "error",
-      "target": {
-        "kind": "capacity",
-        "id": "capacity.date"
       }
     },
     {
@@ -978,24 +1005,6 @@
       "target": {
         "kind": "actual",
         "id": "actual.correction.status"
-      }
-    },
-    {
-      "code": "invalid_amount",
-      "message": "correction corrected_amount must be finite, zero or greater",
-      "severity": "error",
-      "target": {
-        "kind": "actual",
-        "id": "actual.correction.bad"
-      }
-    },
-    {
-      "code": "invalid_status_date",
-      "message": "correction corrected_status_date \"soon\" must use YYYY-MM-DD",
-      "severity": "error",
-      "target": {
-        "kind": "actual",
-        "id": "actual.correction.bad"
       }
     },
     {
@@ -1131,6 +1140,15 @@
       "target": {
         "kind": "baseline",
         "id": "baseline.modified"
+      }
+    },
+    {
+      "code": "invalid_baseline_id",
+      "message": "baseline id \"baseline/invalid\" must be a portable filename segment",
+      "severity": "error",
+      "target": {
+        "kind": "baseline",
+        "id": "baseline/invalid"
       }
     },
     {

@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"sort"
@@ -75,8 +76,17 @@ func (s ReportService) Weekly(ctx context.Context, req WeeklyReportRequest) (rep
 		Week:        req.Week,
 		Raw:         req.Raw,
 	})
-	if len(overlayErrors) > 0 {
+	if len(overlayErrors) > 0 && err == nil {
 		err = ErrValidationFailed
+	}
+	if errors.Is(err, ErrInvalidPlanInputs) {
+		for _, diagnostics := range [][]Diagnostic{overlayWarnings, overlayErrors, workload.Warnings, workload.Errors} {
+			for _, d := range diagnostics {
+				appendReportIssue(&report, d)
+			}
+		}
+		report.Summary.WarningCount, report.Summary.ErrorCount = len(report.Warnings), len(report.Errors)
+		return report, err
 	}
 
 	if baseline, ok := reportBaseline(ws); ok {
@@ -171,10 +181,7 @@ func (s ReportService) Weekly(ctx context.Context, req WeeklyReportRequest) (rep
 	report.Summary.OpenProposals = len(report.Proposals)
 	report.Summary.EvidenceCount = len(report.Evidence)
 
-	if err != nil {
-		return report, err
-	}
-	return report, nil
+	return report, err
 }
 
 func (s ReportService) Dashboard(ctx context.Context, req DashboardReportRequest) (reports.DashboardOverview, error) {
@@ -199,11 +206,9 @@ func (s ReportService) Dashboard(ctx context.Context, req DashboardReportRequest
 		overview.Health.ErrorCount = len(overview.Errors)
 		return overview, ErrValidationFailed
 	}
-	overlayErrors := []Diagnostic{}
 	if req.ScenarioID != "" {
 		overlay := ApplyScenarioOverlay(ws, req.ScenarioID)
-		overlayErrors = overlay.Errors
-		if len(overlayErrors) == 0 {
+		if len(overlay.Errors) == 0 {
 			ws = overlay.Workspace
 		}
 	}
@@ -217,6 +222,14 @@ func (s ReportService) Dashboard(ctx context.Context, req DashboardReportRequest
 		ScenarioID:  req.ScenarioID,
 		Raw:         req.Raw,
 	})
+	if errors.Is(err, ErrInvalidPlanInputs) {
+		return reports.DashboardOverview{
+			SchemaVersion: 1, GeneratedAt: generatedAt.Format(time.RFC3339), ProjectPath: s.loader.ProjectPath(),
+			ProjectID: ws.Project.ID, ProjectName: ws.Project.Name, Week: week, ScenarioID: req.ScenarioID,
+			Warnings: weekly.Warnings, Errors: weekly.Errors,
+			Health: reports.DashboardHealthSummary{WarningCount: len(weekly.Warnings), ErrorCount: len(weekly.Errors)},
+		}, err
+	}
 	overview := reports.DashboardOverview{
 		SchemaVersion: 1,
 		GeneratedAt:   generatedAt.Format(time.RFC3339),
@@ -269,9 +282,6 @@ func (s ReportService) Dashboard(ctx context.Context, req DashboardReportRequest
 		} else {
 			overview.Errors = append(overview.Errors, diagnosticToReportIssue(d))
 		}
-	}
-	if len(overlayErrors) > 0 {
-		err = ErrValidationFailed
 	}
 	overview.Health.WarningCount = len(overview.Warnings)
 	overview.Health.ErrorCount = len(overview.Errors)
