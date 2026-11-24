@@ -662,3 +662,23 @@ evidence:
     targets:
       - kind: task
         id: task.self.readers-fail-closed-on-pending-commit
+  - id: evidence.self.readers-fail-closed-pde
+    type: agent_observation
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-24T15:03:26+07:00"
+    summary: The designated executor implemented pending-journal refusal, idempotent recovery auditing and the portable test follow-up. Targeted tests passed. Two measured implementation turns totalled 809.108 seconds; the full suite is verified separately.
+    targets:
+      - kind: task
+        id: task.self.readers-fail-closed-on-pending-commit
+  - id: evidence.self.readers-fail-closed-ready
+    type: agent_observation
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-24T15:10:27+07:00"
+    summary: 'Verified the executor patch and the test-only follow-up against the integrated tree: all Go tests, vet, lint, Windows binary build, MVP smoke and 58 agent-kit checks. An independent disposable project test confirmed conflict exit 5, no artifact or lock on refusal, audit-free preview, one recovery audit across two applies, and restored workload reads. CI and maintainer acceptance are tracked separately.'
+    targets:
+      - kind: task
+        id: task.self.readers-fail-closed-on-pending-commit

@@ -19063,7 +19063,7 @@ resource_demands:
     role: implementation_agent
     unit: agent_hours
     planned_amount: 0.5
-    remaining_amount: 0.5
+    remaining_amount: 0
     criticality: required
     status: active
   - id: resource_demand.readers-fail-closed-on-pending-commit.agent
@@ -19077,7 +19077,7 @@ resource_demands:
     role: implementation_agent
     unit: agent_hours
     planned_amount: 0.15
-    remaining_amount: 0.15
+    remaining_amount: 0
     criticality: required
     status: active
   - id: resource_demand.readers-fail-closed-on-pending-commit.maintainer
@@ -19105,7 +19105,7 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
     status: active
   - id: resource_demand.readers-fail-closed-on-pending-commit.ci

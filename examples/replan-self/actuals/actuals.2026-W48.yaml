@@ -879,3 +879,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.deploy-safe-report-urls-ready
+  - id: actual.self-readers-fail-closed-on-pending-commit.ai-agent-executor.20261124T1503260700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.readers-fail-closed-on-pending-commit
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.readers-fail-closed-on-pending-commit.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.22
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-24T15:03:26+07:00"
+    status_date: "2026-11-24"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.readers-fail-closed-pde
+  - id: actual.self-readers-fail-closed-on-pending-commit.ai-codex-local.20261124T1510270700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.readers-fail-closed-on-pending-commit
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.readers-fail-closed-on-pending-commit.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.35
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-24T15:10:27+07:00"
+    status_date: "2026-11-24"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.readers-fail-closed-ready
