@@ -128,7 +128,7 @@ type EstimateSplitGroupSummary struct {
 }
 
 func (s ReportService) Estimates(ctx context.Context, req EstimateReportRequest) (EstimateReportResult, error) {
-	ws, loadDiags := s.loader.Load(ctx)
+	ws, loadDiags := loadPlanningWorkspace(ctx, s.loader)
 	result := EstimateReportResult{
 		ProjectID: ws.Project.ID, ProjectName: ws.Project.Name, BaselineID: req.BaselineID,
 		ActualTypes: []string{"consumption", "runtime_consumed", "work_consumed"},

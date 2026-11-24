@@ -38,9 +38,11 @@ func runWorkload(args []string, stdout, stderr *os.File) int {
 	fs.StringVar(&unit, "unit", "", "keep only rows in this unit, for example hours")
 	fs.StringVar(&scenarioID, "scenario", "", "scenario id to apply as an in-memory overlay")
 
-	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+	lock, code, done := parsePlanningFlags(fs, args, stdout, stderr)
+	if done {
 		return code
 	}
+	defer lock.close()
 	if projectPath == "" {
 		projectPath = "."
 	}

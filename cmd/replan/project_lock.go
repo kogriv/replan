@@ -42,6 +42,9 @@ func projectWriteIntentForArgs(args []string) projectWriteIntent {
 		intent.bindingsLayer = os.Getenv("REPLAN_OPENPROJECT_BINDINGS_LAYER") != ""
 	}
 
+	if intent.projectPath == "" {
+		intent.projectPath = "."
+	}
 	dryRun := flagBool(args, false, "dry-run")
 	switch intent.command {
 	case "init":
@@ -54,7 +57,7 @@ func projectWriteIntentForArgs(args []string) projectWriteIntent {
 	case "tracking suggest", "proposal suggest-dependencies":
 		intent.write = flagBool(args, false, "write-candidates")
 	case "taskjuggler import-result":
-		intent.write = flagBool(args, false, "write-candidate")
+		intent.write = !dryRun && flagBool(args, false, "write-candidate")
 	case "report weekly":
 		intent.write = flagBool(args, false, "write")
 	case "report dashboard":
@@ -79,6 +82,30 @@ func projectWriteIntentForArgs(args []string) projectWriteIntent {
 	return intent
 }
 
+func (intent projectWriteIntent) planningCommand() bool {
+	switch intent.command {
+	case "workload", "next", "report weekly", "report state", "report dashboard",
+		"report estimates", "report waits", "estimate list", "estimate show",
+		"export json", "export csv", "export taskjuggler", "taskjuggler run",
+		"dev validate-taskjuggler", "estimate calibrate", "estimate apply",
+		"tracking suggest", "taskjuggler import-result":
+		return true
+	default:
+		return false
+	}
+}
+
+// Artifact-producing reads still take the write lock when publishing inside
+// the project. Only operations that change project state can recover first.
+func (intent projectWriteIntent) requiresCleanCommit() bool {
+	switch intent.command {
+	case "estimate calibrate", "estimate apply", "tracking suggest", "taskjuggler import-result":
+		return !intent.write || intent.bindingsLayer
+	default:
+		return intent.planningCommand()
+	}
+}
+
 func commandName(args []string) string {
 	if len(args) == 0 {
 		return ""
@@ -89,7 +116,7 @@ func commandName(args []string) string {
 			return candidate
 		}
 		switch candidate {
-		case "import openproject", "import github", "tracking suggest", "proposal suggest-dependencies", "taskjuggler import-result", "taskjuggler run", "report weekly", "report dashboard", "export json", "export csv", "export taskjuggler":
+		case "import openproject", "import github", "tracking suggest", "proposal suggest-dependencies", "taskjuggler import-result", "taskjuggler run", "report weekly", "report dashboard", "export json", "export csv", "export taskjuggler", "report state", "report estimates", "report waits", "estimate list", "estimate show", "dev validate-taskjuggler":
 			return candidate
 		}
 	}
@@ -102,8 +129,10 @@ func defaultCommandFormat(args []string) string {
 		return "markdown"
 	case "report dashboard":
 		return "html"
-	case "export taskjuggler":
+	case "export taskjuggler", "next":
 		return "text"
+	case "export csv":
+		return "csv"
 	default:
 		return "json"
 	}
@@ -184,13 +213,44 @@ func acquireProjectWriteLock(projectPath string, timeout time.Duration) (*projec
 		return nil, nil
 	}
 	lockPath := filepath.Join(projectPath, filepath.FromSlash(projectWriteLockRelativePath))
-	file, err := os.OpenFile(lockPath, os.O_CREATE|os.O_RDWR, 0o600)
+	file, err := os.OpenFile(lockPath, os.O_RDWR, 0)
+	if errors.Is(err, os.ErrNotExist) {
+		bootstrap, bootstrapErr := acquireProjectBootstrapLock(metadataDir, timeout, false)
+		if bootstrapErr != nil {
+			return nil, bootstrapErr
+		}
+		defer bootstrap.close()
+		file, err = os.OpenFile(lockPath, os.O_CREATE|os.O_RDWR, 0o600)
+	}
+	return acquireProjectFileLock(lockPath, file, err, timeout, false)
+}
+
+func acquireProjectReadLock(projectPath string, timeout time.Duration) (*projectWriteLock, error) {
+	lockPath := filepath.Join(projectPath, filepath.FromSlash(projectWriteLockRelativePath))
+	file, err := os.Open(lockPath)
+	if errors.Is(err, os.ErrNotExist) {
+		// Serialize with first lock creation where directory locks are
+		// supported. If a writer won, switch to the persistent file lock.
+		bootstrap, bootstrapErr := acquireProjectBootstrapLock(filepath.Dir(lockPath), timeout, true)
+		if bootstrapErr != nil {
+			return nil, bootstrapErr
+		}
+		file, err = os.Open(lockPath)
+		if errors.Is(err, os.ErrNotExist) {
+			return bootstrap, nil
+		}
+		bootstrap.close()
+	}
+	return acquireProjectFileLock(lockPath, file, err, timeout, true)
+}
+
+func acquireProjectFileLock(lockPath string, file *os.File, err error, timeout time.Duration, shared bool) (*projectWriteLock, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open %s: %w", lockPath, err)
 	}
 	deadline := time.Now().Add(timeout)
 	for {
-		locked, lockErr := tryProjectFileLock(file)
+		locked, lockErr := tryProjectFileLock(file, shared)
 		if lockErr != nil {
 			_ = file.Close()
 			return nil, fmt.Errorf("lock %s: %w", lockPath, lockErr)

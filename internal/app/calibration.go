@@ -163,7 +163,7 @@ func NewCalibrationService(loader WorkspaceLoader) CalibrationService {
 }
 
 func (s CalibrationService) Calibrate(ctx context.Context, req CalibrationCalibrateRequest) (CalibrationCalibrateResult, error) {
-	ws, loadDiags := s.loader.Load(ctx)
+	ws, loadDiags := loadPlanningWorkspace(ctx, s.loader)
 	result := CalibrationCalibrateResult{DryRun: req.DryRun, PlannedWrites: []PlannedWrite{}, WrittenFiles: []string{}, Warnings: []Diagnostic{}, Errors: []Diagnostic{}}
 	appendLoadDiagnostics(&result.Warnings, &result.Errors, loadDiags)
 	baselines := validateCalibrationRequest(&result.Errors, ws, req)
@@ -692,7 +692,7 @@ func calibrationTaskScopeAmounts(demands []domain.ResourceDemand, calibration do
 }
 
 func (s CalibrationService) List(ctx context.Context) (CalibrationListResult, error) {
-	ws, diags := s.loader.Load(ctx)
+	ws, diags := loadPlanningWorkspace(ctx, s.loader)
 	result := CalibrationListResult{Calibrations: []CalibrationSummary{}, Warnings: []Diagnostic{}, Errors: []Diagnostic{}}
 	appendLoadDiagnostics(&result.Warnings, &result.Errors, diags)
 	for _, calibration := range ws.Calibrations {
@@ -706,7 +706,7 @@ func (s CalibrationService) List(ctx context.Context) (CalibrationListResult, er
 }
 
 func (s CalibrationService) Show(ctx context.Context, id string) (CalibrationShowResult, error) {
-	ws, diags := s.loader.Load(ctx)
+	ws, diags := loadPlanningWorkspace(ctx, s.loader)
 	result := CalibrationShowResult{Warnings: []Diagnostic{}, Errors: []Diagnostic{}}
 	appendLoadDiagnostics(&result.Warnings, &result.Errors, diags)
 	for _, calibration := range ws.Calibrations {
@@ -724,7 +724,7 @@ func (s CalibrationService) Show(ctx context.Context, id string) (CalibrationSho
 }
 
 func (s CalibrationService) Apply(ctx context.Context, req CalibrationApplyRequest) (CalibrationApplyResult, error) {
-	ws, diags := s.loader.Load(ctx)
+	ws, diags := loadPlanningWorkspace(ctx, s.loader)
 	result := CalibrationApplyResult{DryRun: req.DryRun, CalibrationID: req.CalibrationID, Skipped: []CalibrationApplySkip{}, PlannedWrites: []PlannedWrite{}, WrittenFiles: []string{}, Warnings: []Diagnostic{}, Errors: []Diagnostic{}}
 	appendLoadDiagnostics(&result.Warnings, &result.Errors, diags)
 	calibration, ok := findCalibration(ws.Calibrations, req.CalibrationID)

@@ -422,7 +422,11 @@ audit/
   audit.2026-08.jsonl
 ```
 
-Each line is one JSON object.
+Each line is one JSON object. Recovery writes a dedicated
+`audit/audit.recovery.<id>.jsonl` shard with a `project_recover` record
+attributed to `system:replan`. Its identity is saved in the pending journal
+across retries so replay of the original audit shards preserves the recovery
+record.
 
 Why JSON Lines:
 

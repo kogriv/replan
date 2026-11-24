@@ -128,7 +128,7 @@ type waitEvent struct {
 
 //nolint:gocyclo // Validation, history projection, aggregation, and diagnostics are kept together as one read-only report transaction.
 func (s ReportService) Waits(ctx context.Context, req WaitReportRequest) (WaitReportResult, error) {
-	ws, loadDiags := s.loader.Load(ctx)
+	ws, loadDiags := loadPlanningWorkspace(ctx, s.loader)
 	result := WaitReportResult{
 		ProjectID: ws.Project.ID, ProjectName: ws.Project.Name, StatusDate: ws.Project.DefaultStatusDate,
 		Since: req.Since, Until: req.Until, Tag: req.Tag,

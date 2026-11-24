@@ -39,27 +39,13 @@ func run(args []string, stdout, stderr *os.File) (code int) {
 		}
 	}()
 	intent := projectWriteIntentForArgs(args)
-	if intent.write && !intent.bindingsLayer {
-		lock, err := acquireProjectWriteLock(intent.projectPath, projectWriteLockTimeout())
-		if err != nil {
-			return printProjectLocked(stdout, stderr, intent, err)
+	// Planning commands acquire their lock after parsing their actual flags.
+	if !intent.planningCommand() && intent.write && !intent.bindingsLayer {
+		lock, code := lockProjectCommand(stdout, stderr, intent)
+		if code != exitSuccess {
+			return code
 		}
-		if lock != nil {
-			defer lock.close()
-		}
-		if intent.command != "project recover" {
-			recovery, recoveryErr := filestore.RecoverCommit(intent.projectPath)
-			if recoveryErr != nil {
-				return printCommitRecoveryError(stdout, stderr, intent, recoveryErr)
-			}
-			if recovery.Pending {
-				message := fmt.Sprintf("recovered interrupted commit for project %s; files: [%s]", intent.projectPath, strings.Join(recovery.RecoveredFiles, ", "))
-				if recovery.IncompleteRemoved {
-					message = fmt.Sprintf("removed incomplete commit journal for project %s; files: []", intent.projectPath)
-				}
-				addRuntimeWarning(stdout, app.Diagnostic{Code: "recovered_commit", Message: message, Severity: "warning", Target: app.Target{Kind: "project", ID: intent.projectPath}})
-			}
-		}
+		defer lock.close()
 	}
 	code = runCommand(args, stdout, stderr)
 	if code != exitSuccess {
@@ -68,6 +54,71 @@ func run(args []string, stdout, stderr *os.File) (code int) {
 		}
 	}
 	return code
+}
+
+func lockProjectCommand(stdout, stderr *os.File, intent projectWriteIntent) (*projectWriteLock, int) {
+	clean := intent.requiresCleanCommit()
+	if clean {
+		// Refuse a pending journal before an output command can create a lock.
+		if code := checkCleanCommit(stdout, stderr, intent); code != exitSuccess {
+			return nil, code
+		}
+	}
+	var lock *projectWriteLock
+	var err error
+	switch {
+	case intent.write && !intent.bindingsLayer:
+		lock, err = acquireProjectWriteLock(intent.projectPath, projectWriteLockTimeout())
+	case clean:
+		lock, err = acquireProjectReadLock(intent.projectPath, projectWriteLockTimeout())
+	default:
+		return nil, exitSuccess
+	}
+	if err != nil {
+		if clean {
+			if code := checkCleanCommit(stdout, stderr, intent); code != exitSuccess {
+				return nil, code
+			}
+		}
+		return nil, printProjectLocked(stdout, stderr, intent, err)
+	}
+	if clean {
+		if code := checkCleanCommit(stdout, stderr, intent); code != exitSuccess {
+			lock.close()
+			return nil, code
+		}
+	} else if intent.command != "project recover" {
+		recovery, err := filestore.RecoverCommit(intent.projectPath)
+		if err != nil {
+			lock.close()
+			return nil, printCommitRecoveryError(stdout, stderr, intent, err)
+		}
+		if recovery.Pending {
+			message := fmt.Sprintf("recovered interrupted commit for project %s; files: [%s]", intent.projectPath, strings.Join(recovery.RecoveredFiles, ", "))
+			if recovery.IncompleteRemoved {
+				message = fmt.Sprintf("removed incomplete commit journal for project %s; files: []", intent.projectPath)
+			}
+			addRuntimeWarning(stdout, app.Diagnostic{Code: "recovered_commit", Message: message, Severity: "warning", Target: app.Target{Kind: "project", ID: intent.projectPath}})
+		}
+	}
+	return lock, exitSuccess
+}
+
+func checkCleanCommit(stdout, stderr *os.File, intent projectWriteIntent) int {
+	diagnostic := filestore.CheckPendingCommit(intent.projectPath)
+	if diagnostic == nil {
+		return exitSuccess
+	}
+	if intent.format != "json" {
+		fmt.Fprintf(stderr, "%s: %s\n", diagnostic.Code, diagnostic.Message)
+		return exitConflict
+	}
+	env := envelope{OK: false, Command: intent.command, ProjectPath: intent.projectPath, Errors: []app.Diagnostic{*diagnostic}}
+	if err := printEnvelope(stdout, "json", env); err != nil {
+		fmt.Fprintf(stderr, "failed to write output: %v\n", err)
+		return exitGeneralError
+	}
+	return exitConflict
 }
 
 func printCommitRecoveryError(stdout, stderr *os.File, intent projectWriteIntent, recoveryErr error) int {

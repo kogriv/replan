@@ -49,9 +49,11 @@ func runTrackingSuggest(args []string, stdout, stderr *os.File) int {
 	week := fs.String("week", "", "ISO week, for example 2026-W31")
 	actorID := fs.String("actor", "", "actor id creating proposal candidates")
 	writeCandidates := fs.Bool("write-candidates", false, "write supported tracking suggestions as reviewable proposal candidate files")
-	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+	lock, code, done := parsePlanningFlags(fs, args, stdout, stderr)
+	if done {
 		return code
 	}
+	defer lock.close()
 	formatValue := strings.ToLower(*format)
 	if formatValue != "json" && formatValue != "markdown" && formatValue != "text" {
 		env := envelope{

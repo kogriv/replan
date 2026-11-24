@@ -5,11 +5,13 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/kogriv/replan/internal/app"
 	"github.com/kogriv/replan/internal/domain"
@@ -207,14 +209,20 @@ func assertRecoveredProjectValid(t *testing.T, project, suffix string) {
 	if countCLIRecords(workspace.Evidence, func(id string) bool { return id == "evidence.interrupted-"+suffix }) != 1 {
 		t.Fatal("recovered evidence is not present exactly once")
 	}
-	count := 0
+	count, recoveryCount := 0, 0
 	for _, record := range workspace.AuditRecords {
+		if record.Operation == "project_recover" {
+			recoveryCount++
+			if record.ActorRef.Kind != "system" || record.ActorRef.ID != "replan" || record.Reason != "replayed complete journal" {
+				t.Fatalf("bad recovery record: %+v", record)
+			}
+		}
 		if record.ID == "audit.interrupted-"+suffix {
 			count++
 		}
 	}
-	if count != 1 {
-		t.Fatal("recovered audit is not present exactly once")
+	if count != 1 || recoveryCount != 1 {
+		t.Fatalf("mutation audit count=%d recovery audit count=%d", count, recoveryCount)
 	}
 }
 
@@ -226,4 +234,150 @@ func countCLIRecords(records []domain.Evidence, match func(string) bool) int {
 		}
 	}
 	return count
+}
+
+func TestPlanningCommandsRefusePartiallyInstalledCommit(t *testing.T) {
+	project := copyPlanningFixtureWithoutLock(t)
+	files := interruptedEvidenceFiles(t, project, "readers")
+	writeTestCommitJournal(t, project, files)
+	// Install only the first operation from the real v1 journal.
+	rel := "evidence/evidence.2031-W02.yaml"
+	if err := os.WriteFile(filepath.Join(project, rel), files[rel], 0o644); err != nil {
+		t.Fatal(err)
+	}
+	before := snapshotProjectFiles(t, project)
+	outside := t.TempDir()
+	insideFile := filepath.Join(project, "refused.json")
+	outsideFile := filepath.Join(outside, "refused.tjp")
+	for _, tc := range []struct {
+		args []string
+		json bool
+	}{
+		{[]string{"workload", "--resource", "--project", "--raw"}, true},
+		{[]string{"next", "--format", "json"}, true},
+		{[]string{"report", "state", "--format", "json"}, true},
+		{[]string{"report", "weekly", "--week", "2026-W28", "--write"}, false},
+		{[]string{"report", "estimates", "--baseline", "baseline.initial"}, false},
+		{[]string{"report", "waits"}, false},
+		{[]string{"report", "dashboard", "--output", "refused-dashboard"}, false},
+		{[]string{"tracking", "suggest"}, true},
+		{[]string{"estimate", "list"}, true},
+		{[]string{"estimate", "show", "calibration.example"}, true},
+		{[]string{"estimate", "calibrate", "--dry-run"}, true},
+		{[]string{"estimate", "apply", "--dry-run"}, true},
+		{[]string{"export", "json", "--output", insideFile, "--manifest", insideFile + ".manifest"}, true},
+		{[]string{"export", "csv", "--output", outsideFile + ".csv", "--manifest", outsideFile + ".manifest"}, false},
+		{[]string{"export", "taskjuggler", "--output", outsideFile}, false},
+		{[]string{"taskjuggler", "run", "--output-dir", filepath.Join(outside, "run")}, true},
+		{[]string{"taskjuggler", "import-result", "--dry-run"}, true},
+		{[]string{"taskjuggler", "import-result", "--dry-run", "--write-candidate"}, true},
+		{[]string{"dev", "validate-taskjuggler", "--keep-temp"}, true},
+	} {
+		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
+			t.Setenv("REPLAN_APPLY", "1")
+			commandLen := 2
+			if tc.args[0] == "workload" || tc.args[0] == "next" {
+				commandLen = 1
+			}
+			args := append([]string{}, tc.args[:commandLen]...)
+			args = append(args, "--project", project)
+			args = append(args, tc.args[commandLen:]...)
+			stdout, stderr := tempOutputFiles(t)
+			exit := run(args, stdout, stderr)
+			out, failure := readFileString(t, stdout.Name()), readFileString(t, stderr.Name())
+			if exit != exitConflict || !strings.Contains(out+failure, "replan project recover --project") || !strings.Contains(out+failure, "--apply") {
+				t.Fatalf("exit=%d stdout=%s stderr=%s", exit, out, failure)
+			}
+			if tc.json {
+				env := readCLIEnvelope(t, stdout.Name())
+				if env.OK || string(env.Result) != "null" || !hasDiagnosticCode(env.Errors, "interrupted_commit_pending") {
+					t.Fatalf("refusal = %+v", env)
+				}
+			} else if out != "" {
+				t.Fatalf("unexpected stdout: %q", out)
+			}
+		})
+	}
+	for _, args := range [][]string{{"audit", "verify"}, {"project", "recover", "--dry-run"}} {
+		stdout, stderr := tempOutputFiles(t)
+		args = append(args, "--project", project, "--format", "json")
+		if code := run(args, stdout, stderr); code != exitSuccess {
+			t.Fatalf("%v exit=%d stdout=%s stderr=%s", args, code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+		}
+		if env := readCLIEnvelope(t, stdout.Name()); !hasDiagnosticCode(env.Warnings, "interrupted_commit_pending") {
+			t.Fatalf("inspection warnings = %v", env.Warnings)
+		}
+	}
+	if after := snapshotProjectFiles(t, project); !reflect.DeepEqual(before, after) {
+		t.Fatal("refusals or inspections changed project files")
+	}
+	if entries, err := os.ReadDir(outside); err != nil || len(entries) != 0 {
+		t.Fatalf("refusals published outside the project: %v, %v", entries, err)
+	}
+	for _, args := range [][]string{
+		{"project", "recover", "--apply"},
+		{"project", "recover", "--apply"},
+		{"workload"},
+		{"export", "json", "--output", insideFile},
+	} {
+		stdout, stderr := tempOutputFiles(t)
+		args = append(args, "--project", project, "--format", "json")
+		if code := run(args, stdout, stderr); code != exitSuccess {
+			t.Fatalf("%v exit=%d stdout=%s stderr=%s", args, code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+		}
+	}
+	assertRecoveredProjectValid(t, project, "readers")
+	if _, err := os.Stat(insideFile); err != nil {
+		t.Fatalf("export after recovery: %v", err)
+	}
+}
+
+func TestPlanningReadDoesNotCreateFirstLock(t *testing.T) {
+	project := copyPlanningFixtureWithoutLock(t)
+	before := snapshotProjectFiles(t, project)
+	stdout, stderr := tempOutputFiles(t)
+	if code := run([]string{"workload", "--project", project}, stdout, stderr); code != exitSuccess {
+		t.Fatalf("exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	if after := snapshotProjectFiles(t, project); !reflect.DeepEqual(before, after) {
+		t.Fatal("ordinary read changed project files")
+	}
+}
+
+func TestPlanningLockSerializesReadersAndWriters(t *testing.T) {
+	project := copyPlanningFixtureWithoutLock(t)
+	reader, err := acquireProjectReadLock(project, projectWriteLockTimeout())
+	if err != nil {
+		t.Fatal(err)
+	}
+	writer, err := acquireProjectWriteLock(project, time.Millisecond)
+	writer.close()
+	reader.close()
+	if !errors.Is(err, errProjectLockTimeout) {
+		t.Fatalf("first writer acquired lock during read: %v", err)
+	}
+
+	writer, err = acquireProjectWriteLock(project, projectWriteLockTimeout())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer writer.close()
+	t.Setenv("REPLAN_LOCK_TIMEOUT_SECONDS", "0.001")
+	stdout, stderr := tempOutputFiles(t)
+	if code := run([]string{"workload", "--project", project}, stdout, stderr); code != exitConflict {
+		t.Fatalf("reader exit=%d, want conflict", code)
+	}
+	env := readCLIEnvelope(t, stdout.Name())
+	if !hasDiagnosticCode(env.Errors, projectLockedCode) || string(env.Result) != "null" {
+		t.Fatalf("reader lock refusal = %+v", env)
+	}
+}
+
+func copyPlanningFixtureWithoutLock(t *testing.T) string {
+	t.Helper()
+	project := copyCmdProjectFixture(t)
+	if err := os.Remove(filepath.Join(project, projectWriteLockRelativePath)); err != nil && !os.IsNotExist(err) {
+		t.Fatal(err)
+	}
+	return project
 }

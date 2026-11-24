@@ -109,7 +109,7 @@ type taskJugglerTaskSchedule struct {
 }
 
 func (s ExportService) TaskJuggler(ctx context.Context, req ExportTaskJugglerRequest) (ExportTaskJugglerResult, error) {
-	ws, loadDiags := s.loader.Load(ctx)
+	ws, loadDiags := loadPlanningWorkspace(ctx, s.loader)
 	now := req.Now
 	if now.IsZero() {
 		now = time.Now()

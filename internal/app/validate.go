@@ -21,6 +21,23 @@ type WorkspaceLoader interface {
 	ProjectPath() string
 }
 
+// loadPlanningWorkspace lets persistent loaders refuse unsettled data while
+// keeping the diagnostic load available to validate and audit.
+func loadPlanningWorkspace(ctx context.Context, loader WorkspaceLoader) (domain.Workspace, []Diagnostic) {
+	if planning, ok := loader.(interface {
+		LoadPlanning(context.Context) (domain.Workspace, []Diagnostic)
+	}); ok {
+		return planning.LoadPlanning(ctx)
+	}
+	return loader.Load(ctx)
+}
+
+func planningLoadBlocked(diags []Diagnostic) bool {
+	return hasDiagnosticCode(diags, "project_format_unsupported") ||
+		hasDiagnosticCode(diags, "interrupted_commit_pending") ||
+		hasDiagnosticCode(diags, "commit_journal_unavailable")
+}
+
 type ValidateService struct {
 	loader WorkspaceLoader
 }

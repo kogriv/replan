@@ -359,19 +359,48 @@ Before replacing the first staged file, a canonical write records every full
 file image, removal, commit-order entry and SHA-256 in
 `.replan/commit-pending/`. The manifest is published last, after the blobs are
 durable. A completed write removes the journal. If a process stops after the
-manifest is published, the next locked write replays the entire validated set
-before loading the project and reports the warning `recovered_commit` with the
+manifest is published, the next locked project-state write replays the entire
+validated set before loading the project and reports `recovered_commit` with the
 file list. `replan project recover --apply` performs the same replay
 explicitly. Full-file atomic replacement and missing-file-tolerant removals
 make replay idempotent.
 
-Read-only commands never replay or remove a journal. They continue against the
-files currently on disk and report `interrupted_commit_pending`, naming the
-project. A journal without a manifest predates the first project-file
-replacement and is removed by the next recovery. A complete journal is fully
-validated before replay; a missing or hash-mismatched blob reports
-`commit_journal_corrupt` with exit code `2`, changes nothing and tells the
-operator to inspect `.replan/commit-pending/`.
+Workload, reports (including `next` and dashboard), tracking suggestions,
+estimate reads and previews, exports, and TaskJuggler reads refuse a pending
+journal with `interrupted_commit_pending` and conflict exit code `5`. The
+error gives the command `replan project recover --project <path> --apply`.
+JSON refusals have a null result. Other formats report the error on stderr.
+Refused commands emit no metrics and publish no outputs or manifests,
+including when output was requested inside the project. Tracking candidate
+writes, estimate applies, and TaskJuggler candidate writes keep automatic
+recovery under the write lock.
+
+Planning readers share the existing project lock. Before the first writer
+creates the lock file, readers and writers coordinate through existing
+project metadata. Ordinary reads create no lock file. This prevents
+concurrent journal installation by cooperating CLI writers while a planning
+command reads the project. Direct store clients must serialize their own
+reads and writes. The lock protects journaled CLI updates. General snapshot
+isolation across external edits, tools that bypass the lock, and concurrent
+first-time project initialization is outside this guarantee.
+
+`validate`, `audit`, and `project recover --dry-run` remain diagnostic
+views. They can report `interrupted_commit_pending` and inspect the files
+currently installed. That view may contain only part of the transaction.
+A journal without a manifest predates the first project-file replacement.
+Recovery discards it. A complete journal is fully validated before replay.
+A missing or hash-mismatched blob reports `commit_journal_corrupt` with
+exit code `2` and directs the operator to `.replan/commit-pending/`.
+
+Explicit and automatic recovery write one `project_recover` audit record
+for a completed replay or incomplete discard. The record identifies RePlan
+as a system actor and preserves the original mutation audit. Inspection,
+no-op recovery, and failures before audit publication add no recovery
+record. If interrupted between publishing the recovery audit and retiring
+the journal, retry to finish retirement. The journal preserves the audit
+identity so retry uses the same record. A storage failure during final
+directory synchronization can leave the outcome durable only in part. The
+recovery audit can then already be visible.
 
 ### Agent mode
 

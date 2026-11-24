@@ -174,6 +174,19 @@ func TestRecoverManifestlessJournalRemovesItWithoutTouchingProject(t *testing.T)
 	if _, err := os.Stat(journalPath); !errors.Is(err, os.ErrNotExist) {
 		t.Fatalf("journal still exists: %v", err)
 	}
+	workspace, _ := New(projectPath).Load(context.Background())
+	count := 0
+	for _, audit := range workspace.AuditRecords {
+		if audit.Operation == "project_recover" {
+			count++
+			if audit.Reason != "discarded incomplete journal" || audit.ActorRef.Kind != "system" {
+				t.Fatalf("incomplete recovery audit = %+v", audit)
+			}
+		}
+	}
+	if count != 1 {
+		t.Fatalf("incomplete recovery audit count = %d", count)
+	}
 }
 
 func TestCorruptCommitJournalRefusesBeforeChangingProject(t *testing.T) {
@@ -287,4 +300,71 @@ func hasAuditID(records []domain.AuditRecord, id string) bool {
 		}
 	}
 	return false
+}
+
+func TestRecoveryAuditSurvivesRetryAfterPublication(t *testing.T) {
+	project := copyProjectFixture(t)
+	disk := diskFS{root: project}
+	rel := "canonical/recovery-test.yaml"
+	data := []byte("# replayed data\n")
+	order := []commitJournalOperation{{Action: journalActionWrite, Path: rel}}
+	if _, err := disk.createCommitJournal(order, map[string][]byte{rel: data}); err != nil {
+		t.Fatal(err)
+	}
+	// Simulate an install failure before recovery reaches audit publication.
+	if err := os.Mkdir(disk.abs(rel), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := RecoverCommit(project); err == nil {
+		t.Fatal("expected recovery to fail before publishing its audit")
+	}
+	records, err := disk.glob("audit/audit.recovery.*.jsonl")
+	if err != nil || len(records) != 0 {
+		t.Fatalf("failed recovery published audit: %v, %v", records, err)
+	}
+	if err := os.Remove(disk.abs(rel)); err != nil {
+		t.Fatal(err)
+	}
+	record, published, err := disk.recoveryAudit(CommitRecovery{Complete: true, RecoveredFiles: []string{rel}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := disk.write(rel, data); err != nil {
+		t.Fatal(err)
+	}
+	// Simulate an interruption after publishing audit, before retiring the journal.
+	auditRel := "audit/" + record.ID + ".jsonl"
+	if err := disk.write(auditRel, published); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := RecoverCommit(project); err != nil {
+		t.Fatal(err)
+	}
+	if result, err := RecoverCommit(project); err != nil || result.Pending {
+		t.Fatalf("second retry = %+v, %v", result, err)
+	}
+	records, err = disk.glob("audit/audit.recovery.*.jsonl")
+	if err != nil || len(records) != 1 || records[0] != auditRel {
+		t.Fatalf("recovery audit shards = %v, %v", records, err)
+	}
+	if got, err := disk.read(auditRel); err != nil || string(got) != string(published) {
+		t.Fatalf("recovery audit changed on retry: %s, %v", got, err)
+	}
+}
+
+func TestPlanningServicesRejectPendingCommitForDirectStoreCallers(t *testing.T) {
+	project := copyProjectFixture(t)
+	disk := diskFS{root: project}
+	if err := os.MkdirAll(disk.journalPath(), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	store := New(project)
+	result, err := app.NewWorkloadService(store).Calculate(context.Background(), app.WorkloadRequest{})
+	if err == nil || len(result.Resources) != 0 || !hasDiagnostic(result.Errors, "interrupted_commit_pending") {
+		t.Fatalf("workload computed from a pending commit: %+v, %v", result, err)
+	}
+	ws, diagnostics := store.Load(context.Background())
+	if ws.Project.ID == "" || !hasDiagnostic(diagnostics, "interrupted_commit_pending") {
+		t.Fatalf("diagnostic load lost project or warning: %v", diagnostics)
+	}
 }

@@ -56,7 +56,7 @@ func NewExportService(loader WorkspaceLoader) ExportService {
 }
 
 func (s ExportService) JSON(ctx context.Context, req ExportJSONRequest) (ExportJSONResult, error) {
-	ws, loadDiags := s.loader.Load(ctx)
+	ws, loadDiags := loadPlanningWorkspace(ctx, s.loader)
 	now := req.Now
 	if now.IsZero() {
 		now = time.Now()

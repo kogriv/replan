@@ -5,7 +5,9 @@ package main
 import (
 	"errors"
 	"os"
+	"path/filepath"
 	"syscall"
+	"time"
 	"unsafe"
 )
 
@@ -21,11 +23,15 @@ var (
 	unlockFileExProc = kernel32DLL.NewProc("UnlockFileEx")
 )
 
-func tryProjectFileLock(file *os.File) (bool, error) {
+func tryProjectFileLock(file *os.File, shared bool) (bool, error) {
+	flags := uintptr(lockfileFailImmediately)
+	if !shared {
+		flags |= lockfileExclusiveLock
+	}
 	var overlapped syscall.Overlapped
 	result, _, callErr := lockFileExProc.Call(
 		file.Fd(),
-		uintptr(lockfileFailImmediately|lockfileExclusiveLock),
+		flags,
 		0,
 		1,
 		0,
@@ -47,4 +53,15 @@ func unlockProjectFile(file *os.File) error {
 		return nil
 	}
 	return callErr
+}
+
+// A valid project already has project.yaml. It only has to stay in place
+// until the first writer creates the persistent lock, before any mutation.
+func acquireProjectBootstrapLock(path string, timeout time.Duration, shared bool) (*projectWriteLock, error) {
+	path = filepath.Join(path, "project.yaml")
+	file, err := os.Open(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, nil
+	}
+	return acquireProjectFileLock(path, file, err, timeout, shared)
 }

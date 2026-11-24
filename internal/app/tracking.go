@@ -64,7 +64,7 @@ func NewTrackingService(loader WorkspaceLoader) TrackingService {
 }
 
 func (s TrackingService) Suggest(ctx context.Context, req TrackingSuggestRequest) (TrackingSuggestResult, error) {
-	ws, loadDiags := s.loader.Load(ctx)
+	ws, loadDiags := loadPlanningWorkspace(ctx, s.loader)
 	week := req.Week
 	if week == "" {
 		week = defaultDashboardWeek(ws)

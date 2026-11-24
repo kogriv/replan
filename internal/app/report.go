@@ -40,7 +40,7 @@ func NewReportService(loader WorkspaceLoader) ReportService {
 }
 
 func (s ReportService) Weekly(ctx context.Context, req WeeklyReportRequest) (reports.WeeklyReport, error) {
-	ws, loadDiags := s.loader.Load(ctx)
+	ws, loadDiags := loadPlanningWorkspace(ctx, s.loader)
 	report := reports.WeeklyReport{
 		ProjectPath: s.loader.ProjectPath(),
 		ProjectID:   ws.Project.ID,
@@ -55,7 +55,7 @@ func (s ReportService) Weekly(ctx context.Context, req WeeklyReportRequest) (rep
 		Warnings:    []reports.ReportIssue{},
 		Errors:      []reports.ReportIssue{},
 	}
-	if hasDiagnosticCode(loadDiags, "project_format_unsupported") {
+	if planningLoadBlocked(loadDiags) {
 		for _, diagnostic := range loadDiags {
 			appendReportIssue(&report, diagnostic)
 		}
@@ -188,13 +188,13 @@ func (s ReportService) Weekly(ctx context.Context, req WeeklyReportRequest) (rep
 }
 
 func (s ReportService) Dashboard(ctx context.Context, req DashboardReportRequest) (reports.DashboardOverview, error) {
-	ws, loadDiags := s.loader.Load(ctx)
+	ws, loadDiags := loadPlanningWorkspace(ctx, s.loader)
 	canonicalWS := ws
 	generatedAt := req.GeneratedAt
 	if generatedAt.IsZero() {
 		generatedAt = time.Now()
 	}
-	if hasDiagnosticCode(loadDiags, "project_format_unsupported") {
+	if planningLoadBlocked(loadDiags) {
 		overview := reports.DashboardOverview{
 			SchemaVersion: 1,
 			GeneratedAt:   generatedAt.Format(time.RFC3339),

@@ -248,9 +248,10 @@ retry the complete command after the other writer finishes.
 Canonical applies publish a durable `.replan/commit-pending/` journal before
 the first project file is replaced. A successful write removes it. The next
 locked write automatically completes a pending validated commit before it
-loads the project and reports `recovered_commit`; read-only commands instead
-report `interrupted_commit_pending` and do not write. To inspect or complete it
-explicitly, use:
+loads the project and reports `recovered_commit`. Planning reads and artifact
+exports refuse with `interrupted_commit_pending` and exit 5. Validation and
+audit remain available for diagnosis. Successful recovery adds a system
+audit record. To inspect or complete recovery explicitly, use:
 
 ```bash
 go run ./cmd/replan project recover --project <path> --dry-run --format json

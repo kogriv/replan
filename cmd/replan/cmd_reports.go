@@ -65,9 +65,11 @@ func runReportWaits(args []string, stdout, stderr *os.File) int {
 	fs.StringVar(&until, "until", "", "measurement upper bound, YYYY-MM-DD")
 	fs.StringVar(&tag, "tag", "", "include tasks with this tag")
 	fs.StringVar(&format, "format", "markdown", "output format: json or markdown")
-	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+	lock, code, done := parsePlanningFlags(fs, args, stdout, stderr)
+	if done {
 		return code
 	}
+	defer lock.close()
 	if projectPath == "" {
 		projectPath = "."
 	}
@@ -107,9 +109,11 @@ func runReportEstimates(args []string, stdout, stderr *os.File) int {
 	fs.StringVar(&projectPath, "p", "", "path to RePlan project")
 	fs.StringVar(&baselineID, "baseline", "", "baseline id")
 	fs.StringVar(&format, "format", "markdown", "output format: json or markdown")
-	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+	lock, code, done := parsePlanningFlags(fs, args, stdout, stderr)
+	if done {
 		return code
 	}
+	defer lock.close()
 	if projectPath == "" {
 		projectPath = "."
 	}
@@ -169,9 +173,11 @@ func runReportState(args []string, stdout, stderr *os.File) int {
 	fs.StringVar(&scenarioID, "scenario", "", "scenario id to apply as an in-memory overlay")
 	fs.BoolVar(&raw, "raw", false, "show uncalibrated demand amounts")
 
-	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+	lock, code, done := parsePlanningFlags(fs, args, stdout, stderr)
+	if done {
 		return code
 	}
+	defer lock.close()
 	if projectPath == "" {
 		projectPath = "."
 	}
@@ -254,9 +260,11 @@ func runNext(args []string, stdout, stderr *os.File) int {
 	fs.StringVar(&format, "format", "text", "output format: text or json")
 	fs.StringVar(&week, "week", "", "ISO week, for example 2026-W31")
 
-	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+	lock, code, done := parsePlanningFlags(fs, args, stdout, stderr)
+	if done {
 		return code
 	}
+	defer lock.close()
 	if projectPath == "" {
 		projectPath = "."
 	}
@@ -340,9 +348,11 @@ func runReportDashboard(args []string, stdout, stderr *os.File) int {
 	fs.StringVar(&scenarioID, "scenario", "", "scenario id to apply as an in-memory overlay")
 	fs.BoolVar(&raw, "raw", false, "show uncalibrated demand amounts")
 
-	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+	lock, code, done := parsePlanningFlags(fs, args, stdout, stderr)
+	if done {
 		return code
 	}
+	defer lock.close()
 	if projectPath == "" {
 		projectPath = "."
 	}
@@ -463,9 +473,11 @@ func runReportWeekly(args []string, stdout, stderr *os.File) int {
 	fs.StringVar(&scenarioID, "scenario", "", "scenario id to apply as an in-memory overlay")
 	fs.BoolVar(&raw, "raw", false, "show uncalibrated demand amounts")
 
-	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+	lock, code, done := parsePlanningFlags(fs, args, stdout, stderr)
+	if done {
 		return code
 	}
+	defer lock.close()
 	if projectPath == "" {
 		projectPath = "."
 	}

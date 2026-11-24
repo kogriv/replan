@@ -60,9 +60,11 @@ func runTaskJugglerImportResult(args []string, stdout, stderr *os.File) int {
 	writeCandidate := fs.Bool("write-candidate", false, "write reviewable scenario/proposal candidate files without mutating canonical state")
 	actorID := fs.String("actor", "", "actor id creating candidate files; required with --write-candidate")
 	format := fs.String("format", "json", "output format: json, markdown or text")
-	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+	lock, code, done := parsePlanningFlags(fs, args, stdout, stderr)
+	if done {
 		return code
 	}
+	defer lock.close()
 	result, err := importTaskJugglerResult(context.Background(), taskJugglerImportRequest{
 		ProjectPath:    *projectPath,
 		RunDir:         *runDir,

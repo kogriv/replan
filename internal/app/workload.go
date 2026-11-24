@@ -74,7 +74,7 @@ func NewWorkloadService(loader WorkspaceLoader) WorkloadService {
 }
 
 func (s WorkloadService) Calculate(ctx context.Context, req WorkloadRequest) (WorkloadResult, error) {
-	ws, loadDiags := s.loader.Load(ctx)
+	ws, loadDiags := loadPlanningWorkspace(ctx, s.loader)
 	result := WorkloadResult{
 		ProjectPath: s.loader.ProjectPath(),
 		Week:        req.Week,

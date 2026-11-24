@@ -186,8 +186,9 @@ complete command.
 Canonical applies journal the validated file set in
 `.replan/commit-pending/` before replacing project files. The next locked
 write completes an interrupted commit before loading the project and reports
-`recovered_commit`; read-only commands only warn with
-`interrupted_commit_pending`. Use `bin/replan project recover --project
+`recovered_commit`. Planning reads and exports refuse with
+`interrupted_commit_pending` and exit 5. Validation and audit can still inspect
+the project. Use `bin/replan project recover --project
 "$REPLAN_PROJECT" --dry-run`, then `--apply`, for explicit recovery. A
 `commit_journal_corrupt` error changes nothing; inspect the journal directory.
 

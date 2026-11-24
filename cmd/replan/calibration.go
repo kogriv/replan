@@ -57,9 +57,11 @@ func runEstimateCalibrate(args []string, stdout, stderr *os.File) int {
 	approvedBy := fs.String("approved-by", "", "required human approving actor id")
 	occurredAt := fs.String("occurred-at", "", "optional RFC3339 approval time; defaults to now")
 	writeFlags := addCanonicalWriteFlags(fs)
-	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+	lock, code, done := parsePlanningFlags(fs, args, stdout, stderr)
+	if done {
 		return code
 	}
+	defer lock.close()
 	var priorValue *float64
 	fs.Visit(func(item *flag.Flag) {
 		if item.Name == "prior" {
@@ -94,9 +96,11 @@ func runEstimateCalibrate(args []string, stdout, stderr *os.File) int {
 func runEstimateList(args []string, stdout, stderr *os.File) int {
 	fs := newCLIFlagSet("estimate list")
 	projectPath, format := addProjectFormatFlags(fs, "json")
-	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+	lock, code, done := parsePlanningFlags(fs, args, stdout, stderr)
+	if done {
 		return code
 	}
+	defer lock.close()
 	result, err := app.NewCalibrationService(newStore(*projectPath)).List(context.Background())
 	if (strings.EqualFold(*format, "markdown") || strings.EqualFold(*format, "text")) && err == nil {
 		fmt.Fprintln(stdout, "# Estimate Calibrations")
@@ -140,9 +144,11 @@ func runEstimateShow(args []string, stdout, stderr *os.File) int {
 	setCommandUsage(fs, "replan estimate show --project <path> <id> [flags]")
 	projectPath, format := addProjectFormatFlags(fs, "json")
 	leadingID, filteredArgs := splitSinglePositional(args, fs)
-	if code, done := parseCommandFlags(fs, filteredArgs, stdout, stderr); done {
+	lock, code, done := parsePlanningFlags(fs, filteredArgs, stdout, stderr)
+	if done {
 		return code
 	}
+	defer lock.close()
 	id, code, done := requireSinglePositional(fs, leadingID, "estimate show", "<id>", *projectPath, *format, true, stdout, stderr)
 	if done {
 		return code
@@ -166,9 +172,11 @@ func runEstimateApply(args []string, stdout, stderr *os.File) int {
 	actorID := fs.String("actor", "", "required actor id")
 	occurredAt := fs.String("occurred-at", "", "optional RFC3339 creation time; defaults to now")
 	writeFlags := addCanonicalWriteFlags(fs)
-	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+	lock, code, done := parsePlanningFlags(fs, args, stdout, stderr)
+	if done {
 		return code
 	}
+	defer lock.close()
 	dryRun, code, done := requireCanonicalWriteChoice("estimate apply", *projectPath, *format, writeFlags, stdout, stderr)
 	if done {
 		return code

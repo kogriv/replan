@@ -140,6 +140,35 @@ func parseCommandFlags(fs *flag.FlagSet, args []string, stdout, stderr *os.File)
 	return code, true
 }
 
+// parsePlanningFlags supplies the same lock and recovery policy to readers,
+// artifact publishers and guarded writes in the planning command families.
+func parsePlanningFlags(fs *flag.FlagSet, args []string, stdout, stderr *os.File) (*projectWriteLock, int, bool) {
+	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+		return nil, code, true
+	}
+	// Reuse the write inventory with parsed values. In particular, a string
+	// argument that looks like a flag cannot redirect the journal check.
+	parsed := strings.Fields(fs.Name())
+	fs.Visit(func(f *flag.Flag) {
+		if f.Name != "bindings" {
+			parsed = append(parsed, "--"+f.Name+"="+f.Value.String())
+		}
+	})
+	intent := projectWriteIntentForArgs(parsed)
+	if format := fs.Lookup("format"); format != nil {
+		intent.format = strings.ToLower(format.Value.String())
+	}
+	if isCanonicalWriteCommand(intent.command) {
+		// Let the command report invalid choices before any recovery or lock.
+		dryRun, apply := flagBool(parsed, false, "dry-run"), flagBool(parsed, false, "apply")
+		if intent.bindingsLayer || (dryRun && apply) || (!dryRun && !intent.write) {
+			return nil, exitSuccess, false
+		}
+	}
+	lock, code := lockProjectCommand(stdout, stderr, intent)
+	return lock, code, code != exitSuccess
+}
+
 func addProjectFormatFlags(fs *flag.FlagSet, defaultFormat string) (*string, *string) {
 	projectPath := fs.String("project", ".", "path to RePlan project")
 	fs.StringVar(projectPath, "p", ".", "path to RePlan project")

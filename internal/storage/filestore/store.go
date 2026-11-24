@@ -1541,7 +1541,26 @@ func (s Store) AppendEvidence(statusDate string, evidence domain.Evidence) (stri
 	return rel, err
 }
 
-func (s Store) Load(ctx context.Context) (domain.Workspace, []app.Diagnostic) {
+// LoadPlanning refuses an interrupted commit. Direct callers must serialize
+// with writers to exclude a commit that both begins and ends during the load.
+func (s Store) LoadPlanning(ctx context.Context) (domain.Workspace, []app.Diagnostic) {
+	if diagnostic := CheckPendingCommit(s.projectPath); diagnostic != nil {
+		return domain.Workspace{}, []app.Diagnostic{*diagnostic}
+	}
+	ws, diagnostics := s.Load(ctx)
+	for _, diagnostic := range diagnostics {
+		if diagnostic.Code == "interrupted_commit_pending" || diagnostic.Code == "commit_journal_unavailable" {
+			diagnostic.Severity = "error"
+			return domain.Workspace{}, []app.Diagnostic{diagnostic}
+		}
+	}
+	if diagnostic := CheckPendingCommit(s.projectPath); diagnostic != nil {
+		return domain.Workspace{}, []app.Diagnostic{*diagnostic}
+	}
+	return ws, diagnostics
+}
+
+func (s Store) Load(ctx context.Context) (_ domain.Workspace, diagnostics []app.Diagnostic) {
 	_ = ctx
 	var (
 		ws    domain.Workspace
@@ -1557,8 +1576,10 @@ func (s Store) Load(ctx context.Context) (domain.Workspace, []app.Diagnostic) {
 	if !info.IsDir() {
 		return ws, []app.Diagnostic{diag("project_not_found", fmt.Sprintf("project path %s is not a directory", s.projectPath), "error", "file", s.projectPath)}
 	}
-	if pending, err := commitJournalPending(s.projectPath); err == nil && pending {
-		diags = append(diags, diag("interrupted_commit_pending", fmt.Sprintf("project %s has an interrupted commit pending; run replan project recover --project %s --apply or let the next write recover it", s.projectPath, s.projectPath), "warning", "project", s.projectPath))
+	if diagnostic := CheckPendingCommit(s.projectPath); diagnostic != nil {
+		diagnostic.Severity = "warning"
+		// Keep this diagnostic even when a partially installed file fails to load.
+		defer func() { diagnostics = append(diagnostics, *diagnostic) }()
 	}
 
 	projectData, err := s.fs.read(projectRel)
@@ -1681,15 +1702,21 @@ func (s Store) Load(ctx context.Context) (domain.Workspace, []app.Diagnostic) {
 	return ws, diags
 }
 
-func commitJournalPending(projectPath string) (bool, error) {
-	info, err := os.Stat(filepath.Join(projectPath, filepath.FromSlash(commitJournalRelativePath)))
+// CheckPendingCommit checks journal presence without inspecting staged data.
+// Callers that require a coherent workspace should hold the project lock
+// across this check and their reads.
+func CheckPendingCommit(projectPath string) *app.Diagnostic {
+	_, err := os.Lstat(filepath.Join(projectPath, filepath.FromSlash(commitJournalRelativePath)))
 	if errors.Is(err, os.ErrNotExist) {
-		return false, nil
+		return nil
 	}
 	if err != nil {
-		return false, err
+		diagnostic := diag("commit_journal_unavailable", fmt.Sprintf("cannot check pending commit for project %s: %v", projectPath, err), "error", "project", projectPath)
+		return &diagnostic
 	}
-	return info.IsDir(), nil
+	message := fmt.Sprintf("project %s has an interrupted commit pending; run replan project recover --project %q --apply", projectPath, projectPath)
+	diagnostic := diag("interrupted_commit_pending", message, "error", "project", projectPath)
+	return &diagnostic
 }
 
 func parseProjectFormatVersion(data []byte) (int, bool, *app.Diagnostic) {

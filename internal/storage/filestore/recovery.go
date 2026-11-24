@@ -1,6 +1,8 @@
 package filestore
 
 import (
+	"bytes"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -11,11 +13,15 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
+
+	"github.com/kogriv/replan/internal/domain"
 )
 
 const (
 	commitJournalRelativePath = ".replan/commit-pending"
 	commitManifestName        = "manifest.json"
+	commitRecoveryAuditName   = "recovery-audit.json"
 	commitJournalVersion      = 1
 	journalActionWrite        = "write"
 	journalActionRemove       = "remove"
@@ -149,42 +155,138 @@ func (d diskFS) recoverCommitJournal(inspectOnly bool) (CommitRecovery, error) {
 		return result, corruptJournalError("%s is not a directory", d.journalPath())
 	}
 	result.Pending = true
-	if _, err := os.Stat(d.journalPath(commitManifestName)); errors.Is(err, os.ErrNotExist) {
-		if inspectOnly {
-			return result, nil
+	var journal loadedCommitJournal
+	if _, err := os.Stat(d.journalPath(commitManifestName)); err == nil {
+		journal, err = d.loadCommitJournal()
+		if err != nil {
+			return result, err
 		}
-		if err := os.RemoveAll(d.journalPath()); err != nil {
-			return result, fmt.Errorf("remove incomplete commit journal: %w", err)
+		result.Complete = true
+		for _, operation := range journal.operations {
+			result.RecoveredFiles = append(result.RecoveredFiles, operation.Path)
 		}
-		if err := syncDirectory(filepath.Join(d.root, ".replan")); err != nil {
-			return result, fmt.Errorf("sync commit journal removal: %w", err)
-		}
-		result.IncompleteRemoved = true
-		return result, nil
-	} else if err != nil {
+	} else if !errors.Is(err, os.ErrNotExist) {
 		return result, fmt.Errorf("stat commit journal manifest: %w", err)
-	}
-
-	journal, err := d.loadCommitJournal()
-	if err != nil {
-		return result, err
-	}
-	result.Complete = true
-	for _, operation := range journal.operations {
-		result.RecoveredFiles = append(result.RecoveredFiles, operation.Path)
 	}
 	if inspectOnly {
 		return result, nil
 	}
+
+	if err := d.finishRecovery(journal, result); err != nil {
+		return result, err
+	}
+	result.IncompleteRemoved = !result.Complete
+	return result, nil
+}
+
+// The journal-local record gives every retry the same ID and timestamp. The
+// dedicated audit shard keeps replay of the original audit images independent
+// of publishing the recovery record.
+func (d diskFS) finishRecovery(journal loadedCommitJournal, result CommitRecovery) error {
+	record, data, err := d.recoveryAudit(result)
+	if err != nil {
+		return fmt.Errorf("prepare recovery audit: %w", err)
+	}
 	for _, operation := range journal.operations {
 		if err := d.applyCommitOperationWithContents(operation, journal.contents); err != nil {
-			return result, err
+			return err
 		}
 	}
-	if err := d.deleteCommitJournal(); err != nil {
-		return result, fmt.Errorf("delete recovered commit journal: %w", err)
+	retired, err := d.prepareCommitRetirement()
+	if err != nil {
+		return fmt.Errorf("prepare journal retirement: %w", err)
 	}
-	return result, nil
+
+	auditPath := d.abs("audit/" + record.ID + ".jsonl")
+	created, err := publishRecoveryAudit(auditPath, data)
+	if err != nil {
+		_ = os.Remove(retired)
+		return fmt.Errorf("publish recovery audit: %w", err)
+	}
+	if err := os.Rename(d.journalPath(), filepath.Join(retired, "journal")); err != nil {
+		_ = os.Remove(retired)
+		if created {
+			err = errors.Join(err, removeRecoveryAudit(auditPath))
+		}
+		return fmt.Errorf("retire recovered commit journal: %w", err)
+	}
+	return cleanRetiredCommit(retired)
+}
+
+func publishRecoveryAudit(path string, data []byte) (bool, error) {
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return false, err
+	}
+	if existing, err := os.ReadFile(path); err == nil {
+		if !bytes.Equal(existing, data) {
+			return false, fmt.Errorf("recovery audit path already contains different data: %s", path)
+		}
+		return false, syncDirectory(dir)
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return false, err
+	}
+	if err := writeFileAtomicSynced(path, data, 0o644); err != nil {
+		// The final sync can fail after the atomic rename has published the file.
+		return false, errors.Join(err, removeRecoveryAudit(path))
+	}
+	return true, nil
+}
+
+func removeRecoveryAudit(path string) error {
+	if err := os.Remove(path); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		return fmt.Errorf("roll back recovery audit: %w", err)
+	}
+	return syncDirectory(filepath.Dir(path))
+}
+
+func (d diskFS) recoveryAudit(result CommitRecovery) (domain.AuditRecord, []byte, error) {
+	path := d.journalPath(commitRecoveryAuditName)
+	var record domain.AuditRecord
+	data, err := os.ReadFile(path)
+	reason := "discarded incomplete journal"
+	if result.Complete {
+		reason = "replayed complete journal"
+	}
+	if err == nil {
+		if err := json.Unmarshal(data, &record); err != nil {
+			return record, nil, err
+		}
+		suffix := strings.TrimPrefix(record.ID, "audit.recovery.")
+		id, err := hex.DecodeString(suffix)
+		if err != nil || len(id) != 16 || suffix == record.ID ||
+			record.Operation != "project_recover" || record.Reason != reason ||
+			record.ActorRef != (domain.Ref{Kind: "system", ID: "replan"}) || record.Result != "success" {
+			return record, nil, corruptJournalError("invalid recovery audit marker")
+		}
+		return record, data, nil
+	}
+	if !errors.Is(err, os.ErrNotExist) {
+		return record, nil, err
+	}
+
+	var id [16]byte
+	if _, err := rand.Read(id[:]); err != nil {
+		return record, nil, err
+	}
+	record = domain.AuditRecord{
+		ID:         "audit.recovery." + hex.EncodeToString(id[:]),
+		OccurredAt: time.Now().UTC().Format(time.RFC3339Nano),
+		ActorRef:   domain.Ref{Kind: "system", ID: "replan"},
+		Operation:  "project_recover",
+		Result:     "success",
+		Reason:     reason,
+		After:      result.RecoveredFiles,
+	}
+	data, err = json.Marshal(record)
+	if err != nil {
+		return record, nil, err
+	}
+	data = append(data, '\n')
+	return record, data, writeFileAtomicSynced(path, data, 0o600)
 }
 
 func (d diskFS) loadCommitJournal() (loadedCommitJournal, error) {
@@ -287,18 +389,31 @@ func (d diskFS) applyCommitOperationWithContents(operation commitJournalOperatio
 	return nil
 }
 
+func (d diskFS) prepareCommitRetirement() (string, error) {
+	return os.MkdirTemp(filepath.Dir(d.journalPath()), ".commit-retired-")
+}
+
 func (d diskFS) deleteCommitJournal() error {
-	manifestPath := d.journalPath(commitManifestName)
-	if err := os.Remove(manifestPath); err != nil && !errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("remove manifest: %w", err)
+	// Retire the whole journal at once. Removing the manifest first could
+	// make interrupted cleanup look like an unrelated incomplete commit.
+	retired, err := d.prepareCommitRetirement()
+	if err != nil {
+		return err
 	}
-	if err := syncDirectory(d.journalPath()); err != nil {
-		return fmt.Errorf("sync manifest removal: %w", err)
+	if err := os.Rename(d.journalPath(), filepath.Join(retired, "journal")); err != nil {
+		_ = os.Remove(retired)
+		return err
 	}
-	if err := os.RemoveAll(d.journalPath()); err != nil {
-		return fmt.Errorf("remove journal directory: %w", err)
+	return cleanRetiredCommit(retired)
+}
+
+func cleanRetiredCommit(retired string) error {
+	if err := syncDirectory(filepath.Dir(retired)); err != nil {
+		return fmt.Errorf("sync journal retirement: %w", err)
 	}
-	return syncDirectory(filepath.Join(d.root, ".replan"))
+	// The journal is already retired. Leftover scratch files are harmless.
+	_ = os.RemoveAll(retired)
+	return nil
 }
 
 func validateCommitPath(rel string) error {
@@ -336,7 +451,7 @@ func writeSyncedFile(path string, data []byte, perm fs.FileMode) error {
 }
 
 func writeFileAtomicSynced(path string, data []byte, perm fs.FileMode) error {
-	tmp, err := os.CreateTemp(filepath.Dir(path), ".manifest.json.tmp-*")
+	tmp, err := os.CreateTemp(filepath.Dir(path), "."+filepath.Base(path)+".tmp-*")
 	if err != nil {
 		return err
 	}

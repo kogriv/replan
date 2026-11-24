@@ -127,9 +127,11 @@ func runDevValidateTaskJuggler(args []string, stdout, stderr *os.File) int {
 	taskJugglerBinary := fs.String("taskjuggler-bin", "tj3", "TaskJuggler binary to run")
 	unrepresentedAssumptions := fs.String("unrepresented-assumptions", "warn", "how to handle scenario assumptions not represented in TaskJuggler .tjp: warn or error")
 	keepTemp := fs.Bool("keep-temp", false, "keep generated temporary .tjp artifact")
-	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+	lock, code, done := parsePlanningFlags(fs, args, stdout, stderr)
+	if done {
 		return code
 	}
+	defer lock.close()
 	*format = strings.ToLower(strings.TrimSpace(*format))
 	if *format == "" {
 		*format = "json"
@@ -238,9 +240,11 @@ func runTaskJugglerRun(args []string, stdout, stderr *os.File) int {
 	taskJugglerBinary := fs.String("taskjuggler-bin", "tj3", "TaskJuggler binary to run")
 	unrepresentedAssumptions := fs.String("unrepresented-assumptions", "warn", "how to handle scenario assumptions not represented in TaskJuggler .tjp: warn or error")
 	ignoreNotBefore := fs.Bool("ignore-not-before", false, "ignore demand and deadline not-before dates for this what-if schedule")
-	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+	lock, code, done := parsePlanningFlags(fs, args, stdout, stderr)
+	if done {
 		return code
 	}
+	defer lock.close()
 	*format = strings.ToLower(strings.TrimSpace(*format))
 	if *format == "" {
 		*format = "json"
@@ -724,9 +728,11 @@ func runExportTaskJuggler(args []string, stdout, stderr *os.File) int {
 	raw := fs.Bool("raw", false, "export raw demand effort without estimate calibration")
 	ignoreNotBefore := fs.Bool("ignore-not-before", false, "ignore demand and deadline not-before dates for this what-if schedule")
 	unrepresentedAssumptions := fs.String("unrepresented-assumptions", "warn", "how to handle scenario assumptions not represented in TaskJuggler .tjp: warn or error")
-	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+	lock, code, done := parsePlanningFlags(fs, args, stdout, stderr)
+	if done {
 		return code
 	}
+	defer lock.close()
 	if *manifest != "" && *output == "" {
 		return printExportManifestRequiresOutput(stdout, stderr, "export taskjuggler", *projectPath)
 	}

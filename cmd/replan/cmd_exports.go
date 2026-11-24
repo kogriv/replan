@@ -61,9 +61,11 @@ func runExportJSON(args []string, stdout, stderr *os.File) int {
 	output := fs.String("output", "", "path to write JSON export; stdout when omitted")
 	manifest := fs.String("manifest", "", "path to write export manifest JSON; used only with --output")
 	format := fs.String("format", "json", "output format: json")
-	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+	lock, code, done := parsePlanningFlags(fs, args, stdout, stderr)
+	if done {
 		return code
 	}
+	defer lock.close()
 	if *manifest != "" && *output == "" {
 		return printExportManifestRequiresOutput(stdout, stderr, "export json", *projectPath)
 	}
@@ -149,9 +151,11 @@ func runExportCSV(args []string, stdout, stderr *os.File) int {
 	scenarioID := fs.String("scenario", "", "scenario id to apply as an in-memory overlay")
 	output := fs.String("output", "", "path to write CSV export; stdout when omitted")
 	manifest := fs.String("manifest", "", "path to write export manifest JSON; used only with --output")
-	if code, done := parseCommandFlags(fs, args, stdout, stderr); done {
+	lock, code, done := parsePlanningFlags(fs, args, stdout, stderr)
+	if done {
 		return code
 	}
+	defer lock.close()
 	if *manifest != "" && *output == "" {
 		return printExportManifestRequiresOutput(stdout, stderr, "export csv", *projectPath)
 	}
