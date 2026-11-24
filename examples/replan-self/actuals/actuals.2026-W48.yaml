@@ -769,3 +769,25 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.undated-and-unknown-ready
+  - id: actual.self-undated-demand-and-unknown-remaining.ci-github-actions.20261124T1331460700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.undated-demand-and-unknown-remaining
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.undated-demand-and-unknown-remaining.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 13
+    unit: ci_minutes
+    measurement: measured
+    occurred_at: "2026-11-24T13:31:46+07:00"
+    status_date: "2026-11-24"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-undated-demand-and-unknown-remaining

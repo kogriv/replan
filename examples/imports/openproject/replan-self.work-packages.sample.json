@@ -8943,21 +8943,21 @@
           "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Findings H1a and H1b. An undated demand counts in full in every requested week (spanShare returns 1), so weekly totals multiply its hours, and a demand with unknown remaining_amount and no reservation contributes zero load with no diagnostic, while replan next treats it as work ahead. Implement the unscheduled bucket and the remaining amount unknown warning from docs/spec/workload-calculation.md: undated demand is reported once as unscheduled (not added to every week's load) with a warning for required demand, unknown remaining is reported and counted by a stated rule; reconcile docs/spec/cli.md, which currently calls the every-week count intended; tests for one and two weeks and for the no-week view; check the self plan and the examples for changed numbers."
         },
         "status": {
-          "name": "Developed"
+          "name": "Closed"
         },
         "assignee": {
           "name": "RePlan maintainer"
         },
         "estimatedTime": "PT0.3H",
         "spentTime": "PT0H",
-        "startDate": "2026-11-26",
-        "dueDate": "2026-11-26",
+        "startDate": "2026-11-24",
+        "dueDate": "2026-11-24",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2409"
           },
           "status": {
-            "title": "Developed"
+            "title": "Closed"
           },
           "assignee": {
             "href": "/api/v3/users/101",

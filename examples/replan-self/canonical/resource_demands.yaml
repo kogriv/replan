@@ -18903,7 +18903,7 @@ resource_demands:
     planned_amount: 1
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.undated-demand-and-unknown-remaining.agent
     task_ref:
       kind: task
@@ -18917,7 +18917,7 @@ resource_demands:
     planned_amount: 0.3
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.undated-demand-and-unknown-remaining.maintainer
     task_ref:
       kind: task
@@ -18929,9 +18929,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.3
-    remaining_amount: 0.3
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.undated-demand-and-unknown-remaining.local-dev
     task_ref:
       kind: task
@@ -18945,7 +18945,7 @@ resource_demands:
     planned_amount: 1
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.undated-demand-and-unknown-remaining.ci
     task_ref:
       kind: task
@@ -18957,9 +18957,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.safe-report-urls.codex
     task_ref:
       kind: task
