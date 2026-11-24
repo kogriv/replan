@@ -19133,6 +19133,17 @@ resource_demands:
     remaining_amount: 0
     criticality: required
     status: consumed
+    overrun_review:
+      acknowledged_forecast: 13
+      unit: ci_minutes
+      reason: The maintainer confirmed the measured CI overrun of three minutes.
+      reviewed_by:
+        kind: actor
+        id: actor.human.maintainer
+      reviewed_at: "2026-11-24T15:23:30+07:00"
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.ack-readers-fail-closed-ci-overrun
   - id: resource_demand.scenario-status-gate.codex
     task_ref:
       kind: task
@@ -20150,7 +20161,7 @@ resource_demands:
     planned_amount: 0.35
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.deploy-safe-report-urls.maintainer
     task_ref:
       kind: task
@@ -20162,6 +20173,6 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.1
-    remaining_amount: 0.1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed

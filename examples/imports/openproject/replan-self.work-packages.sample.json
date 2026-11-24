@@ -9030,7 +9030,7 @@
           "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding M11 and new finding 7. ScenarioService.Apply blocks only applied scenarios, so draft and rejected scenarios apply; there is no scenario accept command; scenario-model.md requires a separate accept step and lists reviewed, while canonical-model.md has proposed and no reviewed. Settle one status list in both specs, add the accept step (or an explicit approved status) with a human approver in proposal_only, refuse apply for draft, rejected and other non-approved statuses with a clear diagnostic, migrate the examples, and test each status."
         },
         "status": {
-          "name": "New"
+          "name": "In progress"
         },
         "assignee": {
           "name": "RePlan maintainer"
@@ -9044,7 +9044,7 @@
             "href": "/api/v3/work_packages/2412"
           },
           "status": {
-            "title": "New"
+            "title": "In progress"
           },
           "assignee": {
             "href": "/api/v3/users/101",
@@ -9436,7 +9436,7 @@
           "raw": "Deploy the verified overlay plugin code layer on the live OpenProject installation. Check the current image, backup and rollback configuration, recreate only Rails services, verify health, card links and project drift, and record an operational result. No database, proxy or dependency changes are in scope."
         },
         "status": {
-          "name": "Developed"
+          "name": "Closed"
         },
         "assignee": {
           "name": "RePlan maintainer"
@@ -9450,7 +9450,7 @@
             "href": "/api/v3/work_packages/2426"
           },
           "status": {
-            "title": "Developed"
+            "title": "Closed"
           },
           "assignee": {
             "href": "/api/v3/users/101",
