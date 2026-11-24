@@ -192,6 +192,37 @@ def source_ref_for_relation(relation_id):
     }
 
 
+def write_relation_bindings(snapshot, updates, *, prune):
+    previous = openproject_bindings.dependency_bindings_by_id(snapshot)
+    previous_tasks, _ = openproject_bindings.task_maps(snapshot, zero_is_missing=True)
+    proposed = {item["replan_dependency_id"]: item for item in updates}
+    with openproject_bindings.transaction(bindings_path) as path:
+        document = openproject_bindings.load(path, required=True)
+        layer = openproject_bindings.root(document)
+        current = openproject_bindings.dependency_bindings_by_id(document)
+        current_tasks, _ = openproject_bindings.task_maps(document, zero_is_missing=True)
+        for dep_id, update in proposed.items():
+            if current.get(dep_id) not in (previous.get(dep_id), update):
+                raise RuntimeError(f"Private relation binding {dep_id} changed during apply; recheck drift and retry.")
+            for end in ("predecessor", "successor"):
+                task_id = update[f"{end}_task_id"]
+                if current_tasks.get(task_id) != previous_tasks.get(task_id):
+                    raise RuntimeError(f"Task binding {task_id} changed during relation apply; recheck drift and retry.")
+
+        merged = []
+        for item in layer["dependencies"]:
+            dep_id = item.get("replan_dependency_id") if isinstance(item, dict) else None
+            if dep_id in proposed:
+                merged.append(proposed.pop(dep_id))
+            elif not (prune and dep_id in previous and item == previous[dep_id]):
+                merged.append(item)
+        merged.extend(proposed.values())
+        layer["dependencies"] = merged
+        openproject_bindings.refresh_generated_at(document)
+        openproject_bindings.write(path, document)
+    return len(merged)
+
+
 def persist_partial_bindings():
     document = partial_binding_context["document"]
     new_dependencies = partial_binding_context["dependencies"]
@@ -202,23 +233,13 @@ def persist_partial_bindings():
     }
     if mode != "apply" or document is None or not new_dependencies:
         return summary
-    existing = openproject_bindings.root(document).get("dependencies") or []
-    merged = {
-        item.get("replan_dependency_id", ""): item
-        for item in existing
-        if isinstance(item, dict) and item.get("replan_dependency_id")
-    }
-    for item in new_dependencies:
-        merged[item["replan_dependency_id"]] = item
     try:
-        openproject_bindings.replace_dependency_bindings(
-            bindings_path, list(merged.values()), document=document
-        )
+        count = write_relation_bindings(document, new_dependencies, prune=False)
     except Exception as exc:
         summary["write_error"] = str(exc)
         return summary
     summary["written"] = True
-    summary["dependency_bindings"] = len(merged)
+    summary["dependency_bindings"] = count
     return summary
 
 def main():
@@ -463,6 +484,7 @@ def main():
             partial_apply.applied(action_item)
 
     bindings_written = False
+    persisted_binding_count = len(new_private_deps)
     if mode == "apply" and not errors:
         binding_step = {
             "action": "write_private_bindings",
@@ -471,8 +493,8 @@ def main():
         }
         partial_apply.attempting(binding_step)
         partial_apply.writing()
-        openproject_bindings.replace_dependency_bindings(
-            bindings_path, new_private_deps, document=bindings_doc
+        persisted_binding_count = write_relation_bindings(
+            bindings_doc, new_private_deps, prune=True,
         )
         bindings_written = True
         partial_apply.applied({**binding_step, "written": True})
@@ -601,7 +623,7 @@ def main():
         "private_binding_layer": {
             "path": bindings_path,
             "written": bindings_written,
-            "dependency_bindings": len(new_private_deps),
+            "dependency_bindings": persisted_binding_count,
         },
         "counts": counts,
         "actions": actions,

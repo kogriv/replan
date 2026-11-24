@@ -7,6 +7,7 @@ import os
 import re
 import shutil
 import sys
+from contextlib import contextmanager
 
 
 WINDOWS_TEMP_PATH_LIMIT = 32000
@@ -124,6 +125,24 @@ def open_path(path, *args, windows=None, opener=open, **kwargs):
     windows = os.name == "nt" if windows is None else windows
     absolute = _absolute_filesystem_path(path, windows)
     return opener(extended_length_path(absolute, windows=windows), *args, **kwargs)
+
+
+@contextmanager
+def exclusive_file_lock(path):
+    """Lock a persistent sidecar file, even when the protected file is replaced."""
+    with open_path(path, "a+b") as handle:
+        if os.name == "nt":
+            import msvcrt
+
+            handle.seek(0)
+            msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        # Closing the handle releases the lock. Keep the file in place so a
+        # waiting process and a new arrival always lock the same inode.
+        yield
 
 
 def _error_envelope(command, output_format, exc):

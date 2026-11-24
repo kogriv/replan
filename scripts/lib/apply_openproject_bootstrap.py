@@ -31,7 +31,6 @@ helper_envelope.guard("apply-openproject-bootstrap", mode)
 partial_apply = helper_envelope.PartialApply()
 partial_binding_context = {
     "exists": False,
-    "existing_document": None,
     "project": None,
     "task_bindings": [],
 }
@@ -375,11 +374,12 @@ def check_assignee_assignable(project):
     )
 
 
-def load_private_bindings():
-    if not os.path.exists(bindings_path):
+def load_private_bindings(path=None):
+    path = path or bindings_path
+    if not os.path.exists(path):
         return False, None
     try:
-        doc = openproject_bindings.load(bindings_path, validate=True)
+        doc = openproject_bindings.load(path, validate=True)
     except (OSError, yaml.YAMLError) as exc:
         raise BindingsFileError(
             "bindings_file_invalid",
@@ -435,16 +435,26 @@ def merge_private_bindings(existing_doc, project, task_bindings, pending_task_id
         for item in tasks
         if isinstance(item, dict) and item.get("replan_task_id")
     }
+    _, task_by_work_package = openproject_bindings.task_maps(doc, strict=False)
     for binding in task_bindings:
         replan_id = binding["replan_task_id"]
+        bootstrap_id = str(binding["source_ref"]["object_id"])
         existing = task_by_replan_id.get(replan_id)
         if existing is None:
+            owner = task_by_work_package.get(bootstrap_id)
+            if owner and owner != replan_id:
+                warnings.append(helper_envelope.diagnostic(
+                    "binding_conflict",
+                    f"work package {bootstrap_id} is already bound to task {owner}; skipped binding it to {replan_id}",
+                    "warning", "task", replan_id,
+                ))
+                continue
             tasks.append(binding)
             task_by_replan_id[replan_id] = binding
+            task_by_work_package[bootstrap_id] = replan_id
             added_task_bindings += 1
             continue
         existing_id = str((existing.get("source_ref") or {}).get("object_id", ""))
-        bootstrap_id = str(binding["source_ref"]["object_id"])
         if existing_id != bootstrap_id:
             warning = helper_envelope.diagnostic(
                 "binding_conflict",
@@ -514,8 +524,12 @@ def merge_private_bindings(existing_doc, project, task_bindings, pending_task_id
     }
 
 
-def write_private_bindings(doc):
-    openproject_bindings.write(bindings_path, doc)
+def merge_and_write_private_bindings(project, bindings, pending_task_ids):
+    with openproject_bindings.transaction(bindings_path) as path:
+        _, existing = load_private_bindings(path)
+        doc, warnings, counts = merge_private_bindings(existing, project, bindings, pending_task_ids)
+        openproject_bindings.write(path, doc)
+    return warnings, counts
 
 
 def persist_partial_bindings():
@@ -532,10 +546,7 @@ def persist_partial_bindings():
     if mode != "apply" or project is None or (not task_bindings and not created_project):
         return summary
     try:
-        doc, _, counts = merge_private_bindings(
-            context["existing_document"], project, task_bindings, []
-        )
-        write_private_bindings(doc)
+        _, counts = merge_and_write_private_bindings(project, task_bindings, [])
     except Exception as exc:
         summary["write_error"] = str(exc)
         return summary
@@ -566,7 +577,6 @@ def main():
             strict=False,
         )
     partial_binding_context["exists"] = bindings_exists
-    partial_binding_context["existing_document"] = existing_bindings_doc
     partial_binding_context["task_bindings"] = bindings
     resolve_assignee()
 
@@ -828,15 +838,17 @@ def main():
     }
     if mode == "apply" and project is not None and bindings:
         partial_apply.attempting(binding_step)
-    doc, binding_warnings, binding_counts = merge_private_bindings(
-        existing_bindings_doc, project or {"id": ""}, bindings, pending_task_ids
-    )
-    warnings.extend(binding_warnings)
-    if mode == "apply" and project is not None and bindings:
         partial_apply.writing()
-        write_private_bindings(doc)
+        binding_warnings, binding_counts = merge_and_write_private_bindings(
+            project, bindings, pending_task_ids,
+        )
         bindings_written = True
         partial_apply.applied({**binding_step, "written": True})
+    else:
+        _, binding_warnings, binding_counts = merge_private_bindings(
+            existing_bindings_doc, project or {"id": ""}, bindings, pending_task_ids,
+        )
+    warnings.extend(binding_warnings)
 
     counts = {
         "planned_work_packages": len(planned),

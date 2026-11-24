@@ -8,6 +8,7 @@ import threading
 import unittest
 
 import yaml
+import openproject_bindings
 import openproject_rescheduling
 
 
@@ -82,6 +83,44 @@ class ReschedulingReportTest(unittest.TestCase):
             "REPLAN_OPENPROJECT_PROJECT_ID": "test-project",
             "REPLAN_APPLY": "1",
         }
+
+    def test_relation_apply_keeps_binding_added_during_remote_read(self):
+        class OpenProject(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                # The relation helper has loaded its snapshot before this request.
+                openproject_bindings.append_task_binding(bindings, "task.c", {
+                    "source": "openproject", "object_type": "work_package", "object_id": "3",
+                })
+                relation = {"id": 9, "type": "relates", "_links": {
+                    "from": {"href": "/api/v3/work_packages/1"},
+                    "to": {"href": "/api/v3/work_packages/2"},
+                }}
+                body = json.dumps({"total": 1, "pageSize": 500, "offset": 1,
+                                   "_embedded": {"elements": [relation]}}).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/hal+json")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            def log_message(self, *_args):
+                pass
+
+        tasks = [{"id": "task.a", "title": "A"}, {"id": "task.b", "title": "B"}]
+        dependencies = [{
+            "id": "dep.related", "type": "relates",
+            "predecessor_ref": {"id": "task.a"}, "successor_ref": {"id": "task.b"},
+        }]
+        with tempfile.TemporaryDirectory() as tmp:
+            bindings = self.write_project(tmp, tasks, dependencies)
+            env = self.relation_env(tmp, bindings, self.start_server(OpenProject))
+            code, out = self.run_module("apply_openproject_relations", "--root-dir", ROOT, env=env)
+            self.assertEqual(code, 0, out)
+            document = openproject_bindings.load(bindings)
+            self.assertEqual(openproject_bindings.task_maps(document)[0], {
+                "task.a": "1", "task.b": "2", "task.c": "3",
+            })
+            self.assertEqual(openproject_bindings.dependency_maps(document)[0], {"dep.related": "9"})
 
     def test_relates_dry_run_plans_create_and_matches_reverse_without_rescheduling(self):
         def handler(relations):

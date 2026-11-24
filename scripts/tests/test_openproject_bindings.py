@@ -1,5 +1,6 @@
 """Contract tests for the shared private OpenProject binding layer."""
 
+import multiprocessing
 import os
 import tempfile
 import unittest
@@ -8,6 +9,22 @@ from unittest import mock
 import yaml
 
 import openproject_bindings
+
+
+def append_in_process(path, task_id, object_id, ready, finish=None):
+    def load_document(locked_path):
+        document = openproject_bindings.load(locked_path)
+        if finish is not None:
+            ready.set()
+            if not finish.wait(15):
+                raise TimeoutError("test parent did not release the first writer")
+        return document
+
+    if finish is None:
+        ready.set()
+    openproject_bindings.append_task_binding(path, task_id, {
+        "source": "openproject", "object_type": "work_package", "object_id": object_id,
+    }, load_document=load_document)
 
 
 class OpenProjectBindingsTest(unittest.TestCase):
@@ -91,7 +108,7 @@ class OpenProjectBindingsTest(unittest.TestCase):
             document = openproject_bindings.load(path)
         self.assertEqual(openproject_bindings.root(document)["tasks"], [])
 
-    def test_append_and_replace_keep_unknown_keys_and_refresh_timestamp(self):
+    def test_append_keeps_existing_sections_and_refreshes_timestamp(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "bindings.yaml")
             original = {"openproject_private_bindings": {
@@ -101,13 +118,55 @@ class OpenProjectBindingsTest(unittest.TestCase):
             }}
             self.write_yaml(path, original)
             openproject_bindings.append_task_binding(path, "task.a", {"object_id": "1"})
-            openproject_bindings.replace_dependency_bindings(path, [{"replan_dependency_id": "dep.a"}])
             document = openproject_bindings.load(path)
         layer = openproject_bindings.root(document)
         self.assertEqual(layer["extension"], {"keep": True})
         self.assertEqual(layer["tasks"], [{"replan_task_id": "task.a", "source_ref": {"object_id": "1"}}])
-        self.assertEqual(layer["dependencies"], [{"replan_dependency_id": "dep.a"}])
+        self.assertEqual(layer["dependencies"], [{"replan_dependency_id": "old"}])
         self.assertNotEqual(layer["generated_at"], "old")
+
+    def test_concurrent_processes_keep_both_bindings(self):
+        ctx = multiprocessing.get_context("spawn")
+        first_read, second_started, finish_first = (ctx.Event() for _ in range(3))
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "bindings.yaml")
+            first = ctx.Process(target=append_in_process, args=(
+                path, "task.a", "101", first_read, finish_first,
+            ))
+            second = ctx.Process(target=append_in_process, args=(
+                path, "task.b", "102", second_started,
+            ))
+            first.start()
+            try:
+                self.assertTrue(first_read.wait(10))
+                second.start()
+                self.assertTrue(second_started.wait(10))
+                second.join(timeout=0.25)
+                self.assertIsNone(second.exitcode, "second writer must wait for the lock")
+            finally:
+                finish_first.set()
+                for process in (first, second):
+                    if process.pid is None:
+                        continue
+                    process.join(timeout=15)
+                    if process.is_alive():
+                        process.terminate()
+                        process.join()
+            self.assertEqual((first.exitcode, second.exitcode), (0, 0))
+            self.assertEqual(openproject_bindings.task_maps(openproject_bindings.load(path))[0], {
+                "task.a": "101", "task.b": "102",
+            })
+
+    def test_stale_task_change_leaves_new_binding_untouched(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "bindings.yaml")
+            old = openproject_bindings.append_task_binding(path, "task.a", {"object_id": "1"})
+            expected = openproject_bindings.root(old)["tasks"][0]
+            openproject_bindings.replace_task_binding(path, "task.a", {"object_id": "2"})
+            with self.assertRaisesRegex(RuntimeError, "changed"):
+                openproject_bindings.remove_task_binding(path, "task.a", expected=expected)
+            actual = openproject_bindings.root(openproject_bindings.load(path))["tasks"][0]
+            self.assertEqual(actual["source_ref"]["object_id"], "2")
 
     def test_replace_and_remove_task_binding_keep_list_order(self):
         with tempfile.TemporaryDirectory() as tmp:

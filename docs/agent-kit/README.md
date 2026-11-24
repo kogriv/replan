@@ -199,6 +199,11 @@ scripts/push-openproject-status-drift.sh                 # dry run
 REPLAN_APPLY=1 scripts/push-openproject-status-drift.sh  # apply
 ```
 
+Binding writes also take a lock beside the private binding file and load it
+again under that lock. Keep the `.lock` file in place. If a binding that a
+helper was about to change has changed in another run, review a fresh dry run
+before applying again.
+
 Read the dry run first. Every helper prints one JSON document with `ok`,
 `command`, `mode` (`dry_run`, `apply`, `read_only`, `skipped` or `invalid`),
 `warnings` and `errors`, each entry with a `code` and a `message`, and their

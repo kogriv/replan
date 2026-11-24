@@ -3,8 +3,11 @@
 import datetime as dt
 import os
 import tempfile
+from contextlib import contextmanager
 
 import yaml
+
+from platform_compat import exclusive_file_lock
 
 
 ROOT_KEY = "openproject_private_bindings"
@@ -206,8 +209,17 @@ def refresh_generated_at(document):
     root(document)["generated_at"] = dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()
 
 
+@contextmanager
+def transaction(path):
+    """Provide a path for a fresh load and atomic write under one lock."""
+    path = os.path.realpath(path)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with exclusive_file_lock(path + ".lock"):
+        yield path
+
+
 def write(path, document):
-    """Atomically replace a binding file with a complete YAML dump."""
+    """Atomically replace a binding file. Hold transaction() for live writes."""
     bindings_dir = os.path.dirname(path) or "."
     os.makedirs(bindings_dir, exist_ok=True)
     temp_path = None
@@ -227,55 +239,63 @@ def write(path, document):
                 pass
 
 
-def append_task_binding(path, task_id, source_ref, *, document=None):
-    document = document if document is not None else load(path)
-    root(document)["tasks"].append({"replan_task_id": task_id, "source_ref": source_ref})
-    refresh_generated_at(document)
-    write(path, document)
+def _check_work_package_owner(document, task_id, source_ref):
+    _, owners = task_maps(document)
+    work_package_id = _object_id(source_ref, False)
+    owner = owners.get(work_package_id)
+    if owner and owner != task_id:
+        raise RuntimeError(f"Work package {work_package_id} was bound to {owner}; review the current bindings and retry.")
+
+
+def _task_binding_index(tasks, task_id, expected):
+    for index, binding in enumerate(tasks):
+        if binding.get("replan_task_id") == task_id:
+            if expected is not None and binding != expected:
+                break
+            return index
+    raise RuntimeError(f"Binding for {task_id} changed; review the current bindings and retry.")
+
+
+def append_task_binding(path, task_id, source_ref, *, load_document=load):
+    with transaction(path) as path:
+        document = load_document(path)
+        tasks = root(document)["tasks"]
+        if any(binding.get("replan_task_id") == task_id for binding in tasks):
+            raise RuntimeError(f"Task {task_id} was already bound; review the current bindings and retry.")
+        _check_work_package_owner(document, task_id, source_ref)
+        tasks.append({"replan_task_id": task_id, "source_ref": source_ref})
+        refresh_generated_at(document)
+        write(path, document)
     return document
 
 
-def replace_task_binding(path, task_id, source_ref, *, document=None):
-    document = document if document is not None else load(path)
-    tasks = root(document)["tasks"]
-    for index, binding in enumerate(tasks):
-        if binding.get("replan_task_id") == task_id:
-            tasks[index] = {"replan_task_id": task_id, "source_ref": source_ref}
-            refresh_generated_at(document)
-            write(path, document)
-            return document
-    raise KeyError(task_id)
+def replace_task_binding(path, task_id, source_ref, *, expected=None):
+    with transaction(path) as path:
+        document = load(path, required=True)
+        tasks = root(document)["tasks"]
+        index = _task_binding_index(tasks, task_id, expected)
+        _check_work_package_owner(document, task_id, source_ref)
+        tasks[index] = {"replan_task_id": task_id, "source_ref": source_ref}
+        refresh_generated_at(document)
+        write(path, document)
+    return document
 
 
-def refresh_task_binding_url(path, task_id, url, *, document=None):
-    """Change only one task binding's source URL and write it atomically."""
-    document = document if document is not None else load(path)
-    for binding in root(document)["tasks"]:
-        if binding.get("replan_task_id") == task_id:
-            source_ref = binding.get("source_ref")
-            if not isinstance(source_ref, dict):
-                raise KeyError(task_id)
-            source_ref["url"] = url
-            write(path, document)
-            return document
-    raise KeyError(task_id)
+def refresh_task_binding_url(path, task_id, url, *, expected=None):
+    with transaction(path) as path:
+        document = load(path, required=True)
+        tasks = root(document)["tasks"]
+        index = _task_binding_index(tasks, task_id, expected)
+        tasks[index]["source_ref"]["url"] = url
+        write(path, document)
+    return document
 
 
-def remove_task_binding(path, task_id, *, document=None):
-    document = document if document is not None else load(path)
-    tasks = root(document)["tasks"]
-    for index, binding in enumerate(tasks):
-        if binding.get("replan_task_id") == task_id:
-            del tasks[index]
-            refresh_generated_at(document)
-            write(path, document)
-            return document
-    raise KeyError(task_id)
-
-
-def replace_dependency_bindings(path, dependencies, *, document=None):
-    document = document if document is not None else load(path)
-    root(document)["dependencies"] = dependencies
-    refresh_generated_at(document)
-    write(path, document)
+def remove_task_binding(path, task_id, *, expected=None):
+    with transaction(path) as path:
+        document = load(path, required=True)
+        tasks = root(document)["tasks"]
+        del tasks[_task_binding_index(tasks, task_id, expected)]
+        refresh_generated_at(document)
+        write(path, document)
     return document

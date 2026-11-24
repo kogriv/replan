@@ -371,8 +371,8 @@ def binding_maps():
     dep_relation_by_id, _ = openproject_bindings.dependency_maps(document)
     return openproject_bindings.root(document), task_wp_by_id, task_id_by_wp, dep_relation_by_id
 
-def binding_document():
-    data = openproject_bindings.load(bindings_path)
+def binding_document(path=None):
+    data = openproject_bindings.load(path or bindings_path)
     root = openproject_bindings.root(data)
     root.setdefault("project", {
         "source": "openproject",
@@ -949,7 +949,7 @@ def binding_source_ref(work_package_id, url):
 
 def append_task_binding(task_id, source_ref):
     openproject_bindings.append_task_binding(
-        bindings_path, task_id, source_ref, document=binding_document()
+        bindings_path, task_id, source_ref, load_document=binding_document
     )
 
 def task_binding(task_id):
@@ -957,21 +957,6 @@ def task_binding(task_id):
         if binding.get("replan_task_id") == task_id:
             return binding
     return None
-
-def replace_task_binding(task_id, source_ref):
-    openproject_bindings.replace_task_binding(
-        bindings_path, task_id, source_ref, document=binding_document()
-    )
-
-def remove_task_binding(task_id):
-    openproject_bindings.remove_task_binding(
-        bindings_path, task_id, document=binding_document()
-    )
-
-def refresh_task_binding_url(task_id, url):
-    openproject_bindings.refresh_task_binding_url(
-        bindings_path, task_id, url, document=binding_document()
-    )
 
 def dependency_binding_warnings(work_package_id):
     warnings = []
@@ -1001,24 +986,25 @@ def dependency_binding_warnings(work_package_id):
     return warnings
 
 def remove_dependency_binding_by_relation(relation_id):
-    data = binding_document()
-    deps = data["openproject_private_bindings"].setdefault("dependencies", [])
-    kept = []
-    removed = []
-    for binding in deps:
-        source_ref = binding.get("source_ref") or {}
-        if (
-            source_ref.get("source") == "openproject"
-            and source_ref.get("object_type") == "relation"
-            and as_text(source_ref.get("object_id")) == as_text(relation_id)
-        ):
-            removed.append(binding)
-        else:
-            kept.append(binding)
-    if removed:
-        openproject_bindings.replace_dependency_bindings(
-            bindings_path, kept, document=data
-        )
+    with openproject_bindings.transaction(bindings_path) as path:
+        data = binding_document(path)
+        root = openproject_bindings.root(data)
+        kept = []
+        removed = []
+        for binding in root["dependencies"]:
+            source_ref = binding.get("source_ref") or {}
+            if (
+                source_ref.get("source") == "openproject"
+                and source_ref.get("object_type") == "relation"
+                and as_text(source_ref.get("object_id")) == as_text(relation_id)
+            ):
+                removed.append(binding)
+            else:
+                kept.append(binding)
+        if removed:
+            root["dependencies"] = kept
+            openproject_bindings.refresh_generated_at(data)
+            openproject_bindings.write(path, data)
     return removed
 
 def bind_existing_reconcile_actions(args):
@@ -1250,9 +1236,13 @@ def command_wp_bind(args):
         print_json(envelope("openproject work-package bind", "dry_run", actions=[action], counts={"planned_actions": 1, "blocked_actions": 0}, warnings=warnings, extra={"dry_run": True, "apply_required": True, "suggested_next_actions": ["Review the binding target and rerun with REPLAN_APPLY=1 to write the private binding.", "Run scripts/check-openproject-drift.sh after apply."]}))
 
     if url_refreshed:
-        refresh_task_binding_url(task_id, new_url)
+        openproject_bindings.refresh_task_binding_url(
+            bindings_path, task_id, new_url, expected=previous_binding,
+        )
     elif replacing:
-        replace_task_binding(task_id, source_ref)
+        openproject_bindings.replace_task_binding(
+            bindings_path, task_id, source_ref, expected=previous_binding,
+        )
     else:
         append_task_binding(task_id, source_ref)
     action["dry_run"] = False
@@ -1293,7 +1283,17 @@ def command_wp_rebase_urls(args):
     if errors:
         print_json(envelope(command, mode, ok=False, errors=errors), 2)
 
-    document = openproject_bindings.load(bindings_path)
+    if mode == "apply":
+        with openproject_bindings.transaction(bindings_path) as path:
+            rebase_binding_urls(args, path, command)
+    else:
+        rebase_binding_urls(args, bindings_path, command)
+
+
+def rebase_binding_urls(args, path, command):
+    old_base = args.from_url
+    new_base = args.to_url
+    document = openproject_bindings.load(path)
     binding_root = openproject_bindings.root(document)
     items = []
     changes = []
@@ -1407,7 +1407,7 @@ def command_wp_rebase_urls(args):
 
     for target, item in changes:
         target["base_url" if item["binding_kind"] == "project" else "url"] = item["new_url"]
-    openproject_bindings.write(bindings_path, document)
+    openproject_bindings.write(path, document)
     for action in actions:
         action.update({"dry_run": False, "apply_required": False, "applied": True})
     extra.update({
@@ -1449,7 +1449,9 @@ def command_wp_unbind(args):
         print_json(envelope("openproject work-package unbind", mode, ok=False, actions=[action], counts={"planned_actions": 0, "blocked_actions": 1}, warnings=warnings, errors=errors), 2)
     if mode != "apply":
         print_json(envelope("openproject work-package unbind", "dry_run", actions=[action], counts={"planned_actions": 1, "blocked_actions": 0}, warnings=warnings, extra={"dry_run": True, "apply_required": True, "suggested_next_actions": ["Review the binding removal and rerun with REPLAN_APPLY=1 to write the private binding.", "Run scripts/check-openproject-drift.sh after apply."]}))
-    remove_task_binding(task_id)
+    openproject_bindings.remove_task_binding(
+        bindings_path, task_id, expected=previous_binding,
+    )
     action.update({"dry_run": False, "apply_required": False, "applied": True})
     print_json(envelope("openproject work-package unbind", "apply", actions=[action], counts={"applied_actions": 1}, warnings=warnings, extra={"dry_run": False, "applied": True, "verification_command": "scripts/check-openproject-drift.sh", "suggested_next_actions": ["Run scripts/check-openproject-drift.sh to review task and dependency binding drift."]}))
 
