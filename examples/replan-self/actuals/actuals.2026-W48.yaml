@@ -945,3 +945,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-readers-fail-closed-on-pending-commit
+  - id: actual.self-scenario-status-gate.ai-agent-executor.20261124T1537570700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.scenario-status-gate
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.scenario-status-gate.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.2
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-24T15:37:57+07:00"
+    status_date: "2026-11-24"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.scenario-status-gate-pde
+  - id: actual.self-scenario-status-gate.ai-codex-local.20261124T1543040700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.scenario-status-gate
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.scenario-status-gate.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.3
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-24T15:43:04+07:00"
+    status_date: "2026-11-24"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.scenario-status-gate-ready

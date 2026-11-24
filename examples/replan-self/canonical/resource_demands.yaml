@@ -19155,7 +19155,7 @@ resource_demands:
     role: implementation_agent
     unit: agent_hours
     planned_amount: 0.5
-    remaining_amount: 0.5
+    remaining_amount: 0
     criticality: required
     status: active
   - id: resource_demand.scenario-status-gate.agent
@@ -19169,7 +19169,7 @@ resource_demands:
     role: implementation_agent
     unit: agent_hours
     planned_amount: 0.15
-    remaining_amount: 0.15
+    remaining_amount: 0
     criticality: required
     status: active
   - id: resource_demand.scenario-status-gate.maintainer
@@ -19197,7 +19197,7 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
     status: active
   - id: resource_demand.scenario-status-gate.ci

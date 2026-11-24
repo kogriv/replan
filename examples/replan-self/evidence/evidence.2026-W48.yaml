@@ -742,3 +742,23 @@ evidence:
     targets:
       - kind: task
         id: task.self.scenario-status-gate
+  - id: evidence.self.scenario-status-gate-pde
+    type: agent_observation
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-24T15:37:57+07:00"
+    summary: The designated implementation executor implemented scenario approval and its application gate, then corrected the clean-fixture lock and static analysis assertions. Targeted tests passed. Three measured implementation turns totalled 723.030 seconds; the full suite is verified separately.
+    targets:
+      - kind: task
+        id: task.self.scenario-status-gate
+  - id: evidence.self.scenario-status-gate-ready
+    type: agent_observation
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-24T15:43:04+07:00"
+    summary: Verified the integrated executor patch and test-only follow-up with all Go tests, vet, lint, MVP smoke, quickstart and 58 agent-kit checks. A clean disposable project independently verified read-only preview, draft and non-human refusals, unchanged canonical plan during explicit human approval, and separate approval and application audit entries. CI and maintainer acceptance are tracked separately.
+    targets:
+      - kind: task
+        id: task.self.scenario-status-gate
