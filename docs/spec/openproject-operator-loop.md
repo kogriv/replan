@@ -633,6 +633,24 @@ read the helpers' `REPLAN_OPENPROJECT_BINDINGS_PATH`. The layer replaces task
 OpenProject refs in memory and never rewrites `canonical/tasks.yaml`.
 Dependency and resource entries in the bindings document are not layered.
 
+Dashboard and Gantt source links and overlay link fields use absolute HTTP(S)
+display URLs. RePlan trims surrounding ASCII spaces and lowercases the scheme.
+It requires a DNS hostname or IP address and rejects credentials, literal
+control characters, embedded whitespace, malformed URL syntax and relative
+URLs. Unsupported links leave the label as text. The OpenProject overlay plugin
+checks the same rule before rendering links from older or external artifacts.
+
+For OpenProject work packages, RePlan appends `/work_packages/<id>` to the
+configured installation base, including any deployment subpath. The bindings
+document's `project.base_url` takes precedence over the workspace's OpenProject
+source profile when present. A positive decimal work-package ID and a valid
+base without a query or fragment are required to produce a display URL.
+Import snapshots and stored source refs can retain the original API self link
+as evidence. Legacy API self links in the overlay display as text. Validation
+reports `invalid_source_ref_url` as a warning for unsupported URLs on project,
+task, resource, dependency and evidence source refs. Missing URLs and
+recognized relative OpenProject API self references are accepted as evidence.
+
 The helper returns a stable JSON envelope with:
 
 - OpenProject source mode;

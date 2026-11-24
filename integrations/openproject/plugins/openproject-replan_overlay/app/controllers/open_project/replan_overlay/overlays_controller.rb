@@ -1,3 +1,4 @@
+require "open_project/replan_overlay/display_url"
 require "open_project/replan_overlay/overlay_loader"
 require "open_project/replan_overlay/overlay_presenter"
 require "open_project/replan_overlay/gantt_presenter"

@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/kogriv/replan/internal/displayurl"
 )
 
 const reportHTMLStyle = `<style>
@@ -1197,10 +1199,7 @@ func writeDashboardOpenProjectHTML(w io.Writer, op DashboardOpenProject) error {
 			return err
 		}
 		for _, link := range op.Links {
-			opCell := "<span class=\"code\">" + html.EscapeString(link.OpenProjectID) + "</span>"
-			if link.OpenProjectURL != "" {
-				opCell = "<a class=\"code\" href=\"" + html.EscapeString(link.OpenProjectURL) + "\">openproject:" + html.EscapeString(link.OpenProjectID) + "</a>"
-			}
+			opCell := sourceLinkHTML(displayurl.NormalizeWorkPackage(link.OpenProjectURL), "openproject:"+link.OpenProjectID)
 			if _, err := fmt.Fprintf(w, "<tr><td>%s</td><td><strong>%s</strong><br><span class=\"code muted\">%s</span></td><td>%s</td><td><span class=\"code\">%s</span></td><td title=\"%s\">%d</td><td>%d</td><td>%d</td></tr>\n",
 				opCell,
 				html.EscapeString(link.Title),
@@ -1287,11 +1286,11 @@ func writeDashboardGanttChartHTML(w io.Writer, gantt DashboardGanttView) error {
 			if task.Source != "" {
 				sourceLabel = task.Source + ":" + task.SourceID
 			}
-			if task.SourceURL != "" {
-				if _, err := fmt.Fprintf(w, "<a class=\"code\" href=\"%s\">%s</a>", html.EscapeString(task.SourceURL), html.EscapeString(sourceLabel)); err != nil {
-					return err
-				}
-			} else if _, err := fmt.Fprintf(w, "<span class=\"code\">%s</span>", html.EscapeString(sourceLabel)); err != nil {
+			normalize := displayurl.Normalize
+			if task.Source == "openproject" {
+				normalize = displayurl.NormalizeWorkPackage
+			}
+			if _, err := fmt.Fprint(w, sourceLinkHTML(normalize(task.SourceURL), sourceLabel)); err != nil {
 				return err
 			}
 		}
@@ -2028,6 +2027,14 @@ func writeEvidenceHTML(w io.Writer, evidence []EvidenceRow) error {
 	}
 	_, err := fmt.Fprint(w, "</ul>\n</section>\n")
 	return err
+}
+
+func sourceLinkHTML(target, label string) string {
+	label = html.EscapeString(label)
+	if target != "" {
+		return "<a class=\"code\" href=\"" + html.EscapeString(target) + "\">" + label + "</a>"
+	}
+	return "<span class=\"code\">" + label + "</span>"
 }
 
 func writeDashboardSourcesHTML(w io.Writer, health DashboardSourceHealth) error {

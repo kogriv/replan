@@ -118,6 +118,19 @@ type workspaceValidator struct {
 func validateWorkspace(result *ValidateResult, ws domain.Workspace) {
 	v := &workspaceValidator{result: result, ids: map[string]string{}}
 	v.project(ws.Project)
+	v.sourceRefURLs("project", ws.Project.ID, ws.Project.SourceRefs...)
+	for _, resource := range ws.Resources {
+		v.sourceRefURLs("resource", resource.ID, resource.SourceRefs...)
+	}
+	for _, task := range ws.Tasks {
+		v.sourceRefURLs("task", task.ID, task.SourceRefs...)
+	}
+	for _, dependency := range ws.Dependencies {
+		v.sourceRefURLs("dependency", dependency.ID, dependency.SourceRefs...)
+	}
+	for _, evidence := range ws.Evidence {
+		v.sourceRefURLs("evidence", evidence.ID, evidence.SourceRef)
+	}
 	validatePlanInputs(result, ws)
 	v.policy(ws.Policy)
 	v.actors(ws.Actors)

@@ -490,4 +490,7 @@ type Workspace struct {
 	Scenarios       []Scenario
 	AuditRecords    []AuditRecord
 	CheckedFiles    []string
+
+	// OpenProjectBindingBaseURL is read-only binding metadata for display links.
+	OpenProjectBindingBaseURL string `json:"-" yaml:"-"`
 }

@@ -682,3 +682,46 @@ func TestNextBriefTextGolden(t *testing.T) {
 		t.Fatalf("next brief text differs from %s; rerun with -update and review the diff:\n%s", path, text.String())
 	}
 }
+
+func TestDashboardSourceLinkBoundaries(t *testing.T) {
+	for _, tc := range []struct {
+		raw, want string
+	}{
+		{"  HtTpS://example.test/pm/work_packages/42?a=1&b=2  ", `<a class="code" href="https://example.test/pm/work_packages/42?a=1&amp;b=2">openproject:42&lt;&amp;</a>`},
+		{"javascript:", `<span class="code">openproject:42&lt;&amp;</span>`},
+		{"data:", `<span class="code">openproject:42&lt;&amp;</span>`},
+		{"/api/v3/work_packages/42", `<span class="code">openproject:42&lt;&amp;</span>`},
+		{"https://example.test/pm/api/v3/work_packages/42", `<span class="code">openproject:42&lt;&amp;</span>`},
+		{"//example.test/work_packages/42", `<span class="code">openproject:42&lt;&amp;</span>`},
+		{"https://bad..test/", `<span class="code">openproject:42&lt;&amp;</span>`},
+	} {
+		t.Run(tc.raw, func(t *testing.T) {
+			overview := dashboardGanttFixture()
+			overview.OpenProject.Links[0].OpenProjectID = "42<&"
+			overview.OpenProject.Links[0].OpenProjectURL = tc.raw
+			overview.Gantt.Tasks[0].SourceID = "42<&"
+			overview.Gantt.Tasks[0].SourceURL = tc.raw
+			overview.SourceHealth.LinkedTasks = []reports.DashboardSourceTask{
+				{TaskID: "task.test", Source: "openproject", SourceID: "42<&", SourceURL: "<source & evidence>"},
+			}
+			var dashboard, gantt bytes.Buffer
+			if err := reports.WriteDashboardHTML(&dashboard, overview); err != nil {
+				t.Fatal(err)
+			}
+			if err := reports.WriteDashboardGanttHTML(&gantt, overview); err != nil {
+				t.Fatal(err)
+			}
+			for name, contents := range map[string]string{"overview": dashboard.String(), "Gantt": gantt.String()} {
+				if !strings.Contains(contents, tc.want) || !strings.Contains(contents, `href="gantt.html"`) {
+					t.Errorf("%s missing source label %q or internal navigation", name, tc.want)
+				}
+				if strings.HasPrefix(tc.want, "<span") && strings.Contains(contents, `href="`+tc.raw+`"`) {
+					t.Errorf("%s linked an unsupported URL", name)
+				}
+			}
+			if !strings.Contains(dashboard.String(), `<span class="code">&lt;source &amp; evidence&gt;</span>`) {
+				t.Error("source summary did not display escaped text")
+			}
+		})
+	}
+}

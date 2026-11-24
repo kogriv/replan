@@ -391,8 +391,9 @@ type DashboardSourceTask struct {
 	TaskID         string `json:"task_id"`
 	Title          string `json:"title"`
 	Source         string `json:"source,omitempty"`
+	ObjectType     string `json:"-"`
 	SourceID       string `json:"source_id,omitempty"`
-	SourceURL      string `json:"source_url,omitempty"`
+	SourceURL      string `json:"source_url,omitempty"` // Display URL derived from source evidence.
 	TrackingStatus string `json:"tracking_status,omitempty"`
 }
 
@@ -741,7 +742,7 @@ type DashboardGanttTask struct {
 	HasOpenProposal       bool                               `json:"has_open_proposal,omitempty"`
 	Source                string                             `json:"source,omitempty"`
 	SourceID              string                             `json:"source_id,omitempty"`
-	SourceURL             string                             `json:"source_url,omitempty"`
+	SourceURL             string                             `json:"source_url,omitempty"` // Display URL derived from source evidence.
 	Allocations           []DashboardGanttResourceAllocation `json:"allocations,omitempty"`
 }
 

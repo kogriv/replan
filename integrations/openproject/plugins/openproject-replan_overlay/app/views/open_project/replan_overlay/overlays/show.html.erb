@@ -253,11 +253,7 @@
               <% @attention_rows.each do |row| %>
                 <tr>
                   <td class="replan-overlay__nowrap">
-                    <% if row["work_package_url"].present? %>
-                      <a href="<%= h row["work_package_url"] %>">#<%= h row["work_package_id"] %></a>
-                    <% else %>
-                      #<%= h row["work_package_id"] %>
-                    <% end %>
+                    <%= render "source_link", url: row["work_package_url"], label: %Q(##{row["work_package_id"]}) %>
                   </td>
                   <td>
                     <a href="<%= h project_replan_overlay_work_package_path(@project.identifier, row["work_package_id"]) %>" title="<%= h row["replan_task_id"] %>"><%= h row["title"] %></a>

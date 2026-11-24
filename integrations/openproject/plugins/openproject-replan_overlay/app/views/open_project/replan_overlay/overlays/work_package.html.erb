@@ -167,9 +167,7 @@
     <% task = @task %>
     <p class="replan-panel__facts">
       <span><%= h task.facts.join(" · ") %></span>
-      <% if @work_package_row["work_package_url"].present? %>
-        <a href="<%= h @work_package_row["work_package_url"] %>">Open #<%= h @work_package_row["work_package_id"] %> in OpenProject</a>
-      <% end %>
+      <%= render "source_link", url: @work_package_row["work_package_url"], label: %Q(Open ##{@work_package_row["work_package_id"]} in OpenProject) %>
     </p>
 
     <% if task.signals.any? %>

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kogriv/replan/internal/displayurl"
 	"github.com/kogriv/replan/internal/domain"
 	"github.com/kogriv/replan/internal/reports"
 )
@@ -66,7 +67,7 @@ func dashboardOpenProjectOverlay(ws domain.Workspace, overview reports.Dashboard
 		tracking := trackingByTaskID[link.TaskID]
 		row := reports.DashboardOpenProjectOverlayWorkPackage{
 			WorkPackageID:         link.OpenProjectID,
-			WorkPackageURL:        link.OpenProjectURL,
+			WorkPackageURL:        displayurl.NormalizeWorkPackage(link.OpenProjectURL),
 			RePlanTaskID:          link.TaskID,
 			Title:                 firstNonEmpty(ganttTask.Title, link.Title),
 			Type:                  ganttTask.Type,

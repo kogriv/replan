@@ -38,6 +38,21 @@ func TestApplyOpenProjectBindingsReplacesTaskRefsAndWarnsForUnknownTask(t *testi
 	}
 }
 
+func TestOpenProjectBindingsDisplayBase(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "bindings.yaml")
+	const base = "https://bound.example.test/pm"
+	if err := os.WriteFile(path, []byte("openproject_private_bindings:\n  project:\n    base_url: "+base+"\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	workspace, diagnostics := NewWithOpenProjectBindings(copyProjectFixture(t), path).Load(context.Background())
+	if len(diagnostics) != 0 {
+		t.Fatalf("load binding layer: %#v", diagnostics)
+	}
+	if workspace.OpenProjectBindingBaseURL != base {
+		t.Fatalf("binding display base = %q, want %q", workspace.OpenProjectBindingBaseURL, base)
+	}
+}
+
 func TestOpenProjectBindingsFileErrorsBecomeLoadDiagnostics(t *testing.T) {
 	project := copyProjectFixture(t)
 	for _, test := range []struct {

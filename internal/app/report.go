@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kogriv/replan/internal/displayurl"
 	"github.com/kogriv/replan/internal/domain"
 	"github.com/kogriv/replan/internal/reports"
 )
@@ -792,6 +793,7 @@ func isoWeekString(date string) string {
 }
 
 func dashboardSourceHealth(ws domain.Workspace) reports.DashboardSourceHealth {
+	openProjectBase := reportOpenProjectBase(ws)
 	health := reports.DashboardSourceHealth{
 		Profiles:   []reports.DashboardSourceProfile{},
 		SourceRefs: len(ws.Project.SourceRefs),
@@ -800,7 +802,7 @@ func dashboardSourceHealth(ws domain.Workspace) reports.DashboardSourceHealth {
 		health.Profiles = append(health.Profiles, reports.DashboardSourceProfile{
 			ID:        profile.ID,
 			Source:    profile.Source,
-			BaseURL:   profile.BaseURL,
+			BaseURL:   displayurl.Normalize(profile.BaseURL),
 			ProjectID: profile.ProjectID,
 		})
 	}
@@ -812,8 +814,9 @@ func dashboardSourceHealth(ws domain.Workspace) reports.DashboardSourceHealth {
 					TaskID:         task.ID,
 					Title:          task.Title,
 					Source:         sourceRef.Source,
+					ObjectType:     sourceRef.ObjectType,
 					SourceID:       sourceRef.ObjectID,
-					SourceURL:      sourceRef.URL,
+					SourceURL:      reportSourceURL(sourceRef, openProjectBase),
 					TrackingStatus: task.TrackingStatus,
 				})
 			}
@@ -924,7 +927,7 @@ func dashboardOpenProject(sourceHealth reports.DashboardSourceHealth, gantt repo
 		}
 	}
 	for _, task := range sourceHealth.LinkedTasks {
-		if task.Source != "openproject" {
+		if task.Source != "openproject" || task.ObjectType != "work_package" {
 			continue
 		}
 		view.Enabled = true
@@ -1033,6 +1036,7 @@ func dashboardGanttView(ws domain.Workspace, overview reports.DashboardOverview,
 			warningsByTaskID[taskID] = append(warningsByTaskID[taskID], "dependency_"+dependency.Status)
 		}
 	}
+	openProjectBase := reportOpenProjectBase(ws)
 	openProposalByTaskID := map[string]bool{}
 	for _, proposal := range proposals {
 		if proposal.Status == "open" && proposal.TargetID != "" {
@@ -1051,7 +1055,7 @@ func dashboardGanttView(ws domain.Workspace, overview reports.DashboardOverview,
 		start, startErr := time.Parse("2006-01-02", task.PlannedStart)
 		finish, finishErr := time.Parse("2006-01-02", task.PlannedFinish)
 		if startErr != nil || finishErr != nil {
-			view.Unscheduled = append(view.Unscheduled, dashboardGanttTask(task, demandsByID, overloadedResources, warningsByTaskID, dependencyCountByTaskID, openDependencyCountByTaskID, openProposalByTaskID))
+			view.Unscheduled = append(view.Unscheduled, dashboardGanttTask(task, openProjectBase, demandsByID, overloadedResources, warningsByTaskID, dependencyCountByTaskID, openDependencyCountByTaskID, openProposalByTaskID))
 			continue
 		}
 		if finish.Before(start) {
@@ -1080,7 +1084,7 @@ func dashboardGanttView(ws domain.Workspace, overview reports.DashboardOverview,
 		return dated[i].start.Before(dated[j].start)
 	})
 	for _, item := range dated {
-		row := dashboardGanttTask(item.task, demandsByID, overloadedResources, warningsByTaskID, dependencyCountByTaskID, openDependencyCountByTaskID, openProposalByTaskID)
+		row := dashboardGanttTask(item.task, openProjectBase, demandsByID, overloadedResources, warningsByTaskID, dependencyCountByTaskID, openDependencyCountByTaskID, openProposalByTaskID)
 		row.StartOffsetDays = int(item.start.Sub(minStart).Hours() / 24)
 		row.DurationDays = int(item.finish.Sub(item.start).Hours()/24) + 1
 		if row.DurationDays < 1 {
@@ -1107,6 +1111,7 @@ func dashboardGanttView(ws domain.Workspace, overview reports.DashboardOverview,
 
 func dashboardGanttTask(
 	task domain.Task,
+	openProjectBase string,
 	demandsByID map[string]domain.ResourceDemand,
 	overloadedResources map[string]bool,
 	warningsByTaskID map[string][]string,
@@ -1154,7 +1159,7 @@ func dashboardGanttTask(
 		HasOpenProposal:       openProposalByTaskID[task.ID],
 		Source:                source.Source,
 		SourceID:              source.ObjectID,
-		SourceURL:             source.URL,
+		SourceURL:             reportSourceURL(source, openProjectBase),
 	}
 }
 

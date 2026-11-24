@@ -47,6 +47,9 @@ type openProjectBindingsDoc struct {
 }
 
 type openProjectBindingsRoot struct {
+	Project struct {
+		BaseURL string `yaml:"base_url"`
+	} `yaml:"project"`
 	Tasks        []openProjectTaskBinding `yaml:"tasks"`
 	Dependencies []any                    `yaml:"dependencies"`
 	Resources    []any                    `yaml:"resources"`
@@ -1725,6 +1728,7 @@ func unsupportedProjectFormatDiagnostic(found string, badValue bool) *app.Diagno
 }
 
 func applyOpenProjectBindings(ws *domain.Workspace, document *openProjectBindingsDoc, diags *[]app.Diagnostic) {
+	ws.OpenProjectBindingBaseURL = document.Root.Project.BaseURL
 	bindings := make(map[string]domain.SourceRef, len(document.Root.Tasks))
 	for _, binding := range document.Root.Tasks {
 		if binding.TaskID == "" || binding.SourceRef.ObjectID == "" {
