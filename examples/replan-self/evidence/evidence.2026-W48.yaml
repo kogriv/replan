@@ -797,3 +797,23 @@ evidence:
     targets:
       - kind: task
         id: task.self.pool-member-shared-capacity
+  - id: evidence.self.pool-member-shared-capacity-pde
+    type: agent_observation
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-24T17:36:25+07:00"
+    summary: The designated executor implemented the structured shared pool capacity warning, the conservative additive feasibility check, CLI and calculation tests, and the workload spec. Targeted tests and lint passed. The measured implementation turn totalled 389.173 seconds; the full suite is verified separately.
+    targets:
+      - kind: task
+        id: task.self.pool-member-shared-capacity
+  - id: evidence.self.pool-member-shared-capacity-ready
+    type: agent_observation
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-24T17:44:48+07:00"
+    summary: Verified the shared capacity diagnostic with all Go tests, vet, lint, MVP smoke, quickstart and 58 agent-kit checks. An independent disposable project showed the six-hour shortfall with zero separate row overloads, retained it in the affected member filter and state report, excluded it for the unrelated member, then cleared it at an exact capacity fit without modifying the inspected project. CI and maintainer acceptance are tracked separately.
+    targets:
+      - kind: task
+        id: task.self.pool-member-shared-capacity

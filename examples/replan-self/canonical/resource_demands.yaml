@@ -19236,7 +19236,7 @@ resource_demands:
     role: implementation_agent
     unit: agent_hours
     planned_amount: 0.6
-    remaining_amount: 0.6
+    remaining_amount: 0
     criticality: required
     status: active
   - id: resource_demand.pool-member-shared-capacity.agent
@@ -19250,7 +19250,7 @@ resource_demands:
     role: implementation_agent
     unit: agent_hours
     planned_amount: 0.2
-    remaining_amount: 0.2
+    remaining_amount: 0
     criticality: required
     status: active
   - id: resource_demand.pool-member-shared-capacity.maintainer
@@ -19278,7 +19278,7 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
     status: active
   - id: resource_demand.pool-member-shared-capacity.ci

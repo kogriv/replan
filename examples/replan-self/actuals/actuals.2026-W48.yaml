@@ -1011,3 +1011,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-scenario-status-gate
+  - id: actual.self-pool-member-shared-capacity.ai-agent-executor.20261124T1736250700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.pool-member-shared-capacity
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.pool-member-shared-capacity.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.11
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-24T17:36:25+07:00"
+    status_date: "2026-11-24"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.pool-member-shared-capacity-pde
+  - id: actual.self-pool-member-shared-capacity.ai-codex-local.20261124T1744480700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.pool-member-shared-capacity
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.pool-member-shared-capacity.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.26
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-24T17:44:48+07:00"
+    status_date: "2026-11-24"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.pool-member-shared-capacity-ready

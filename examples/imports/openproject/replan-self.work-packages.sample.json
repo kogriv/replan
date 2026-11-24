@@ -9059,7 +9059,7 @@
           "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding F-11. A pool row sums its members' capacity, and direct demand on a member plus demand on the pool are checked separately, so 8 h on member A plus 8 h on a pool of only A against 10 h shows no overload anywhere. Add a workload diagnostic when the combined direct and pool demand on the members exceeds their capacity (for example shared_capacity_overload, naming the pool, members and hours), explain in the workload spec that pool rows are a capacity view and not an assignment, and test a one-member pool, a two-member pool and overlapping pools."
         },
         "status": {
-          "name": "In progress"
+          "name": "Developed"
         },
         "assignee": {
           "name": "RePlan maintainer"
@@ -9073,7 +9073,7 @@
             "href": "/api/v3/work_packages/2413"
           },
           "status": {
-            "title": "In progress"
+            "title": "Developed"
           },
           "assignee": {
             "href": "/api/v3/users/101",
