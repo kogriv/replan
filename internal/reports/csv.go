@@ -3,6 +3,7 @@ package reports
 import (
 	"encoding/csv"
 	"io"
+	"strconv"
 )
 
 type WorkloadCSV struct {
@@ -12,16 +13,17 @@ type WorkloadCSV struct {
 }
 
 type WorkloadCSVRow struct {
-	ResourceID    string
-	ResourceName  string
-	ResourceClass string
-	Unit          string
-	Capacity      float64
-	Planned       float64
-	Reserved      float64
-	Actual        float64
-	Remaining     float64
-	Overload      float64
+	ResourceID       string
+	ResourceName     string
+	ResourceClass    string
+	Unit             string
+	Capacity         float64
+	Planned          float64
+	Reserved         float64
+	Actual           float64
+	Remaining        float64
+	Overload         float64
+	RemainingPartial bool
 }
 
 func WriteWeeklyCSV(w io.Writer, report WeeklyReport) error {
@@ -37,6 +39,7 @@ func WriteWeeklyCSV(w io.Writer, report WeeklyReport) error {
 		"actual",
 		"remaining",
 		"overload",
+		"remaining_partial",
 	}
 	if report.ScenarioID != "" {
 		header = append([]string{"scenario_id"}, header...)
@@ -56,6 +59,7 @@ func WriteWeeklyCSV(w io.Writer, report WeeklyReport) error {
 			formatAmount(row.Actual),
 			formatAmount(row.Remaining),
 			formatAmount(row.Overload),
+			strconv.FormatBool(row.RemainingPartial),
 		}
 		if report.ScenarioID != "" {
 			values = append([]string{report.ScenarioID}, values...)
@@ -83,6 +87,7 @@ func WriteWorkloadCSV(w io.Writer, result WorkloadCSV) error {
 		"actual",
 		"remaining",
 		"overload",
+		"remaining_partial",
 	}); err != nil {
 		return err
 	}
@@ -100,6 +105,7 @@ func WriteWorkloadCSV(w io.Writer, result WorkloadCSV) error {
 			formatAmount(row.Actual),
 			formatAmount(row.Remaining),
 			formatAmount(row.Overload),
+			strconv.FormatBool(row.RemainingPartial),
 		}); err != nil {
 			return err
 		}

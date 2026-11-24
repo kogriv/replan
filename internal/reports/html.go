@@ -1866,7 +1866,7 @@ func writeResourceRowsHTML(w io.Writer, rows []ResourceRow) error {
 			formatAmount(row.Planned),
 			formatAmount(row.Reserved),
 			formatAmount(row.Actual),
-			formatAmount(row.Remaining),
+			RemainingLabel(row.Remaining, row.RemainingPartial),
 			formatAmount(row.Overload)}
 		if hasUnlevelled {
 			format = "<tr%s><td><strong>%s</strong><br><span class=\"code muted\">%s</span></td><td>%s</td><td>%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td><td class=\"num\">%s</td></tr>\n"

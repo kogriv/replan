@@ -1354,6 +1354,10 @@ Rules:
 
 Implemented weekly report slice:
 
+- Weekly report CSV and workload export CSV summarize resource rows. Their
+  final `remaining_partial` column is `true` when `remaining` is a known
+  subtotal and `false` otherwise. Use weekly report or workload JSON or
+  Markdown for unscheduled demand detail.
 - `replan report weekly` supports JSON, Markdown, CSV, text and static HTML;
 - `--format html` writes a self-contained static HTML document to stdout;
 - `--format html --write` writes

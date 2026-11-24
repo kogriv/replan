@@ -249,16 +249,17 @@ func workloadCSV(result app.WorkloadResult) reports.WorkloadCSV {
 	}
 	for _, row := range result.Resources {
 		out.Resources = append(out.Resources, reports.WorkloadCSVRow{
-			ResourceID:    row.ResourceID,
-			ResourceName:  row.ResourceName,
-			ResourceClass: row.ResourceClass,
-			Unit:          row.Unit,
-			Capacity:      row.Capacity,
-			Planned:       row.Planned,
-			Reserved:      row.Reserved,
-			Actual:        row.Actual,
-			Remaining:     row.Remaining,
-			Overload:      row.Overload,
+			ResourceID:       row.ResourceID,
+			ResourceName:     row.ResourceName,
+			ResourceClass:    row.ResourceClass,
+			Unit:             row.Unit,
+			Capacity:         row.Capacity,
+			Planned:          row.Planned,
+			Reserved:         row.Reserved,
+			Actual:           row.Actual,
+			Remaining:        row.Remaining,
+			RemainingPartial: row.RemainingPartial,
+			Overload:         row.Overload,
 		})
 	}
 	return out

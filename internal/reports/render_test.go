@@ -60,16 +60,18 @@ func TestWeeklyMarkdownAndCSV(t *testing.T) {
 		},
 		Resources: []reports.ResourceRow{
 			{
-				ResourceID:    "resource.human.ivan",
-				ResourceName:  "Ivan",
-				ResourceClass: "human",
-				Unit:          "hours",
-				Capacity:      32,
-				Planned:       8,
-				Reserved:      4,
-				Actual:        2,
-				Remaining:     8,
-				Overload:      1,
+				ResourceID:       "resource.human.ivan",
+				ResourceName:     "Ivan",
+				ResourceClass:    "human",
+				Unit:             "hours",
+				Capacity:         32,
+				Planned:          8,
+				Reserved:         4,
+				Actual:           2,
+				Remaining:        8,
+				Overload:         1,
+				RemainingPartial: true,
+				Unscheduled:      []reports.WorkloadDemandShare{{ResourceDemandID: "demand.unscheduled"}},
 			},
 		},
 		Warnings:  []reports.ReportIssue{{Code: "resource_overloaded", Severity: "warning", Message: "Ivan is overloaded.", TargetID: "resource.human.ivan"}},
@@ -92,13 +94,16 @@ func TestWeeklyMarkdownAndCSV(t *testing.T) {
 	if err := reports.WriteWeeklyCSV(&csv, report); err != nil {
 		t.Fatalf("WriteWeeklyCSV returned error: %v", err)
 	}
-	if !strings.Contains(csv.String(), "resource_id,resource_name,resource_class") {
+	if !strings.Contains(csv.String(), "resource_id,resource_name,resource_class,unit,capacity,planned,reserved,actual,remaining,overload,remaining_partial\n") {
 		t.Fatalf("csv missing header: %s", csv.String())
 	}
-	if !strings.Contains(csv.String(), "resource.human.ivan,Ivan,human") {
+	if !strings.Contains(csv.String(), "resource.human.ivan,Ivan,human,hours,32,8,4,2,8,1,true\n") {
 		t.Fatalf("csv missing row: %s", csv.String())
 	}
 
+	if strings.Contains(csv.String(), "demand.unscheduled") {
+		t.Fatalf("CSV includes unscheduled detail: %s", csv.String())
+	}
 	var html bytes.Buffer
 	if err := reports.WriteWeeklyHTML(&html, report); err != nil {
 		t.Fatalf("WriteWeeklyHTML returned error: %v", err)
@@ -140,13 +145,13 @@ func TestWorkloadCSV(t *testing.T) {
 	if err := reports.WriteWorkloadCSV(&csv, result); err != nil {
 		t.Fatalf("WriteWorkloadCSV returned error: %v", err)
 	}
-	if !strings.Contains(csv.String(), "scenario_id,week,resource_id,resource_name") {
+	if !strings.Contains(csv.String(), "scenario_id,week,resource_id,resource_name,resource_class,unit,capacity,planned,reserved,actual,remaining,overload,remaining_partial\n") {
 		t.Fatalf("csv missing header: %s", csv.String())
 	}
 	if !strings.Contains(csv.String(), "scenario.openai-quota-300k,2026-W28,resource.service.openai.tokens") {
 		t.Fatalf("csv missing scenario row: %s", csv.String())
 	}
-	if !strings.Contains(csv.String(), ",300000,500000,0,0,500000,200000") {
+	if !strings.Contains(csv.String(), ",300000,500000,0,0,500000,200000,false\n") {
 		t.Fatalf("csv missing amount columns: %s", csv.String())
 	}
 }
@@ -268,6 +273,19 @@ func dashboardHTMLFixture() reports.DashboardOverview {
 				OpenDependencyCount: 1,
 			}},
 		},
+	}
+}
+
+func TestDashboardHTMLLabelsPartialRemaining(t *testing.T) {
+	var html bytes.Buffer
+	overview := reports.DashboardOverview{Workload: []reports.ResourceRow{
+		{ResourceID: "resource.partial", Unit: "hours", Remaining: 0, RemainingPartial: true},
+	}}
+	if err := reports.WriteDashboardHTML(&html, overview); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(html.String(), ">0 (known subtotal)</td>") {
+		t.Fatal("dashboard resource summary did not label partial remaining")
 	}
 }
 
