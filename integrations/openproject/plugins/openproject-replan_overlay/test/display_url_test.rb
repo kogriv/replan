@@ -6,8 +6,8 @@ require "tempfile"
 require "open_project/replan_overlay/display_url"
 require "open_project/replan_overlay/overlay_loader"
 
-class DisplayURLTest < Minitest::Test
-  DisplayURL = OpenProject::ReplanOverlay::DisplayURL
+class DisplayUrlTest < Minitest::Test
+  DisplayUrl = OpenProject::ReplanOverlay::DisplayUrl
   Loader = OpenProject::ReplanOverlay::OverlayLoader
   LINK_TEMPLATE = File.expand_path("../app/views/open_project/replan_overlay/overlays/_source_link.html.erb", __dir__)
 
@@ -27,7 +27,7 @@ class DisplayURLTest < Minitest::Test
       "https://[2001:db8::1]:443/" => "https://[2001:db8::1]:443/",
       "http://192.0.2.3/" => "http://192.0.2.3/"
     }.each do |raw, expected|
-      assert_equal expected, DisplayURL.normalize(raw)
+      assert_equal expected, DisplayUrl.normalize(raw)
     end
   end
 
@@ -40,7 +40,7 @@ class DisplayURLTest < Minitest::Test
       "https://[192.0.2.3]/", "https://a..test/", "https://-example.test/", "https://300.0.0.1/",
       "https://example.test/a%xx", "https://example.test/a\\b"
     ].each do |raw|
-      assert_nil DisplayURL.normalize(raw), raw.inspect
+      assert_nil DisplayUrl.normalize(raw), raw.inspect
     end
   end
 

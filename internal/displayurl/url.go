@@ -19,7 +19,7 @@ var (
 )
 
 // Normalize trims surrounding ASCII spaces and lowercases the scheme. A
-// rejected URL returns an empty string. Keep this rule aligned with DisplayURL
+// rejected URL returns an empty string. Keep this rule aligned with DisplayUrl
 // in the OpenProject Ruby consumer.
 func Normalize(raw string) string {
 	value := strings.Trim(raw, " ")

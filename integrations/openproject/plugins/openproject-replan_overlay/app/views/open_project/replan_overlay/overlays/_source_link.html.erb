@@ -1,4 +1,4 @@
-<% if (target = OpenProject::ReplanOverlay::DisplayURL.normalize_work_package(url)) %>
+<% if (target = OpenProject::ReplanOverlay::DisplayUrl.normalize_work_package(url)) %>
   <a href="<%= h target %>"><%= h label %></a>
 <% else %>
   <%= h label %>

@@ -3,7 +3,7 @@ require "ipaddr"
 module OpenProject
   module ReplanOverlay
     # Keep the display policy aligned with Go's internal/displayurl package.
-    module DisplayURL
+    module DisplayUrl
       HTTP_URL = %r{\A(https?)://([^/?\#]+)([/?\#].*)?\z}i
       OPENPROJECT_API_WORK_PACKAGE = %r{\Ahttps?://[^/?\#]+(?:/[^?\#]*)?/api/v3/work_packages(?:[/?\#]|\z)}
       AUTHORITY = /\A(\[[0-9A-Fa-f:.]+\]|[A-Za-z0-9.-]+)(?::([0-9]+))?\z/
