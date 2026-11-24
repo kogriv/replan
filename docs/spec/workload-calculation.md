@@ -413,6 +413,18 @@ OP-123 Implement import adapter
   warning: required demand has no scheduled date range
 ```
 
+The calculator resolves demand timing and task planned dates after applying
+scenario overlays. Either resolved bound alone makes a one-day range. The
+weekly calculator lists unscheduled demand once per resource/unit and excludes
+it from dated planned, reserved, remaining and overload figures. The dashboard
+lists it at resource level across the displayed weeks. Separately recorded
+actuals keep their own dates.
+
+Without a week, workload retains whole-plan demand amounts and its existing
+capacity-at-status-date comparison. For concurrent resources the undated
+amount remains a single addition to the whole-plan peak. The unscheduled
+collection describes amounts already represented in that view.
+
 ## Demands with no estimate
 
 If a required demand has no `planned_amount` and no `remaining_amount`:
@@ -462,6 +474,15 @@ If `remaining_amount` is unknown:
 forecast_total = unknown
 warning: remaining amount unknown
 ```
+
+An absent remaining amount on an open demand contributes no numeric amount
+to the known remaining subtotal. An explicit zero is known. Known reservations
+still contribute reserved load. Resource rows with omitted work set
+`remaining_partial`, and individual demands set `remaining_unknown`.
+In a dated view, unknown unscheduled demand affects only the unscheduled
+collection. Optional open work carries the machine-readable marker without
+a warning. Terminal demand produces neither missing-date nor missing-remaining
+warnings. Dashboard tracking omits the unknown forecast and variance.
 
 If `actual_amount > planned_amount`:
 

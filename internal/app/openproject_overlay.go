@@ -508,6 +508,7 @@ func dashboardOpenProjectOverlayDemands(allocations []reports.DashboardGanttReso
 			PlannedAmount:             allocation.PlannedAmount,
 			ActualAmount:              demandTracking.Actual,
 			RemainingAmount:           allocation.RemainingAmount,
+			RemainingUnknown:          allocation.RemainingUnknown || demandTracking.RemainingUnknown,
 			Levelled:                  allocation.Levelled,
 			ForecastAmount:            demandTracking.Forecast,
 			VarianceAmount:            demandTracking.Variance,
@@ -539,18 +540,19 @@ func dashboardOpenProjectOverlayDemands(allocations []reports.DashboardGanttReso
 			plannedAmount, remainingAmount = 0, 0
 		}
 		view := reports.DashboardOpenProjectOverlayResourceDemand{
-			DemandID:        demandTracking.DemandID,
-			ResourceID:      demandTracking.ResourceID,
-			ResourceClass:   demandTracking.ResourceClass,
-			Role:            demandTracking.Role,
-			Unit:            demandTracking.Unit,
-			PlannedAmount:   plannedAmount,
-			ActualAmount:    demandTracking.Actual,
-			RemainingAmount: remainingAmount,
-			ForecastAmount:  demandTracking.Forecast,
-			VarianceAmount:  demandTracking.Variance,
-			EvidenceCount:   demandTracking.EvidenceCount,
-			Flags:           append([]string{}, demandTracking.Flags...),
+			DemandID:         demandTracking.DemandID,
+			ResourceID:       demandTracking.ResourceID,
+			ResourceClass:    demandTracking.ResourceClass,
+			Role:             demandTracking.Role,
+			Unit:             demandTracking.Unit,
+			PlannedAmount:    plannedAmount,
+			ActualAmount:     demandTracking.Actual,
+			RemainingAmount:  remainingAmount,
+			RemainingUnknown: demandTracking.RemainingUnknown,
+			ForecastAmount:   demandTracking.Forecast,
+			VarianceAmount:   demandTracking.Variance,
+			EvidenceCount:    demandTracking.EvidenceCount,
+			Flags:            append([]string{}, demandTracking.Flags...),
 		}
 		if demand := index.demands[demandTracking.DemandID]; !demand.IsLevelled() {
 			levelled := false

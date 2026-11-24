@@ -19,7 +19,7 @@ import (
 //     a sum.
 
 // demandSpan is a demand's window, from its own timing or its task's planned
-// dates. An undated demand counts everywhere.
+// dates. An undated demand belongs to the unscheduled collection.
 type demandSpan struct {
 	start, finish time.Time
 	dated         bool
@@ -155,7 +155,7 @@ func spreadDaysWithFallback(span demandSpan, availability resourceAvailability) 
 // and to, inclusive.
 func spanShare(span demandSpan, availability resourceAvailability, from, to time.Time) float64 {
 	if !span.dated {
-		return 1
+		return 0
 	}
 	spread := spreadDays(span, availability)
 	inside := 0

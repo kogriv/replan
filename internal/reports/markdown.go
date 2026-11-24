@@ -71,8 +71,13 @@ func WriteWeeklyMarkdown(w io.Writer, report WeeklyReport) error {
 			formatAmount(row.Capacity),
 			formatAmount(row.Planned),
 			formatAmount(row.Actual),
-			formatAmount(row.Remaining),
+			RemainingLabel(row.Remaining, row.RemainingPartial),
 			formatAmount(row.Overload)); err != nil {
+			return err
+		}
+	}
+	for _, row := range report.Resources {
+		if err := WriteUnscheduled(w, row.ResourceID, row.Unit, row.Unscheduled); err != nil {
 			return err
 		}
 	}
@@ -128,6 +133,9 @@ func WriteProjectStateMarkdown(w io.Writer, overview DashboardOverview) error {
 	writeStateTracking(&b, overview.Tracking)
 	writeStateTrackingLoop(&b, overview.TrackingLoop)
 	writeStateResourcePressure(&b, overview.Workload)
+	for _, row := range overview.Workload {
+		_ = WriteUnscheduled(&b, row.ResourceID, row.Unit, row.Unscheduled)
+	}
 	writeStateWarnings(&b, overview.Warnings)
 	writeStateNextActions(&b, overview.NextActions)
 	_, err := io.WriteString(w, b.String())
@@ -209,9 +217,9 @@ func writeStateTracking(b *strings.Builder, rows []DashboardTrackingRow) {
 				demand.Unit,
 				formatAmount(demand.Planned),
 				formatAmount(demand.Actual),
-				formatAmount(demand.Remaining),
-				formatAmount(demand.Forecast),
-				formatAmount(demand.Variance),
+				knownAmount(demand.Remaining, demand.RemainingUnknown),
+				knownAmount(demand.Forecast, demand.RemainingUnknown),
+				knownAmount(demand.Variance, demand.RemainingUnknown),
 				joinedOrDash(demand.Flags))
 		}
 	}
@@ -313,7 +321,7 @@ func writeStateResourcePressure(b *strings.Builder, workload []ResourceRow) {
 			formatAmount(row.Capacity),
 			formatAmount(row.Planned),
 			formatAmount(row.Actual),
-			formatAmount(row.Remaining),
+			RemainingLabel(row.Remaining, row.RemainingPartial),
 			formatAmount(row.Overload))
 	}
 	if overloaded == 0 {
@@ -430,4 +438,29 @@ func NextActionGroupTitle(actor string) string {
 
 func formatAmount(value float64) string {
 	return strconv.FormatFloat(value, 'f', -1, 64)
+}
+
+func RemainingLabel(amount float64, partial bool) string {
+	value := formatAmount(amount)
+	if partial {
+		return value + " (known subtotal)"
+	}
+	return value
+}
+
+func knownAmount(amount float64, unknown bool) string {
+	if unknown {
+		return "unknown"
+	}
+	return formatAmount(amount)
+}
+
+func WriteUnscheduled(w io.Writer, resourceID, unit string, demands []WorkloadDemandShare) error {
+	for _, demand := range demands {
+		if _, err := fmt.Fprintf(w, "\n- Unscheduled `%s` on `%s` (%s). Planned %s, reserved %s, remaining %s.\n",
+			demand.ResourceDemandID, resourceID, unit, formatAmount(demand.Planned), formatAmount(demand.Reserved), knownAmount(demand.Remaining, demand.RemainingUnknown)); err != nil {
+			return err
+		}
+	}
+	return nil
 }

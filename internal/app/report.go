@@ -104,6 +104,8 @@ func (s ReportService) Weekly(ctx context.Context, req WeeklyReportRequest) (rep
 			Reserved:            row.Reserved,
 			Actual:              row.Actual,
 			Remaining:           row.Remaining,
+			RemainingPartial:    row.RemainingPartial,
+			Unscheduled:         row.Unscheduled,
 			Overload:            row.Overload,
 			UnlevelledPlanned:   row.UnlevelledPlanned,
 			UnlevelledRemaining: row.UnlevelledRemaining,
@@ -322,7 +324,7 @@ func plannedForPeopleThisWeek(ws domain.Workspace, week string) []reports.NextPl
 			continue
 		}
 		span := demandWindow(demand, tasks)
-		if !span.intersects(weekStart, weekEnd) {
+		if !span.dated || !span.intersects(weekStart, weekEnd) {
 			continue
 		}
 		resourceID, resourceName, human := plannedHumanTarget(demand, resources, pools)
@@ -536,6 +538,11 @@ func dashboardDemandTracking(demand domain.ResourceDemand, actuals []domain.Actu
 	if !domain.DemandLoads(demand.Status) {
 		flags = append(flags, demand.Status)
 	}
+	unknown := demandRemainingUnknown(demand)
+	if unknown {
+		forecast, variance = 0, 0
+		flags = append(flags, "remaining_amount_unknown")
+	}
 	if variance > 0 {
 		flags = append(flags, "forecast_over_plan")
 		if overrunAcknowledged(demand.OverrunReview, demand.Unit, forecast) {
@@ -545,7 +552,7 @@ func dashboardDemandTracking(demand domain.ResourceDemand, actuals []domain.Actu
 	return reports.DashboardDemandTracking{
 		DemandID: demand.ID, ResourceID: demandResourceID(demand), ResourceClass: demand.ResourceClass,
 		Role: demand.Role, Unit: demand.Unit, Planned: demand.PlannedAmount, Actual: actualAmount,
-		Remaining: demand.Remaining(), Forecast: forecast, Variance: variance,
+		Remaining: demand.Remaining(), Forecast: forecast, Variance: variance, RemainingUnknown: unknown,
 		EvidenceCount: len(evidenceIDs), Flags: flags,
 	}
 }
@@ -1178,17 +1185,12 @@ func dashboardGanttAllocations(ws domain.Workspace, task domain.Task, demandsByI
 		if demandHasExplicitTiming(demand) {
 			windowSource = "explicit_demand_window"
 		}
-		startDate := firstNonEmpty(demand.Timing.PreferredStart, demand.Timing.EarliestStart, task.PlannedStart)
-		finishDate := firstNonEmpty(demand.Timing.PreferredFinish, demand.Timing.LatestFinish, task.PlannedFinish, startDate)
-		start, startErr := time.Parse("2006-01-02", startDate)
-		finish, finishErr := time.Parse("2006-01-02", finishDate)
-		if startErr != nil || finishErr != nil {
+		span := demandWindow(demand, map[string]domain.Task{task.ID: task})
+		if !span.dated {
 			continue
 		}
-		if finish.Before(start) {
-			finish = start
-			finishDate = startDate
-		}
+		start, finish := span.start, span.finish
+		startDate, finishDate := start.Format("2006-01-02"), finish.Format("2006-01-02")
 		duration := int(finish.Sub(start).Hours()/24) + 1
 		if duration < 1 {
 			duration = 1
@@ -1239,6 +1241,7 @@ func dashboardGanttAllocations(ws domain.Workspace, task domain.Task, demandsByI
 			Unit:                      demand.Unit,
 			PlannedAmount:             plannedAmount,
 			RemainingAmount:           remainingAmount,
+			RemainingUnknown:          demandRemainingUnknown(demand),
 			Levelled:                  levelled,
 			StartDate:                 startDate,
 			FinishDate:                finishDate,

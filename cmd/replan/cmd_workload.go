@@ -9,6 +9,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/kogriv/replan/internal/app"
+	"github.com/kogriv/replan/internal/reports"
 )
 
 func runWorkload(args []string, stdout, stderr *os.File) int {
@@ -133,11 +134,11 @@ func writeWorkloadMarkdown(stdout *os.File, result app.WorkloadResult) error {
 			name = row.ResourceID
 		}
 		if hasUnlevelled {
-			fmt.Fprintf(&b, "| `%s` | %s | %s | %g | %g | %g | %g | %g | %g | %g |\n",
-				markdownCell(name), markdownCell(row.ResourceClass), markdownCell(row.Unit), row.Capacity, row.Planned, row.Actual, row.Remaining, row.UnlevelledPlanned, row.UnlevelledRemaining, row.Overload)
+			fmt.Fprintf(&b, "| `%s` | %s | %s | %g | %g | %g | %s | %g | %g | %g |\n",
+				markdownCell(name), markdownCell(row.ResourceClass), markdownCell(row.Unit), row.Capacity, row.Planned, row.Actual, reports.RemainingLabel(row.Remaining, row.RemainingPartial), row.UnlevelledPlanned, row.UnlevelledRemaining, row.Overload)
 		} else {
-			fmt.Fprintf(&b, "| `%s` | %s | %s | %g | %g | %g | %g | %g |\n",
-				markdownCell(name), markdownCell(row.ResourceClass), markdownCell(row.Unit), row.Capacity, row.Planned, row.Actual, row.Remaining, row.Overload)
+			fmt.Fprintf(&b, "| `%s` | %s | %s | %g | %g | %g | %s | %g |\n",
+				markdownCell(name), markdownCell(row.ResourceClass), markdownCell(row.Unit), row.Capacity, row.Planned, row.Actual, reports.RemainingLabel(row.Remaining, row.RemainingPartial), row.Overload)
 		}
 		for _, demand := range row.Demands {
 			label := "↳ " + demand.ResourceDemandID
@@ -148,6 +149,9 @@ func writeWorkloadMarkdown(stdout *os.File, result app.WorkloadResult) error {
 			if demand.CalibrationID != "" {
 				planned = fmt.Sprintf("%g typed; %g calibrated", *demand.RawPlanned, demand.Planned)
 				remaining = fmt.Sprintf("%g typed; %g calibrated", *demand.RawRemaining, demand.Remaining)
+			}
+			if demand.RemainingUnknown {
+				remaining = "unknown"
 			}
 			if hasUnlevelled {
 				unlevelledPlanned, unlevelledRemaining := "-", "-"
@@ -160,6 +164,9 @@ func writeWorkloadMarkdown(stdout *os.File, result app.WorkloadResult) error {
 				fmt.Fprintf(&b, "| `%s` | demand | %s | - | %s | - | %s | - |\n", markdownCell(label), markdownCell(row.Unit), planned, remaining)
 			}
 		}
+	}
+	for _, row := range result.Resources {
+		_ = reports.WriteUnscheduled(&b, row.ResourceID, row.Unit, row.Unscheduled)
 	}
 	writeWorkloadCalibrationNotes(&b, result.Resources)
 	writeDiagnosticsMarkdown(&b, result.Warnings, result.Errors)
@@ -194,11 +201,11 @@ func writeWorkloadText(stdout *os.File, result app.WorkloadResult) error {
 		if name == "" {
 			name = row.ResourceID
 		}
-		format := "%s\t%s\t%s\t%g\t%g\t%g\t%g\t%g\n"
-		args := []any{name, row.ResourceClass, row.Unit, row.Capacity, row.Planned, row.Actual, row.Remaining, row.Overload}
+		format := "%s\t%s\t%s\t%g\t%g\t%g\t%s\t%g\n"
+		args := []any{name, row.ResourceClass, row.Unit, row.Capacity, row.Planned, row.Actual, reports.RemainingLabel(row.Remaining, row.RemainingPartial), row.Overload}
 		if hasUnlevelled {
-			format = "%s\t%s\t%s\t%g\t%g\t%g\t%g\t%g\t%g\t%g\n"
-			args = []any{name, row.ResourceClass, row.Unit, row.Capacity, row.Planned, row.Actual, row.Remaining, row.UnlevelledPlanned, row.UnlevelledRemaining, row.Overload}
+			format = "%s\t%s\t%s\t%g\t%g\t%g\t%s\t%g\t%g\t%g\n"
+			args = []any{name, row.ResourceClass, row.Unit, row.Capacity, row.Planned, row.Actual, reports.RemainingLabel(row.Remaining, row.RemainingPartial), row.UnlevelledPlanned, row.UnlevelledRemaining, row.Overload}
 		}
 		if _, err := fmt.Fprintf(tw, format, args...); err != nil {
 			return err
@@ -212,6 +219,9 @@ func writeWorkloadText(stdout *os.File, result app.WorkloadResult) error {
 			if demand.CalibrationID != "" {
 				planned = fmt.Sprintf("%g typed; %g calibrated", *demand.RawPlanned, demand.Planned)
 				remaining = fmt.Sprintf("%g typed; %g calibrated", *demand.RawRemaining, demand.Remaining)
+			}
+			if demand.RemainingUnknown {
+				remaining = "unknown"
 			}
 			format := "%s\tdemand\t%s\t-\t%s\t-\t%s\t-\n"
 			args := []any{label, row.Unit, planned, remaining}
@@ -233,6 +243,9 @@ func writeWorkloadText(stdout *os.File, result app.WorkloadResult) error {
 		return err
 	}
 	var notes strings.Builder
+	for _, row := range result.Resources {
+		_ = reports.WriteUnscheduled(&notes, row.ResourceID, row.Unit, row.Unscheduled)
+	}
 	writeWorkloadCalibrationNotes(&notes, result.Resources)
 	if _, err := fmt.Fprint(stdout, notes.String()); err != nil {
 		return err

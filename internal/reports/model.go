@@ -41,6 +41,9 @@ type WeeklySummary struct {
 }
 
 type ResourceRow struct {
+	Unscheduled      []WorkloadDemandShare `json:"unscheduled,omitempty"`
+	RemainingPartial bool                  `json:"remaining_partial,omitempty"`
+
 	ResourceID          string   `json:"resource_id"`
 	ResourceName        string   `json:"resource_name,omitempty"`
 	ResourceClass       string   `json:"resource_class,omitempty"`
@@ -142,6 +145,7 @@ type DashboardWorkloadData struct {
 }
 
 type DashboardWorkloadResource struct {
+	Unscheduled   []WorkloadDemandShare   `json:"unscheduled,omitempty"`
 	ResourceID    string                  `json:"resource_id"`
 	ResourceName  string                  `json:"resource_name,omitempty"`
 	ResourceClass string                  `json:"resource_class,omitempty"`
@@ -150,6 +154,7 @@ type DashboardWorkloadResource struct {
 }
 
 type DashboardWorkloadCell struct {
+	RemainingPartial    bool                      `json:"remaining_partial,omitempty"`
 	Week                string                    `json:"week"`
 	Capacity            float64                   `json:"capacity"`
 	Planned             float64                   `json:"planned"`
@@ -165,6 +170,7 @@ type DashboardWorkloadCell struct {
 }
 
 type DashboardWorkloadDemand struct {
+	RemainingUnknown bool    `json:"remaining_unknown,omitempty"`
 	ResourceDemandID string  `json:"resource_demand_id"`
 	TaskID           string  `json:"task_id,omitempty"`
 	TaskTitle        string  `json:"task_title,omitempty"`
@@ -585,6 +591,7 @@ type DashboardOpenProjectOverlayDependency struct {
 }
 
 type DashboardOpenProjectOverlayResourceDemand struct {
+	RemainingUnknown          bool     `json:"remaining_unknown,omitempty"`
 	DemandID                  string   `json:"demand_id"`
 	ResourceID                string   `json:"resource_id,omitempty"`
 	ResourceClass             string   `json:"resource_class,omitempty"`
@@ -656,18 +663,19 @@ type DashboardTrackingRow struct {
 }
 
 type DashboardDemandTracking struct {
-	DemandID      string   `json:"demand_id"`
-	ResourceID    string   `json:"resource_id,omitempty"`
-	ResourceClass string   `json:"resource_class,omitempty"`
-	Role          string   `json:"role,omitempty"`
-	Unit          string   `json:"unit,omitempty"`
-	Planned       float64  `json:"planned,omitempty"`
-	Actual        float64  `json:"actual,omitempty"`
-	Remaining     float64  `json:"remaining,omitempty"`
-	Forecast      float64  `json:"forecast,omitempty"`
-	Variance      float64  `json:"variance,omitempty"`
-	EvidenceCount int      `json:"evidence_count"`
-	Flags         []string `json:"flags,omitempty"`
+	RemainingUnknown bool     `json:"remaining_unknown,omitempty"`
+	DemandID         string   `json:"demand_id"`
+	ResourceID       string   `json:"resource_id,omitempty"`
+	ResourceClass    string   `json:"resource_class,omitempty"`
+	Role             string   `json:"role,omitempty"`
+	Unit             string   `json:"unit,omitempty"`
+	Planned          float64  `json:"planned,omitempty"`
+	Actual           float64  `json:"actual,omitempty"`
+	Remaining        float64  `json:"remaining,omitempty"`
+	Forecast         float64  `json:"forecast,omitempty"`
+	Variance         float64  `json:"variance,omitempty"`
+	EvidenceCount    int      `json:"evidence_count"`
+	Flags            []string `json:"flags,omitempty"`
 }
 
 type DashboardTrackingLoop struct {
@@ -738,6 +746,7 @@ type DashboardGanttTask struct {
 }
 
 type DashboardGanttResourceAllocation struct {
+	RemainingUnknown          bool    `json:"remaining_unknown,omitempty"`
 	DemandID                  string  `json:"demand_id"`
 	ResourceID                string  `json:"resource_id"`
 	ResourceClass             string  `json:"resource_class,omitempty"`
@@ -881,4 +890,20 @@ type DashboardManifest struct {
 type DashboardManifestArtifact struct {
 	Path   string `json:"path"`
 	SHA256 string `json:"sha256,omitempty"`
+}
+
+type WorkloadDemandShare struct {
+	RemainingUnknown bool     `json:"remaining_unknown,omitempty"`
+	ResourceDemandID string   `json:"resource_demand_id"`
+	TaskID           string   `json:"task_id,omitempty"`
+	Status           string   `json:"status,omitempty"`
+	Concurrent       bool     `json:"concurrent,omitempty"`
+	Share            float64  `json:"share"`
+	Planned          float64  `json:"planned"`
+	Reserved         float64  `json:"reserved"`
+	Remaining        float64  `json:"remaining"`
+	CalibrationID    string   `json:"calibration_id,omitempty"`
+	RawPlanned       *float64 `json:"raw_planned,omitempty"`
+	RawRemaining     *float64 `json:"raw_remaining,omitempty"`
+	Levelled         *bool    `json:"levelled,omitempty"`
 }

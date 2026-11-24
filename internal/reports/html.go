@@ -707,7 +707,16 @@ func writeDashboardWorkloadRow(w io.Writer, resource DashboardWorkloadResource, 
 	if name == "" {
 		name = resource.ResourceID
 	}
-	if _, err := fmt.Fprintf(w, "<tr><th scope=\"row\"><span class=\"code\">%s</span><br>%s</th><td>%s<br><span class=\"code\">%s</span></td>", html.EscapeString(resource.ResourceID), html.EscapeString(name), html.EscapeString(resource.ResourceClass), html.EscapeString(resource.Unit)); err != nil {
+	if _, err := fmt.Fprintf(w, "<tr><th scope=\"row\"><span class=\"code\">%s</span><br>%s</th><td>%s<br><span class=\"code\">%s</span>", html.EscapeString(resource.ResourceID), html.EscapeString(name), html.EscapeString(resource.ResourceClass), html.EscapeString(resource.Unit)); err != nil {
+		return err
+	}
+	for _, demand := range resource.Unscheduled {
+		if _, err := fmt.Fprintf(w, "<br>Unscheduled <span class=\"code\">%s</span>. Planned %s, reserved %s, remaining %s.",
+			html.EscapeString(demand.ResourceDemandID), formatAmount(demand.Planned), formatAmount(demand.Reserved), knownAmount(demand.Remaining, demand.RemainingUnknown)); err != nil {
+			return err
+		}
+	}
+	if _, err := fmt.Fprint(w, "</td>"); err != nil {
 		return err
 	}
 	byWeek := map[string]DashboardWorkloadCell{}
@@ -730,8 +739,8 @@ func writeDashboardWorkloadCell(w io.Writer, cell DashboardWorkloadCell) error {
 	if _, err := fmt.Fprintf(w, "<td class=\"%s\"><strong>%s / %s</strong>", class, formatPageNumber(load), formatPageNumber(cell.Capacity)); err != nil {
 		return err
 	}
-	if math.Abs(cell.Remaining-load) > 0.000001 {
-		if _, err := fmt.Fprintf(w, "<br><span class=\"muted\">remaining %s</span>", formatPageNumber(cell.Remaining)); err != nil {
+	if cell.RemainingPartial || math.Abs(cell.Remaining-load) > 0.000001 {
+		if _, err := fmt.Fprintf(w, "<br><span class=\"muted\">remaining %s</span>", pageRemainingLabel(cell)); err != nil {
 			return err
 		}
 	}
@@ -755,7 +764,7 @@ func writeDashboardWorkloadCell(w io.Writer, cell DashboardWorkloadCell) error {
 			return err
 		}
 		for _, demand := range cell.Demands {
-			if _, err := fmt.Fprintf(w, "<li><span class=\"code\">%s</span> — %s (%s), remaining %s</li>", html.EscapeString(demand.ResourceDemandID), html.EscapeString(demand.TaskTitle), html.EscapeString(demand.TaskID), formatPageNumber(demand.Remaining)); err != nil {
+			if _, err := fmt.Fprintf(w, "<li><span class=\"code\">%s</span> — %s (%s), remaining %s</li>", html.EscapeString(demand.ResourceDemandID), html.EscapeString(demand.TaskTitle), html.EscapeString(demand.TaskID), workloadDemandRemainingLabel(demand)); err != nil {
 				return err
 			}
 		}
@@ -2092,4 +2101,18 @@ func writeDashboardSourcesHTML(w io.Writer, health DashboardSourceHealth) error 
 	}
 	_, err := fmt.Fprint(w, "</section>\n")
 	return err
+}
+
+func pageRemainingLabel(cell DashboardWorkloadCell) string {
+	if cell.RemainingPartial {
+		return RemainingLabel(cell.Remaining, true)
+	}
+	return formatPageNumber(cell.Remaining)
+}
+
+func workloadDemandRemainingLabel(demand DashboardWorkloadDemand) string {
+	if demand.RemainingUnknown {
+		return "unknown"
+	}
+	return formatPageNumber(demand.Remaining)
 }

@@ -27,17 +27,28 @@ func TestWorkloadSmallTeamFixture(t *testing.T) {
 	if len(result.Errors) != 0 {
 		t.Fatalf("expected no errors, got %#v", result.Errors)
 	}
-	if len(result.Warnings) != 3 || result.Warnings[0].Code != "availability_exceptions_not_applied" || result.Warnings[0].Target.ID != "resource.human.ivan" ||
-		result.Warnings[1].Code != "monthly_capacity_not_weekly" || result.Warnings[2].Code != "monthly_capacity_not_weekly" {
-		t.Fatalf("expected Ivan's grouped amount-less exception and two monthly limit warnings, got %#v", result.Warnings)
+	for _, code := range []string{"availability_exceptions_not_applied", "monthly_capacity_not_weekly", "unscheduled_required_demand"} {
+		if !hasDiagnosticCode(result.Warnings, code) {
+			t.Fatalf("missing %s in %#v", code, result.Warnings)
+		}
 	}
 
-	assertWorkload(t, result, "resource.human.ivan", "hours", 32, 8, 8, 0)
-	assertWorkload(t, result, "resource.ai.codex.local", "agent_hours", 20, 2, 2, 0)
-	assertWorkload(t, result, "resource.service.openai.tokens", "tokens", 0, 500000, 500000, 0)
-	assertWorkload(t, result, "resource.project.budget", "rub", 0, 12000, 12000, 0)
-	assertWorkload(t, result, "resource.environment.staging", "concurrent_slots", 1, 1, 1, 0)
-	assertWorkload(t, result, "resource_pool.reviewers", "review_hours", 8, 2, 2, 0)
+	assertWorkload(t, result, "resource.human.ivan", "hours", 32, 0, 0, 0)
+	assertWorkload(t, result, "resource.ai.codex.local", "agent_hours", 20, 0, 0, 0)
+	assertWorkload(t, result, "resource.service.openai.tokens", "tokens", 0, 0, 0, 0)
+	assertWorkload(t, result, "resource.project.budget", "rub", 0, 0, 0, 0)
+	assertWorkload(t, result, "resource.environment.staging", "concurrent_slots", 1, 0, 0, 0)
+	assertWorkload(t, result, "resource_pool.reviewers", "review_hours", 8, 0, 0, 0)
+	all, err := service.Calculate(context.Background(), app.WorkloadRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range all.Resources {
+		if row.ResourceID == "resource.human.ivan" && (row.Planned != 8 || row.Remaining != 8 || len(row.Unscheduled) != 1) {
+			t.Fatalf("whole-plan Ivan workload = %#v", row)
+		}
+	}
+
 }
 
 func TestWorkloadUsesCorrectedActualAmount(t *testing.T) {
@@ -210,7 +221,7 @@ func TestPriorCalibrationWritesReloadsAndScalesLoad(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, row := range load.Resources {
-		if row.ResourceID == "resource.ai.codex.local" && (row.Planned != .5 || !reflect.DeepEqual(row.CalibrationIDs, []string{"calibration.prior"})) {
+		if row.ResourceID == "resource.ai.codex.local" && (row.Planned != 0 || len(row.Unscheduled) != 1 || row.Unscheduled[0].Planned != .5 || row.Unscheduled[0].CalibrationID != "calibration.prior") {
 			t.Fatalf("prior-calibrated load=%#v", row)
 		}
 	}
@@ -342,7 +353,7 @@ func TestWorkloadAppliesRemainingAmountScenario(t *testing.T) {
 	if result.ScenarioID != "scenario.task-op-1234-remaining-5" {
 		t.Fatalf("ScenarioID = %q", result.ScenarioID)
 	}
-	assertWorkload(t, result, "resource.human.ivan", "hours", 32, 8, 5, 0)
+	assertWorkload(t, result, "resource.human.ivan", "hours", 32, 0, 0, 0)
 }
 
 func TestWorkloadAppliesResourceReassignmentScenario(t *testing.T) {
@@ -358,7 +369,7 @@ func TestWorkloadAppliesResourceReassignmentScenario(t *testing.T) {
 		t.Fatalf("Calculate returned error: %v", err)
 	}
 	assertWorkload(t, result, "resource.human.ivan", "hours", 32, 0, 0, 0)
-	assertWorkloadWithActual(t, result, "resource.human.petr", "hours", 24, 12, 2, 10, 0)
+	assertWorkloadWithActual(t, result, "resource.human.petr", "hours", 24, 0, 2, 0, 0)
 }
 
 func TestWorkloadAppliesCapacityAmountScenario(t *testing.T) {
@@ -373,7 +384,7 @@ func TestWorkloadAppliesCapacityAmountScenario(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Calculate returned error: %v", err)
 	}
-	assertWorkload(t, result, "resource.human.ivan", "hours", 6, 8, 8, 2)
+	assertWorkload(t, result, "resource.human.ivan", "hours", 6, 0, 0, 0)
 }
 
 func TestWorkloadAppliesQuotaCapacityScenario(t *testing.T) {
@@ -497,7 +508,7 @@ func TestWorkloadWeekFiltersDatedDemandsAndKeepsUnscheduledDemands(t *testing.T)
 	if err != nil {
 		t.Fatalf("Calculate returned error: %v", err)
 	}
-	assertWorkloadWithActual(t, result, "resource.human.maintainer", "hours", 10, 6, 3, 6, 0)
+	assertWorkloadWithActual(t, result, "resource.human.maintainer", "hours", 10, 4, 3, 4, 0)
 }
 
 func TestWorkloadReportsMissingScenario(t *testing.T) {
@@ -591,5 +602,68 @@ func TestWorkloadResourceClassAndUnitFilters(t *testing.T) {
 		if warning.Code == "missing_capacity" && !kept[warning.Target.ID] {
 			t.Fatalf("warning for a filtered-out row: %#v", warning)
 		}
+	}
+}
+
+func TestWorkloadUnscheduledAndUnknownRemaining(t *testing.T) {
+	ref := domain.Ref{Kind: "resource", ID: "resource.worker"}
+	taskRef := domain.Ref{Kind: "task", ID: "task.dated"}
+	ws := domain.Workspace{
+		Project:    domain.Project{ID: "project.test"},
+		Tasks:      []domain.Task{{ID: taskRef.ID, PlannedStart: "2026-11-16", PlannedFinish: "2026-11-16"}},
+		Resources:  []domain.Resource{{ID: ref.ID}},
+		Capacities: []domain.Capacity{{ResourceRef: ref, Unit: "hours", Period: "week", Amount: 5}},
+		ResourceDemands: []domain.ResourceDemand{
+			{ID: "undated", ResourceRef: ref, Unit: "hours", PlannedAmount: 9, RemainingAmount: domain.Amount(9), Criticality: "required"},
+			{ID: "reservation", TaskRef: taskRef, ResourceRef: ref, Unit: "hours", PlannedAmount: 6, ReservedAmount: 6, Criticality: "required"},
+			{ID: "zero", TaskRef: taskRef, ResourceRef: ref, Unit: "hours", RemainingAmount: domain.Amount(0)},
+			{ID: "terminal", ResourceRef: ref, Unit: "hours", Status: "cancelled", Criticality: "required"},
+			{ID: "optional", ResourceRef: ref, Unit: "hours", Criticality: "optional"},
+		},
+		Actuals: []domain.Actual{{ID: "actual.dated", Type: "work_consumed", ResourceRef: ref, DemandRef: domain.Ref{ID: "undated"}, StatusDate: "2026-11-16", Amount: 2, Unit: "hours"}},
+	}
+	service := app.NewWorkloadService(stubLoader{ws: ws})
+	for _, tc := range []struct {
+		week                                           string
+		planned, remaining, reserved, actual, overload float64
+		partial                                        bool
+	}{
+		{"2026-W47", 6, 0, 6, 2, 1, true},
+		{"2026-W48", 0, 0, 0, 0, 0, false},
+		{"", 15, 9, 6, 2, 1, true},
+	} {
+		t.Run(tc.week, func(t *testing.T) {
+			req := app.WorkloadRequest{Week: tc.week, WithDemands: true}
+			got, err := service.Calculate(context.Background(), req)
+			if err != nil || len(got.Resources) != 1 {
+				t.Fatalf("calculate = %+v, %v", got, err)
+			}
+			row := got.Resources[0]
+			if row.Planned != tc.planned || row.Remaining != tc.remaining || row.Reserved != tc.reserved || row.Actual != tc.actual || row.Overload != tc.overload || row.RemainingPartial != tc.partial {
+				t.Fatalf("unexpected resource row %+v", row)
+			}
+			bucket, _ := json.Marshal(row.Unscheduled)
+			const expected = `[{"remaining_unknown":true,"resource_demand_id":"optional","share":1,"planned":0,"reserved":0,"remaining":0},{"resource_demand_id":"terminal","status":"cancelled","share":1,"planned":0,"reserved":0,"remaining":0},{"resource_demand_id":"undated","share":1,"planned":9,"reserved":0,"remaining":9}]`
+			if string(bucket) != expected {
+				t.Fatalf("unscheduled JSON = %s", bucket)
+			}
+			var issues []string
+			for _, warning := range got.Warnings {
+				issues = append(issues, warning.Code+":"+warning.Target.ID)
+			}
+			want := []string{"unscheduled_required_demand:undated"}
+			if tc.partial {
+				want = append([]string{"remaining_amount_unknown:reservation"}, want...)
+			}
+			if !reflect.DeepEqual(issues, want) {
+				t.Fatalf("warnings = %v, want %v", issues, want)
+			}
+			if tc.week != "" {
+				weekly, err := app.NewReportService(stubLoader{ws: ws}).Weekly(context.Background(), app.WeeklyReportRequest{Week: tc.week})
+				if err != nil || len(weekly.Resources) != 1 || weekly.Resources[0].Actual != tc.actual || weekly.Resources[0].RemainingPartial != tc.partial || !reflect.DeepEqual(weekly.Resources[0].Unscheduled, row.Unscheduled) {
+					t.Fatalf("weekly = %+v, %v", weekly, err)
+				}
+			}
+		})
 	}
 }

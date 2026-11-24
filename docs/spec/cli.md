@@ -971,7 +971,7 @@ Time selector:
   when there is none, falls in that ISO week, and demands whose own timing,
   or their task's planned window when the demand has none, intersects it.
   An actual without either date is omitted with `undated_actual`. Undated
-  demands still count in every week. A malformed value or a week that does
+  demands appear in a separate `unscheduled` collection. A malformed value or a week that does
   not exist in its ISO year (for example `2025-W53`) returns exit `8`;
 - without `--week` the command sums over all weeks: every actual and every
   demand counts. Reports and `next` default to the week of the project status
@@ -1005,7 +1005,18 @@ Demands over time (GAP-031):
   remaining and reserved for such a resource are the peak of simultaneous use
   on any day of the week, or of all dated windows without `--week`, never a
   sum, so tasks that use one slot one after another do not overload it;
-- undated demands count in full in every week and on every day;
+- resource rows list each undated demand once under `unscheduled`, including
+  when `--demands` is omitted. These entries contribute no dated load or
+  overload. Without `--week`, their amounts are already represented in the
+  whole-plan rows. Treat the collection as detail and do not add it to those
+  totals. Required open demands emit `unscheduled_required_demand`;
+- `remaining_unknown` identifies open demand with absent remaining.
+  `remaining_partial` marks resource subtotals that omit unknown work.
+  The numeric remaining fields retain known amounts, including explicit zero.
+  Reservations retain their own amounts and existing overload rules.
+  `remaining_amount_unknown` flags missing estimates on non-optional open
+  demands. Dashboard tracking leaves forecast and variance unavailable for
+  those missing estimates;
 - the dashboard Gantt load and the OpenProject overlay use the same rule:
   daily amounts fall on working days only, a concurrent load's weekly bucket
   is its peak day, and each bucket's capacity is the capacity in effect in

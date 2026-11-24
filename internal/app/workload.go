@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/kogriv/replan/internal/domain"
+	"github.com/kogriv/replan/internal/reports"
 )
 
 type WorkloadService struct {
@@ -55,29 +56,18 @@ type ResourceWorkload struct {
 	RawPlanned          *float64 `json:"raw_planned,omitempty"`
 	RawRemaining        *float64 `json:"raw_remaining,omitempty"`
 	// Demands is filled only on request (WorkloadRequest.WithDemands).
-	Demands         []WorkloadDemandShare `json:"demands,omitempty"`
-	capacityKnown   bool
-	monthlyCapacity bool
+	Demands          []WorkloadDemandShare `json:"demands,omitempty"`
+	Unscheduled      []WorkloadDemandShare `json:"unscheduled,omitempty"`
+	RemainingPartial bool                  `json:"remaining_partial,omitempty"`
+	capacityKnown    bool
+	monthlyCapacity  bool
 }
 
 // WorkloadDemandShare is one demand's part of a workload row. Share is the
 // fraction of the demand that falls in the requested week (1 without a week).
 // A demand on a concurrent resource is not prorated: its amounts are its own,
 // and the row holds the peak of the demands active on the same day.
-type WorkloadDemandShare struct {
-	ResourceDemandID string   `json:"resource_demand_id"`
-	TaskID           string   `json:"task_id,omitempty"`
-	Status           string   `json:"status,omitempty"`
-	Concurrent       bool     `json:"concurrent,omitempty"`
-	Share            float64  `json:"share"`
-	Planned          float64  `json:"planned"`
-	Reserved         float64  `json:"reserved"`
-	Remaining        float64  `json:"remaining"`
-	CalibrationID    string   `json:"calibration_id,omitempty"`
-	RawPlanned       *float64 `json:"raw_planned,omitempty"`
-	RawRemaining     *float64 `json:"raw_remaining,omitempty"`
-	Levelled         *bool    `json:"levelled,omitempty"`
-}
+type WorkloadDemandShare = reports.WorkloadDemandShare
 
 func NewWorkloadService(loader WorkspaceLoader) WorkloadService {
 	return WorkloadService{loader: loader}
@@ -343,6 +333,9 @@ func (c *workloadCalculation) addDemand(demand domain.ResourceDemand) {
 		return
 	}
 	row := c.rowFor(targetID, demand.Unit)
+	if (c.req.ResourceClass != "" && row.ResourceClass != c.req.ResourceClass) || (c.req.Unit != "" && row.Unit != c.req.Unit) {
+		return
+	}
 	key := targetID + "\x00" + demand.Unit
 	loadScale := 1.0
 	if !domain.DemandAddsLevelledLoad(demand) {
@@ -362,26 +355,56 @@ func (c *workloadCalculation) addDemand(demand domain.ResourceDemand) {
 			Target:   Target{Kind: "resource_demand", ID: demand.ID},
 		})
 	}
-	if c.hasWeekFilter {
+	if c.hasWeekFilter && span.dated {
 		share = spanShare(span, c.days[targetID], c.weekStart, c.weekEnd)
 	}
 	planned, remaining, reserved := demand.PlannedAmount, demand.Remaining(), demand.ReservedAmount
-	if !demand.IsLevelled() {
-		row.UnlevelledPlanned += planned * share * lifecycleScale
-		row.UnlevelledRemaining += remaining * share * lifecycleScale
-	}
 	calibrationID := ""
 	if match, ok := c.calibrations[demand.ID]; ok && loadScale != 0 {
 		calibrationID = match.Calibration.ID
 		planned = calibratedLoadAmount(planned, match.Factor)
 		remaining = calibratedLoadAmount(remaining, match.Factor)
 		reserved = calibratedLoadAmount(reserved, match.Factor)
+	}
+	concurrent := isConcurrentResourceUnit(c.workspace.Capacities, targetID, demand.Unit)
+	unknown := demandRemainingUnknown(demand)
+	target := Target{Kind: "resource_demand", ID: demand.ID}
+	if !span.dated {
+		scale := loadScale
+		if !demand.IsLevelled() {
+			scale = lifecycleScale
+		}
+		row.Unscheduled = append(row.Unscheduled, demandShare(demand, 1, scale, concurrent, planned, remaining, reserved, calibrationID))
+		if !calibrationDemandClosed(demand.Status) && demand.Criticality == "required" {
+			c.result.Warnings = append(c.result.Warnings, Diagnostic{Code: "unscheduled_required_demand", Severity: "warning", Target: target, Message: "required demand has no scheduled date range"})
+		}
+	}
+	if unknown && demand.Criticality != "optional" {
+		message := "remaining amount unknown; remaining totals show only known amounts"
+		if c.hasWeekFilter && !span.dated {
+			message = "remaining amount unknown in unscheduled work"
+		}
+		c.result.Warnings = append(c.result.Warnings, Diagnostic{Code: "remaining_amount_unknown", Severity: "warning", Target: target, Message: message})
+	}
+	if c.hasWeekFilter && !span.dated {
+		// Preserve the legacy embedded actual fallback independently of planned load.
+		if !c.actualDemandIDs[demand.ID] {
+			row.Actual += demand.ActualAmount
+		}
+		return
+	}
+	row.RemainingPartial = row.RemainingPartial || (unknown && (share > 0 || concurrent))
+	if !demand.IsLevelled() {
+		row.UnlevelledPlanned += planned * share * lifecycleScale
+		row.UnlevelledRemaining += remaining * share * lifecycleScale
+	}
+	if calibrationID != "" {
 		if c.calibrationIDs[key] == nil {
 			c.calibrationIDs[key] = map[string]bool{}
 		}
 		c.calibrationIDs[key][calibrationID] = true
 	}
-	if isConcurrentResourceUnit(c.workspace.Capacities, targetID, demand.Unit) {
+	if concurrent {
 		spreadMap := spreadDayMap(span, spread)
 		c.concurrent[key] = append(c.concurrent[key], concurrentUse{span: span, planned: planned * loadScale, remaining: remaining * loadScale, reserved: reserved * loadScale, days: spreadMap})
 		c.rawConcurrent[key] = append(c.rawConcurrent[key], concurrentUse{span: span, planned: demand.PlannedAmount * loadScale, remaining: demand.Remaining() * loadScale, reserved: demand.ReservedAmount * loadScale, days: spreadMap})
@@ -435,6 +458,7 @@ func (c *workloadCalculation) finishRows() {
 			rawPlanned, rawRemaining := roundDashboardFloat(c.rawPlanned[key]), roundDashboardFloat(c.rawRemaining[key])
 			row.RawPlanned, row.RawRemaining = &rawPlanned, &rawRemaining
 		}
+		sort.Slice(row.Unscheduled, func(i, j int) bool { return row.Unscheduled[i].ResourceDemandID < row.Unscheduled[j].ResourceDemandID })
 		sort.Slice(row.Demands, func(i, j int) bool { return row.Demands[i].ResourceDemandID < row.Demands[j].ResourceDemandID })
 		load := row.Reserved
 		if load == 0 {
@@ -540,6 +564,7 @@ func workloadWeekRange(week string) (time.Time, time.Time, bool) {
 // the week, scale what its amounts are multiplied by.
 func demandShare(demand domain.ResourceDemand, share, scale float64, concurrent bool, planned, remaining, reserved float64, calibrationID string) WorkloadDemandShare {
 	result := WorkloadDemandShare{
+		RemainingUnknown: demandRemainingUnknown(demand),
 		ResourceDemandID: demand.ID,
 		TaskID:           demand.TaskRef.ID,
 		Status:           demand.Status,
@@ -580,4 +605,8 @@ func demandTargetID(demand domain.ResourceDemand) (string, bool) {
 		return demand.ResourcePoolRef.ID, true
 	}
 	return "", false
+}
+
+func demandRemainingUnknown(demand domain.ResourceDemand) bool {
+	return domain.DemandLoads(demand.Status) && !calibrationDemandClosed(demand.Status) && !demand.HasRemaining()
 }
