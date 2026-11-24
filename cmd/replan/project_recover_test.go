@@ -250,30 +250,31 @@ func TestPlanningCommandsRefusePartiallyInstalledCommit(t *testing.T) {
 	insideFile := filepath.Join(project, "refused.json")
 	outsideFile := filepath.Join(outside, "refused.tjp")
 	for _, tc := range []struct {
+		name string
 		args []string
 		json bool
 	}{
-		{[]string{"workload", "--resource", "--project", "--raw"}, true},
-		{[]string{"next", "--format", "json"}, true},
-		{[]string{"report", "state", "--format", "json"}, true},
-		{[]string{"report", "weekly", "--week", "2026-W28", "--write"}, false},
-		{[]string{"report", "estimates", "--baseline", "baseline.initial"}, false},
-		{[]string{"report", "waits"}, false},
-		{[]string{"report", "dashboard", "--output", "refused-dashboard"}, false},
-		{[]string{"tracking", "suggest"}, true},
-		{[]string{"estimate", "list"}, true},
-		{[]string{"estimate", "show", "calibration.example"}, true},
-		{[]string{"estimate", "calibrate", "--dry-run"}, true},
-		{[]string{"estimate", "apply", "--dry-run"}, true},
-		{[]string{"export", "json", "--output", insideFile, "--manifest", insideFile + ".manifest"}, true},
-		{[]string{"export", "csv", "--output", outsideFile + ".csv", "--manifest", outsideFile + ".manifest"}, false},
-		{[]string{"export", "taskjuggler", "--output", outsideFile}, false},
-		{[]string{"taskjuggler", "run", "--output-dir", filepath.Join(outside, "run")}, true},
-		{[]string{"taskjuggler", "import-result", "--dry-run"}, true},
-		{[]string{"taskjuggler", "import-result", "--dry-run", "--write-candidate"}, true},
-		{[]string{"dev", "validate-taskjuggler", "--keep-temp"}, true},
+		{"workload", []string{"workload", "--resource", "--project", "--raw"}, true},
+		{"next", []string{"next", "--format", "json"}, true},
+		{"report-state", []string{"report", "state", "--format", "json"}, true},
+		{"report-weekly", []string{"report", "weekly", "--week", "2026-W28", "--write"}, false},
+		{"report-estimates", []string{"report", "estimates", "--baseline", "baseline.initial"}, false},
+		{"report-waits", []string{"report", "waits"}, false},
+		{"dashboard", []string{"report", "dashboard", "--output", "refused-dashboard"}, false},
+		{"tracking-suggest", []string{"tracking", "suggest"}, true},
+		{"estimate-list", []string{"estimate", "list"}, true},
+		{"estimate-show", []string{"estimate", "show", "calibration.example"}, true},
+		{"estimate-calibrate-preview", []string{"estimate", "calibrate", "--dry-run"}, true},
+		{"estimate-apply-preview", []string{"estimate", "apply", "--dry-run"}, true},
+		{"export-json", []string{"export", "json", "--output", insideFile, "--manifest", insideFile + ".manifest"}, true},
+		{"export-csv", []string{"export", "csv", "--output", outsideFile + ".csv", "--manifest", outsideFile + ".manifest"}, false},
+		{"export-taskjuggler", []string{"export", "taskjuggler", "--output", outsideFile}, false},
+		{"taskjuggler-run", []string{"taskjuggler", "run", "--output-dir", filepath.Join(outside, "run")}, true},
+		{"taskjuggler-import-preview", []string{"taskjuggler", "import-result", "--dry-run"}, true},
+		{"taskjuggler-import-conflicting-flags", []string{"taskjuggler", "import-result", "--dry-run", "--write-candidate"}, true},
+		{"dev-validate-taskjuggler", []string{"dev", "validate-taskjuggler", "--keep-temp"}, true},
 	} {
-		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
+		t.Run(tc.name, func(t *testing.T) {
 			t.Setenv("REPLAN_APPLY", "1")
 			commandLen := 2
 			if tc.args[0] == "workload" || tc.args[0] == "next" {
