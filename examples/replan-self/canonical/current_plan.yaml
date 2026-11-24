@@ -610,6 +610,8 @@ current_plan:
     - kind: task
       id: task.self.safe-report-urls
     - kind: task
+      id: task.self.deploy-safe-report-urls
+    - kind: task
       id: task.self.readers-fail-closed-on-pending-commit
     - kind: task
       id: task.self.scenario-status-gate

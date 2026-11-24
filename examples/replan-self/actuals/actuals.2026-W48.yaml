@@ -835,3 +835,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.safe-report-urls-ready
+  - id: actual.self-safe-report-urls.ci-github-actions.20261124T1432050700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.safe-report-urls
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.safe-report-urls.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 15
+    unit: ci_minutes
+    measurement: measured
+    occurred_at: "2026-11-24T14:32:05+07:00"
+    status_date: "2026-11-24"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-safe-report-urls
+  - id: actual.self-deploy-safe-report-urls.ai-codex-local.20261124T1447400700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.deploy-safe-report-urls
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.deploy-safe-report-urls.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.19
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-24T14:47:40+07:00"
+    status_date: "2026-11-24"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.deploy-safe-report-urls-ready

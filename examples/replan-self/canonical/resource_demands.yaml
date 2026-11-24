@@ -18984,7 +18984,7 @@ resource_demands:
     planned_amount: 0.6
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.safe-report-urls.agent
     task_ref:
       kind: task
@@ -18998,7 +18998,7 @@ resource_demands:
     planned_amount: 0.2
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.safe-report-urls.maintainer
     task_ref:
       kind: task
@@ -19010,9 +19010,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.safe-report-urls.local-dev
     task_ref:
       kind: task
@@ -19026,7 +19026,7 @@ resource_demands:
     planned_amount: 1
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.safe-report-urls.ci
     task_ref:
       kind: task
@@ -19038,9 +19038,20 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
+    overrun_review:
+      acknowledged_forecast: 15
+      unit: ci_minutes
+      reason: 'The maintainer confirmed the five-minute CI overrun: 15 measured against 10 planned.'
+      reviewed_by:
+        kind: actor
+        id: actor.human.maintainer
+      reviewed_at: "2026-11-24T14:33:58+07:00"
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.accept-safe-report-urls
   - id: resource_demand.readers-fail-closed-on-pending-commit.codex
     task_ref:
       kind: task
@@ -20115,3 +20126,31 @@ resource_demands:
       evidence_refs:
         - kind: evidence
           id: evidence.self.accept-rebase-urls-links-only
+  - id: resource_demand.deploy-safe-report-urls.codex
+    task_ref:
+      kind: task
+      id: task.self.deploy-safe-report-urls
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    resource_class: ai_agent
+    role: codex
+    unit: agent_hours
+    planned_amount: 0.35
+    remaining_amount: 0
+    criticality: required
+    status: active
+  - id: resource_demand.deploy-safe-report-urls.maintainer
+    task_ref:
+      kind: task
+      id: task.self.deploy-safe-report-urls
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    resource_class: human
+    role: maintainer
+    unit: hours
+    planned_amount: 0.1
+    remaining_amount: 0.1
+    criticality: required
+    status: active

@@ -619,3 +619,46 @@ evidence:
     targets:
       - kind: task
         id: task.self.safe-report-urls
+  - id: evidence.self.accept-safe-report-urls
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-24T14:32:05+07:00"
+    confidence: observed
+    summary: 'The maintainer accepted the report link hardening and confirmed the five-minute CI overrun. Review time was not supplied. CI measured from GitHub Actions runs 45344975699: 15 billable minutes.'
+    targets:
+      - kind: task
+        id: task.self.safe-report-urls
+  - id: evidence.self.start-deploy-safe-report-urls
+    type: agent_observation
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-24T14:36:08+07:00"
+    summary: The maintainer authorized deployment of the verified report-link update in a guarded code-only rollout.
+    targets:
+      - kind: task
+        id: task.self.deploy-safe-report-urls
+  - id: evidence.self.deploy-safe-report-urls-ready
+    type: agent_observation
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-24T14:47:40+07:00"
+    summary: Deployed the verified code-only OpenProject overlay update. Backup was checked, only the three Rails services changed, project overlay loaded all 326 links, three plugin routes were registered, and the post-switch source comparison had zero title, status and date drift. Preflight probe mismatches were corrected after healthy rollbacks.
+    targets:
+      - kind: task
+        id: task.self.deploy-safe-report-urls
+  - id: evidence.self.start-readers-fail-closed-on-pending-commit
+    type: agent_observation
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-24T14:49:17+07:00"
+    summary: The maintainer approved starting the pending-commit reader guard after the verified OpenProject overlay deployment. Implementation is delegated to the designated Codex execution profile.
+    targets:
+      - kind: task
+        id: task.self.readers-fail-closed-on-pending-commit

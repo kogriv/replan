@@ -1961,3 +1961,9 @@ openproject_private_bindings:
         object_type: work_package
         object_id: "2249"
         url: https://op.example.internal/work_packages/2249
+    - replan_task_id: task.self.deploy-safe-report-urls
+      source_ref:
+        source: openproject
+        object_type: work_package
+        object_id: "2426"
+        url: https://op.example.internal/work_packages/2426
