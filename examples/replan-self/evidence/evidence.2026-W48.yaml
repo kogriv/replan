@@ -418,3 +418,40 @@ evidence:
     targets:
       - kind: task
         id: task.self.rebase-urls-links-only
+  - id: evidence.self.accept-publish-release-v0-5-10
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-24T11:35:44+07:00"
+    confidence: observed
+    summary: 'Maintainer accepted the v0.5.10 release and reported 10 minutes of review. CI measured from GitHub Actions runs 45180218920, 45181575424: 16 billable minutes. Review time stated by actor.human.maintainer: 10 minutes.'
+    targets:
+      - kind: task
+        id: task.self.publish-release-v0-5-10
+  - id: evidence.self.accept-rebase-urls-links-only
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-24T11:39:41+07:00"
+    confidence: observed
+    summary: 'Maintainer accepted the links-only rebase and approved delivering it in the next release together with nearby audit fixes. Review time was not supplied. CI measured from GitHub Actions runs 45196303280: 14 billable minutes.'
+    targets:
+      - kind: task
+        id: task.self.rebase-urls-links-only
+  - id: evidence.self.start-binding-file-lock
+    type: decision
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.ai.codex.local
+    observed_at: "2026-11-24T04:33:44.963Z"
+    summary: The maintainer authorized continuing the already planned binding-file concurrency fix in the Codex session.
+    targets:
+      - kind: task
+        id: task.self.binding-file-lock

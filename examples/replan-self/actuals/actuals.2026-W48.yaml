@@ -549,3 +549,69 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.rebase-urls-links-only
+  - id: actual.self-publish-release-v0-5-10.ci-github-actions.20261124T1135440700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-5-10
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.publish-release-v0-5-10.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 16
+    unit: ci_minutes
+    measurement: measured
+    occurred_at: "2026-11-24T11:35:44+07:00"
+    status_date: "2026-11-24"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-publish-release-v0-5-10
+  - id: actual.self-publish-release-v0-5-10.human-maintainer.20261124T1135440700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.publish-release-v0-5-10
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.publish-release-v0-5-10.maintainer
+    resource_ref:
+      kind: resource
+      id: resource.human.maintainer
+    amount: 0.17
+    unit: hours
+    measurement: stated
+    occurred_at: "2026-11-24T11:35:44+07:00"
+    status_date: "2026-11-24"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-publish-release-v0-5-10
+  - id: actual.self-rebase-urls-links-only.ci-github-actions.20261124T1139410700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.rebase-urls-links-only
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.rebase-urls-links-only.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 14
+    unit: ci_minutes
+    measurement: measured
+    occurred_at: "2026-11-24T11:39:41+07:00"
+    status_date: "2026-11-24"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-rebase-urls-links-only

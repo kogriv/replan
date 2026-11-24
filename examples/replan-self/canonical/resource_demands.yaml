@@ -19958,7 +19958,7 @@ resource_demands:
     planned_amount: 0.5
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.publish-release-v0-5-10.maintainer
     task_ref:
       kind: task
@@ -19970,9 +19970,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.publish-release-v0-5-10.local-dev
     task_ref:
       kind: task
@@ -19984,9 +19984,9 @@ resource_demands:
     role: development_environment
     unit: concurrent_slots
     planned_amount: 1
-    remaining_amount: 1
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.publish-release-v0-5-10.ci
     task_ref:
       kind: task
@@ -19998,9 +19998,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 30
-    remaining_amount: 30
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.rebase-urls-links-only.codex
     task_ref:
       kind: task
@@ -20014,7 +20014,7 @@ resource_demands:
     planned_amount: 0.3
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.rebase-urls-links-only.agent
     task_ref:
       kind: task
@@ -20028,7 +20028,7 @@ resource_demands:
     planned_amount: 0.1
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.rebase-urls-links-only.maintainer
     task_ref:
       kind: task
@@ -20040,9 +20040,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.15
-    remaining_amount: 0.15
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.rebase-urls-links-only.local-dev
     task_ref:
       kind: task
@@ -20056,7 +20056,7 @@ resource_demands:
     planned_amount: 1
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.rebase-urls-links-only.ci
     task_ref:
       kind: task
@@ -20068,6 +20068,6 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
