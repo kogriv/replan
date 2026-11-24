@@ -9001,21 +9001,21 @@
           "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding M7/F-09. Read-only commands do not roll a pending commit journal forward and only warn interrupted_commit_pending; a commit cut after its first file made workload report an overload that existed in neither state, with exit 0 and ok true. Make read commands that produce plan numbers (workload, report, next, tracking, estimate and export) either read the journal's target state without writing or refuse with a clear error and the recovery command, decide which, document it, and test a cut commit followed by each read command; record the recovery itself in the audit log."
         },
         "status": {
-          "name": "Developed"
+          "name": "Closed"
         },
         "assignee": {
           "name": "RePlan maintainer"
         },
         "estimatedTime": "PT0.25H",
         "spentTime": "PT0H",
-        "startDate": "2026-11-26",
-        "dueDate": "2026-11-26",
+        "startDate": "2026-11-24",
+        "dueDate": "2026-11-24",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2411"
           },
           "status": {
-            "title": "Developed"
+            "title": "Closed"
           },
           "assignee": {
             "href": "/api/v3/users/101",

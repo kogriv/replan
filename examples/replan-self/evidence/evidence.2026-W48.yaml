@@ -682,3 +682,28 @@ evidence:
     targets:
       - kind: task
         id: task.self.readers-fail-closed-on-pending-commit
+  - id: evidence.self.ack-readers-fail-closed-pde-overrun
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-24T15:14:53+07:00"
+    summary: 'The maintainer accepted the pending-commit reader guard and explicitly acknowledged the measured delegated executor overrun: 809.108 seconds versus 9 planned minutes. No maintainer review duration was stated.'
+    targets:
+      - kind: task
+        id: task.self.readers-fail-closed-on-pending-commit
+  - id: evidence.self.accept-readers-fail-closed-on-pending-commit
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-24T15:18:33+07:00"
+    confidence: observed
+    summary: 'The maintainer accepted the pending-commit reader guard and confirmed the delegated executor overrun separately. No maintainer review duration was stated. The final CI run passed all four jobs. CI measured from GitHub Actions runs 45354025951: 13 billable minutes.'
+    targets:
+      - kind: task
+        id: task.self.readers-fail-closed-on-pending-commit
