@@ -455,3 +455,14 @@ evidence:
     targets:
       - kind: task
         id: task.self.binding-file-lock
+  - id: evidence.self.binding-file-lock
+    type: command_result
+    source: local
+    actor_ref:
+      kind: actor
+      id: actor.ai.codex.local
+    observed_at: "2026-11-24T11:50:21+07:00"
+    summary: Commit 6862f17 serializes binding writes using a sidecar lock and merges remote results with a freshly loaded document. Two independent writer processes preserve both records, a stale task change is refused, and relation apply preserves a binding added during its remote read. Go tests, targeted helper tests and full MVP smoke with 58 agent-kit checks passed on Linux. The Codex session measurement is 0.28 agent hours for the observed task window.
+    targets:
+      - kind: task
+        id: task.self.binding-file-lock
