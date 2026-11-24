@@ -1,6 +1,8 @@
 package app
 
 import (
+	"net/url"
+	"path"
 	"regexp"
 	"strings"
 
@@ -24,18 +26,38 @@ func reportOpenProjectBase(ws domain.Workspace) string {
 	return ""
 }
 
-func reportSourceURL(ref domain.SourceRef, openProjectBase string) string {
+func reportSourceURL(ref domain.SourceRef, ws domain.Workspace) string {
 	if ref.Source != "openproject" {
 		return displayurl.Normalize(ref.URL)
 	}
 	if ref.ObjectType != "work_package" || !workPackageID.MatchString(ref.ObjectID) {
 		return ""
 	}
-	base := displayurl.Normalize(openProjectBase)
+	route := "/work_packages/" + ref.ObjectID
+	// The binding layer replaces all canonical OpenProject task references.
+	if ws.OpenProjectBindingsLoaded {
+		if target := openProjectTaskDisplayURL(ref.URL, route); target != "" {
+			return target
+		}
+	}
+	base := displayurl.Normalize(reportOpenProjectBase(ws))
 	if base == "" || strings.ContainsAny(base, "?#") {
 		return ""
 	}
-	return displayurl.NormalizeWorkPackage(strings.TrimRight(base, "/") + "/work_packages/" + ref.ObjectID)
+	return openProjectTaskDisplayURL(strings.TrimRight(base, "/")+route, route)
+}
+
+func openProjectTaskDisplayURL(raw, route string) string {
+	target := displayurl.NormalizeWorkPackage(raw)
+	parsed, err := url.Parse(target)
+	if err != nil || !strings.HasSuffix(strings.TrimSuffix(parsed.EscapedPath(), "/"), route) {
+		return ""
+	}
+	// Check the decoded path as well so escaped segments cannot hide an API route.
+	if strings.Contains(path.Clean(parsed.Path), "/api/v3/work_packages/") {
+		return ""
+	}
+	return target
 }
 
 func (v *workspaceValidator) sourceRefURLs(kind, id string, refs ...domain.SourceRef) {

@@ -1728,6 +1728,7 @@ func unsupportedProjectFormatDiagnostic(found string, badValue bool) *app.Diagno
 }
 
 func applyOpenProjectBindings(ws *domain.Workspace, document *openProjectBindingsDoc, diags *[]app.Diagnostic) {
+	ws.OpenProjectBindingsLoaded = true
 	ws.OpenProjectBindingBaseURL = document.Root.Project.BaseURL
 	bindings := make(map[string]domain.SourceRef, len(document.Root.Tasks))
 	for _, binding := range document.Root.Tasks {

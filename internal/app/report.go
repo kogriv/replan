@@ -793,7 +793,6 @@ func isoWeekString(date string) string {
 }
 
 func dashboardSourceHealth(ws domain.Workspace) reports.DashboardSourceHealth {
-	openProjectBase := reportOpenProjectBase(ws)
 	health := reports.DashboardSourceHealth{
 		Profiles:   []reports.DashboardSourceProfile{},
 		SourceRefs: len(ws.Project.SourceRefs),
@@ -816,7 +815,7 @@ func dashboardSourceHealth(ws domain.Workspace) reports.DashboardSourceHealth {
 					Source:         sourceRef.Source,
 					ObjectType:     sourceRef.ObjectType,
 					SourceID:       sourceRef.ObjectID,
-					SourceURL:      reportSourceURL(sourceRef, openProjectBase),
+					SourceURL:      reportSourceURL(sourceRef, ws),
 					TrackingStatus: task.TrackingStatus,
 				})
 			}
@@ -1036,7 +1035,6 @@ func dashboardGanttView(ws domain.Workspace, overview reports.DashboardOverview,
 			warningsByTaskID[taskID] = append(warningsByTaskID[taskID], "dependency_"+dependency.Status)
 		}
 	}
-	openProjectBase := reportOpenProjectBase(ws)
 	openProposalByTaskID := map[string]bool{}
 	for _, proposal := range proposals {
 		if proposal.Status == "open" && proposal.TargetID != "" {
@@ -1055,7 +1053,7 @@ func dashboardGanttView(ws domain.Workspace, overview reports.DashboardOverview,
 		start, startErr := time.Parse("2006-01-02", task.PlannedStart)
 		finish, finishErr := time.Parse("2006-01-02", task.PlannedFinish)
 		if startErr != nil || finishErr != nil {
-			view.Unscheduled = append(view.Unscheduled, dashboardGanttTask(task, openProjectBase, demandsByID, overloadedResources, warningsByTaskID, dependencyCountByTaskID, openDependencyCountByTaskID, openProposalByTaskID))
+			view.Unscheduled = append(view.Unscheduled, dashboardGanttTask(task, ws, demandsByID, overloadedResources, warningsByTaskID, dependencyCountByTaskID, openDependencyCountByTaskID, openProposalByTaskID))
 			continue
 		}
 		if finish.Before(start) {
@@ -1084,7 +1082,7 @@ func dashboardGanttView(ws domain.Workspace, overview reports.DashboardOverview,
 		return dated[i].start.Before(dated[j].start)
 	})
 	for _, item := range dated {
-		row := dashboardGanttTask(item.task, openProjectBase, demandsByID, overloadedResources, warningsByTaskID, dependencyCountByTaskID, openDependencyCountByTaskID, openProposalByTaskID)
+		row := dashboardGanttTask(item.task, ws, demandsByID, overloadedResources, warningsByTaskID, dependencyCountByTaskID, openDependencyCountByTaskID, openProposalByTaskID)
 		row.StartOffsetDays = int(item.start.Sub(minStart).Hours() / 24)
 		row.DurationDays = int(item.finish.Sub(item.start).Hours()/24) + 1
 		if row.DurationDays < 1 {
@@ -1111,7 +1109,7 @@ func dashboardGanttView(ws domain.Workspace, overview reports.DashboardOverview,
 
 func dashboardGanttTask(
 	task domain.Task,
-	openProjectBase string,
+	ws domain.Workspace,
 	demandsByID map[string]domain.ResourceDemand,
 	overloadedResources map[string]bool,
 	warningsByTaskID map[string][]string,
@@ -1159,7 +1157,7 @@ func dashboardGanttTask(
 		HasOpenProposal:       openProposalByTaskID[task.ID],
 		Source:                source.Source,
 		SourceID:              source.ObjectID,
-		SourceURL:             reportSourceURL(source, openProjectBase),
+		SourceURL:             reportSourceURL(source, ws),
 	}
 }
 

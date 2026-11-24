@@ -25,7 +25,7 @@ func TestReportSourceURLs(t *testing.T) {
 		task := domain.Task{ID: "task.link", SourceRefs: []domain.SourceRef{ref}}
 		ws.Tasks = []domain.Task{task}
 		health := dashboardSourceHealth(ws)
-		ganttTask := dashboardGanttTask(task, reportOpenProjectBase(ws), nil, nil, nil, nil, nil, nil)
+		ganttTask := dashboardGanttTask(task, ws, nil, nil, nil, nil, nil, nil)
 		openProject := dashboardOpenProject(health, reports.DashboardGanttView{})
 		overlay := dashboardOpenProjectOverlay(ws, reports.DashboardOverview{OpenProject: openProject}, true)
 		if health.LinkedTasks[0].SourceURL != tc.want || ganttTask.SourceURL != tc.want ||
@@ -37,13 +37,14 @@ func TestReportSourceURLs(t *testing.T) {
 			t.Error("report modified source evidence")
 		}
 	}
-	ref := domain.SourceRef{Source: "openproject", ObjectType: "work_package", ObjectID: "42"}
+	ref := domain.SourceRef{Source: "openproject", ObjectType: "work_package", ObjectID: "42", URL: "https://evidence.example.test/work_packages/42"}
 	ws.OpenProjectBindingBaseURL = ""
-	if got := reportSourceURL(ref, reportOpenProjectBase(ws)); got != "https://public.example.test/pm/work_packages/42" {
+	if got := reportSourceURL(ref, ws); got != "https://public.example.test/pm/work_packages/42" {
 		t.Errorf("profile display URL = %q", got)
 	}
 	for _, base := range []string{"", "//example.test", "https://user@example.test", "https://example.test/pm?x=1"} {
-		if got := reportSourceURL(ref, base); got != "" {
+		ws.Project.SourceProfiles[0].BaseURL = base
+		if got := reportSourceURL(ref, ws); got != "" {
 			t.Errorf("display URL from unsupported base %q = %q", base, got)
 		}
 	}

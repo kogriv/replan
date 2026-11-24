@@ -643,8 +643,13 @@ checks the same rule before rendering links from older or external artifacts.
 For OpenProject work packages, RePlan appends `/work_packages/<id>` to the
 configured installation base, including any deployment subpath. The bindings
 document's `project.base_url` takes precedence over the workspace's OpenProject
-source profile when present. A positive decimal work-package ID and a valid
-base without a query or fragment are required to produce a display URL.
+source profile when present. With a loaded private binding layer, an explicit
+task URL takes precedence when it is a valid HTTP(S) UI route for the bound
+positive decimal ID. This preserves the display host and subpath after
+`work-package rebase-urls --keep-base-url`, including when the bindings omit
+`project.base_url`. API links, invalid URLs and mismatched IDs fall back to
+the configured base and bound ID. That base must have no query or fragment.
+Canonical source refs always use the configured profile base for UI links.
 Import snapshots and stored source refs can retain the original API self link
 as evidence. Legacy API self links in the overlay display as text. Validation
 reports `invalid_source_ref_url` as a warning for unsupported URLs on project,

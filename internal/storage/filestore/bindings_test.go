@@ -3,6 +3,7 @@ package filestore
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -50,6 +51,50 @@ func TestOpenProjectBindingsDisplayBase(t *testing.T) {
 	}
 	if workspace.OpenProjectBindingBaseURL != base {
 		t.Fatalf("binding display base = %q, want %q", workspace.OpenProjectBindingBaseURL, base)
+	}
+}
+
+func TestOpenProjectBindingsReportDisplayURL(t *testing.T) {
+	project := copyProjectFixture(t)
+	const bindingBase = "https://api.example.test/pm"
+	const displayURL = "https://display.example.test/rebased/work_packages/42"
+	for _, tc := range []struct{ name, base, raw, want string }{
+		{"separate display host", bindingBase, "  HTTPS://display.example.test/rebased/work_packages/42  ", displayURL},
+		{"omitted base", "", displayURL, displayURL},
+		{"relative API link", bindingBase, "/pm/api/v3/work_packages/42", bindingBase + "/work_packages/42"},
+		{"absolute API link", bindingBase, "https://display.example.test/pm/api/v3/work_packages/42", bindingBase + "/work_packages/42"},
+		{"mismatched ID", bindingBase, "https://display.example.test/rebased/work_packages/43", bindingBase + "/work_packages/42"},
+		{"invalid host without binding base", "", "https://bad..test/work_packages/42", "https://pm.example.test/work_packages/42"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			document := "openproject_private_bindings:\n"
+			if tc.base != "" {
+				document += "  project:\n    base_url: " + tc.base + "\n"
+			}
+			document += fmt.Sprintf(`  tasks:
+    - replan_task_id: task.op.1234
+      source_ref:
+        object_id: "42"
+        url: %q
+`, tc.raw)
+			bindings := filepath.Join(t.TempDir(), "bindings.yaml")
+			if err := os.WriteFile(bindings, []byte(document), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			store := NewWithOpenProjectBindings(project, bindings)
+			ws, diagnostics := store.Load(context.Background())
+			if len(diagnostics) != 0 || !ws.OpenProjectBindingsLoaded {
+				t.Fatalf("binding provenance missing, diagnostics = %#v", diagnostics)
+			}
+			report, err := app.NewReportService(store).Dashboard(context.Background(), app.DashboardReportRequest{Week: "2026-W30"})
+			if err != nil {
+				t.Fatal(err)
+			}
+			rows := report.OpenProjectOverlay.WorkPackages
+			if len(rows) != 1 || rows[0].WorkPackageID != "42" || rows[0].WorkPackageURL != tc.want {
+				t.Fatalf("overlay work packages = %#v, want one row for 42 with URL %q", rows, tc.want)
+			}
+		})
 	}
 }
 
