@@ -707,6 +707,31 @@ func TestEstimatePriorCalibrationCLIFlagsAndText(t *testing.T) {
 func TestNextIncludesPlannedForPeopleInTextAndJSON(t *testing.T) {
 	projectPath := copyCmdProjectFixture(t)
 	stdout, stderr := tempOutputFiles(t)
+	if code := run([]string{"next", "--project", projectPath, "--week", "2026-W28", "--format", "json"}, stdout, stderr); code != exitSuccess {
+		t.Fatalf("next undated exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
+	}
+	var undated cliTestEnvelope
+	if err := json.Unmarshal([]byte(readFileString(t, stdout.Name())), &undated); err != nil {
+		t.Fatal(err)
+	}
+	if planned, ok := resultObject(t, undated)["planned_for_people"].([]any); !ok || len(planned) != 0 {
+		t.Fatalf("undated fixture should have an empty planned_for_people array: %s", undated.Result)
+	}
+
+	tasksPath := filepath.Join(projectPath, "canonical", "tasks.yaml")
+	tasks := readFileString(t, tasksPath)
+	for _, taskID := range []string{"task.offline.repair-pump", "task.op.1234"} {
+		line := "  - id: " + taskID + "\n"
+		if !strings.Contains(tasks, line) {
+			t.Fatalf("missing fixture task %s", taskID)
+		}
+		tasks = strings.Replace(tasks, line, line+"    planned_start: \"2026-07-06\"\n    planned_finish: \"2026-07-10\"\n", 1)
+	}
+	if err := os.WriteFile(tasksPath, []byte(tasks), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	stdout, stderr = tempOutputFiles(t)
 	if code := run([]string{"next", "--project", projectPath, "--week", "2026-W28", "--format", "text"}, stdout, stderr); code != exitSuccess {
 		t.Fatalf("next text exit=%d stdout=%s stderr=%s", code, readFileString(t, stdout.Name()), readFileString(t, stderr.Name()))
 	}
