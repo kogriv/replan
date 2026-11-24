@@ -8885,7 +8885,7 @@
           "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding M2/F-03. scripts/lib/openproject_bindings.py reads, changes and atomically replaces the binding file without an inter-process lock; two concurrent writers both exit 0 and one binding is lost (three runs out of three), and apply_openproject_relations.py keeps the document from start-up until after all HTTP calls. Take an exclusive lock around every read-modify-write (fcntl on POSIX, msvcrt or LockFileEx on Windows, through platform_compat), re-read under the lock before changing, make the relations helper apply its changes to a fresh read under the lock, and add a two-process race test that keeps both bindings."
         },
         "status": {
-          "name": "New"
+          "name": "Closed"
         },
         "assignee": {
           "name": "RePlan maintainer"
@@ -8899,7 +8899,7 @@
             "href": "/api/v3/work_packages/2407"
           },
           "status": {
-            "title": "New"
+            "title": "Closed"
           },
           "assignee": {
             "href": "/api/v3/users/101",
@@ -8914,21 +8914,21 @@
           "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Findings F-07, F-08, M1b-g, new findings 2-4, the TaskJuggler comment newline and the baseline id. validate stays ok for capacity -10, NaN or Inf (NaN crashes workload --format json), unsupported periods (period day counts as a week), bad window times, unknown weekday names, bad exception dates and types, an unknown or empty project time zone, reversed task dates and preferred windows, a malformed preferred_start that makes a demand undated, an unparsable actual date that intersects every week, an unknown Timing.Spread value, ISO week 53 in a 52-week year, ids with newlines (which inject a task into the TaskJuggler export) and baseline ids that are not a safe path segment (dry run shows a path the apply refuses). Add the diagnostics to validation and the matching refusals to the commands, never produce a number from unsupported semantics, distinguish explicit zero capacity from missing capacity, keep error versus warning in line with the specs, and add table tests for every case."
         },
         "status": {
-          "name": "New"
+          "name": "Developed"
         },
         "assignee": {
           "name": "RePlan maintainer"
         },
         "estimatedTime": "PT0.5H",
         "spentTime": "PT0H",
-        "startDate": "2026-11-25",
-        "dueDate": "2026-11-25",
+        "startDate": "2026-11-24",
+        "dueDate": "2026-11-24",
         "_links": {
           "self": {
             "href": "/api/v3/work_packages/2408"
           },
           "status": {
-            "title": "New"
+            "title": "Developed"
           },
           "assignee": {
             "href": "/api/v3/users/101",

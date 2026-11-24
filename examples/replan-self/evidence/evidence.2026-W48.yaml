@@ -489,3 +489,13 @@ evidence:
     targets:
       - kind: task
         id: task.self.strict-plan-validation
+  - id: evidence.self.strict-plan-validation-checked
+    type: agent_observation
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-24T12:30:51+07:00"
+    summary: Strict planning validation, computation and export refusals, table tests and CLI refusal tests passed. Full go test, go vet, MVP smoke including the agent kit, and Windows cross-build passed. The sanitized OpenProject dates match the canonical change.
+    targets:
+      - kind: task
+        id: task.self.strict-plan-validation

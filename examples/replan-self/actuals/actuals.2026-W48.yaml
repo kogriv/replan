@@ -659,3 +659,25 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-binding-file-lock
+  - id: actual.self-strict-plan-validation.ai-codex-local.20261124T1230510700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.strict-plan-validation
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.strict-plan-validation.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.41
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-24T12:30:51+07:00"
+    status_date: "2026-11-24"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.strict-plan-validation-checked
