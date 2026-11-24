@@ -512,3 +512,35 @@ evidence:
     targets:
       - kind: task
         id: task.self.strict-plan-validation
+  - id: evidence.self.start-undated-demand-and-unknown-remaining
+    type: agent_observation
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-24T12:45:05+07:00"
+    summary: The maintainer authorized work on unscheduled demand and unknown remaining. Implementation is delegated to the configured Codex executor on an isolated checkout.
+    targets:
+      - kind: task
+        id: task.self.undated-demand-and-unknown-remaining
+  - id: evidence.self.strict-plan-validation-ci-recheck
+    type: agent_observation
+    subtype: ci_measurement
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-24T12:48:01+07:00"
+    summary: GitHub Actions run 45334968024 passed all four jobs and used 14 billable minutes. The initial run used 15 minutes; the total is 29 against 15 planned. The second run overrun is not yet acknowledged.
+    targets:
+      - kind: task
+        id: task.self.strict-plan-validation
+  - id: evidence.self.blocked-undated-demand-and-unknown-remaining
+    type: agent_observation
+    subtype: implementation_blocker
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-24T12:48:41+07:00"
+    summary: The configured executor failed to initialize the model workspace on two attempts. Both ended with workspace routing discovery failed before implementation. No source changes were produced. Resume when the approved executor is available.
+    targets:
+      - kind: task
+        id: task.self.undated-demand-and-unknown-remaining
