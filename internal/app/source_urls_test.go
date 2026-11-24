@@ -80,7 +80,10 @@ func TestSourceRefURLWarnings(t *testing.T) {
 		},
 		Resources:    []domain.Resource{{ID: "resource.bad", SourceRefs: []domain.SourceRef{bad}}},
 		Dependencies: []domain.Dependency{{ID: "dependency.bad", SourceRefs: []domain.SourceRef{bad}}},
-		Evidence:     []domain.Evidence{{ID: "evidence.bad", SourceRef: bad}},
+		Evidence: []domain.Evidence{
+			{ID: "evidence.bad", SourceRef: bad},
+			{ID: "evidence.time-entry", SourceRef: domain.SourceRef{Source: "openproject", ObjectType: "time_entry", ObjectID: "77", URL: "/api/v3/time_entries/77"}},
+		},
 	}
 	var result ValidateResult
 	validateWorkspace(&result, ws)

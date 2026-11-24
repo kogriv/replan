@@ -75,8 +75,10 @@ func openProjectRelativeEvidence(ref domain.SourceRef) bool {
 	}
 	var collection string
 	switch ref.ObjectType {
-	case "work_package", "relation", "user", "time_entry", "project":
+	case "work_package", "relation", "user", "project":
 		collection = ref.ObjectType + "s"
+	case "time_entry":
+		collection = "time_entries"
 	default:
 		return false
 	}
