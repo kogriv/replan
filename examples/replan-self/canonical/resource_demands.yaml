@@ -18879,6 +18879,17 @@ resource_demands:
     remaining_amount: 0
     criticality: required
     status: consumed
+    overrun_review:
+      acknowledged_forecast: 29
+      unit: ci_minutes
+      reason: 'The maintainer confirmed the 14 billable minute overrun: 29 measured against 15 planned.'
+      reviewed_by:
+        kind: actor
+        id: actor.human.maintainer
+      reviewed_at: "2026-11-24T12:52:50+07:00"
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.strict-plan-validation-ci-recheck
   - id: resource_demand.undated-demand-and-unknown-remaining.codex
     task_ref:
       kind: task
