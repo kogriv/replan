@@ -8914,7 +8914,7 @@
           "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Findings F-07, F-08, M1b-g, new findings 2-4, the TaskJuggler comment newline and the baseline id. validate stays ok for capacity -10, NaN or Inf (NaN crashes workload --format json), unsupported periods (period day counts as a week), bad window times, unknown weekday names, bad exception dates and types, an unknown or empty project time zone, reversed task dates and preferred windows, a malformed preferred_start that makes a demand undated, an unparsable actual date that intersects every week, an unknown Timing.Spread value, ISO week 53 in a 52-week year, ids with newlines (which inject a task into the TaskJuggler export) and baseline ids that are not a safe path segment (dry run shows a path the apply refuses). Add the diagnostics to validation and the matching refusals to the commands, never produce a number from unsupported semantics, distinguish explicit zero capacity from missing capacity, keep error versus warning in line with the specs, and add table tests for every case."
         },
         "status": {
-          "name": "Developed"
+          "name": "Closed"
         },
         "assignee": {
           "name": "RePlan maintainer"
@@ -8928,7 +8928,7 @@
             "href": "/api/v3/work_packages/2408"
           },
           "status": {
-            "title": "Developed"
+            "title": "Closed"
           },
           "assignee": {
             "href": "/api/v3/users/101",

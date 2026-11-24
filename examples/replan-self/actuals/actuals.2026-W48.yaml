@@ -681,3 +681,25 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.strict-plan-validation-checked
+  - id: actual.self-strict-plan-validation.ci-github-actions.20261124T1236560700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.strict-plan-validation
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.strict-plan-validation.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 15
+    unit: ci_minutes
+    measurement: measured
+    occurred_at: "2026-11-24T12:36:56+07:00"
+    status_date: "2026-11-24"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-strict-plan-validation
