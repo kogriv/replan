@@ -725,3 +725,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.strict-plan-validation-ci-recheck
+  - id: actual.self-undated-demand-and-unknown-remaining.ai-agent-executor.20261124T1306470700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.undated-demand-and-unknown-remaining
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.undated-demand-and-unknown-remaining.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.15
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-24T13:06:47+07:00"
+    status_date: "2026-11-24"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.undated-and-unknown-executor-result
+  - id: actual.self-undated-demand-and-unknown-remaining.ai-codex-local.20261124T1317360700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.undated-demand-and-unknown-remaining
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.undated-demand-and-unknown-remaining.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.38
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-24T13:17:36+07:00"
+    status_date: "2026-11-24"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.undated-and-unknown-ready

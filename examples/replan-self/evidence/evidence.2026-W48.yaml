@@ -544,3 +544,34 @@ evidence:
     targets:
       - kind: task
         id: task.self.undated-demand-and-unknown-remaining
+  - id: evidence.self.resume-undated-demand-and-unknown-remaining
+    type: agent_observation
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-24T12:54:40+07:00"
+    summary: The approved executor reached the model on retry and began the isolated implementation.
+    targets:
+      - kind: task
+        id: task.self.undated-demand-and-unknown-remaining
+  - id: evidence.self.undated-and-unknown-executor-result
+    type: agent_observation
+    subtype: measured_executor_time
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-24T13:06:47+07:00"
+    summary: The delegated executor completed three successful work turns and delivered an implementation with rendering and test follow-ups. Active turn windows from the session log sum to 549 seconds (0.15 agent hours), excluding failed initialization and idle time between turns.
+    targets:
+      - kind: task
+        id: task.self.undated-demand-and-unknown-remaining
+  - id: evidence.self.undated-and-unknown-ready
+    type: agent_observation
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-24T13:17:36+07:00"
+    summary: The delegated implementation passed go test ./..., the CI-pinned linter, and the final MVP smoke including 399 Python tests and 58 agent-kit checks. CLI comparisons verified two weekly windows, whole-plan totals, availability scenarios, and unknown remaining in JSON, HTML and both CSV summaries.
+    targets:
+      - kind: task
+        id: task.self.undated-demand-and-unknown-remaining
