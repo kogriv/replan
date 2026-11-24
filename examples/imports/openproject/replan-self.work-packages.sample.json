@@ -8972,7 +8972,7 @@
           "raw": "Found in the review of the 2026-11-23 audits (docs/audit/replan-audit-review-2026-11-23.md). Finding M6/F-01 and new finding 8. Dashboard and Gantt put SourceRef URLs into href after HTML escaping only, so javascript: and data: URLs become active links; validation does not check SourceRef URLs; the overlay plugin prints them with h(); the OpenProject link is the API self.href (/api/v3/work_packages/<id>) rather than the work package page. Add one URL check for all report output (absolute http or https only, otherwise plain text), validate SourceRef URLs with a warning, apply the same rule in the overlay builder and plugin templates, build the OpenProject link from the base URL and the work package id, and add golden or unit tests with javascript:, data:, mixed case and whitespace forms."
         },
         "status": {
-          "name": "New"
+          "name": "Developed"
         },
         "assignee": {
           "name": "RePlan maintainer"
@@ -8986,7 +8986,7 @@
             "href": "/api/v3/work_packages/2410"
           },
           "status": {
-            "title": "New"
+            "title": "Developed"
           },
           "assignee": {
             "href": "/api/v3/users/101",

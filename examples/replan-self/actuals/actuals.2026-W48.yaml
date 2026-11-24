@@ -791,3 +791,47 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.accept-undated-demand-and-unknown-remaining
+  - id: actual.self-safe-report-urls.ai-agent-executor.20261124T1350170700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.safe-report-urls
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.safe-report-urls.agent
+    resource_ref:
+      kind: resource
+      id: resource.ai.agent.executor
+    amount: 0.17
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-24T13:50:17+07:00"
+    status_date: "2026-11-24"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.safe-report-urls-executor
+  - id: actual.self-safe-report-urls.ai-codex-local.20261124T1402060700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.safe-report-urls
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.safe-report-urls.codex
+    resource_ref:
+      kind: resource
+      id: resource.ai.codex.local
+    amount: 0.43
+    unit: agent_hours
+    measurement: measured
+    occurred_at: "2026-11-24T14:02:06+07:00"
+    status_date: "2026-11-24"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.safe-report-urls-ready

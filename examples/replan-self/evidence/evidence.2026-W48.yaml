@@ -588,3 +588,34 @@ evidence:
     targets:
       - kind: task
         id: task.self.undated-demand-and-unknown-remaining
+  - id: evidence.self.start-safe-report-urls
+    type: agent_observation
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-24T13:36:20+07:00"
+    summary: The maintainer authorized the approved report link hardening task and delegated implementation to the configured executor in an isolated checkout.
+    targets:
+      - kind: task
+        id: task.self.safe-report-urls
+  - id: evidence.self.safe-report-urls-executor
+    type: agent_observation
+    subtype: measured_executor_time
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-24T13:50:17+07:00"
+    summary: The delegated executor completed the report-link hardening and its compatibility follow-ups. Measured active turn windows total 629 seconds, rounded to 0.17 agent hours, excluding idle time between turns.
+    targets:
+      - kind: task
+        id: task.self.safe-report-urls
+  - id: evidence.self.safe-report-urls-ready
+    type: agent_observation
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-24T14:02:06+07:00"
+    summary: The delegated report URL hardening passed Go tests, pinned lint, Ruby tests, the MVP smoke, and the disposable OpenProject runtime with 167 rendered-page checks and 108 live agent-kit checks. A rebased fixture preserved its configured display host and subpath without changing its connection base. All 325 links built with the current private bindings point to work-package cards. The live plugin image was not deployed.
+    targets:
+      - kind: task
+        id: task.self.safe-report-urls
