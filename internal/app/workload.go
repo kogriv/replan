@@ -107,6 +107,7 @@ func (s WorkloadService) Calculate(ctx context.Context, req WorkloadRequest) (Wo
 	state.addCapacities()
 	state.addActuals()
 	state.addDemands()
+	state.addSharedCapacityWarnings()
 	state.finishRows()
 	return result, nil
 }
@@ -123,6 +124,7 @@ type workloadCalculation struct {
 	monthlyCapacity        map[string]bool
 	actualDemandIDs        map[string]bool
 	rows                   map[string]*ResourceWorkload
+	sharedTargets          map[string]bool
 	concurrent             map[string][]concurrentUse
 	rawConcurrent          map[string][]concurrentUse
 	calibrations           map[string]DemandCalibration
@@ -308,6 +310,7 @@ func (c *workloadCalculation) addActuals() {
 }
 
 func (c *workloadCalculation) addDemands() {
+	c.sharedTargets = c.filteredSharedTargets()
 	for _, demand := range c.workspace.ResourceDemands {
 		c.addDemand(demand)
 	}
@@ -329,14 +332,18 @@ func (c *workloadCalculation) addDemand(demand domain.ResourceDemand) {
 		c.result.Warnings = append(c.result.Warnings, Diagnostic{Code: "unresolved_resource", Message: fmt.Sprintf("resource demand %s has no concrete resource or pool target", demand.ID), Severity: "warning", Target: Target{Kind: "resource_demand", ID: demand.ID}})
 		return
 	}
-	if c.req.ResourceID != "" && targetID != c.req.ResourceID {
-		return
-	}
-	row := c.rowFor(targetID, demand.Unit)
-	if (c.req.ResourceClass != "" && row.ResourceClass != c.req.ResourceClass) || (c.req.Unit != "" && row.Unit != c.req.Unit) {
+	if c.req.Unit != "" && demand.Unit != c.req.Unit {
 		return
 	}
 	key := targetID + "\x00" + demand.Unit
+	if c.req.ResourceID != "" && targetID != c.req.ResourceID && !c.sharedTargets[key] {
+		return
+	}
+	row := c.rowFor(targetID, demand.Unit)
+	visible := c.showsRow(row)
+	if !visible && !c.sharedTargets[key] {
+		return
+	}
 	loadScale := 1.0
 	if !domain.DemandAddsLevelledLoad(demand) {
 		loadScale = 0
@@ -347,7 +354,7 @@ func (c *workloadCalculation) addDemand(demand domain.ResourceDemand) {
 	}
 	share := 1.0
 	spread, unavailableFallback := spreadDaysWithFallback(span, c.days[targetID])
-	if span.dated && unavailableFallback {
+	if visible && span.dated && unavailableFallback {
 		c.result.Warnings = append(c.result.Warnings, Diagnostic{
 			Code:     "demand_window_unavailable",
 			Message:  fmt.Sprintf("resource demand %s falls entirely on days removed by availability exceptions; its load is retained on the regular working days", demand.ID),
@@ -369,7 +376,7 @@ func (c *workloadCalculation) addDemand(demand domain.ResourceDemand) {
 	concurrent := isConcurrentResourceUnit(c.workspace.Capacities, targetID, demand.Unit)
 	unknown := demandRemainingUnknown(demand)
 	target := Target{Kind: "resource_demand", ID: demand.ID}
-	if !span.dated {
+	if visible && !span.dated {
 		scale := loadScale
 		if !demand.IsLevelled() {
 			scale = lifecycleScale
@@ -379,7 +386,7 @@ func (c *workloadCalculation) addDemand(demand domain.ResourceDemand) {
 			c.result.Warnings = append(c.result.Warnings, Diagnostic{Code: "unscheduled_required_demand", Severity: "warning", Target: target, Message: "required demand has no scheduled date range"})
 		}
 	}
-	if unknown && demand.Criticality != "optional" {
+	if visible && unknown && demand.Criticality != "optional" {
 		message := "remaining amount unknown; remaining totals show only known amounts"
 		if c.hasWeekFilter && !span.dated {
 			message = "remaining amount unknown in unscheduled work"
@@ -411,7 +418,7 @@ func (c *workloadCalculation) addDemand(demand domain.ResourceDemand) {
 		if !c.actualDemandIDs[demand.ID] {
 			row.Actual += demand.ActualAmount
 		}
-		if c.req.WithDemands {
+		if visible && c.req.WithDemands {
 			demandScale := loadScale
 			if !demand.IsLevelled() {
 				demandScale = lifecycleScale
@@ -420,7 +427,7 @@ func (c *workloadCalculation) addDemand(demand domain.ResourceDemand) {
 		}
 		return
 	}
-	if c.req.WithDemands {
+	if visible && c.req.WithDemands {
 		demandScale := share * loadScale
 		if !demand.IsLevelled() {
 			demandScale = share * lifecycleScale
@@ -437,10 +444,27 @@ func (c *workloadCalculation) addDemand(demand domain.ResourceDemand) {
 	row.Remaining += remaining * share * loadScale
 }
 
+func (c *workloadCalculation) showsRow(row *ResourceWorkload) bool {
+	return (c.req.ResourceID == "" || row.ResourceID == c.req.ResourceID) &&
+		(c.req.ResourceClass == "" || row.ResourceClass == c.req.ResourceClass) &&
+		(c.req.Unit == "" || row.Unit == c.req.Unit)
+}
+
+// workloadRowLoad uses the same rounded amounts for row overload and shared capacity.
+func workloadRowLoad(row *ResourceWorkload) float64 {
+	if row == nil {
+		return 0
+	}
+	if reserved := roundDashboardFloat(row.Reserved); reserved != 0 {
+		return reserved
+	}
+	return roundDashboardFloat(row.Remaining)
+}
+
 func (c *workloadCalculation) finishRows() {
 	for _, row := range c.rows {
 		key := row.ResourceID + "\x00" + row.Unit
-		if (c.req.ResourceClass != "" && row.ResourceClass != c.req.ResourceClass) || (c.req.Unit != "" && row.Unit != c.req.Unit) {
+		if !c.showsRow(row) {
 			continue
 		}
 		if row.monthlyCapacity {
@@ -448,6 +472,7 @@ func (c *workloadCalculation) finishRows() {
 		} else if !row.capacityKnown && (row.Planned > 0 || row.Remaining > 0 || row.Reserved > 0) {
 			c.result.Warnings = append(c.result.Warnings, Diagnostic{Code: "missing_capacity", Message: fmt.Sprintf("no capacity found for %s in unit %s", row.ResourceID, row.Unit), Severity: "warning", Target: Target{Kind: "resource", ID: row.ResourceID}})
 		}
+		load := workloadRowLoad(row)
 		row.Planned, row.Reserved = roundDashboardFloat(row.Planned), roundDashboardFloat(row.Reserved)
 		row.Actual, row.Remaining = roundDashboardFloat(row.Actual), roundDashboardFloat(row.Remaining)
 		row.UnlevelledPlanned = roundDashboardFloat(row.UnlevelledPlanned)
@@ -460,10 +485,6 @@ func (c *workloadCalculation) finishRows() {
 		}
 		sort.Slice(row.Unscheduled, func(i, j int) bool { return row.Unscheduled[i].ResourceDemandID < row.Unscheduled[j].ResourceDemandID })
 		sort.Slice(row.Demands, func(i, j int) bool { return row.Demands[i].ResourceDemandID < row.Demands[j].ResourceDemandID })
-		load := row.Reserved
-		if load == 0 {
-			load = row.Remaining
-		}
 		if row.capacityKnown && load > row.Capacity {
 			row.Overload = load - row.Capacity
 		}
@@ -475,11 +496,14 @@ func (c *workloadCalculation) finishRows() {
 		}
 		return c.result.Resources[i].ResourceID < c.result.Resources[j].ResourceID
 	})
-	sort.Slice(c.result.Warnings, func(i, j int) bool {
-		if c.result.Warnings[i].Code == c.result.Warnings[j].Code {
-			return c.result.Warnings[i].Target.ID < c.result.Warnings[j].Target.ID
+	// Shared capacity warnings are appended in unit order. Preserve that
+	// order when different units have the same target.
+	sort.SliceStable(c.result.Warnings, func(i, j int) bool {
+		a, b := c.result.Warnings[i], c.result.Warnings[j]
+		if a.Code == b.Code {
+			return a.Target.ID < b.Target.ID
 		}
-		return c.result.Warnings[i].Code < c.result.Warnings[j].Code
+		return a.Code < b.Code
 	})
 }
 

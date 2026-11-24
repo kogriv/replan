@@ -559,6 +559,45 @@ capacity unknown
 
 and emit a warning for required demand.
 
+### Shared pool capacity
+
+A pool row is a capacity view. Direct demands on its members and demands on
+other pools may compete for the same supply. Workload reports this as a
+`shared_capacity_overload` warning when the pooled load cannot fit. Row capacity
+and row overload retain their existing calculations.
+
+The check uses each row's rounded reserved load when nonzero, otherwise its
+rounded remaining load. It uses the selected scenario and calibrated or raw
+view. Weekly workload uses the week's spread and effective supply, with
+unscheduled demand excluded. Whole-plan workload retains its existing
+whole-plan totals and status-date capacity comparison, including undated work.
+Terminal and unlevelled demand contribute no load. The check uses known load
+subtotals and may miss shortages where remaining amounts are unknown.
+
+For each unit, RePlan subtracts direct load from each eligible member's capacity
+and floors the result at zero. It counts each member once, even when several
+pools reference that member or a reference is repeated. A maximum-flow check
+tests whether the pooled load can fit into those residual capacities using
+only each pool's eligible members. A deficient subset can have a shortfall
+even when overlapping pools and members have enough capacity in aggregate.
+
+The warning's `shared_capacity` object contains sorted `pool_ids` and
+`member_ids`, the `unit`, pooled `demand`, members' residual
+`usable_capacity`, and `shortfall` equal to demand minus usable capacity.
+Separate deficient groups produce separate warnings. A filtered view includes
+a warning when an affected pool or member matches the filters, and competing
+loads are included in the check even when their rows are hidden.
+
+The check requires concrete members with known, comparable capacity. An
+explicit zero is known, while missing or monthly-only weekly supply is unknown.
+A pool with any unknown member, unresolved membership, or positive capacity
+defined directly on the pool is omitted. Other pools with known member supply
+can still prove a shortfall. Without a week, a pool's members must have
+capacity in the same period, and mixed periods within a member are skipped.
+The check skips concurrent and instant capacity because aggregate peaks cannot
+be added across rows. It tests aggregate feasibility only. It creates no
+member assignments, schedules, or plan changes.
+
 ## Underuse
 
 Underuse means available capacity exceeds planned or reserved load.
