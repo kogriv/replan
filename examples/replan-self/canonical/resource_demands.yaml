@@ -19157,7 +19157,7 @@ resource_demands:
     planned_amount: 0.5
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.scenario-status-gate.agent
     task_ref:
       kind: task
@@ -19171,7 +19171,18 @@ resource_demands:
     planned_amount: 0.15
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
+    overrun_review:
+      acknowledged_forecast: 0.2
+      unit: agent_hours
+      reason: The maintainer confirmed the delegated executor overrun after reviewing the measured session time.
+      reviewed_by:
+        kind: actor
+        id: actor.human.maintainer
+      reviewed_at: "2026-11-24T17:26:51+07:00"
+      evidence_refs:
+        - kind: evidence
+          id: evidence.self.ack-scenario-status-gate-pde-overrun
   - id: resource_demand.scenario-status-gate.maintainer
     task_ref:
       kind: task
@@ -19183,9 +19194,9 @@ resource_demands:
     role: maintainer
     unit: hours
     planned_amount: 0.25
-    remaining_amount: 0.25
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.scenario-status-gate.local-dev
     task_ref:
       kind: task
@@ -19199,7 +19210,7 @@ resource_demands:
     planned_amount: 1
     remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.scenario-status-gate.ci
     task_ref:
       kind: task
@@ -19211,9 +19222,9 @@ resource_demands:
     role: ci_runtime
     unit: ci_minutes
     planned_amount: 10
-    remaining_amount: 10
+    remaining_amount: 0
     criticality: required
-    status: active
+    status: consumed
   - id: resource_demand.pool-member-shared-capacity.codex
     task_ref:
       kind: task

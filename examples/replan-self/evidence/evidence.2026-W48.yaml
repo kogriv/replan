@@ -762,3 +762,38 @@ evidence:
     targets:
       - kind: task
         id: task.self.scenario-status-gate
+  - id: evidence.self.ack-scenario-status-gate-pde-overrun
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-24T17:26:51+07:00"
+    summary: 'The maintainer accepted the scenario approval gate and confirmed the measured delegated executor overrun: 723.030 seconds versus 9 planned minutes.'
+    targets:
+      - kind: task
+        id: task.self.scenario-status-gate
+  - id: evidence.self.accept-scenario-status-gate
+    type: decision
+    subtype: operator_acceptance
+    source: chat
+    actor_ref:
+      kind: actor
+      id: actor.human.maintainer
+    observed_at: "2026-11-24T17:26:51+07:00"
+    confidence: observed
+    summary: 'The maintainer accepted the scenario approval gate and confirmed the delegated executor overrun separately. No maintainer review duration was stated. The final CI run passed all four jobs. CI measured from GitHub Actions runs 45358790586: 14 billable minutes.'
+    targets:
+      - kind: task
+        id: task.self.scenario-status-gate
+  - id: evidence.self.start-pool-member-shared-capacity
+    type: agent_observation
+    actor_ref:
+      kind: actor
+      id: actor.ai.agent.executor
+    observed_at: "2026-11-24T17:29:22+07:00"
+    summary: The maintainer approved starting the shared-capacity workload diagnostic. Implementation is delegated to the designated Codex execution profile.
+    targets:
+      - kind: task
+        id: task.self.pool-member-shared-capacity

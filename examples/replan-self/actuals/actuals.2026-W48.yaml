@@ -989,3 +989,25 @@ actuals:
     evidence_refs:
       - kind: evidence
         id: evidence.self.scenario-status-gate-ready
+  - id: actual.self-scenario-status-gate.ci-github-actions.20261124T1726510700.work-consumed
+    type: work_consumed
+    task_ref:
+      kind: task
+      id: task.self.scenario-status-gate
+    demand_ref:
+      kind: resource_demand
+      id: resource_demand.scenario-status-gate.ci
+    resource_ref:
+      kind: resource
+      id: resource.ci.github-actions
+    amount: 14
+    unit: ci_minutes
+    measurement: measured
+    occurred_at: "2026-11-24T17:26:51+07:00"
+    status_date: "2026-11-24"
+    accepted_by:
+      kind: actor
+      id: actor.ai.agent.executor
+    evidence_refs:
+      - kind: evidence
+        id: evidence.self.accept-scenario-status-gate
