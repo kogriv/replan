@@ -182,7 +182,7 @@ func approveCmdScenario(t *testing.T, project string) {
 func TestScenarioLifecycleStatuses(t *testing.T) {
 	for _, status := range []string{"draft", "calculated", "proposed", "accepted", "rejected", "applied", "archived", "reviewed", "unknown"} {
 		t.Run(status, func(t *testing.T) {
-			project := copyCmdProjectFixture(t)
+			project := copyPlanningFixtureWithoutLock(t)
 			const id = "scenario.task-op-1234-remaining-5"
 			path := filepath.Join(project, "scenarios", id+".yaml")
 			original := readFileString(t, path)
@@ -210,17 +210,30 @@ func TestScenarioLifecycleStatuses(t *testing.T) {
 				}
 			}
 			applyDiagnostic := "scenario_not_accepted"
-			if status == "accepted" {
+			switch status {
+			case "accepted":
 				applyDiagnostic = ""
-			} else if status == "applied" {
+			case "applied":
 				applyDiagnostic = "scenario_already_applied"
 			}
 			call("apply", "--dry-run", applyDiagnostic)
+			if !reflect.DeepEqual(before, snapshotProjectFiles(t, project)) {
+				t.Fatal("application preview changed project files")
+			}
+
+			// A real write attempt can create the lock even when the service
+			// refuses the transition. Include it in the baseline for write checks.
+			lock, err := acquireProjectWriteLock(project, time.Second)
+			if err != nil || lock == nil {
+				t.Fatalf("initialize project lock: %v", err)
+			}
+			lock.close()
+			before = snapshotProjectFiles(t, project)
 			if applyDiagnostic != "" {
 				call("apply", "--apply", applyDiagnostic)
-			}
-			if !reflect.DeepEqual(before, snapshotProjectFiles(t, project)) {
-				t.Fatal("application preview or refusal changed project files")
+				if !reflect.DeepEqual(before, snapshotProjectFiles(t, project)) {
+					t.Fatal("refused application changed project files")
+				}
 			}
 
 			switch status {
@@ -249,6 +262,9 @@ func TestScenarioLifecycleStatuses(t *testing.T) {
 				}
 			default:
 				call("accept", "--dry-run", "scenario_invalid_accept_status")
+				if !reflect.DeepEqual(before, snapshotProjectFiles(t, project)) {
+					t.Fatal("refused approval preview changed project files")
+				}
 				call("accept", "--apply", "scenario_invalid_accept_status")
 				if !reflect.DeepEqual(before, snapshotProjectFiles(t, project)) {
 					t.Fatal("refused approval changed project files")
